@@ -3025,26 +3025,49 @@ function registerSettings() {
 function addFrameHelmControlButton(controls) {
   if (!game.settings.get(MODULE_ID, "enabled")) return;
 
-  const tokenControls = controls.find(
-    control => control.name === "token"
-  );
+  /*
+   * Foundry v13 supplies Scene Controls as a keyed record.
+   * Older Foundry versions supplied an array. Support both.
+   */
+  const tokenControls = Array.isArray(controls)
+    ? controls.find(control => control.name === "token")
+    : controls?.tokens ?? controls?.token ?? null;
 
-  if (!tokenControls) return;
+  if (!tokenControls) {
+    console.warn(
+      `${MODULE_TITLE} | Token scene controls could not be located.`,
+      controls
+    );
+    return;
+  }
 
-  const alreadyExists = tokenControls.tools.some(
-    tool => tool.name === "lancer-frame-helm"
-  );
-
-  if (alreadyExists) return;
-
-  tokenControls.tools.push({
+  const tool = {
     name: "lancer-frame-helm",
     title: MODULE_TITLE,
-    icon: "fas fa-helmet-battle",
+    icon: "fas fa-robot",
     button: true,
     visible: true,
     onClick: openFrameHelm
-  });
+  };
+
+  if (Array.isArray(tokenControls.tools)) {
+    const alreadyExists = tokenControls.tools.some(
+      existingTool =>
+        existingTool.name === "lancer-frame-helm"
+    );
+
+    if (!alreadyExists) {
+      tokenControls.tools.push(tool);
+    }
+
+    return;
+  }
+
+  tokenControls.tools ??= {};
+
+  if (!tokenControls.tools["lancer-frame-helm"]) {
+    tokenControls.tools["lancer-frame-helm"] = tool;
+  }
 }
 
 /* ==========================================================

@@ -837,3 +837,599 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================
+   Frame Helm cockpit HUD visual system
+   ========================================================== */
+
+.lancer-frame-helm {
+  --fh-bg-deep: #071116;
+  --fh-bg-panel: rgba(11, 28, 35, 0.96);
+  --fh-bg-panel-alt: rgba(16, 39, 47, 0.94);
+  --fh-cyan: #56e0df;
+  --fh-cyan-bright: #b7ffff;
+  --fh-cyan-muted: rgba(86, 224, 223, 0.34);
+  --fh-amber: #ffb84a;
+  --fh-amber-muted: rgba(255, 184, 74, 0.28);
+  --fh-red: #ff5d67;
+  --fh-text: #e8f8f8;
+  --fh-text-muted: #94b9bc;
+  --fh-line: rgba(104, 231, 228, 0.34);
+  --fh-shadow: 0 0 18px rgba(38, 227, 221, 0.18);
+  color: var(--fh-text);
+  border: 1px solid var(--fh-cyan-muted);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.8),
+    0 0 24px rgba(30, 220, 218, 0.2),
+    0 14px 40px rgba(0, 0, 0, 0.7);
+}
+
+.lancer-frame-helm .window-header {
+  height: 34px;
+  border-bottom: 1px solid var(--fh-cyan);
+  background:
+    linear-gradient(90deg, #07151a, #0d2931 58%, #07151a);
+  color: var(--fh-cyan-bright);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  box-shadow: 0 2px 12px rgba(65, 226, 223, 0.18);
+}
+
+.lancer-frame-helm .window-header .window-title {
+  font-family: monospace;
+  font-size: 0.83rem;
+  font-weight: 700;
+}
+
+.lancer-frame-helm .window-header a {
+  color: var(--fh-text-muted);
+  text-shadow: none;
+}
+
+.lancer-frame-helm .window-header a:hover {
+  color: var(--fh-cyan-bright);
+  text-shadow: 0 0 8px var(--fh-cyan);
+}
+
+.lancer-frame-helm .window-header .frame-helm-minimize {
+  order: 98;
+}
+
+.lancer-frame-helm .window-header .close {
+  order: 99;
+}
+
+.lancer-frame-helm .window-content {
+  position: relative;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.018) 0,
+      rgba(255, 255, 255, 0.018) 1px,
+      transparent 1px,
+      transparent 4px
+    ),
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(42, 161, 166, 0.16),
+      transparent 42%
+    ),
+    var(--fh-bg-deep);
+  color: var(--fh-text);
+}
+
+.lancer-frame-helm .window-content::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border: 1px solid rgba(89, 233, 228, 0.15);
+  pointer-events: none;
+  content: "";
+}
+
+.frame-helm-shell {
+  position: relative;
+  z-index: 1;
+  gap: 0.75rem;
+  padding: 0.85rem;
+}
+
+.frame-helm-header {
+  position: relative;
+  min-height: 62px;
+  border: 1px solid var(--fh-line);
+  border-left: 4px solid var(--fh-cyan);
+  background:
+    linear-gradient(110deg, rgba(41, 111, 120, 0.25), transparent 65%),
+    var(--fh-bg-panel);
+  box-shadow: var(--fh-shadow);
+  padding: 0.65rem 0.75rem;
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%);
+}
+
+.frame-helm-header::after {
+  position: absolute;
+  right: 10px;
+  bottom: 7px;
+  width: 58px;
+  height: 3px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--fh-amber) 0,
+    var(--fh-amber) 5px,
+    transparent 5px,
+    transparent 9px
+  );
+  content: "";
+  opacity: 0.8;
+}
+
+.frame-helm-header h2 {
+  color: var(--fh-cyan-bright);
+  font-family: monospace;
+  font-size: 1.25rem;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 8px rgba(86, 224, 223, 0.45);
+}
+
+.frame-helm-eyebrow {
+  color: var(--fh-amber);
+  font-family: monospace;
+  opacity: 1;
+}
+
+.frame-helm-window-hint {
+  border-color: var(--fh-cyan-muted);
+  color: var(--fh-cyan);
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.frame-helm-unit-panel,
+.frame-helm-budget,
+.frame-helm-action-panel,
+.frame-helm-plan-panel,
+.frame-helm-movement-speed-setup,
+.frame-helm-movement-tracker,
+.frame-helm-movement-modes,
+.frame-helm-quick-detail,
+.frame-helm-full-detail {
+  border: 1px solid var(--fh-line);
+  background:
+    linear-gradient(135deg, rgba(48, 144, 151, 0.08), transparent 44%),
+    var(--fh-bg-panel);
+  box-shadow:
+    inset 0 0 16px rgba(0, 0, 0, 0.45),
+    0 0 12px rgba(47, 213, 211, 0.07);
+  border-radius: 0;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+}
+
+.frame-helm-unit-image {
+  border: 2px solid var(--fh-cyan);
+  border-radius: 0;
+  background: #020708;
+  box-shadow: 0 0 10px rgba(79, 237, 231, 0.36);
+  clip-path: polygon(12% 0, 88% 0, 100% 12%, 100% 88%, 88% 100%, 12% 100%, 0 88%, 0 12%);
+}
+
+.frame-helm-label,
+.frame-helm-budget-item span,
+.frame-helm-quick-budget span,
+.frame-helm-full-budget span,
+.frame-helm-movement-summary span,
+.frame-helm-movement-current-mode span {
+  color: var(--fh-text-muted);
+  font-family: monospace;
+}
+
+.frame-helm-unit-text strong,
+.frame-helm-budget-item strong,
+.frame-helm-quick-budget strong,
+.frame-helm-full-budget strong,
+.frame-helm-movement-summary strong,
+.frame-helm-movement-current-mode strong {
+  color: var(--fh-cyan-bright);
+  font-family: monospace;
+}
+
+.frame-helm-budget-grid {
+  gap: 0.4rem;
+}
+
+.frame-helm-budget-item,
+.frame-helm-quick-budget > div,
+.frame-helm-full-budget > div,
+.frame-helm-movement-summary > div,
+.frame-helm-movement-current-mode {
+  border: 1px solid var(--fh-cyan-muted);
+  background:
+    linear-gradient(90deg, rgba(38, 126, 132, 0.16), transparent),
+    rgba(2, 11, 14, 0.7);
+  border-radius: 0;
+}
+
+.frame-helm-budget-item:nth-child(3) {
+  border-color: var(--fh-amber-muted);
+}
+
+.frame-helm-budget-item:nth-child(3) strong {
+  color: var(--fh-amber);
+}
+
+.frame-helm-primary-button,
+.frame-helm-secondary-button,
+.frame-helm-end-turn-button,
+.frame-helm-category-button,
+.frame-helm-action-button,
+.frame-helm-movement-mode,
+.frame-helm-quick-execute-button,
+.frame-helm-full-execute-button,
+.frame-helm-back-button,
+.frame-helm-movement-input-row button,
+.frame-helm-movement-controls button {
+  border: 1px solid var(--fh-cyan-muted);
+  border-radius: 0;
+  background:
+    linear-gradient(90deg, rgba(38, 125, 132, 0.17), transparent),
+    rgba(4, 17, 21, 0.94);
+  color: var(--fh-text);
+  box-shadow: inset 3px 0 0 rgba(86, 224, 223, 0.26);
+  font-family: inherit;
+}
+
+.frame-helm-category-button:hover,
+.frame-helm-action-button:hover,
+.frame-helm-movement-mode:hover,
+.frame-helm-quick-execute-button:hover,
+.frame-helm-full-execute-button:hover,
+.frame-helm-primary-button:hover,
+.frame-helm-secondary-button:hover {
+  border-color: var(--fh-cyan);
+  background:
+    linear-gradient(90deg, rgba(62, 209, 209, 0.23), transparent),
+    rgba(7, 28, 34, 0.98);
+  color: var(--fh-cyan-bright);
+  box-shadow:
+    inset 4px 0 0 var(--fh-cyan),
+    0 0 12px rgba(60, 228, 224, 0.16);
+}
+
+.frame-helm-end-turn-button {
+  border-color: rgba(255, 93, 103, 0.52);
+  color: #ffd9dc;
+  box-shadow: inset 3px 0 0 var(--fh-red);
+}
+
+.frame-helm-end-turn-button:hover {
+  border-color: var(--fh-red);
+  color: #ffffff;
+  box-shadow:
+    inset 4px 0 0 var(--fh-red),
+    0 0 12px rgba(255, 93, 103, 0.22);
+}
+
+.frame-helm-category-button > i:first-child,
+.frame-helm-action-button > i:first-child,
+.frame-helm-movement-mode > i,
+.frame-helm-quick-detail-header > i,
+.frame-helm-full-detail-header > i {
+  color: var(--fh-cyan);
+  text-shadow: 0 0 7px rgba(86, 224, 223, 0.5);
+}
+
+.frame-helm-category-copy strong,
+.frame-helm-action-copy strong,
+.frame-helm-movement-mode strong,
+.frame-helm-quick-detail-header h3,
+.frame-helm-full-detail-header h3 {
+  color: var(--fh-text);
+  font-family: monospace;
+  letter-spacing: 0.025em;
+}
+
+.frame-helm-category-copy small,
+.frame-helm-action-copy small,
+.frame-helm-movement-mode small,
+.frame-helm-quick-detail-header p,
+.frame-helm-full-detail-header p,
+.frame-helm-quick-placeholder-note,
+.frame-helm-full-placeholder-note,
+.frame-helm-movement-note {
+  color: var(--fh-text-muted);
+  opacity: 1;
+}
+
+.frame-helm-section-heading {
+  border-color: var(--fh-cyan-muted);
+  color: var(--fh-cyan);
+  font-family: monospace;
+  text-shadow: 0 0 6px rgba(86, 224, 223, 0.35);
+}
+
+.frame-helm-category-arrow {
+  color: var(--fh-amber);
+}
+
+.frame-helm-action-button:disabled,
+.frame-helm-movement-mode:disabled,
+.frame-helm-quick-execute-button:disabled,
+.frame-helm-full-execute-button:disabled {
+  filter: grayscale(0.65);
+  opacity: 0.38;
+}
+
+.frame-helm-movement-mode-selected {
+  outline: 1px solid var(--fh-amber);
+  background:
+    linear-gradient(90deg, rgba(255, 184, 74, 0.18), transparent),
+    rgba(24, 22, 12, 0.95);
+  color: #fff2d2;
+  box-shadow:
+    inset 4px 0 0 var(--fh-amber),
+    0 0 12px rgba(255, 184, 74, 0.18);
+}
+
+.frame-helm-movement-input-row input {
+  border: 1px solid var(--fh-cyan-muted);
+  border-radius: 0;
+  background: #02090c;
+  color: var(--fh-cyan-bright);
+  font-family: monospace;
+}
+
+.frame-helm-plan-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.frame-helm-plan-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--fh-cyan-muted);
+  background:
+    linear-gradient(90deg, rgba(62, 190, 190, 0.14), transparent),
+    rgba(3, 14, 18, 0.78);
+  padding: 0.55rem 0.7rem;
+}
+
+.frame-helm-plan-header > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.frame-helm-plan-header span {
+  color: var(--fh-cyan);
+  font-family: monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.frame-helm-plan-header small {
+  margin-top: 0.08rem;
+  color: var(--fh-text-muted);
+  font-size: 0.68rem;
+}
+
+.frame-helm-plan-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 1.6rem;
+  border: 1px solid var(--fh-amber);
+  color: var(--fh-amber) !important;
+  background: rgba(255, 184, 74, 0.08);
+  box-shadow: 0 0 8px rgba(255, 184, 74, 0.14);
+}
+
+.frame-helm-plan-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.frame-helm-plan-entry {
+  display: grid;
+  grid-template-columns: 2rem 1.6rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.8rem;
+  border-bottom: 1px solid rgba(86, 224, 223, 0.13);
+  padding: 0.4rem 0.65rem;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.frame-helm-plan-entry:last-child {
+  border-bottom: 0;
+}
+
+.frame-helm-plan-entry:hover {
+  background: rgba(65, 202, 202, 0.08);
+}
+
+.frame-helm-plan-index {
+  color: var(--fh-amber);
+  font-family: monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+
+.frame-helm-plan-entry > i {
+  color: var(--fh-cyan);
+  text-align: center;
+  text-shadow: 0 0 6px rgba(86, 224, 223, 0.42);
+}
+
+.frame-helm-plan-overcharge > i,
+.frame-helm-plan-overcharge .frame-helm-plan-index {
+  color: var(--fh-amber);
+}
+
+.frame-helm-plan-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.frame-helm-plan-copy strong {
+  overflow: hidden;
+  color: var(--fh-text);
+  font-family: monospace;
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.frame-helm-plan-copy small {
+  margin-top: 0.05rem;
+  color: var(--fh-text-muted);
+  font-size: 0.68rem;
+}
+
+.frame-helm-plan-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  min-height: 3.1rem;
+  padding: 0.55rem;
+  color: var(--fh-text-muted);
+  font-size: 0.74rem;
+  font-style: italic;
+}
+
+.frame-helm-plan-empty i {
+  color: var(--fh-cyan-muted);
+}
+
+.frame-helm-quick-requirement,
+.frame-helm-full-requirement,
+.frame-helm-no-actions {
+  border-color: var(--fh-cyan-muted);
+  border-radius: 0;
+  background: rgba(2, 12, 15, 0.68);
+  color: var(--fh-text-muted);
+}
+
+.frame-helm-overcharge-execute:not(:disabled) {
+  border-color: var(--fh-amber);
+  outline: none;
+  color: #ffe5b5;
+  box-shadow:
+    inset 4px 0 0 var(--fh-amber),
+    0 0 12px rgba(255, 184, 74, 0.16);
+}
+
+.lancer-frame-helm .window-resizable-handle {
+  border-color: transparent var(--fh-cyan) var(--fh-cyan) transparent;
+  color: var(--fh-cyan);
+}
+
+.lancer-frame-helm.minimized {
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.8),
+    0 0 18px rgba(30, 220, 218, 0.24);
+}
+
+/* ==========================================================
+   Landscape cockpit layout
+   ========================================================== */
+
+.lancer-frame-helm {
+  min-width: 680px;
+  min-height: 330px;
+}
+
+.frame-helm-shell {
+  height: 100%;
+  min-height: 0;
+}
+
+.frame-helm-horizontal-layout {
+  display: grid;
+  grid-template-columns: minmax(285px, 0.82fr) minmax(390px, 1.45fr);
+  gap: 0.75rem;
+  min-height: 0;
+  flex: 1;
+}
+
+.frame-helm-overview-column,
+.frame-helm-action-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+  min-height: 0;
+}
+
+.frame-helm-overview-column {
+  overflow: hidden auto;
+  padding-right: 0.15rem;
+}
+
+.frame-helm-action-column {
+  overflow: hidden auto;
+  border-left: 1px solid var(--fh-cyan-muted, rgba(86, 224, 223, 0.34));
+  padding-left: 0.75rem;
+}
+
+.frame-helm-action-column > .frame-helm-action-panel {
+  flex: 1;
+  min-height: 0;
+}
+
+.frame-helm-action-column .frame-helm-category-list,
+.frame-helm-action-column .frame-helm-action-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+}
+
+.frame-helm-action-column .frame-helm-quick-detail,
+.frame-helm-action-column .frame-helm-full-detail,
+.frame-helm-action-column .frame-helm-movement-modes,
+.frame-helm-action-column .frame-helm-movement-tracker,
+.frame-helm-action-column .frame-helm-movement-speed-setup {
+  width: 100%;
+}
+
+.frame-helm-plan-list {
+  max-height: 170px;
+  overflow-y: auto;
+}
+
+@media (max-width: 820px) {
+  .lancer-frame-helm {
+    min-width: 360px;
+  }
+
+  .frame-helm-horizontal-layout {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .frame-helm-overview-column,
+  .frame-helm-action-column {
+    overflow: visible;
+  }
+
+  .frame-helm-action-column {
+    border-left: 0;
+    border-top: 1px solid var(--fh-cyan-muted, rgba(86, 224, 223, 0.34));
+    padding-top: 0.75rem;
+    padding-left: 0;
+  }
+
+  .frame-helm-action-column .frame-helm-category-list,
+  .frame-helm-action-column .frame-helm-action-list {
+    display: flex;
+    flex-direction: column;
+  }
+}
