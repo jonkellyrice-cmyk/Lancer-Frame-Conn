@@ -1433,3 +1433,197 @@
     flex-direction: column;
   }
 }
+
+/* ==========================================================
+   Scroll and committed-plan corrections
+   ========================================================== */
+
+/*
+ * Panels containing independently scrolling content cannot use
+ * clip-path safely: the mask clips cards and text at the lower edge.
+ */
+.frame-helm-action-panel,
+.frame-helm-plan-panel {
+  clip-path: none;
+}
+
+/* Keep the two landscape columns constrained to the window. */
+.frame-helm-horizontal-layout {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.frame-helm-overview-column,
+.frame-helm-action-column {
+  height: 100%;
+  min-height: 0;
+}
+
+/*
+ * The left side scrolls as one overview, but the committed-plan
+ * contents remain visible and receive a useful minimum height.
+ */
+.frame-helm-overview-column {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 0.4rem;
+  padding-bottom: 1rem;
+  scrollbar-gutter: stable;
+}
+
+.frame-helm-plan-panel {
+  flex: 0 0 auto;
+  min-height: 132px;
+  max-height: 230px;
+  overflow: hidden;
+}
+
+.frame-helm-plan-header {
+  flex: 0 0 auto;
+}
+
+.frame-helm-plan-header-icon {
+  color: var(--fh-amber);
+  font-size: 1rem;
+  text-shadow: 0 0 7px rgba(255, 184, 74, 0.38);
+}
+
+.frame-helm-plan-list {
+  flex: 1 1 auto;
+  min-height: 72px;
+  max-height: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 0.45rem;
+  scrollbar-gutter: stable;
+}
+
+.frame-helm-plan-entry {
+  flex: 0 0 auto;
+}
+
+.frame-helm-plan-empty {
+  min-height: 72px;
+}
+
+/*
+ * The right action area owns its scroll region. This prevents the
+ * final row of buttons from being trapped below the visible panel.
+ */
+.frame-helm-action-column {
+  overflow: hidden;
+  padding-bottom: 0;
+}
+
+.frame-helm-action-column > .frame-helm-action-panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  padding-bottom: 0;
+}
+
+.frame-helm-action-column .frame-helm-section-heading,
+.frame-helm-action-column .frame-helm-quick-budget,
+.frame-helm-action-column .frame-helm-full-budget {
+  flex: 0 0 auto;
+}
+
+.frame-helm-action-column .frame-helm-category-list,
+.frame-helm-action-column .frame-helm-action-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 0.45rem;
+  padding-bottom: 2.5rem;
+  scrollbar-gutter: stable;
+}
+
+/* Detail and movement screens also need independent vertical travel. */
+.frame-helm-action-column .frame-helm-quick-detail,
+.frame-helm-action-column .frame-helm-full-detail,
+.frame-helm-action-column .frame-helm-movement-modes,
+.frame-helm-action-column .frame-helm-movement-tracker,
+.frame-helm-action-column .frame-helm-movement-speed-setup {
+  flex: 0 0 auto;
+}
+
+.frame-helm-action-column .frame-helm-quick-detail,
+.frame-helm-action-column .frame-helm-full-detail {
+  max-height: calc(100% - 92px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 2rem;
+  scrollbar-gutter: stable;
+}
+
+/* Give all internal scroll regions a cockpit-style scrollbar. */
+.frame-helm-overview-column,
+.frame-helm-plan-list,
+.frame-helm-action-column .frame-helm-category-list,
+.frame-helm-action-column .frame-helm-action-list,
+.frame-helm-action-column .frame-helm-quick-detail,
+.frame-helm-action-column .frame-helm-full-detail {
+  scrollbar-width: thin;
+  scrollbar-color: var(--fh-cyan) rgba(2, 11, 14, 0.72);
+}
+
+.frame-helm-overview-column::-webkit-scrollbar,
+.frame-helm-plan-list::-webkit-scrollbar,
+.frame-helm-action-column .frame-helm-category-list::-webkit-scrollbar,
+.frame-helm-action-column .frame-helm-action-list::-webkit-scrollbar,
+.frame-helm-action-column .frame-helm-quick-detail::-webkit-scrollbar,
+.frame-helm-action-column .frame-helm-full-detail::-webkit-scrollbar {
+  width: 9px;
+}
+
+.frame-helm-overview-column::-webkit-scrollbar-track,
+.frame-helm-plan-list::-webkit-scrollbar-track,
+.frame-helm-action-column .frame-helm-category-list::-webkit-scrollbar-track,
+.frame-helm-action-column .frame-helm-action-list::-webkit-scrollbar-track,
+.frame-helm-action-column .frame-helm-quick-detail::-webkit-scrollbar-track,
+.frame-helm-action-column .frame-helm-full-detail::-webkit-scrollbar-track {
+  background: rgba(2, 11, 14, 0.72);
+  border-left: 1px solid var(--fh-cyan-muted);
+}
+
+.frame-helm-overview-column::-webkit-scrollbar-thumb,
+.frame-helm-plan-list::-webkit-scrollbar-thumb,
+.frame-helm-action-column .frame-helm-category-list::-webkit-scrollbar-thumb,
+.frame-helm-action-column .frame-helm-action-list::-webkit-scrollbar-thumb,
+.frame-helm-action-column .frame-helm-quick-detail::-webkit-scrollbar-thumb,
+.frame-helm-action-column .frame-helm-full-detail::-webkit-scrollbar-thumb {
+  background: var(--fh-cyan);
+  border: 2px solid rgba(2, 11, 14, 0.88);
+}
+
+@media (max-width: 820px) {
+  .frame-helm-horizontal-layout {
+    height: auto;
+    overflow: visible;
+  }
+
+  .frame-helm-overview-column,
+  .frame-helm-action-column {
+    height: auto;
+    overflow: visible;
+  }
+
+  .frame-helm-action-column > .frame-helm-action-panel,
+  .frame-helm-action-column .frame-helm-category-list,
+  .frame-helm-action-column .frame-helm-action-list,
+  .frame-helm-action-column .frame-helm-quick-detail,
+  .frame-helm-action-column .frame-helm-full-detail {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .frame-helm-plan-panel {
+    max-height: 260px;
+  }
+}
