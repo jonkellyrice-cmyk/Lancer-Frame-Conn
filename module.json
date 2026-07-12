@@ -1,0 +1,40 @@
+{
+  "id": "lancer-frame-helm",
+  "title": "Lancer Frame Helm",
+  "description": "A tactical action-selection HUD for Lancer mech and NPC turns.",
+  "version": "1.0.0",
+
+  "authors": [
+    {
+      "name": "Jon Rice & OpenAI"
+    }
+  ],
+
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13",
+    "maximum": "13"
+  },
+
+  "esmodules": [
+    "scripts/lancer-frame-helm.js"
+  ],
+
+  "styles": [
+    "styles/lancer-frame-helm.css"
+  ],
+
+  "relationships": {
+    "systems": [
+      {
+        "id": "lancer",
+        "type": "system",
+        "compatibility": {}
+      }
+    ]
+  },
+
+  "manifest": "https://raw.githubusercontent.com/jonkellyrice-cmyk/lancer-frame-helm/main/module.json",
+
+  "download": "https://github.com/jonkellyrice-cmyk/lancer-frame-helm/archive/refs/heads/main.zip"
+}
