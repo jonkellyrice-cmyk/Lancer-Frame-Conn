@@ -2514,7 +2514,7 @@ class FrameHelmApplication extends Application {
       : "";
 
     return `
-      <section class="frame-helm-action-panel">
+      <section class="frame-helm-action-panel frame-helm-movement-panel">
         <div class="frame-helm-section-heading frame-helm-section-heading-with-back">
           <button
             type="button"
