@@ -661,6 +661,671 @@ function initializeActionRegistry() {
 }
 
 /* ==========================================================
+   Turn state
+   ========================================================== */
+
+class FrameHelmTurnState {
+  constructor(context = {}) {
+    this.reset(context);
+  }
+
+  reset(context = {}) {
+    this.context = {
+      combatId: context.combatId ?? null,
+      combatantId: context.combatantId ?? null,
+      tokenId: context.tokenId ?? null,
+      actorId: context.actorId ?? null,
+      sceneId: context.sceneId ?? null,
+      round: Number.isFinite(context.round)
+        ? context.round
+        : null,
+      turn: Number.isFinite(context.turn)
+        ? context.turn
+        : null
+    };
+
+    const speed = Number(context.speed);
+
+    this.speed = Number.isFinite(speed) && speed >= 0
+      ? speed
+      : null;
+
+    this.movement = {
+      maximum: this.speed,
+      spent: 0,
+      remaining: this.speed,
+      completed: false
+    };
+
+    this.actionMode = null;
+    this.quickActionsRemaining = 2;
+    this.fullActionAvailable = true;
+
+    this.overcharge = {
+      used: false,
+      quickActionRemaining: 0,
+      heatFormula: null
+    };
+
+    this.protocol = {
+      available: true,
+      used: false,
+      startOfTurnOpen: true
+    };
+
+    this.reaction = {
+      usedThisTurn: false,
+      actionId: null
+    };
+
+    this.usedActions = [];
+    this.usedDuplicateKeys = [];
+    this.history = [];
+    this.ended = false;
+    this.startedAt = Date.now();
+    this.endedAt = null;
+
+    return this;
+  }
+
+  setSpeed(speed) {
+    const numericSpeed = Number(speed);
+
+    if (!Number.isFinite(numericSpeed) || numericSpeed < 0) {
+      throw new TypeError(
+        "Frame Helm speed must be a non-negative number."
+      );
+    }
+
+    const previousMaximum = this.movement.maximum;
+    const previousSpent = this.movement.spent;
+
+    this.speed = numericSpeed;
+    this.movement.maximum = numericSpeed;
+    this.movement.spent = Math.min(
+      previousSpent,
+      numericSpeed
+    );
+    this.movement.remaining = Math.max(
+      0,
+      numericSpeed - this.movement.spent
+    );
+
+    if (previousMaximum === null) {
+      this.recordHistory("set-speed", {
+        speed: numericSpeed
+      });
+    }
+
+    return this.movement.remaining;
+  }
+
+  spendMovement(distance) {
+    this.assertTurnActive();
+
+    const numericDistance = Number(distance);
+
+    if (
+      !Number.isFinite(numericDistance) ||
+      numericDistance < 0
+    ) {
+      throw new TypeError(
+        "Movement distance must be a non-negative number."
+      );
+    }
+
+    if (this.movement.maximum === null) {
+      throw new Error(
+        "Movement speed has not been assigned to this turn."
+      );
+    }
+
+    if (numericDistance > this.movement.remaining) {
+      throw new Error(
+        `Only ${this.movement.remaining} movement remains.`
+      );
+    }
+
+    this.movement.spent += numericDistance;
+    this.movement.remaining -= numericDistance;
+
+    if (this.movement.remaining === 0) {
+      this.movement.completed = true;
+    }
+
+    this.closeProtocolWindow();
+
+    this.recordHistory("spend-movement", {
+      distance: numericDistance
+    });
+
+    return this.movement.remaining;
+  }
+
+  completeMovement() {
+    this.assertTurnActive();
+    this.movement.completed = true;
+
+    this.recordHistory("complete-movement", {
+      remaining: this.movement.remaining
+    });
+  }
+
+  reopenMovement() {
+    this.assertTurnActive();
+    this.movement.completed = false;
+
+    this.recordHistory("reopen-movement", {
+      remaining: this.movement.remaining
+    });
+  }
+
+  closeProtocolWindow() {
+    if (!this.protocol.startOfTurnOpen) return;
+
+    this.protocol.startOfTurnOpen = false;
+
+    if (!this.protocol.used) {
+      this.protocol.available = false;
+    }
+  }
+
+  useProtocol(actionId = null) {
+    this.assertTurnActive();
+
+    if (!this.protocol.startOfTurnOpen) {
+      throw new Error(
+        "Protocols can only be activated at the start of a turn."
+      );
+    }
+
+    if (this.protocol.used) {
+      throw new Error(
+        "A protocol has already been used this turn."
+      );
+    }
+
+    this.protocol.used = true;
+    this.protocol.available = false;
+
+    this.recordHistory("use-protocol", {
+      actionId
+    });
+  }
+
+  overchargeHeatFormula(overchargeCount = 0) {
+    if (overchargeCount <= 0) return "1";
+    if (overchargeCount === 1) return "1d3";
+    if (overchargeCount === 2) return "1d6";
+    return "1d6+4";
+  }
+
+  useOvercharge({ previousOvercharges = 0 } = {}) {
+    this.assertTurnActive();
+
+    if (this.overcharge.used) {
+      throw new Error(
+        "This unit has already Overcharged this turn."
+      );
+    }
+
+    this.overcharge.used = true;
+    this.overcharge.quickActionRemaining = 1;
+    this.overcharge.heatFormula =
+      this.overchargeHeatFormula(previousOvercharges);
+
+    this.closeProtocolWindow();
+
+    this.recordHistory("overcharge", {
+      heatFormula: this.overcharge.heatFormula,
+      previousOvercharges
+    });
+
+    return this.overcharge.heatFormula;
+  }
+
+  actionDuplicateKey(action) {
+    return String(
+      action?.duplicateKey ?? action?.id ?? ""
+    );
+  }
+
+  hasUsedDuplicateKey(duplicateKey) {
+    return this.usedDuplicateKeys.includes(
+      String(duplicateKey)
+    );
+  }
+
+  canUseAction(
+    actionOrId,
+    {
+      useOvercharge = false,
+      ignoreDuplicate = false
+    } = {}
+  ) {
+    const action = typeof actionOrId === "string"
+      ? frameHelmActionRegistry.get(actionOrId)
+      : actionOrId;
+
+    if (!action) {
+      return {
+        allowed: false,
+        reason: "Unknown action."
+      };
+    }
+
+    if (this.ended) {
+      return {
+        allowed: false,
+        reason: "The turn has already ended."
+      };
+    }
+
+    if (action.id === "special.end-turn") {
+      return {
+        allowed: true,
+        reason: null
+      };
+    }
+
+    if (action.cost === "movement") {
+      if (this.movement.completed) {
+        return {
+          allowed: false,
+          reason: "Movement has been marked complete."
+        };
+      }
+
+      if (this.movement.remaining === 0) {
+        return {
+          allowed: false,
+          reason: "No standard movement remains."
+        };
+      }
+
+      return {
+        allowed: true,
+        reason: null
+      };
+    }
+
+    if (action.cost === "overcharge") {
+      if (this.overcharge.used) {
+        return {
+          allowed: false,
+          reason: "Overcharge has already been used this turn."
+        };
+      }
+
+      return {
+        allowed: true,
+        reason: null
+      };
+    }
+
+    if (action.cost === "full") {
+      if (!this.fullActionAvailable) {
+        return {
+          allowed: false,
+          reason: "The normal action budget has already been spent."
+        };
+      }
+
+      if (this.actionMode === "quick") {
+        return {
+          allowed: false,
+          reason: "A quick action has already been taken."
+        };
+      }
+
+      return {
+        allowed: true,
+        reason: null
+      };
+    }
+
+    if (action.cost === "quick") {
+      const duplicateKey = this.actionDuplicateKey(action);
+      const duplicateUsed =
+        this.hasUsedDuplicateKey(duplicateKey);
+
+      if (useOvercharge) {
+        if (!this.overcharge.used) {
+          return {
+            allowed: false,
+            reason: "Overcharge has not been activated."
+          };
+        }
+
+        if (this.overcharge.quickActionRemaining < 1) {
+          return {
+            allowed: false,
+            reason: "The Overcharge quick action has been spent."
+          };
+        }
+
+        return {
+          allowed: true,
+          reason: null,
+          source: "overcharge"
+        };
+      }
+
+      if (this.actionMode === "full") {
+        return {
+          allowed: false,
+          reason: "A full action has already been taken."
+        };
+      }
+
+      if (this.quickActionsRemaining < 1) {
+        return {
+          allowed: false,
+          reason: "No normal quick actions remain."
+        };
+      }
+
+      if (
+        duplicateUsed &&
+        !ignoreDuplicate &&
+        action.repeatRule !== "unrestricted"
+      ) {
+        return {
+          allowed: false,
+          reason: "This action has already been taken this turn. Use Overcharge to repeat it."
+        };
+      }
+
+      return {
+        allowed: true,
+        reason: null,
+        source: "normal"
+      };
+    }
+
+    if (action.cost === "reaction") {
+      if (this.reaction.usedThisTurn) {
+        return {
+          allowed: false,
+          reason: "A reaction has already been used during this turn."
+        };
+      }
+
+      return {
+        allowed: true,
+        reason: null
+      };
+    }
+
+    return {
+      allowed: true,
+      reason: null
+    };
+  }
+
+  useAction(
+    actionOrId,
+    {
+      useOvercharge = false,
+      ignoreDuplicate = false,
+      metadata = {}
+    } = {}
+  ) {
+    const action = typeof actionOrId === "string"
+      ? frameHelmActionRegistry.get(actionOrId)
+      : actionOrId;
+
+    const permission = this.canUseAction(action, {
+      useOvercharge,
+      ignoreDuplicate
+    });
+
+    if (!permission.allowed) {
+      throw new Error(permission.reason);
+    }
+
+    if (action.id === "special.end-turn") {
+      this.endTurn();
+      return this.snapshot();
+    }
+
+    if (action.cost === "overcharge") {
+      this.useOvercharge(metadata);
+      return this.snapshot();
+    }
+
+    if (action.cost === "quick") {
+      if (useOvercharge) {
+        this.overcharge.quickActionRemaining -= 1;
+      } else {
+        this.actionMode = "quick";
+        this.quickActionsRemaining -= 1;
+        this.fullActionAvailable = false;
+      }
+    }
+
+    if (action.cost === "full") {
+      this.actionMode = "full";
+      this.fullActionAvailable = false;
+      this.quickActionsRemaining = 0;
+    }
+
+    if (action.cost === "reaction") {
+      this.reaction.usedThisTurn = true;
+      this.reaction.actionId = action.id;
+    }
+
+    if (action.cost !== "none") {
+      this.closeProtocolWindow();
+    }
+
+    const duplicateKey = this.actionDuplicateKey(action);
+
+    this.usedActions.push({
+      actionId: action.id,
+      duplicateKey,
+      source: useOvercharge
+        ? "overcharge"
+        : "normal",
+      timestamp: Date.now(),
+      metadata: {
+        ...metadata
+      }
+    });
+
+    if (
+      duplicateKey &&
+      !this.usedDuplicateKeys.includes(duplicateKey)
+    ) {
+      this.usedDuplicateKeys.push(duplicateKey);
+    }
+
+    this.recordHistory("use-action", {
+      actionId: action.id,
+      duplicateKey,
+      source: useOvercharge
+        ? "overcharge"
+        : "normal"
+    });
+
+    return this.snapshot();
+  }
+
+  markReactionAvailable() {
+    this.reaction.usedThisTurn = false;
+    this.reaction.actionId = null;
+  }
+
+  endTurn() {
+    if (this.ended) return;
+
+    this.ended = true;
+    this.endedAt = Date.now();
+    this.protocol.available = false;
+    this.protocol.startOfTurnOpen = false;
+
+    this.recordHistory("end-turn", {});
+  }
+
+  assertTurnActive() {
+    if (this.ended) {
+      throw new Error(
+        "The current Frame Helm turn has ended."
+      );
+    }
+  }
+
+  recordHistory(type, data = {}) {
+    this.history.push({
+      type,
+      timestamp: Date.now(),
+      data: {
+        ...data
+      }
+    });
+  }
+
+  snapshot() {
+    return {
+      context: {
+        ...this.context
+      },
+      speed: this.speed,
+      movement: {
+        ...this.movement
+      },
+      actionMode: this.actionMode,
+      quickActionsRemaining:
+        this.quickActionsRemaining,
+      fullActionAvailable:
+        this.fullActionAvailable,
+      overcharge: {
+        ...this.overcharge
+      },
+      protocol: {
+        ...this.protocol
+      },
+      reaction: {
+        ...this.reaction
+      },
+      usedActions: this.usedActions.map(entry => ({
+        ...entry,
+        metadata: {
+          ...entry.metadata
+        }
+      })),
+      usedDuplicateKeys: [
+        ...this.usedDuplicateKeys
+      ],
+      ended: this.ended,
+      startedAt: this.startedAt,
+      endedAt: this.endedAt
+    };
+  }
+}
+
+class FrameHelmTurnStateManager {
+  constructor() {
+    this.current = null;
+  }
+
+  beginTurn(context = {}) {
+    this.current = new FrameHelmTurnState(context);
+
+    console.log(
+      `${MODULE_TITLE} | Began turn state.`,
+      this.current.snapshot()
+    );
+
+    this.renderApplication();
+    return this.current;
+  }
+
+  ensureTurn(context = {}) {
+    if (!this.current || this.current.ended) {
+      return this.beginTurn(context);
+    }
+
+    return this.current;
+  }
+
+  endTurn() {
+    if (!this.current) return null;
+
+    this.current.endTurn();
+    this.renderApplication();
+    return this.current.snapshot();
+  }
+
+  clear() {
+    this.current = null;
+    this.renderApplication();
+  }
+
+  snapshot() {
+    return this.current?.snapshot() ?? null;
+  }
+
+  renderApplication() {
+    if (frameHelmApplication?.rendered) {
+      frameHelmApplication.render(false);
+    }
+  }
+}
+
+const frameHelmTurnState =
+  new FrameHelmTurnStateManager();
+
+function activeCombatTurnContext(combat = game.combat) {
+  const combatant = combat?.combatant ?? null;
+  const tokenDocument = combatant?.token ?? null;
+  const actor = combatant?.actor ?? null;
+
+  return {
+    combatId: combat?.id ?? null,
+    combatantId: combatant?.id ?? null,
+    tokenId: tokenDocument?.id ?? null,
+    actorId: actor?.id ?? null,
+    sceneId:
+      combat?.scene?.id ??
+      canvas?.scene?.id ??
+      null,
+    round: Number.isFinite(combat?.round)
+      ? combat.round
+      : null,
+    turn: Number.isFinite(combat?.turn)
+      ? combat.turn
+      : null,
+    speed: null
+  };
+}
+
+function syncTurnStateToCombat(combat = game.combat) {
+  if (!combat?.started || !combat.combatant) {
+    frameHelmTurnState.clear();
+    return null;
+  }
+
+  const context = activeCombatTurnContext(combat);
+  const currentContext =
+    frameHelmTurnState.current?.context;
+
+  const isSameTurn = Boolean(
+    currentContext &&
+    currentContext.combatId === context.combatId &&
+    currentContext.combatantId === context.combatantId &&
+    currentContext.round === context.round &&
+    currentContext.turn === context.turn
+  );
+
+  if (isSameTurn) {
+    return frameHelmTurnState.current;
+  }
+
+  return frameHelmTurnState.beginTurn(context);
+}
+
+/* ==========================================================
    Frame Helm application
    ========================================================== */
 
@@ -809,6 +1474,66 @@ Hooks.once("ready", () => {
       return getFrameHelmApplication();
     },
     registry: frameHelmActionRegistry,
+    turn: {
+      begin: context => {
+        return frameHelmTurnState.beginTurn(context);
+      },
+      ensure: context => {
+        return frameHelmTurnState.ensureTurn(context);
+      },
+      end: () => {
+        return frameHelmTurnState.endTurn();
+      },
+      clear: () => {
+        return frameHelmTurnState.clear();
+      },
+      sync: combat => {
+        return syncTurnStateToCombat(combat);
+      },
+      get current() {
+        return frameHelmTurnState.current;
+      },
+      get state() {
+        return frameHelmTurnState.snapshot();
+      },
+      canUse: (actionId, options) => {
+        return frameHelmTurnState
+          .ensureTurn()
+          .canUseAction(actionId, options);
+      },
+      use: (actionId, options) => {
+        const result = frameHelmTurnState
+          .ensureTurn()
+          .useAction(actionId, options);
+
+        frameHelmTurnState.renderApplication();
+        return result;
+      },
+      move: distance => {
+        const result = frameHelmTurnState
+          .ensureTurn()
+          .spendMovement(distance);
+
+        frameHelmTurnState.renderApplication();
+        return result;
+      },
+      setSpeed: speed => {
+        const result = frameHelmTurnState
+          .ensureTurn()
+          .setSpeed(speed);
+
+        frameHelmTurnState.renderApplication();
+        return result;
+      },
+      overcharge: options => {
+        const result = frameHelmTurnState
+          .ensureTurn()
+          .useOvercharge(options);
+
+        frameHelmTurnState.renderApplication();
+        return result;
+      }
+    },
     actions: {
       get: id => frameHelmActionRegistry.get(id),
       list: options => frameHelmActionRegistry.list(options),
@@ -835,6 +1560,8 @@ Hooks.once("ready", () => {
     }
   };
 
+  syncTurnStateToCombat(game.combat);
+
   console.log(`${MODULE_TITLE} | Ready.`);
 });
 
@@ -852,5 +1579,46 @@ Hooks.on("controlToken", () => {
 Hooks.on("deleteToken", () => {
   if (frameHelmApplication?.rendered) {
     frameHelmApplication.render(false);
+  }
+});
+
+/* ==========================================================
+   Combat turn synchronization
+   ========================================================== */
+
+Hooks.on("combatStart", combat => {
+  syncTurnStateToCombat(combat);
+});
+
+Hooks.on("updateCombat", (combat, changes) => {
+  const turnChanged =
+    Object.prototype.hasOwnProperty.call(
+      changes,
+      "turn"
+    );
+
+  const roundChanged =
+    Object.prototype.hasOwnProperty.call(
+      changes,
+      "round"
+    );
+
+  const activeChanged =
+    Object.prototype.hasOwnProperty.call(
+      changes,
+      "active"
+    );
+
+  if (turnChanged || roundChanged || activeChanged) {
+    syncTurnStateToCombat(combat);
+  }
+});
+
+Hooks.on("deleteCombat", combat => {
+  if (
+    frameHelmTurnState.current?.context?.combatId ===
+    combat.id
+  ) {
+    frameHelmTurnState.clear();
   }
 });
