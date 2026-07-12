@@ -1237,6 +1237,12 @@ class FrameHelmTurnState {
       usedDuplicateKeys: [
         ...this.usedDuplicateKeys
       ],
+      history: this.history.map(entry => ({
+        ...entry,
+        data: {
+          ...entry.data
+        }
+      })),
       ended: this.ended,
       startedAt: this.startedAt,
       endedAt: this.endedAt
@@ -1607,12 +1613,19 @@ class FrameHelmApplication extends Application {
         <header class="frame-helm-plan-header">
           <div>
             <span>Committed Plan</span>
-            <small>Current declared turn sequence</small>
+            <small>
+              ${
+                entries.length
+                  ? `${entries.length} declared step${entries.length === 1 ? "" : "s"}`
+                  : "No declared steps"
+              }
+            </small>
           </div>
 
-          <span class="frame-helm-plan-count">
-            ${entries.length}
-          </span>
+          <i
+            class="fas fa-list-check frame-helm-plan-header-icon"
+            aria-hidden="true"
+          ></i>
         </header>
 
         <ol class="frame-helm-plan-list">

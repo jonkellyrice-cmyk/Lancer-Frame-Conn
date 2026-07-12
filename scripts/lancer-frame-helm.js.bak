@@ -694,11 +694,21 @@ class FrameHelmTurnState {
         : null
     };
 
-    const speed = Number(context.speed);
+    const hasSpeedValue =
+      context.speed !== null &&
+      context.speed !== undefined &&
+      context.speed !== "";
 
-    this.speed = Number.isFinite(speed) && speed >= 0
-      ? speed
+    const speed = hasSpeedValue
+      ? Number(context.speed)
       : null;
+
+    this.speed =
+      speed !== null &&
+      Number.isFinite(speed) &&
+      speed >= 0
+        ? speed
+        : null;
 
     this.movement = {
       maximum: this.speed,
@@ -1345,8 +1355,10 @@ class FrameHelmApplication extends Application {
       id: "lancer-frame-helm",
       title: MODULE_TITLE,
       classes: ["lancer-frame-helm"],
-      width: 420,
-      height: "auto",
+      width: 920,
+      height: 460,
+      left: 20,
+      top: Math.max(20, window.innerHeight - 500),
       resizable: true,
       minimizable: true
     });
@@ -1358,6 +1370,25 @@ class FrameHelmApplication extends Application {
     this.selectedMovementMode = null;
     this.selectedQuickActionId = null;
     this.selectedFullActionId = null;
+  }
+
+  _getHeaderButtons() {
+    const buttons = super._getHeaderButtons();
+
+    const hasMinimizeButton = buttons.some(
+      button => button.class === "frame-helm-minimize"
+    );
+
+    if (!hasMinimizeButton) {
+      buttons.unshift({
+        label: "Minimize",
+        class: "frame-helm-minimize",
+        icon: "fas fa-minus",
+        onclick: () => this.minimize()
+      });
+    }
+
+    return buttons;
   }
 
   getControlledToken() {
@@ -1471,6 +1502,126 @@ class FrameHelmApplication extends Application {
     };
   }
 
+  committedPlanEntries(state) {
+    if (!state) return [];
+
+    const entries = [];
+
+    for (const event of state.history ?? []) {
+      if (event.type === "movement-segment") {
+        const action = frameHelmActionRegistry.get(
+          event.data?.actionId
+        );
+
+        entries.push({
+          type: "movement",
+          icon: action?.icon ?? "fas fa-shoe-prints",
+          label: action?.label ?? "Movement",
+          detail: `${event.data?.distance ?? 0} space(s)`,
+          timestamp: event.timestamp
+        });
+      }
+
+      if (event.type === "overcharge") {
+        entries.push({
+          type: "overcharge",
+          icon: "fas fa-temperature-high",
+          label: "Overcharge",
+          detail: `Heat ${event.data?.heatFormula ?? "?"}`,
+          timestamp: event.timestamp
+        });
+      }
+
+      if (event.type === "use-protocol") {
+        const action = frameHelmActionRegistry.get(
+          event.data?.actionId
+        );
+
+        entries.push({
+          type: "protocol",
+          icon: action?.icon ?? "fas fa-microchip",
+          label: action?.label ?? "Protocol",
+          detail: "Start-of-turn protocol",
+          timestamp: event.timestamp
+        });
+      }
+    }
+
+    for (const usedAction of state.usedActions ?? []) {
+      const action = frameHelmActionRegistry.get(
+        usedAction.actionId
+      );
+
+      if (!action) continue;
+
+      entries.push({
+        type: action.category,
+        icon: action.icon || "fas fa-bolt",
+        label: action.label,
+        detail:
+          usedAction.source === "overcharge"
+            ? "Overcharge quick action"
+            : action.cost === "full"
+              ? "Full action"
+              : action.cost === "quick"
+                ? "Quick action"
+                : action.cost,
+        timestamp: usedAction.timestamp
+      });
+    }
+
+    return entries.sort((left, right) => {
+      return left.timestamp - right.timestamp;
+    });
+  }
+
+  renderCommittedPlan(state) {
+    const entries = this.committedPlanEntries(state);
+
+    const entryMarkup = entries.length
+      ? entries.map((entry, index) => {
+          return `
+            <li class="frame-helm-plan-entry frame-helm-plan-${foundry.utils.escapeHTML(entry.type)}">
+              <span class="frame-helm-plan-index">
+                ${String(index + 1).padStart(2, "0")}
+              </span>
+
+              <i class="${foundry.utils.escapeHTML(entry.icon)}"></i>
+
+              <span class="frame-helm-plan-copy">
+                <strong>${foundry.utils.escapeHTML(entry.label)}</strong>
+                <small>${foundry.utils.escapeHTML(entry.detail)}</small>
+              </span>
+            </li>
+          `;
+        }).join("")
+      : `
+        <li class="frame-helm-plan-empty">
+          <i class="fas fa-wave-square"></i>
+          <span>No actions committed yet.</span>
+        </li>
+      `;
+
+    return `
+      <section class="frame-helm-plan-panel">
+        <header class="frame-helm-plan-header">
+          <div>
+            <span>Committed Plan</span>
+            <small>Current declared turn sequence</small>
+          </div>
+
+          <span class="frame-helm-plan-count">
+            ${entries.length}
+          </span>
+        </header>
+
+        <ol class="frame-helm-plan-list">
+          ${entryMarkup}
+        </ol>
+      </section>
+    `;
+  }
+
   renderBudgetPanel(data) {
     if (!data.hasTurnState) {
       return `
@@ -1560,6 +1711,8 @@ class FrameHelmApplication extends Application {
           </button>
         </div>
       </section>
+
+      ${this.renderCommittedPlan(state)}
     `;
   }
 
@@ -2496,9 +2649,16 @@ class FrameHelmApplication extends Application {
           </span>
         </header>
 
-        ${this.renderUnitPanel(data)}
-        ${this.renderBudgetPanel(data)}
-        ${this.renderActionList(data)}
+        <div class="frame-helm-horizontal-layout">
+          <aside class="frame-helm-overview-column">
+            ${this.renderUnitPanel(data)}
+            ${this.renderBudgetPanel(data)}
+          </aside>
+
+          <main class="frame-helm-action-column">
+            ${this.renderActionList(data)}
+          </main>
+        </div>
       </section>
     `;
 
@@ -2839,6 +2999,15 @@ class FrameHelmApplication extends Application {
           frameHelmActionRegistry.get(
             this.selectedMovementMode
           );
+
+        frameHelmTurnState.current.recordHistory(
+          "movement-segment",
+          {
+            actionId: this.selectedMovementMode,
+            distance,
+            label: movementAction?.label ?? "Movement"
+          }
+        );
 
         ui.notifications.info(
           `${movementAction?.label ?? "Movement"}: recorded ${distance}. ${remaining} movement remains.`
