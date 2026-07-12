@@ -388,3 +388,149 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================
+   Movement submenu
+   ========================================================== */
+
+.frame-helm-movement-speed-setup,
+.frame-helm-movement-tracker,
+.frame-helm-movement-modes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  border: 1px solid var(--color-border-light-2, #7a7971);
+  border-radius: 5px;
+  padding: 0.7rem;
+}
+
+.frame-helm-movement-speed-setup > label,
+.frame-helm-movement-subheading {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.frame-helm-movement-input-row {
+  display: grid;
+  grid-template-columns: minmax(70px, 0.35fr) minmax(150px, 1fr);
+  gap: 0.5rem;
+}
+
+.frame-helm-movement-input-row input,
+.frame-helm-movement-input-row button {
+  min-height: 2.35rem;
+  margin: 0;
+}
+
+.frame-helm-movement-note {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.3;
+  opacity: 0.7;
+}
+
+.frame-helm-movement-mode {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  min-height: 3.35rem;
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  text-align: left;
+}
+
+.frame-helm-movement-mode > i {
+  flex: 0 0 1.7rem;
+  width: 1.7rem;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.frame-helm-movement-mode > span {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.frame-helm-movement-mode strong {
+  font-size: 0.92rem;
+}
+
+.frame-helm-movement-mode small,
+.frame-helm-movement-mode em {
+  margin-top: 0.12rem;
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+
+.frame-helm-movement-mode small {
+  opacity: 0.72;
+}
+
+.frame-helm-movement-mode em {
+  opacity: 0.62;
+}
+
+.frame-helm-movement-mode-selected {
+  outline: 2px solid var(--color-border-highlight, #782e22);
+  outline-offset: -2px;
+  font-weight: 700;
+}
+
+.frame-helm-movement-mode:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.frame-helm-movement-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.frame-helm-movement-summary > div,
+.frame-helm-movement-current-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  border: 1px solid var(--color-border-light-2, #7a7971);
+  border-radius: 4px;
+  padding: 0.45rem;
+}
+
+.frame-helm-movement-summary span,
+.frame-helm-movement-current-mode span {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+
+.frame-helm-movement-summary strong,
+.frame-helm-movement-current-mode strong {
+  font-size: 0.88rem;
+}
+
+.frame-helm-movement-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.frame-helm-movement-controls button {
+  min-height: 2.35rem;
+  margin: 0;
+}
+
+@media (max-width: 500px) {
+  .frame-helm-movement-input-row,
+  .frame-helm-movement-controls {
+    grid-template-columns: 1fr;
+  }
+}

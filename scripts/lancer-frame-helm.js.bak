@@ -1345,6 +1345,7 @@ class FrameHelmApplication extends Application {
   constructor(options = {}) {
     super(options);
     this.selectedCategory = null;
+    this.selectedMovementMode = null;
   }
 
   getControlledToken() {
@@ -1626,8 +1627,262 @@ class FrameHelmApplication extends Application {
     `;
   }
 
+  renderMovementPanel(data) {
+    const state = data.turnState;
+
+    if (!state) {
+      return `
+        <section class="frame-helm-action-panel">
+          <div class="frame-helm-section-heading frame-helm-section-heading-with-back">
+            <button
+              type="button"
+              class="frame-helm-back-button"
+              data-frame-helm-command="back"
+              aria-label="Back to action categories"
+            >
+              <i class="fas fa-arrow-left"></i>
+            </button>
+
+            <div>
+              <span>Movement</span>
+              <small>Begin a turn plan before tracking movement.</small>
+            </div>
+          </div>
+
+          <div class="frame-helm-no-actions">
+            <i class="fas fa-circle-play"></i>
+            <p>Begin a turn plan to configure and track movement.</p>
+          </div>
+        </section>
+      `;
+    }
+
+    const movement = state.movement;
+    const hasRatedSpeed = movement.maximum !== null;
+
+    const speedConfiguration = hasRatedSpeed
+      ? ""
+      : `
+        <section class="frame-helm-movement-speed-setup">
+          <label for="frame-helm-speed-input">
+            Mech Speed
+          </label>
+
+          <div class="frame-helm-movement-input-row">
+            <input
+              id="frame-helm-speed-input"
+              type="number"
+              min="0"
+              step="1"
+              inputmode="numeric"
+              placeholder="Enter Speed"
+              data-frame-helm-speed-input
+            >
+
+            <button
+              type="button"
+              data-frame-helm-command="set-speed"
+            >
+              <i class="fas fa-gauge-high"></i>
+              Set Speed
+            </button>
+          </div>
+
+          <p class="frame-helm-movement-note">
+            Automatic Speed detection will be added during Lancer-system integration.
+          </p>
+        </section>
+      `;
+
+    const movementModes = frameHelmActionRegistry
+      .childrenOf("movement.standard")
+      .filter(action => action.movementMode)
+      .map(action => {
+        const selected =
+          this.selectedMovementMode === action.id;
+
+        const selectedClass = selected
+          ? " frame-helm-movement-mode-selected"
+          : "";
+
+        const restrictedNote =
+          action.metadata?.requiresFlightCapability
+            ? "Requires flight capability."
+            : action.metadata?.requiresTeleportCapability
+              ? "Requires a teleport effect."
+              : "";
+
+        return `
+          <button
+            type="button"
+            class="frame-helm-movement-mode${selectedClass}"
+            data-frame-helm-movement-mode="${foundry.utils.escapeHTML(action.id)}"
+            ${movement.completed ? "disabled" : ""}
+          >
+            <i class="${foundry.utils.escapeHTML(action.icon)}"></i>
+
+            <span>
+              <strong>${foundry.utils.escapeHTML(action.label)}</strong>
+              <small>${foundry.utils.escapeHTML(action.shortDescription)}</small>
+              ${
+                restrictedNote
+                  ? `<em>${foundry.utils.escapeHTML(restrictedNote)}</em>`
+                  : ""
+              }
+            </span>
+          </button>
+        `;
+      })
+      .join("");
+
+    const standardMoveSelected =
+      this.selectedMovementMode === "movement.standard";
+
+    const standardMoveClass = standardMoveSelected
+      ? " frame-helm-movement-mode-selected"
+      : "";
+
+    const selectedAction = this.selectedMovementMode
+      ? frameHelmActionRegistry.get(this.selectedMovementMode)
+      : null;
+
+    const selectedMovementLabel = selectedAction
+      ? selectedAction.label
+      : "No movement mode selected";
+
+    const tracker = hasRatedSpeed
+      ? `
+        <section class="frame-helm-movement-tracker">
+          <div class="frame-helm-movement-summary">
+            <div>
+              <span>Speed</span>
+              <strong>${movement.maximum}</strong>
+            </div>
+
+            <div>
+              <span>Spent</span>
+              <strong>${movement.spent}</strong>
+            </div>
+
+            <div>
+              <span>Remaining</span>
+              <strong>${movement.remaining}</strong>
+            </div>
+          </div>
+
+          <div class="frame-helm-movement-current-mode">
+            <span>Selected Mode</span>
+            <strong>${foundry.utils.escapeHTML(selectedMovementLabel)}</strong>
+          </div>
+
+          <div class="frame-helm-movement-input-row">
+            <input
+              type="number"
+              min="0"
+              max="${movement.remaining}"
+              step="1"
+              inputmode="numeric"
+              value="${movement.remaining > 0 ? 1 : 0}"
+              data-frame-helm-movement-distance
+              ${movement.completed || movement.remaining <= 0 ? "disabled" : ""}
+            >
+
+            <button
+              type="button"
+              data-frame-helm-command="spend-movement"
+              ${
+                movement.completed ||
+                movement.remaining <= 0 ||
+                !this.selectedMovementMode
+                  ? "disabled"
+                  : ""
+              }
+            >
+              <i class="fas fa-shoe-prints"></i>
+              Record Movement
+            </button>
+          </div>
+
+          <p class="frame-helm-movement-note">
+            Movement may be split before and after actions. Record only the distance moved during this segment.
+          </p>
+
+          <div class="frame-helm-movement-controls">
+            <button
+              type="button"
+              class="frame-helm-secondary-button"
+              data-frame-helm-command="reset-movement"
+            >
+              <i class="fas fa-rotate-left"></i>
+              Reset Movement
+            </button>
+
+            <button
+              type="button"
+              class="frame-helm-primary-button"
+              data-frame-helm-command="${movement.completed ? "reopen-movement" : "complete-movement"}"
+            >
+              <i class="fas ${movement.completed ? "fa-lock-open" : "fa-check"}"></i>
+              ${movement.completed ? "Reopen Movement" : "Movement Complete"}
+            </button>
+          </div>
+        </section>
+      `
+      : "";
+
+    return `
+      <section class="frame-helm-action-panel">
+        <div class="frame-helm-section-heading frame-helm-section-heading-with-back">
+          <button
+            type="button"
+            class="frame-helm-back-button"
+            data-frame-helm-command="back"
+            aria-label="Back to action categories"
+          >
+            <i class="fas fa-arrow-left"></i>
+          </button>
+
+          <div>
+            <span>Movement</span>
+            <small>Move up to the unit's rated Speed during its turn.</small>
+          </div>
+        </div>
+
+        ${speedConfiguration}
+
+        <section class="frame-helm-movement-modes">
+          <div class="frame-helm-movement-subheading">
+            Choose Movement Mode
+          </div>
+
+          <button
+            type="button"
+            class="frame-helm-movement-mode${standardMoveClass}"
+            data-frame-helm-movement-mode="movement.standard"
+            ${movement.completed ? "disabled" : ""}
+          >
+            <i class="fas fa-person-walking"></i>
+
+            <span>
+              <strong>Standard Move</strong>
+              <small>Move normally up to your remaining Speed.</small>
+            </span>
+          </button>
+
+          ${movementModes}
+        </section>
+
+        ${tracker}
+      </section>
+    `;
+  }
+
   renderActionList(data) {
     const category = data.selectedCategory;
+
+    if (category?.id === "movement") {
+      return this.renderMovementPanel(data);
+    }
 
     if (!category) {
       return this.renderCategoryMenu(data);
@@ -1748,6 +2003,16 @@ class FrameHelmApplication extends Application {
       }
     );
 
+    html.find("[data-frame-helm-movement-mode]").on(
+      "click",
+      event => {
+        this.selectedMovementMode =
+          event.currentTarget.dataset.frameHelmMovementMode ?? null;
+
+        this.render(false);
+      }
+    );
+
     html.find("[data-frame-helm-command]").on(
       "click",
       event => {
@@ -1793,6 +2058,7 @@ class FrameHelmApplication extends Application {
     });
 
     this.selectedCategory = null;
+    this.selectedMovementMode = null;
     this.render(false);
   }
 
@@ -1819,6 +2085,7 @@ class FrameHelmApplication extends Application {
     });
 
     this.selectedCategory = null;
+    this.selectedMovementMode = null;
     this.render(false);
 
     ui.notifications.info(
@@ -1829,7 +2096,120 @@ class FrameHelmApplication extends Application {
   onCommand(command) {
     if (command === "back") {
       this.selectedCategory = null;
+      this.selectedMovementMode = null;
       this.render(false);
+      return;
+    }
+
+    if (command === "set-speed") {
+      const input = this.element.find(
+        "[data-frame-helm-speed-input]"
+      )[0];
+
+      const speed = Number(input?.value);
+
+      if (!Number.isFinite(speed) || speed < 0) {
+        ui.notifications.warn(
+          "Enter a valid non-negative Speed value."
+        );
+        return;
+      }
+
+      try {
+        frameHelmTurnState.current.setSpeed(speed);
+        this.render(false);
+      } catch (error) {
+        ui.notifications.warn(error.message);
+      }
+
+      return;
+    }
+
+    if (command === "spend-movement") {
+      if (!this.selectedMovementMode) {
+        ui.notifications.warn(
+          "Choose a movement mode first."
+        );
+        return;
+      }
+
+      const input = this.element.find(
+        "[data-frame-helm-movement-distance]"
+      )[0];
+
+      const distance = Number(input?.value);
+
+      if (!Number.isFinite(distance) || distance <= 0) {
+        ui.notifications.warn(
+          "Enter a movement distance greater than zero."
+        );
+        return;
+      }
+
+      try {
+        const remaining =
+          frameHelmTurnState.current.spendMovement(distance);
+
+        const movementAction =
+          frameHelmActionRegistry.get(
+            this.selectedMovementMode
+          );
+
+        ui.notifications.info(
+          `${movementAction?.label ?? "Movement"}: recorded ${distance}. ${remaining} movement remains.`
+        );
+
+        this.render(false);
+      } catch (error) {
+        ui.notifications.warn(error.message);
+      }
+
+      return;
+    }
+
+    if (command === "complete-movement") {
+      try {
+        frameHelmTurnState.current.completeMovement();
+        this.render(false);
+      } catch (error) {
+        ui.notifications.warn(error.message);
+      }
+
+      return;
+    }
+
+    if (command === "reopen-movement") {
+      try {
+        frameHelmTurnState.current.reopenMovement();
+        this.render(false);
+      } catch (error) {
+        ui.notifications.warn(error.message);
+      }
+
+      return;
+    }
+
+    if (command === "reset-movement") {
+      const current = frameHelmTurnState.current;
+
+      if (!current) return;
+
+      current.movement.spent = 0;
+      current.movement.remaining =
+        current.movement.maximum;
+      current.movement.completed = false;
+
+      current.recordHistory("reset-movement", {
+        maximum: current.movement.maximum
+      });
+
+      this.selectedMovementMode = null;
+      this.render(false);
+
+      ui.notifications.info(
+        "Movement tracking reset."
+      );
+
       return;
     }
 
