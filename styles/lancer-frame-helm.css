@@ -2327,3 +2327,34 @@
     min-height: 68px;
   }
 }
+
+/* ==========================================================
+   Live actor telemetry states
+   ========================================================== */
+
+.frame-helm-stat-cell input[readonly] {
+  cursor: default;
+}
+
+.frame-helm-stat-cell input[readonly]:focus {
+  border-color: var(--fh-cyan-muted);
+  color: var(--fh-cyan-bright);
+  box-shadow: inset 2px 0 0 rgba(86, 224, 223, 0.3);
+}
+
+.frame-helm-stat-unavailable {
+  align-items: stretch;
+}
+
+.frame-helm-stat-unavailable strong {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.85rem;
+  border: 1px dashed rgba(148, 185, 188, 0.35);
+  background: rgba(1, 9, 12, 0.55);
+  color: var(--fh-text-muted);
+  font-family: monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+}
