@@ -1346,6 +1346,7 @@ class FrameHelmApplication extends Application {
     super(options);
     this.selectedCategory = null;
     this.selectedMovementMode = null;
+    this.selectedQuickActionId = null;
   }
 
   getControlledToken() {
@@ -1627,6 +1628,284 @@ class FrameHelmApplication extends Application {
     `;
   }
 
+  quickActionChildren(actionId) {
+    return frameHelmActionRegistry.childrenOf(actionId);
+  }
+
+  quickActionBreadcrumb(action) {
+    const breadcrumb = [];
+    let current = action;
+
+    while (current) {
+      breadcrumb.unshift(current);
+
+      current = current.parentId
+        ? frameHelmActionRegistry.get(current.parentId)
+        : null;
+    }
+
+    return breadcrumb;
+  }
+
+  renderQuickActionBudget(state) {
+    const normalRemaining =
+      state?.quickActionsRemaining ?? 0;
+
+    const overchargeRemaining =
+      state?.overcharge?.quickActionRemaining ?? 0;
+
+    const overchargeStatus = !state?.overcharge?.used
+      ? "Available"
+      : overchargeRemaining > 0
+        ? "Quick action ready"
+        : "Spent";
+
+    return `
+      <section class="frame-helm-quick-budget">
+        <div>
+          <span>Normal Quick Actions</span>
+          <strong>${normalRemaining}</strong>
+        </div>
+
+        <div>
+          <span>Overcharge</span>
+          <strong>${foundry.utils.escapeHTML(overchargeStatus)}</strong>
+        </div>
+      </section>
+    `;
+  }
+
+  renderQuickActionChoice(action, state) {
+    const children = this.quickActionChildren(action.id);
+    const hasChildren = children.length > 0;
+
+    let availability;
+
+    if (hasChildren) {
+      availability = {
+        allowed: true,
+        reason: null
+      };
+    } else if (state) {
+      const normalPermission =
+        frameHelmTurnState.current.canUseAction(action);
+
+      const overchargePermission =
+        frameHelmTurnState.current.canUseAction(action, {
+          useOvercharge: true
+        });
+
+      availability = {
+        allowed:
+          normalPermission.allowed ||
+          overchargePermission.allowed,
+        reason:
+          normalPermission.reason ??
+          overchargePermission.reason
+      };
+    } else {
+      availability = {
+        allowed: false,
+        reason: "Begin a turn plan first."
+      };
+    }
+
+    const disabled = availability.allowed
+      ? ""
+      : "disabled";
+
+    const arrow = hasChildren
+      ? `<i class="fas fa-chevron-right frame-helm-category-arrow"></i>`
+      : "";
+
+    const reason = availability.allowed
+      ? ""
+      : `
+        <span class="frame-helm-action-reason">
+          ${foundry.utils.escapeHTML(availability.reason ?? "Unavailable")}
+        </span>
+      `;
+
+    return `
+      <button
+        type="button"
+        class="frame-helm-action-button frame-helm-quick-choice"
+        data-frame-helm-quick-action="${foundry.utils.escapeHTML(action.id)}"
+        ${disabled}
+      >
+        <i class="${foundry.utils.escapeHTML(action.icon)}"></i>
+
+        <span class="frame-helm-action-copy">
+          <strong>${foundry.utils.escapeHTML(action.label)}</strong>
+          <small>${foundry.utils.escapeHTML(action.shortDescription)}</small>
+          ${reason}
+        </span>
+
+        ${arrow}
+      </button>
+    `;
+  }
+
+  renderQuickActionExecution(action, state) {
+    const normalPermission = state
+      ? frameHelmTurnState.current.canUseAction(action)
+      : {
+          allowed: false,
+          reason: "Begin a turn plan first."
+        };
+
+    const overchargePermission = state
+      ? frameHelmTurnState.current.canUseAction(action, {
+          useOvercharge: true
+        })
+      : {
+          allowed: false,
+          reason: "Begin a turn plan first."
+        };
+
+    const normalReason = normalPermission.allowed
+      ? "Spend one of your normal quick actions."
+      : normalPermission.reason;
+
+    const overchargeReason = overchargePermission.allowed
+      ? "Spend the additional quick action granted by Overcharge."
+      : overchargePermission.reason;
+
+    const targetNotice = action.requiresTarget
+      ? `
+        <div class="frame-helm-quick-requirement">
+          <i class="fas fa-crosshairs"></i>
+          <span>
+            This action requires a target. Guided targeting will be added in a later patch.
+          </span>
+        </div>
+      `
+      : "";
+
+    return `
+      <section class="frame-helm-quick-detail">
+        <div class="frame-helm-quick-detail-header">
+          <i class="${foundry.utils.escapeHTML(action.icon)}"></i>
+
+          <div>
+            <h3>${foundry.utils.escapeHTML(action.label)}</h3>
+            <p>${foundry.utils.escapeHTML(action.shortDescription)}</p>
+          </div>
+        </div>
+
+        ${targetNotice}
+
+        <div class="frame-helm-quick-execution-options">
+          <button
+            type="button"
+            class="frame-helm-quick-execute-button"
+            data-frame-helm-quick-execute="normal"
+            data-frame-helm-action-id="${foundry.utils.escapeHTML(action.id)}"
+            ${normalPermission.allowed ? "" : "disabled"}
+          >
+            <i class="fas fa-bolt"></i>
+
+            <span>
+              <strong>Use Quick Action</strong>
+              <small>${foundry.utils.escapeHTML(normalReason ?? "Unavailable")}</small>
+            </span>
+          </button>
+
+          <button
+            type="button"
+            class="frame-helm-quick-execute-button frame-helm-overcharge-execute"
+            data-frame-helm-quick-execute="overcharge"
+            data-frame-helm-action-id="${foundry.utils.escapeHTML(action.id)}"
+            ${overchargePermission.allowed ? "" : "disabled"}
+          >
+            <i class="fas fa-temperature-high"></i>
+
+            <span>
+              <strong>Use Overcharge Action</strong>
+              <small>${foundry.utils.escapeHTML(overchargeReason ?? "Unavailable")}</small>
+            </span>
+          </button>
+        </div>
+
+        <p class="frame-helm-quick-placeholder-note">
+          This records the selected action in the turn planner. The action's attack, tech, targeting, and dice workflow will be connected in later patches.
+        </p>
+      </section>
+    `;
+  }
+
+  renderQuickActionPanel(data) {
+    const state = data.turnState;
+    const selectedAction = this.selectedQuickActionId
+      ? frameHelmActionRegistry.get(
+          this.selectedQuickActionId
+        )
+      : null;
+
+    const parentId = selectedAction?.id ?? null;
+
+    const availableActions = selectedAction
+      ? this.quickActionChildren(selectedAction.id)
+      : frameHelmActionRegistry.roots("quick");
+
+    const breadcrumb = selectedAction
+      ? this.quickActionBreadcrumb(selectedAction)
+      : [];
+
+    const breadcrumbText = breadcrumb.length
+      ? breadcrumb
+          .map(action => action.label)
+          .join(" › ")
+      : "Quick Actions";
+
+    const hasChildren = availableActions.length > 0;
+
+    const actionChoices = availableActions
+      .map(action => {
+        return this.renderQuickActionChoice(
+          action,
+          state
+        );
+      })
+      .join("");
+
+    const content = selectedAction && !hasChildren
+      ? this.renderQuickActionExecution(
+          selectedAction,
+          state
+        )
+      : `
+        <div class="frame-helm-action-list">
+          ${actionChoices}
+        </div>
+      `;
+
+    return `
+      <section class="frame-helm-action-panel">
+        <div class="frame-helm-section-heading frame-helm-section-heading-with-back">
+          <button
+            type="button"
+            class="frame-helm-back-button"
+            data-frame-helm-command="quick-back"
+            aria-label="Go back"
+          >
+            <i class="fas fa-arrow-left"></i>
+          </button>
+
+          <div>
+            <span>${foundry.utils.escapeHTML(breadcrumbText)}</span>
+            <small>
+              Choose one universal quick action. Normally, the same action cannot be taken twice in one turn.
+            </small>
+          </div>
+        </div>
+
+        ${this.renderQuickActionBudget(state)}
+        ${content}
+      </section>
+    `;
+  }
+
   renderMovementPanel(data) {
     const state = data.turnState;
 
@@ -1884,6 +2163,10 @@ class FrameHelmApplication extends Application {
       return this.renderMovementPanel(data);
     }
 
+    if (category?.id === "quick") {
+      return this.renderQuickActionPanel(data);
+    }
+
     if (!category) {
       return this.renderCategoryMenu(data);
     }
@@ -2013,6 +2296,32 @@ class FrameHelmApplication extends Application {
       }
     );
 
+    html.find("[data-frame-helm-quick-action]").on(
+      "click",
+      event => {
+        this.selectedQuickActionId =
+          event.currentTarget.dataset.frameHelmQuickAction ?? null;
+
+        this.render(false);
+      }
+    );
+
+    html.find("[data-frame-helm-quick-execute]").on(
+      "click",
+      event => {
+        const actionId =
+          event.currentTarget.dataset.frameHelmActionId;
+
+        const source =
+          event.currentTarget.dataset.frameHelmQuickExecute;
+
+        this.executeQuickAction(
+          actionId,
+          source === "overcharge"
+        );
+      }
+    );
+
     html.find("[data-frame-helm-command]").on(
       "click",
       event => {
@@ -2059,6 +2368,7 @@ class FrameHelmApplication extends Application {
 
     this.selectedCategory = null;
     this.selectedMovementMode = null;
+    this.selectedQuickActionId = null;
     this.render(false);
   }
 
@@ -2086,6 +2396,7 @@ class FrameHelmApplication extends Application {
 
     this.selectedCategory = null;
     this.selectedMovementMode = null;
+    this.selectedQuickActionId = null;
     this.render(false);
 
     ui.notifications.info(
@@ -2093,10 +2404,76 @@ class FrameHelmApplication extends Application {
     );
   }
 
+  executeQuickAction(actionId, useOvercharge = false) {
+    const action = frameHelmActionRegistry.get(actionId);
+    const state = frameHelmTurnState.current;
+
+    if (!action || action.cost !== "quick") {
+      ui.notifications.error(
+        "The selected entry is not a valid quick action."
+      );
+      return;
+    }
+
+    if (!state) {
+      ui.notifications.warn(
+        "Begin a turn plan before selecting actions."
+      );
+      return;
+    }
+
+    try {
+      state.useAction(action, {
+        useOvercharge
+      });
+
+      const sourceLabel = useOvercharge
+        ? " using Overcharge"
+        : "";
+
+      ui.notifications.info(
+        `${action.label} recorded${sourceLabel}.`
+      );
+
+      this.selectedQuickActionId = null;
+      this.render(false);
+    } catch (error) {
+      ui.notifications.warn(error.message);
+    }
+  }
+
   onCommand(command) {
     if (command === "back") {
       this.selectedCategory = null;
       this.selectedMovementMode = null;
+      this.selectedQuickActionId = null;
+      this.render(false);
+      return;
+    }
+
+    if (command === "quick-back") {
+      if (!this.selectedQuickActionId) {
+        this.selectedCategory = null;
+        this.render(false);
+        return;
+      }
+
+      const selectedAction =
+        frameHelmActionRegistry.get(
+          this.selectedQuickActionId
+        );
+
+      const parentAction = selectedAction?.parentId
+        ? frameHelmActionRegistry.get(
+            selectedAction.parentId
+          )
+        : null;
+
+      this.selectedQuickActionId =
+        parentAction?.category === "quick"
+          ? parentAction.id
+          : null;
+
       this.render(false);
       return;
     }
@@ -2226,6 +2603,8 @@ class FrameHelmApplication extends Application {
     if (command === "end-turn") {
       frameHelmTurnState.endTurn();
       this.selectedCategory = null;
+      this.selectedMovementMode = null;
+      this.selectedQuickActionId = null;
       this.render(false);
 
       ui.notifications.info(
@@ -2241,6 +2620,13 @@ class FrameHelmApplication extends Application {
       ui.notifications.error(
         `Unknown Frame Helm action: ${actionId}`
       );
+      return;
+    }
+
+    if (action.category === "quick") {
+      this.selectedCategory = "quick";
+      this.selectedQuickActionId = action.id;
+      this.render(false);
       return;
     }
 
