@@ -1932,11 +1932,26 @@ class FrameHelmApplication extends Application {
     `;
   }
 
+  canAutomaticallyOvercharge(action, state) {
+    if (!state || !action || action.cost !== "quick") {
+      return false;
+    }
+
+    if (state.ended) return false;
+
+    if (state.overcharge.used) {
+      return state.overcharge.quickActionRemaining > 0;
+    }
+
+    return true;
+  }
+
   renderQuickActionChoice(action, state) {
     const children = this.quickActionChildren(action.id);
     const hasChildren = children.length > 0;
 
     let availability;
+    let requiresOvercharge = false;
 
     if (hasChildren) {
       availability = {
@@ -1947,18 +1962,29 @@ class FrameHelmApplication extends Application {
       const normalPermission =
         frameHelmTurnState.current.canUseAction(action);
 
-      const overchargePermission =
+      const activeOverchargePermission =
         frameHelmTurnState.current.canUseAction(action, {
           useOvercharge: true
         });
 
+      const automaticOverchargeAvailable =
+        this.canAutomaticallyOvercharge(action, state);
+
+      requiresOvercharge =
+        !normalPermission.allowed &&
+        (
+          activeOverchargePermission.allowed ||
+          automaticOverchargeAvailable
+        );
+
       availability = {
         allowed:
           normalPermission.allowed ||
-          overchargePermission.allowed,
+          activeOverchargePermission.allowed ||
+          automaticOverchargeAvailable,
         reason:
           normalPermission.reason ??
-          overchargePermission.reason
+          activeOverchargePermission.reason
       };
     } else {
       availability = {
@@ -1975,18 +2001,29 @@ class FrameHelmApplication extends Application {
       ? `<i class="fas fa-chevron-right frame-helm-category-arrow"></i>`
       : "";
 
-    const reason = availability.allowed
-      ? ""
-      : `
-        <span class="frame-helm-action-reason">
-          ${foundry.utils.escapeHTML(availability.reason ?? "Unavailable")}
+    const status = requiresOvercharge
+      ? `
+        <span class="frame-helm-action-overcharge-warning">
+          <i class="fas fa-temperature-high"></i>
+          Requires Overcharge
         </span>
-      `;
+      `
+      : availability.allowed
+        ? ""
+        : `
+          <span class="frame-helm-action-reason">
+            ${foundry.utils.escapeHTML(availability.reason ?? "Unavailable")}
+          </span>
+        `;
+
+    const overchargeClass = requiresOvercharge
+      ? " frame-helm-quick-choice-overcharge"
+      : "";
 
     return `
       <button
         type="button"
-        class="frame-helm-action-button frame-helm-quick-choice"
+        class="frame-helm-action-button frame-helm-quick-choice${overchargeClass}"
         data-frame-helm-quick-action="${foundry.utils.escapeHTML(action.id)}"
         ${disabled}
       >
@@ -1995,7 +2032,7 @@ class FrameHelmApplication extends Application {
         <span class="frame-helm-action-copy">
           <strong>${foundry.utils.escapeHTML(action.label)}</strong>
           <small>${foundry.utils.escapeHTML(action.shortDescription)}</small>
-          ${reason}
+          ${status}
         </span>
 
         ${arrow}
@@ -2011,7 +2048,7 @@ class FrameHelmApplication extends Application {
           reason: "Begin a turn plan first."
         };
 
-    const overchargePermission = state
+    const activeOverchargePermission = state
       ? frameHelmTurnState.current.canUseAction(action, {
           useOvercharge: true
         })
@@ -2020,13 +2057,36 @@ class FrameHelmApplication extends Application {
           reason: "Begin a turn plan first."
         };
 
+    const automaticOverchargeAvailable =
+      this.canAutomaticallyOvercharge(action, state);
+
+    const overchargeAllowed =
+      activeOverchargePermission.allowed ||
+      automaticOverchargeAvailable;
+
+    const willTriggerOvercharge = Boolean(
+      state &&
+      !state.overcharge.used &&
+      automaticOverchargeAvailable
+    );
+
     const normalReason = normalPermission.allowed
-      ? "Spend one of your normal quick actions."
+      ? "Spend one of your normal Quick Actions."
       : normalPermission.reason;
 
-    const overchargeReason = overchargePermission.allowed
-      ? "Spend the additional quick action granted by Overcharge."
-      : overchargePermission.reason;
+    let overchargeTitle = "Use Overcharge Action";
+    let overchargeReason =
+      activeOverchargePermission.reason ??
+      "Overcharge is unavailable.";
+
+    if (willTriggerOvercharge) {
+      overchargeTitle = "Overcharge and Use Action";
+      overchargeReason =
+        "Warning: this will trigger Overcharge, apply the current Overcharge Heat cost, and immediately spend the granted Quick Action.";
+    } else if (activeOverchargePermission.allowed) {
+      overchargeReason =
+        "Spend the additional Quick Action already granted by Overcharge.";
+    }
 
     const targetNotice = action.requiresTarget
       ? `
@@ -2034,6 +2094,18 @@ class FrameHelmApplication extends Application {
           <i class="fas fa-crosshairs"></i>
           <span>
             This action requires a target. Guided targeting will be added in a later patch.
+          </span>
+        </div>
+      `
+      : "";
+
+    const overchargeWarning = willTriggerOvercharge
+      ? `
+        <div class="frame-helm-overcharge-warning-panel">
+          <i class="fas fa-triangle-exclamation"></i>
+
+          <span>
+            Your normal action budget cannot perform this action. Continuing will automatically trigger Overcharge.
           </span>
         </div>
       `
@@ -2051,6 +2123,7 @@ class FrameHelmApplication extends Application {
         </div>
 
         ${targetNotice}
+        ${overchargeWarning}
 
         <div class="frame-helm-quick-execution-options">
           <button
@@ -2070,16 +2143,16 @@ class FrameHelmApplication extends Application {
 
           <button
             type="button"
-            class="frame-helm-quick-execute-button frame-helm-overcharge-execute"
+            class="frame-helm-quick-execute-button frame-helm-overcharge-execute${willTriggerOvercharge ? " frame-helm-auto-overcharge-execute" : ""}"
             data-frame-helm-quick-execute="overcharge"
             data-frame-helm-action-id="${foundry.utils.escapeHTML(action.id)}"
-            ${overchargePermission.allowed ? "" : "disabled"}
+            ${overchargeAllowed ? "" : "disabled"}
           >
             <i class="fas fa-temperature-high"></i>
 
             <span>
-              <strong>Use Overcharge Action</strong>
-              <small>${foundry.utils.escapeHTML(overchargeReason ?? "Unavailable")}</small>
+              <strong>${foundry.utils.escapeHTML(overchargeTitle)}</strong>
+              <small>${foundry.utils.escapeHTML(overchargeReason)}</small>
             </span>
           </button>
         </div>
@@ -2984,6 +3057,14 @@ class FrameHelmApplication extends Application {
     }
 
     try {
+      let automaticallyTriggeredOvercharge = false;
+      let overchargeHeatFormula = null;
+
+      if (useOvercharge && !state.overcharge.used) {
+        overchargeHeatFormula = state.useOvercharge();
+        automaticallyTriggeredOvercharge = true;
+      }
+
       state.useAction(action, {
         useOvercharge
       });
@@ -3003,9 +3084,15 @@ class FrameHelmApplication extends Application {
         ? " using Overcharge"
         : "";
 
-      ui.notifications.info(
-        `${action.label} recorded${sourceLabel}.`
-      );
+      if (automaticallyTriggeredOvercharge) {
+        ui.notifications.warn(
+          `Overcharge triggered. Apply ${overchargeHeatFormula} Heat. ${action.label} was recorded using the granted Quick Action.`
+        );
+      } else {
+        ui.notifications.info(
+          `${action.label} recorded${sourceLabel}.`
+        );
+      }
 
       this.selectedQuickActionId = null;
       this.render(false);

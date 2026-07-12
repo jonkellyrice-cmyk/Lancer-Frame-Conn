@@ -833,11 +833,88 @@ class FrameHelmTurnState {
 
   reopenMovement() {
     this.assertTurnActive();
+
+    if (
+      this.movement.maximum !== null &&
+      this.movement.remaining <= 0
+    ) {
+      this.movement.spent = 0;
+      this.movement.remaining =
+        this.movement.maximum;
+    }
+
     this.movement.completed = false;
 
     this.recordHistory("reopen-movement", {
       remaining: this.movement.remaining
     });
+  }
+
+  commitMovement(actionId) {
+    this.assertTurnActive();
+
+    if (this.movement.maximum === null) {
+      throw new Error(
+        "Movement speed has not been assigned to this turn."
+      );
+    }
+
+    if (this.movement.completed) {
+      throw new Error(
+        "Movement has already been committed."
+      );
+    }
+
+    if (this.movement.remaining <= 0) {
+      throw new Error(
+        "No movement remains to commit."
+      );
+    }
+
+    const committedDistance =
+      this.movement.remaining;
+
+    this.movement.spent += committedDistance;
+    this.movement.remaining = 0;
+    this.movement.completed = true;
+
+    this.closeProtocolWindow();
+
+    this.recordHistory("movement-commit", {
+      actionId,
+      distance: committedDistance
+    });
+
+    return committedDistance;
+  }
+
+  refreshMovementFromBoost() {
+    this.assertTurnActive();
+
+    if (this.movement.maximum === null) {
+      this.recordHistory(
+        "boost-movement-refill",
+        {
+          distance: null
+        }
+      );
+
+      return null;
+    }
+
+    this.movement.spent = 0;
+    this.movement.remaining =
+      this.movement.maximum;
+    this.movement.completed = false;
+
+    this.recordHistory(
+      "boost-movement-refill",
+      {
+        distance: this.movement.maximum
+      }
+    );
+
+    return this.movement.remaining;
   }
 
   closeProtocolWindow() {
@@ -1514,7 +1591,10 @@ class FrameHelmApplication extends Application {
     const entries = [];
 
     for (const event of state.history ?? []) {
-      if (event.type === "movement-segment") {
+      if (
+        event.type === "movement-segment" ||
+        event.type === "movement-commit"
+      ) {
         const action = frameHelmActionRegistry.get(
           event.data?.actionId
         );
@@ -1523,7 +1603,7 @@ class FrameHelmApplication extends Application {
           type: "movement",
           icon: action?.icon ?? "fas fa-shoe-prints",
           label: action?.label ?? "Movement",
-          detail: `${event.data?.distance ?? 0} space(s)`,
+          detail: `${event.data?.distance ?? 0} space(s) committed`,
           timestamp: event.timestamp
         });
       }
@@ -2458,36 +2538,8 @@ class FrameHelmApplication extends Application {
             <strong>${foundry.utils.escapeHTML(selectedMovementLabel)}</strong>
           </div>
 
-          <div class="frame-helm-movement-input-row">
-            <input
-              type="number"
-              min="0"
-              max="${movement.remaining}"
-              step="1"
-              inputmode="numeric"
-              value="${movement.remaining > 0 ? 1 : 0}"
-              data-frame-helm-movement-distance
-              ${movement.completed || movement.remaining <= 0 ? "disabled" : ""}
-            >
-
-            <button
-              type="button"
-              data-frame-helm-command="spend-movement"
-              ${
-                movement.completed ||
-                movement.remaining <= 0 ||
-                !this.selectedMovementMode
-                  ? "disabled"
-                  : ""
-              }
-            >
-              <i class="fas fa-shoe-prints"></i>
-              Record Movement
-            </button>
-          </div>
-
-          <p class="frame-helm-movement-note">
-            Movement may be split before and after actions. Record only the distance moved during this segment.
+          <p class="frame-helm-movement-note frame-helm-movement-commit-note">
+            Selecting a movement mode commits the unit's entire currently available movement allowance. Frame Helm tracks the action budget; the token may still be moved normally on the canvas.
           </p>
 
           <div class="frame-helm-movement-controls">
@@ -2704,10 +2756,10 @@ class FrameHelmApplication extends Application {
     html.find("[data-frame-helm-movement-mode]").on(
       "click",
       event => {
-        this.selectedMovementMode =
+        const actionId =
           event.currentTarget.dataset.frameHelmMovementMode ?? null;
 
-        this.render(false);
+        this.commitMovementAction(actionId);
       }
     );
 
@@ -2841,6 +2893,46 @@ class FrameHelmApplication extends Application {
     );
   }
 
+  commitMovementAction(actionId) {
+    const action =
+      frameHelmActionRegistry.get(actionId);
+
+    const state = frameHelmTurnState.current;
+
+    if (
+      !action ||
+      action.category !== "movement" ||
+      action.cost !== "movement"
+    ) {
+      ui.notifications.error(
+        "The selected entry is not a valid movement action."
+      );
+      return;
+    }
+
+    if (!state) {
+      ui.notifications.warn(
+        "Begin a turn plan before committing movement."
+      );
+      return;
+    }
+
+    try {
+      const committedDistance =
+        state.commitMovement(action.id);
+
+      this.selectedMovementMode = action.id;
+
+      ui.notifications.info(
+        `${action.label} committed for ${committedDistance} space(s).`
+      );
+
+      this.render(false);
+    } catch (error) {
+      ui.notifications.warn(error.message);
+    }
+  }
+
   executeFullAction(actionId) {
     const action = frameHelmActionRegistry.get(actionId);
     const state = frameHelmTurnState.current;
@@ -2895,6 +2987,17 @@ class FrameHelmApplication extends Application {
       state.useAction(action, {
         useOvercharge
       });
+
+      if (action.id === "quick.boost") {
+        const refreshedMovement =
+          state.refreshMovementFromBoost();
+
+        if (refreshedMovement === null) {
+          ui.notifications.warn(
+            "Boost was recorded, but Frame Helm cannot refresh movement until the unit's Speed is entered."
+          );
+        }
+      }
 
       const sourceLabel = useOvercharge
         ? " using Overcharge"
@@ -2975,57 +3078,6 @@ class FrameHelmApplication extends Application {
 
       try {
         frameHelmTurnState.current.setSpeed(speed);
-        this.render(false);
-      } catch (error) {
-        ui.notifications.warn(error.message);
-      }
-
-      return;
-    }
-
-    if (command === "spend-movement") {
-      if (!this.selectedMovementMode) {
-        ui.notifications.warn(
-          "Choose a movement mode first."
-        );
-        return;
-      }
-
-      const input = this.element.find(
-        "[data-frame-helm-movement-distance]"
-      )[0];
-
-      const distance = Number(input?.value);
-
-      if (!Number.isFinite(distance) || distance <= 0) {
-        ui.notifications.warn(
-          "Enter a movement distance greater than zero."
-        );
-        return;
-      }
-
-      try {
-        const remaining =
-          frameHelmTurnState.current.spendMovement(distance);
-
-        const movementAction =
-          frameHelmActionRegistry.get(
-            this.selectedMovementMode
-          );
-
-        frameHelmTurnState.current.recordHistory(
-          "movement-segment",
-          {
-            actionId: this.selectedMovementMode,
-            distance,
-            label: movementAction?.label ?? "Movement"
-          }
-        );
-
-        ui.notifications.info(
-          `${movementAction?.label ?? "Movement"}: recorded ${distance}. ${remaining} movement remains.`
-        );
-
         this.render(false);
       } catch (error) {
         ui.notifications.warn(error.message);

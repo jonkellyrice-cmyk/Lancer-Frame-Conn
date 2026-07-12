@@ -1964,3 +1964,40 @@
     width: 100%;
   }
 }
+
+/* ==========================================================
+   Simplified movement commitment
+   ========================================================== */
+
+.frame-helm-movement-commit-note {
+  border: 1px solid var(--fh-cyan-muted);
+  border-left: 3px solid var(--fh-cyan);
+  background:
+    linear-gradient(
+      90deg,
+      rgba(86, 224, 223, 0.12),
+      transparent
+    ),
+    rgba(2, 11, 14, 0.66);
+  padding: 0.6rem 0.7rem;
+  color: var(--fh-text-muted);
+}
+
+.frame-helm-movement-panel .frame-helm-movement-mode:not(:disabled) {
+  cursor: pointer;
+}
+
+.frame-helm-movement-panel .frame-helm-movement-mode:not(:disabled)::after {
+  flex: 0 0 auto;
+  margin-top: 0.2rem;
+  color: var(--fh-amber);
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  content: "\\f00c";
+  opacity: 0.65;
+}
+
+.frame-helm-movement-panel .frame-helm-movement-mode:not(:disabled):hover::after {
+  opacity: 1;
+  text-shadow: 0 0 7px rgba(255, 184, 74, 0.5);
+}
