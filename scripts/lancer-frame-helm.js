@@ -1342,22 +1342,364 @@ class FrameHelmApplication extends Application {
     });
   }
 
-  getData(options = {}) {
-    const controlledTokens = canvas?.tokens?.controlled ?? [];
-    const selectedToken = controlledTokens[0] ?? null;
+  constructor(options = {}) {
+    super(options);
+    this.selectedCategory = null;
+  }
+
+  getControlledToken() {
+    const controlledTokens =
+      canvas?.tokens?.controlled ?? [];
+
+    if (controlledTokens.length > 0) {
+      return controlledTokens[0];
+    }
+
+    const combatantToken =
+      game.combat?.combatant?.token?.object ?? null;
+
+    return combatantToken;
+  }
+
+  getTurnStateForDisplay() {
+    return frameHelmTurnState.current?.snapshot() ?? null;
+  }
+
+  actionAvailability(action, turnState) {
+    if (!turnState) {
+      return {
+        allowed: false,
+        reason: "Begin a turn plan first."
+      };
+    }
+
+    return frameHelmTurnState.current.canUseAction(action);
+  }
+
+  actionViewModel(action, turnState) {
+    const availability = this.actionAvailability(
+      action,
+      turnState
+    );
 
     return {
-      moduleTitle: MODULE_TITLE,
-      tokenName: selectedToken?.name ?? "No token selected",
-      hasSelectedToken: Boolean(selectedToken)
+      ...action,
+      allowed: availability.allowed,
+      unavailableReason:
+        availability.reason ?? ""
     };
   }
 
-  async _renderInner(data) {
-    const tokenNotice = data.hasSelectedToken
-      ? `<p class="frame-helm-token-name">${foundry.utils.escapeHTML(data.tokenName)}</p>`
-      : `<p class="frame-helm-empty-state">Select a mech or NPC token to begin.</p>`;
+  categoryViewModel(category, turnState) {
+    const actions = frameHelmActionRegistry.roots(
+      category.id
+    );
 
+    const actionModels = actions.map(action => {
+      return this.actionViewModel(action, turnState);
+    });
+
+    return {
+      ...category,
+      actions: actionModels,
+      hasActions: actionModels.length > 0,
+      hasAvailableAction: actionModels.some(
+        action => action.allowed
+      )
+    };
+  }
+
+  getData(options = {}) {
+    const selectedToken = this.getControlledToken();
+    const turnState = this.getTurnStateForDisplay();
+
+    const allCategories =
+      frameHelmActionRegistry.listCategories();
+
+    const visibleCategoryIds = [
+      "movement",
+      "quick",
+      "full",
+      "special",
+      "protocol",
+      "reaction"
+    ];
+
+    const categories = allCategories
+      .filter(category => {
+        return visibleCategoryIds.includes(category.id);
+      })
+      .map(category => {
+        return this.categoryViewModel(
+          category,
+          turnState
+        );
+      });
+
+    const selectedCategory = categories.find(
+      category => category.id === this.selectedCategory
+    ) ?? null;
+
+    return {
+      moduleTitle: MODULE_TITLE,
+      tokenName:
+        selectedToken?.name ??
+        selectedToken?.document?.name ??
+        "No token selected",
+      tokenImage:
+        selectedToken?.document?.texture?.src ??
+        selectedToken?.actor?.img ??
+        null,
+      hasSelectedToken: Boolean(selectedToken),
+      hasTurnState: Boolean(turnState),
+      turnState,
+      categories,
+      selectedCategory
+    };
+  }
+
+  renderBudgetPanel(data) {
+    if (!data.hasTurnState) {
+      return `
+        <section class="frame-helm-budget frame-helm-budget-empty">
+          <div class="frame-helm-budget-message">
+            <i class="fas fa-circle-play"></i>
+            <div>
+              <strong>No turn plan is active.</strong>
+              <p>Begin a plan to track movement, actions, and Overcharge.</p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="frame-helm-primary-button"
+            data-frame-helm-command="begin-turn"
+            ${data.hasSelectedToken ? "" : "disabled"}
+          >
+            <i class="fas fa-play"></i>
+            Begin Turn Plan
+          </button>
+        </section>
+      `;
+    }
+
+    const state = data.turnState;
+
+    const movementValue = state.movement.maximum === null
+      ? "Unrated"
+      : `${state.movement.remaining} / ${state.movement.maximum}`;
+
+    const normalActionLabel = state.actionMode === "full"
+      ? "Full action used"
+      : state.actionMode === "quick"
+        ? `${state.quickActionsRemaining} quick remaining`
+        : "2 quick or 1 full";
+
+    const overchargeLabel = state.overcharge.used
+      ? state.overcharge.quickActionRemaining > 0
+        ? "Quick action ready"
+        : "Used"
+      : "Available";
+
+    return `
+      <section class="frame-helm-budget">
+        <div class="frame-helm-budget-grid">
+          <div class="frame-helm-budget-item">
+            <span>Movement</span>
+            <strong>${foundry.utils.escapeHTML(movementValue)}</strong>
+          </div>
+
+          <div class="frame-helm-budget-item">
+            <span>Actions</span>
+            <strong>${foundry.utils.escapeHTML(normalActionLabel)}</strong>
+          </div>
+
+          <div class="frame-helm-budget-item">
+            <span>Overcharge</span>
+            <strong>${foundry.utils.escapeHTML(overchargeLabel)}</strong>
+          </div>
+
+          <div class="frame-helm-budget-item">
+            <span>Protocol Window</span>
+            <strong>
+              ${state.protocol.startOfTurnOpen ? "Open" : "Closed"}
+            </strong>
+          </div>
+        </div>
+
+        <div class="frame-helm-budget-controls">
+          <button
+            type="button"
+            class="frame-helm-secondary-button"
+            data-frame-helm-command="reset-turn"
+          >
+            <i class="fas fa-rotate-left"></i>
+            Reset Plan
+          </button>
+
+          <button
+            type="button"
+            class="frame-helm-end-turn-button"
+            data-frame-helm-command="end-turn"
+          >
+            <i class="fas fa-flag-checkered"></i>
+            End Turn
+          </button>
+        </div>
+      </section>
+    `;
+  }
+
+  renderUnitPanel(data) {
+    const portrait = data.tokenImage
+      ? `
+        <img
+          class="frame-helm-unit-image"
+          src="${foundry.utils.escapeHTML(data.tokenImage)}"
+          alt=""
+        >
+      `
+      : `
+        <div class="frame-helm-unit-image frame-helm-unit-image-empty">
+          <i class="fas fa-robot"></i>
+        </div>
+      `;
+
+    const unitText = data.hasSelectedToken
+      ? `
+        <div class="frame-helm-unit-text">
+          <span class="frame-helm-label">Controlled Unit</span>
+          <strong>${foundry.utils.escapeHTML(data.tokenName)}</strong>
+        </div>
+      `
+      : `
+        <div class="frame-helm-unit-text">
+          <span class="frame-helm-label">Controlled Unit</span>
+          <strong>No token selected</strong>
+          <small>Select a mech or NPC token on the canvas.</small>
+        </div>
+      `;
+
+    return `
+      <section class="frame-helm-unit-panel">
+        ${portrait}
+        ${unitText}
+      </section>
+    `;
+  }
+
+  renderCategoryMenu(data) {
+    const buttons = data.categories.map(category => {
+      const unavailableClass =
+        data.hasTurnState && !category.hasAvailableAction
+          ? " frame-helm-category-unavailable"
+          : "";
+
+      return `
+        <button
+          type="button"
+          class="frame-helm-category-button${unavailableClass}"
+          data-frame-helm-category="${foundry.utils.escapeHTML(category.id)}"
+        >
+          <i class="${foundry.utils.escapeHTML(category.icon)}"></i>
+
+          <span class="frame-helm-category-copy">
+            <strong>${foundry.utils.escapeHTML(category.label)}</strong>
+            <small>${foundry.utils.escapeHTML(category.description)}</small>
+          </span>
+
+          <i class="fas fa-chevron-right frame-helm-category-arrow"></i>
+        </button>
+      `;
+    }).join("");
+
+    return `
+      <section class="frame-helm-action-panel">
+        <div class="frame-helm-section-heading">
+          <span>Choose an action type</span>
+        </div>
+
+        <div class="frame-helm-category-list">
+          ${buttons}
+        </div>
+      </section>
+    `;
+  }
+
+  renderActionList(data) {
+    const category = data.selectedCategory;
+
+    if (!category) {
+      return this.renderCategoryMenu(data);
+    }
+
+    const actionButtons = category.actions.map(action => {
+      const disabledAttribute = action.allowed
+        ? ""
+        : "disabled";
+
+      const unavailableText = action.allowed
+        ? ""
+        : `
+          <span class="frame-helm-action-reason">
+            ${foundry.utils.escapeHTML(action.unavailableReason)}
+          </span>
+        `;
+
+      return `
+        <button
+          type="button"
+          class="frame-helm-action-button"
+          data-frame-helm-action="${foundry.utils.escapeHTML(action.id)}"
+          ${disabledAttribute}
+        >
+          <i class="${foundry.utils.escapeHTML(action.icon)}"></i>
+
+          <span class="frame-helm-action-copy">
+            <strong>${foundry.utils.escapeHTML(action.label)}</strong>
+            <small>${foundry.utils.escapeHTML(action.shortDescription)}</small>
+            ${unavailableText}
+          </span>
+        </button>
+      `;
+    }).join("");
+
+    const emptyMessage = category.hasActions
+      ? ""
+      : `
+        <div class="frame-helm-no-actions">
+          <i class="fas fa-circle-info"></i>
+          <p>No universal actions are registered in this category yet.</p>
+        </div>
+      `;
+
+    return `
+      <section class="frame-helm-action-panel">
+        <div class="frame-helm-section-heading frame-helm-section-heading-with-back">
+          <button
+            type="button"
+            class="frame-helm-back-button"
+            data-frame-helm-command="back"
+            aria-label="Back to action categories"
+          >
+            <i class="fas fa-arrow-left"></i>
+          </button>
+
+          <div>
+            <span>${foundry.utils.escapeHTML(category.label)}</span>
+            <small>${foundry.utils.escapeHTML(category.description)}</small>
+          </div>
+        </div>
+
+        <div class="frame-helm-action-list">
+          ${actionButtons}
+          ${emptyMessage}
+        </div>
+      </section>
+    `;
+  }
+
+  async _renderInner(data) {
     const html = `
       <section class="frame-helm-shell">
         <header class="frame-helm-header">
@@ -1365,21 +1707,188 @@ class FrameHelmApplication extends Application {
             <p class="frame-helm-eyebrow">TURN ASSISTANT</p>
             <h2>${foundry.utils.escapeHTML(data.moduleTitle)}</h2>
           </div>
+
+          <span
+            class="frame-helm-window-hint"
+            title="Drag this window by its Foundry title bar. Use the title-bar control to minimize it."
+          >
+            <i class="fas fa-up-down-left-right"></i>
+          </span>
         </header>
 
-        <div class="frame-helm-selected-actor">
-          <span class="frame-helm-label">Controlled Unit</span>
-          ${tokenNotice}
-        </div>
-
-        <div class="frame-helm-placeholder">
-          <i class="fas fa-helmet-battle"></i>
-          <p>The action tree will be added in the next development steps.</p>
-        </div>
+        ${this.renderUnitPanel(data)}
+        ${this.renderBudgetPanel(data)}
+        ${this.renderActionList(data)}
       </section>
     `;
 
     return $(html);
+  }
+
+  activateListeners(html) {
+    super.activateListeners(html);
+
+    html.find("[data-frame-helm-category]").on(
+      "click",
+      event => {
+        this.selectedCategory =
+          event.currentTarget.dataset.frameHelmCategory ?? null;
+
+        this.render(false);
+      }
+    );
+
+    html.find("[data-frame-helm-action]").on(
+      "click",
+      event => {
+        const actionId =
+          event.currentTarget.dataset.frameHelmAction;
+
+        this.onActionSelected(actionId);
+      }
+    );
+
+    html.find("[data-frame-helm-command]").on(
+      "click",
+      event => {
+        const command =
+          event.currentTarget.dataset.frameHelmCommand;
+
+        this.onCommand(command);
+      }
+    );
+  }
+
+  beginTurnPlan() {
+    const token = this.getControlledToken();
+
+    if (!token) {
+      ui.notifications.warn(
+        "Select a mech or NPC token first."
+      );
+      return;
+    }
+
+    const combat = game.combat;
+    const combatContext = combat?.started
+      ? activeCombatTurnContext(combat)
+      : {};
+
+    frameHelmTurnState.beginTurn({
+      ...combatContext,
+      tokenId:
+        token.id ??
+        token.document?.id ??
+        combatContext.tokenId ??
+        null,
+      actorId:
+        token.actor?.id ??
+        combatContext.actorId ??
+        null,
+      sceneId:
+        canvas?.scene?.id ??
+        combatContext.sceneId ??
+        null,
+      speed: null
+    });
+
+    this.selectedCategory = null;
+    this.render(false);
+  }
+
+  resetTurnPlan() {
+    const token = this.getControlledToken();
+    const previousState = frameHelmTurnState.current;
+
+    frameHelmTurnState.beginTurn({
+      ...(previousState?.context ?? {}),
+      tokenId:
+        token?.id ??
+        token?.document?.id ??
+        previousState?.context?.tokenId ??
+        null,
+      actorId:
+        token?.actor?.id ??
+        previousState?.context?.actorId ??
+        null,
+      sceneId:
+        canvas?.scene?.id ??
+        previousState?.context?.sceneId ??
+        null,
+      speed: previousState?.speed ?? null
+    });
+
+    this.selectedCategory = null;
+    this.render(false);
+
+    ui.notifications.info(
+      "Frame Helm turn plan reset."
+    );
+  }
+
+  onCommand(command) {
+    if (command === "back") {
+      this.selectedCategory = null;
+      this.render(false);
+      return;
+    }
+
+    if (command === "begin-turn") {
+      this.beginTurnPlan();
+      return;
+    }
+
+    if (command === "reset-turn") {
+      this.resetTurnPlan();
+      return;
+    }
+
+    if (command === "end-turn") {
+      frameHelmTurnState.endTurn();
+      this.selectedCategory = null;
+      this.render(false);
+
+      ui.notifications.info(
+        "Frame Helm turn plan ended."
+      );
+    }
+  }
+
+  onActionSelected(actionId) {
+    const action = frameHelmActionRegistry.get(actionId);
+
+    if (!action) {
+      ui.notifications.error(
+        `Unknown Frame Helm action: ${actionId}`
+      );
+      return;
+    }
+
+    if (action.id === "special.end-turn") {
+      this.onCommand("end-turn");
+      return;
+    }
+
+    if (action.id === "special.overcharge") {
+      try {
+        const heatFormula =
+          frameHelmTurnState.current.useOvercharge();
+
+        this.render(false);
+
+        ui.notifications.info(
+          `Overcharge selected. Apply ${heatFormula} Heat. One additional quick action is available.`
+        );
+      } catch (error) {
+        ui.notifications.warn(error.message);
+      }
+
+      return;
+    }
+
+    ui.notifications.info(
+      `${action.label} selected. Its guided workflow will be added in the next development steps.`
+    );
   }
 }
 
