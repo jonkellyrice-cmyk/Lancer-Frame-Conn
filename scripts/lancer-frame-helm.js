@@ -1453,6 +1453,7 @@ class FrameHelmApplication extends Application {
     this.selectedMovementMode = null;
     this.selectedQuickActionId = null;
     this.selectedFullActionId = null;
+    this.manualStatsByUnit = new Map();
   }
 
   _getHeaderButtons() {
@@ -1472,6 +1473,199 @@ class FrameHelmApplication extends Application {
     }
 
     return buttons;
+  }
+
+  defaultManualStats() {
+    return {
+      hpCurrent: 0,
+      hpMax: 0,
+      heatCurrent: 0,
+      heatMax: 0,
+      armor: 0,
+      overshield: 0,
+      burn: 0,
+      structureCurrent: 0,
+      structureMax: 0,
+      stressCurrent: 0,
+      stressMax: 0,
+      repairsCurrent: 0,
+      repairsMax: 0
+    };
+  }
+
+  manualStatsKey(token) {
+    return String(
+      token?.actor?.id ??
+      token?.document?.actorId ??
+      token?.id ??
+      token?.document?.id ??
+      "unselected"
+    );
+  }
+
+  getManualStats(token) {
+    const key = this.manualStatsKey(token);
+
+    if (!this.manualStatsByUnit.has(key)) {
+      this.manualStatsByUnit.set(
+        key,
+        this.defaultManualStats()
+      );
+    }
+
+    return this.manualStatsByUnit.get(key);
+  }
+
+  updateManualStat(token, statName, value) {
+    const stats = this.getManualStats(token);
+
+    if (!Object.prototype.hasOwnProperty.call(stats, statName)) {
+      return;
+    }
+
+    const numericValue = Number(value);
+
+    stats[statName] =
+      Number.isFinite(numericValue) && numericValue >= 0
+        ? numericValue
+        : 0;
+  }
+
+  renderPairedStat({
+    label,
+    currentName,
+    maximumName,
+    currentValue,
+    maximumValue
+  }) {
+    return `
+      <div class="frame-helm-stat-cell frame-helm-stat-paired">
+        <span class="frame-helm-stat-label">
+          ${foundry.utils.escapeHTML(label)}
+        </span>
+
+        <div class="frame-helm-stat-value-group">
+          <input
+            type="number"
+            min="0"
+            step="1"
+            inputmode="numeric"
+            value="${currentValue}"
+            data-frame-helm-stat="${foundry.utils.escapeHTML(currentName)}"
+            aria-label="${foundry.utils.escapeHTML(label)} remaining"
+          >
+
+          <span class="frame-helm-stat-divider">/</span>
+
+          <input
+            type="number"
+            min="0"
+            step="1"
+            inputmode="numeric"
+            value="${maximumValue}"
+            data-frame-helm-stat="${foundry.utils.escapeHTML(maximumName)}"
+            aria-label="${foundry.utils.escapeHTML(label)} maximum"
+          >
+        </div>
+      </div>
+    `;
+  }
+
+  renderSingleStat({
+    label,
+    statName,
+    value
+  }) {
+    return `
+      <div class="frame-helm-stat-cell frame-helm-stat-single">
+        <span class="frame-helm-stat-label">
+          ${foundry.utils.escapeHTML(label)}
+        </span>
+
+        <input
+          type="number"
+          min="0"
+          step="1"
+          inputmode="numeric"
+          value="${value}"
+          data-frame-helm-stat="${foundry.utils.escapeHTML(statName)}"
+          aria-label="${foundry.utils.escapeHTML(label)}"
+        >
+      </div>
+    `;
+  }
+
+  renderMechStatsBar(data) {
+    const stats = data.manualStats;
+
+    return `
+      <section class="frame-helm-mech-stats-bar">
+        <header class="frame-helm-mech-stats-heading">
+          <span>&lt;MECH//STATS&gt;</span>
+          <small>Manual tactical telemetry</small>
+        </header>
+
+        <div class="frame-helm-mech-stats-grid">
+          ${this.renderPairedStat({
+            label: "HP",
+            currentName: "hpCurrent",
+            maximumName: "hpMax",
+            currentValue: stats.hpCurrent,
+            maximumValue: stats.hpMax
+          })}
+
+          ${this.renderPairedStat({
+            label: "HEAT",
+            currentName: "heatCurrent",
+            maximumName: "heatMax",
+            currentValue: stats.heatCurrent,
+            maximumValue: stats.heatMax
+          })}
+
+          ${this.renderSingleStat({
+            label: "ARM",
+            statName: "armor",
+            value: stats.armor
+          })}
+
+          ${this.renderSingleStat({
+            label: "O.SHLD",
+            statName: "overshield",
+            value: stats.overshield
+          })}
+
+          ${this.renderSingleStat({
+            label: "BURN",
+            statName: "burn",
+            value: stats.burn
+          })}
+
+          ${this.renderPairedStat({
+            label: "STRUCT",
+            currentName: "structureCurrent",
+            maximumName: "structureMax",
+            currentValue: stats.structureCurrent,
+            maximumValue: stats.structureMax
+          })}
+
+          ${this.renderPairedStat({
+            label: "STRESS",
+            currentName: "stressCurrent",
+            maximumName: "stressMax",
+            currentValue: stats.stressCurrent,
+            maximumValue: stats.stressMax
+          })}
+
+          ${this.renderPairedStat({
+            label: "REP",
+            currentName: "repairsCurrent",
+            maximumName: "repairsMax",
+            currentValue: stats.repairsCurrent,
+            maximumValue: stats.repairsMax
+          })}
+        </div>
+      </section>
+    `;
   }
 
   getControlledToken() {
@@ -1539,6 +1733,7 @@ class FrameHelmApplication extends Application {
   getData(options = {}) {
     const selectedToken = this.getControlledToken();
     const turnState = this.getTurnStateForDisplay();
+    const manualStats = this.getManualStats(selectedToken);
 
     const allCategories =
       frameHelmActionRegistry.listCategories();
@@ -1579,6 +1774,8 @@ class FrameHelmApplication extends Application {
         null,
       hasSelectedToken: Boolean(selectedToken),
       hasTurnState: Boolean(turnState),
+      controlledToken: selectedToken,
+      manualStats,
       turnState,
       categories,
       selectedCategory
@@ -2760,19 +2957,7 @@ class FrameHelmApplication extends Application {
   async _renderInner(data) {
     const html = `
       <section class="frame-helm-shell">
-        <header class="frame-helm-header">
-          <div>
-            <p class="frame-helm-eyebrow">TURN ASSISTANT</p>
-            <h2>${foundry.utils.escapeHTML(data.moduleTitle)}</h2>
-          </div>
-
-          <span
-            class="frame-helm-window-hint"
-            title="Drag this window by its Foundry title bar. Use the title-bar control to minimize it."
-          >
-            <i class="fas fa-up-down-left-right"></i>
-          </span>
-        </header>
+        ${this.renderMechStatsBar(data)}
 
         <div class="frame-helm-horizontal-layout">
           <aside class="frame-helm-overview-column">
@@ -2876,6 +3061,22 @@ class FrameHelmApplication extends Application {
           event.currentTarget.dataset.frameHelmCommand;
 
         this.onCommand(command);
+      }
+    );
+
+    html.find("[data-frame-helm-stat]").on(
+      "input change",
+      event => {
+        const statName =
+          event.currentTarget.dataset.frameHelmStat;
+
+        const token = this.getControlledToken();
+
+        this.updateManualStat(
+          token,
+          statName,
+          event.currentTarget.value
+        );
       }
     );
   }
