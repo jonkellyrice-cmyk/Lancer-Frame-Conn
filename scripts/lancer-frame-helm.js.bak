@@ -1384,6 +1384,10 @@ function activeCombatTurnContext(combat = game.combat) {
   const tokenDocument = combatant?.token ?? null;
   const actor = combatant?.actor ?? null;
 
+  const numericSpeed = Number(
+    actor?.system?.speed
+  );
+
   return {
     combatId: combat?.id ?? null,
     combatantId: combatant?.id ?? null,
@@ -1399,7 +1403,10 @@ function activeCombatTurnContext(combat = game.combat) {
     turn: Number.isFinite(combat?.turn)
       ? combat.turn
       : null,
-    speed: null
+    speed:
+      Number.isFinite(numericSpeed) && numericSpeed >= 0
+        ? numericSpeed
+        : null
   };
 }
 
@@ -1513,11 +1520,130 @@ class FrameHelmApplication extends Application {
       );
     }
 
-    return this.manualStatsByUnit.get(key);
+    const fallback = this.manualStatsByUnit.get(key);
+    const actor = token?.actor ?? null;
+    const system = actor?.system ?? null;
+
+    if (!system) {
+      return {
+        ...fallback,
+        speed: null,
+        live: false,
+        actorType: null,
+        repairsAvailable: true
+      };
+    }
+
+    const finiteOr = (value, fallbackValue = 0) => {
+      const numericValue = Number(value);
+
+      return Number.isFinite(numericValue)
+        ? numericValue
+        : fallbackValue;
+    };
+
+    const rangeValue = (
+      range,
+      property,
+      fallbackValue = 0
+    ) => {
+      return finiteOr(
+        range?.[property],
+        fallbackValue
+      );
+    };
+
+    const repairsAvailable = Boolean(
+      system.repairs &&
+      typeof system.repairs === "object"
+    );
+
+    return {
+      hpCurrent: rangeValue(
+        system.hp,
+        "value",
+        fallback.hpCurrent
+      ),
+      hpMax: rangeValue(
+        system.hp,
+        "max",
+        fallback.hpMax
+      ),
+      heatCurrent: rangeValue(
+        system.heat,
+        "value",
+        fallback.heatCurrent
+      ),
+      heatMax: rangeValue(
+        system.heat,
+        "max",
+        fallback.heatMax
+      ),
+      armor: finiteOr(
+        system.armor,
+        fallback.armor
+      ),
+      overshield: rangeValue(
+        system.overshield,
+        "value",
+        fallback.overshield
+      ),
+      burn: finiteOr(
+        system.burn,
+        fallback.burn
+      ),
+      structureCurrent: rangeValue(
+        system.structure,
+        "value",
+        fallback.structureCurrent
+      ),
+      structureMax: rangeValue(
+        system.structure,
+        "max",
+        fallback.structureMax
+      ),
+      stressCurrent: rangeValue(
+        system.stress,
+        "value",
+        fallback.stressCurrent
+      ),
+      stressMax: rangeValue(
+        system.stress,
+        "max",
+        fallback.stressMax
+      ),
+      repairsCurrent: repairsAvailable
+        ? rangeValue(
+            system.repairs,
+            "value",
+            fallback.repairsCurrent
+          )
+        : fallback.repairsCurrent,
+      repairsMax: repairsAvailable
+        ? rangeValue(
+            system.repairs,
+            "max",
+            fallback.repairsMax
+          )
+        : fallback.repairsMax,
+      speed: finiteOr(system.speed, null),
+      live: true,
+      actorType: actor.type ?? null,
+      repairsAvailable
+    };
   }
 
   updateManualStat(token, statName, value) {
-    const stats = this.getManualStats(token);
+    const key = this.manualStatsKey(token);
+
+    if (!this.manualStatsByUnit.has(key)) {
+      this.manualStatsByUnit.set(
+        key,
+        this.defaultManualStats()
+      );
+    }
+
+    const stats = this.manualStatsByUnit.get(key);
 
     if (!Object.prototype.hasOwnProperty.call(stats, statName)) {
       return;
@@ -1529,6 +1655,43 @@ class FrameHelmApplication extends Application {
       Number.isFinite(numericValue) && numericValue >= 0
         ? numericValue
         : 0;
+  }
+
+  synchronizeTurnSpeed(token = this.getControlledToken()) {
+    const state = frameHelmTurnState.current;
+    const numericSpeed = Number(
+      token?.actor?.system?.speed
+    );
+
+    if (
+      !state ||
+      !Number.isFinite(numericSpeed) ||
+      numericSpeed < 0
+    ) {
+      return;
+    }
+
+    const tokenId =
+      token?.id ??
+      token?.document?.id ??
+      null;
+
+    const actorId = token?.actor?.id ?? null;
+
+    const stateTokenId = state.context?.tokenId ?? null;
+    const stateActorId = state.context?.actorId ?? null;
+
+    const belongsToCurrentPlan = Boolean(
+      (!stateTokenId && !stateActorId) ||
+      (stateTokenId && stateTokenId === tokenId) ||
+      (stateActorId && stateActorId === actorId)
+    );
+
+    if (!belongsToCurrentPlan) return;
+
+    if (state.speed !== numericSpeed) {
+      state.setSpeed(numericSpeed);
+    }
   }
 
   renderPairedStat({
@@ -1552,7 +1715,8 @@ class FrameHelmApplication extends Application {
             inputmode="numeric"
             value="${currentValue}"
             data-frame-helm-stat="${foundry.utils.escapeHTML(currentName)}"
-            aria-label="${foundry.utils.escapeHTML(label)} remaining"
+            aria-label="${foundry.utils.escapeHTML(label)} current"
+            readonly
           >
 
           <span class="frame-helm-stat-divider">/</span>
@@ -1565,6 +1729,7 @@ class FrameHelmApplication extends Application {
             value="${maximumValue}"
             data-frame-helm-stat="${foundry.utils.escapeHTML(maximumName)}"
             aria-label="${foundry.utils.escapeHTML(label)} maximum"
+            readonly
           >
         </div>
       </div>
@@ -1590,6 +1755,7 @@ class FrameHelmApplication extends Application {
           value="${value}"
           data-frame-helm-stat="${foundry.utils.escapeHTML(statName)}"
           aria-label="${foundry.utils.escapeHTML(label)}"
+          readonly
         >
       </div>
     `;
@@ -1598,11 +1764,17 @@ class FrameHelmApplication extends Application {
   renderMechStatsBar(data) {
     const stats = data.manualStats;
 
+    const telemetryLabel = stats.live
+      ? `LIVE ${String(
+          stats.actorType ?? "ACTOR"
+        ).toUpperCase()} TELEMETRY`
+      : "MANUAL FALLBACK TELEMETRY";
+
     return `
       <section class="frame-helm-mech-stats-bar">
         <header class="frame-helm-mech-stats-heading">
           <span>&lt;MECH//STATS&gt;</span>
-          <small>Manual tactical telemetry</small>
+          <small>${foundry.utils.escapeHTML(telemetryLabel)}</small>
         </header>
 
         <div class="frame-helm-mech-stats-grid">
@@ -1656,13 +1828,22 @@ class FrameHelmApplication extends Application {
             maximumValue: stats.stressMax
           })}
 
-          ${this.renderPairedStat({
-            label: "REP",
-            currentName: "repairsCurrent",
-            maximumName: "repairsMax",
-            currentValue: stats.repairsCurrent,
-            maximumValue: stats.repairsMax
-          })}
+          ${
+            stats.repairsAvailable
+              ? this.renderPairedStat({
+                  label: "REP",
+                  currentName: "repairsCurrent",
+                  maximumName: "repairsMax",
+                  currentValue: stats.repairsCurrent,
+                  maximumValue: stats.repairsMax
+                })
+              : `
+                <div class="frame-helm-stat-cell frame-helm-stat-unavailable">
+                  <span class="frame-helm-stat-label">REP</span>
+                  <strong>N/A</strong>
+                </div>
+              `
+          }
         </div>
       </section>
     `;
@@ -1732,6 +1913,9 @@ class FrameHelmApplication extends Application {
 
   getData(options = {}) {
     const selectedToken = this.getControlledToken();
+
+    this.synchronizeTurnSpeed(selectedToken);
+
     const turnState = this.getTurnStateForDisplay();
     const manualStats = this.getManualStats(selectedToken);
 
@@ -3064,21 +3248,7 @@ class FrameHelmApplication extends Application {
       }
     );
 
-    html.find("[data-frame-helm-stat]").on(
-      "input change",
-      event => {
-        const statName =
-          event.currentTarget.dataset.frameHelmStat;
 
-        const token = this.getControlledToken();
-
-        this.updateManualStat(
-          token,
-          statName,
-          event.currentTarget.value
-        );
-      }
-    );
   }
 
   beginTurnPlan() {
@@ -3111,7 +3281,15 @@ class FrameHelmApplication extends Application {
         canvas?.scene?.id ??
         combatContext.sceneId ??
         null,
-      speed: null
+      speed: (() => {
+        const numericSpeed = Number(
+          token.actor?.system?.speed
+        );
+
+        return Number.isFinite(numericSpeed) && numericSpeed >= 0
+          ? numericSpeed
+          : null;
+      })()
     });
 
     this.selectedCategory = null;
@@ -3702,6 +3880,104 @@ Hooks.on("controlToken", () => {
 Hooks.on("deleteToken", () => {
   if (frameHelmApplication?.rendered) {
     frameHelmApplication.render(false);
+  }
+});
+
+/* ==========================================================
+   Live Lancer actor synchronization
+   ========================================================== */
+
+function displayedFrameHelmToken() {
+  return frameHelmApplication?.getControlledToken?.() ?? null;
+}
+
+function frameHelmDisplaysActor(actor) {
+  if (!actor || !frameHelmApplication?.rendered) {
+    return false;
+  }
+
+  const displayedActor =
+    displayedFrameHelmToken()?.actor ?? null;
+
+  if (!displayedActor) return false;
+
+  return Boolean(
+    displayedActor === actor ||
+    (
+      displayedActor.uuid &&
+      actor.uuid &&
+      displayedActor.uuid === actor.uuid
+    ) ||
+    (
+      displayedActor.id &&
+      actor.id &&
+      displayedActor.id === actor.id
+    )
+  );
+}
+
+function refreshFrameHelmTelemetry() {
+  if (!frameHelmApplication?.rendered) return;
+
+  const token = displayedFrameHelmToken();
+
+  frameHelmApplication.synchronizeTurnSpeed(token);
+  frameHelmApplication.render(false);
+}
+
+Hooks.on("updateActor", actor => {
+  if (frameHelmDisplaysActor(actor)) {
+    refreshFrameHelmTelemetry();
+  }
+});
+
+Hooks.on("updateToken", tokenDocument => {
+  if (!frameHelmApplication?.rendered) return;
+
+  const displayedToken = displayedFrameHelmToken();
+
+  const displayedTokenId =
+    displayedToken?.id ??
+    displayedToken?.document?.id ??
+    null;
+
+  if (displayedTokenId === tokenDocument.id) {
+    refreshFrameHelmTelemetry();
+  }
+});
+
+Hooks.on("updateActorDelta", actorDelta => {
+  if (!frameHelmApplication?.rendered) return;
+
+  const displayedTokenDocument =
+    displayedFrameHelmToken()?.document ?? null;
+
+  const deltaParent = actorDelta?.parent ?? null;
+
+  if (
+    displayedTokenDocument &&
+    deltaParent &&
+    displayedTokenDocument.id === deltaParent.id
+  ) {
+    refreshFrameHelmTelemetry();
+  }
+});
+
+Hooks.on("updateItem", item => {
+  if (frameHelmDisplaysActor(item?.parent)) {
+    refreshFrameHelmTelemetry();
+  }
+});
+
+Hooks.on("createItem", item => {
+  if (frameHelmDisplaysActor(item?.parent)) {
+    refreshFrameHelmTelemetry();
+  }
+});
+
+Hooks.on("deleteItem", item => {
+  if (frameHelmDisplaysActor(item?.parent)) {
+    refreshFrameHelmTelemetry();
   }
 });
 

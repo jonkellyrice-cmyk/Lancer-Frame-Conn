@@ -714,7 +714,14 @@ class FrameHelmTurnState {
       maximum: this.speed,
       spent: 0,
       remaining: this.speed,
-      completed: false
+      completed: false,
+      totalTracked: 0,
+      standardUsed: 0,
+      boostUsed: 0,
+      overchargeBoostUsed: 0,
+      excess: 0,
+      segments: [],
+      processedMovementIds: []
     };
 
     this.actionMode = null;
@@ -915,6 +922,352 @@ class FrameHelmTurnState {
     );
 
     return this.movement.remaining;
+  }
+
+  movementBoostEntries() {
+    return this.usedActions.filter(entry => {
+      return entry.actionId === "quick.boost";
+    });
+  }
+
+  movementBoostCount() {
+    return this.movementBoostEntries().length;
+  }
+
+  hasProcessedMovementId(movementId) {
+    if (!movementId) return false;
+
+    return this.movement.processedMovementIds.includes(
+      String(movementId)
+    );
+  }
+
+  rememberMovementId(movementId) {
+    if (!movementId) return;
+
+    const normalizedId = String(movementId);
+
+    if (
+      !this.movement.processedMovementIds.includes(
+        normalizedId
+      )
+    ) {
+      this.movement.processedMovementIds.push(
+        normalizedId
+      );
+    }
+
+    if (this.movement.processedMovementIds.length > 100) {
+      this.movement.processedMovementIds.splice(
+        0,
+        this.movement.processedMovementIds.length - 100
+      );
+    }
+  }
+
+  ensureAutomaticMovementBoost({
+    forceOvercharge = false
+  } = {}) {
+    this.assertTurnActive();
+
+    const boostAction =
+      frameHelmActionRegistry.get("quick.boost");
+
+    if (!boostAction) {
+      return {
+        committed: false,
+        reason: "Boost is not registered."
+      };
+    }
+
+    if (!forceOvercharge) {
+      const normalPermission = this.canUseAction(
+        boostAction
+      );
+
+      if (normalPermission.allowed) {
+        this.useAction(boostAction, {
+          metadata: {
+            automatic: true,
+            reason: "token-movement"
+          }
+        });
+
+        this.recordHistory(
+          "automatic-movement-boost",
+          {
+            source: "normal"
+          }
+        );
+
+        return {
+          committed: true,
+          source: "normal",
+          heatFormula: null
+        };
+      }
+    }
+
+    let heatFormula = null;
+    let triggeredOvercharge = false;
+
+    if (!this.overcharge.used) {
+      heatFormula = this.useOvercharge();
+      triggeredOvercharge = true;
+    }
+
+    const overchargePermission = this.canUseAction(
+      boostAction,
+      {
+        useOvercharge: true
+      }
+    );
+
+    if (!overchargePermission.allowed) {
+      return {
+        committed: false,
+        triggeredOvercharge,
+        heatFormula,
+        reason: overchargePermission.reason
+      };
+    }
+
+    this.useAction(boostAction, {
+      useOvercharge: true,
+      metadata: {
+        automatic: true,
+        reason: "token-movement"
+      }
+    });
+
+    this.recordHistory(
+      "automatic-movement-boost",
+      {
+        source: "overcharge",
+        heatFormula
+      }
+    );
+
+    return {
+      committed: true,
+      source: "overcharge",
+      triggeredOvercharge,
+      heatFormula
+    };
+  }
+
+  recalculateTrackedMovement() {
+    const speed = Number(this.movement.maximum);
+    const total = Number(this.movement.totalTracked) || 0;
+
+    if (!Number.isFinite(speed) || speed <= 0) {
+      this.movement.standardUsed = total;
+      this.movement.boostUsed = 0;
+      this.movement.overchargeBoostUsed = 0;
+      this.movement.spent = total;
+      this.movement.remaining = 0;
+      this.movement.excess = 0;
+      this.movement.completed = total > 0;
+      return;
+    }
+
+    const boostEntries = this.movementBoostEntries();
+
+    const normalBoostCount = boostEntries.filter(entry => {
+      return entry.source !== "overcharge";
+    }).length;
+
+    const overchargeBoostCount = boostEntries.filter(entry => {
+      return entry.source === "overcharge";
+    }).length;
+
+    const standardUsed = Math.min(total, speed);
+
+    const boostUsed = normalBoostCount > 0
+      ? Math.min(
+          Math.max(total - speed, 0),
+          speed
+        )
+      : 0;
+
+    const overchargeStart = speed * (
+      1 + normalBoostCount
+    );
+
+    const overchargeBoostUsed =
+      overchargeBoostCount > 0
+        ? Math.min(
+            Math.max(total - overchargeStart, 0),
+            speed
+          )
+        : 0;
+
+    const legalAllowanceCount =
+      1 + normalBoostCount + overchargeBoostCount;
+
+    const legalMaximum =
+      speed * legalAllowanceCount;
+
+    const excess = Math.max(
+      total - legalMaximum,
+      0
+    );
+
+    let currentPoolUsed = standardUsed;
+
+    if (normalBoostCount > 0 && total > speed) {
+      currentPoolUsed = boostUsed;
+    }
+
+    if (
+      overchargeBoostCount > 0 &&
+      total > overchargeStart
+    ) {
+      currentPoolUsed = overchargeBoostUsed;
+    }
+
+    if (excess > 0) {
+      currentPoolUsed = speed;
+    }
+
+    this.movement.standardUsed = standardUsed;
+    this.movement.boostUsed = boostUsed;
+    this.movement.overchargeBoostUsed =
+      overchargeBoostUsed;
+    this.movement.excess = excess;
+    this.movement.spent = currentPoolUsed;
+    this.movement.remaining = excess > 0
+      ? 0
+      : Math.max(speed - currentPoolUsed, 0);
+    this.movement.completed =
+      this.movement.remaining <= 0;
+  }
+
+  trackTokenMovement(
+    distance,
+    {
+      movementId = null,
+      method = null,
+      origin = null,
+      destination = null
+    } = {}
+  ) {
+    this.assertTurnActive();
+
+    const numericDistance = Number(distance);
+
+    if (
+      !Number.isFinite(numericDistance) ||
+      numericDistance <= 0
+    ) {
+      return {
+        tracked: false,
+        distance: 0,
+        reason: "Movement distance was zero."
+      };
+    }
+
+    if (this.hasProcessedMovementId(movementId)) {
+      return {
+        tracked: false,
+        distance: 0,
+        reason: "Movement was already recorded."
+      };
+    }
+
+    const speed = Number(this.movement.maximum);
+
+    if (!Number.isFinite(speed) || speed <= 0) {
+      throw new Error(
+        "Frame Helm cannot track movement until the unit has a positive Speed."
+      );
+    }
+
+    const previousTotal =
+      this.movement.totalTracked;
+
+    const newTotal =
+      previousTotal + numericDistance;
+
+    const previousBoostCount =
+      this.movementBoostCount();
+
+    const automaticActions = [];
+
+    if (
+      newTotal > speed &&
+      this.movementBoostCount() < 1
+    ) {
+      const result = this.ensureAutomaticMovementBoost({
+        forceOvercharge: false
+      });
+
+      automaticActions.push({
+        threshold: speed,
+        ...result
+      });
+    }
+
+    if (
+      newTotal > speed * 2 &&
+      this.movementBoostCount() < 2
+    ) {
+      const result = this.ensureAutomaticMovementBoost({
+        forceOvercharge: true
+      });
+
+      automaticActions.push({
+        threshold: speed * 2,
+        ...result
+      });
+    }
+
+    this.movement.totalTracked = newTotal;
+
+    this.movement.segments.push({
+      distance: numericDistance,
+      movementId: movementId
+        ? String(movementId)
+        : null,
+      method: method
+        ? String(method)
+        : null,
+      origin: origin
+        ? { ...origin }
+        : null,
+      destination: destination
+        ? { ...destination }
+        : null,
+      timestamp: Date.now()
+    });
+
+    this.rememberMovementId(movementId);
+    this.closeProtocolWindow();
+    this.recalculateTrackedMovement();
+
+    this.recordHistory("token-movement", {
+      distance: numericDistance,
+      totalDistance: newTotal,
+      movementId,
+      method,
+      automaticActions,
+      previousBoostCount,
+      boostCount: this.movementBoostCount(),
+      excess: this.movement.excess
+    });
+
+    return {
+      tracked: true,
+      distance: numericDistance,
+      totalDistance: newTotal,
+      remaining: this.movement.remaining,
+      standardUsed: this.movement.standardUsed,
+      boostUsed: this.movement.boostUsed,
+      overchargeBoostUsed:
+        this.movement.overchargeBoostUsed,
+      excess: this.movement.excess,
+      automaticActions
+    };
   }
 
   closeProtocolWindow() {
@@ -1974,17 +2327,25 @@ class FrameHelmApplication extends Application {
     for (const event of state.history ?? []) {
       if (
         event.type === "movement-segment" ||
-        event.type === "movement-commit"
+        event.type === "movement-commit" ||
+        event.type === "token-movement"
       ) {
         const action = frameHelmActionRegistry.get(
           event.data?.actionId
         );
 
+        const isTrackedDrag =
+          event.type === "token-movement";
+
         entries.push({
           type: "movement",
           icon: action?.icon ?? "fas fa-shoe-prints",
-          label: action?.label ?? "Movement",
-          detail: `${event.data?.distance ?? 0} space(s) committed`,
+          label: isTrackedDrag
+            ? "Token Movement"
+            : action?.label ?? "Movement",
+          detail: isTrackedDrag
+            ? `${event.data?.distance ?? 0} space(s); ${event.data?.totalDistance ?? 0} total${event.data?.excess > 0 ? `; ${event.data.excess} excess` : ""}`
+            : `${event.data?.distance ?? 0} space(s) committed`,
           timestamp: event.timestamp
         });
       }
@@ -2964,13 +3325,35 @@ class FrameHelmApplication extends Application {
             </div>
 
             <div>
-              <span>Spent</span>
-              <strong>${movement.spent}</strong>
+              <span>Total Moved</span>
+              <strong>${movement.totalTracked ?? movement.spent}</strong>
             </div>
 
             <div>
-              <span>Remaining</span>
+              <span>Current Allowance</span>
               <strong>${movement.remaining}</strong>
+            </div>
+          </div>
+
+          <div class="frame-helm-movement-ledger">
+            <div>
+              <span>Standard</span>
+              <strong>${movement.standardUsed ?? 0} / ${movement.maximum}</strong>
+            </div>
+
+            <div>
+              <span>Boost</span>
+              <strong>${movement.boostUsed ?? 0} / ${movement.maximum}</strong>
+            </div>
+
+            <div>
+              <span>OC Boost</span>
+              <strong>${movement.overchargeBoostUsed ?? 0} / ${movement.maximum}</strong>
+            </div>
+
+            <div class="${movement.excess > 0 ? "frame-helm-movement-excess-active" : ""}">
+              <span>Excess</span>
+              <strong>${movement.excess ?? 0}</strong>
             </div>
           </div>
 
@@ -3570,6 +3953,13 @@ class FrameHelmApplication extends Application {
       current.movement.remaining =
         current.movement.maximum;
       current.movement.completed = false;
+      current.movement.totalTracked = 0;
+      current.movement.standardUsed = 0;
+      current.movement.boostUsed = 0;
+      current.movement.overchargeBoostUsed = 0;
+      current.movement.excess = 0;
+      current.movement.segments = [];
+      current.movement.processedMovementIds = [];
 
       current.recordHistory("reset-movement", {
         maximum: current.movement.maximum
@@ -4021,3 +4411,333 @@ Hooks.on("deleteCombat", combat => {
     frameHelmTurnState.clear();
   }
 });
+
+
+/* ==========================================================
+   Dragged token movement tracking
+   ========================================================== */
+
+function frameHelmMovementTokenMatches(
+  tokenDocument,
+  state = frameHelmTurnState.current
+) {
+  if (!tokenDocument || !state || state.ended) {
+    return false;
+  }
+
+  const context = state.context ?? {};
+
+  const tokenMatches = Boolean(
+    context.tokenId &&
+    context.tokenId === tokenDocument.id
+  );
+
+  const actorId =
+    tokenDocument.actor?.id ??
+    tokenDocument.actorId ??
+    null;
+
+  const actorMatches = Boolean(
+    !context.tokenId &&
+    context.actorId &&
+    context.actorId === actorId
+  );
+
+  return tokenMatches || actorMatches;
+}
+
+function frameHelmPoint(point) {
+  if (!point) return null;
+
+  const x = Number(point.x);
+  const y = Number(point.y);
+
+  if (!Number.isFinite(x) || !Number.isFinite(y)) {
+    return null;
+  }
+
+  return {
+    x,
+    y,
+    elevation: Number.isFinite(Number(point.elevation))
+      ? Number(point.elevation)
+      : undefined
+  };
+}
+
+function frameHelmCollectMovementPoints(movement) {
+  const points = [];
+
+  const addPoint = point => {
+    const normalized = frameHelmPoint(point);
+
+    if (!normalized) return;
+
+    const previous = points.at(-1);
+
+    if (
+      previous &&
+      previous.x === normalized.x &&
+      previous.y === normalized.y
+    ) {
+      return;
+    }
+
+    points.push(normalized);
+  };
+
+  addPoint(movement?.origin);
+
+  const waypointSources = [
+    movement?.passed?.waypoints,
+    movement?.pending?.waypoints,
+    movement?.history?.waypoints,
+    movement?.waypoints
+  ];
+
+  for (const source of waypointSources) {
+    if (!Array.isArray(source)) continue;
+
+    for (const waypoint of source) {
+      addPoint(waypoint);
+    }
+  }
+
+  addPoint(movement?.destination);
+
+  return points;
+}
+
+function frameHelmNumericMovementDistance(movement) {
+  const candidates = [
+    movement?.pending?.distance,
+    movement?.passed?.distance,
+    movement?.history?.distance,
+    movement?.distance,
+    movement?.pending?.cost,
+    movement?.passed?.cost
+  ];
+
+  for (const candidate of candidates) {
+    const numeric = Number(candidate);
+
+    if (Number.isFinite(numeric) && numeric > 0) {
+      return numeric;
+    }
+  }
+
+  const measurementSources = [
+    movement?.pending?.measurements,
+    movement?.passed?.measurements,
+    movement?.history?.measurements
+  ];
+
+  for (const measurements of measurementSources) {
+    if (!Array.isArray(measurements)) continue;
+
+    const total = measurements.reduce(
+      (sum, measurement) => {
+        const distance = Number(
+          measurement?.distance ??
+          measurement?.cost ??
+          0
+        );
+
+        return sum + (
+          Number.isFinite(distance)
+            ? distance
+            : 0
+        );
+      },
+      0
+    );
+
+    if (total > 0) return total;
+  }
+
+  return null;
+}
+
+function frameHelmMeasureMovementPath(
+  tokenDocument,
+  movement
+) {
+  const directDistance =
+    frameHelmNumericMovementDistance(movement);
+
+  const sceneGridDistance = Number(
+    tokenDocument?.parent?.grid?.distance ??
+    canvas?.dimensions?.distance ??
+    1
+  );
+
+  const normalizeSceneDistance = distance => {
+    if (!Number.isFinite(distance)) return null;
+
+    if (
+      Number.isFinite(sceneGridDistance) &&
+      sceneGridDistance > 0
+    ) {
+      return distance / sceneGridDistance;
+    }
+
+    return distance;
+  };
+
+  if (directDistance !== null) {
+    return normalizeSceneDistance(directDistance);
+  }
+
+  const points =
+    frameHelmCollectMovementPoints(movement);
+
+  if (points.length < 2) return 0;
+
+  try {
+    const measured = canvas?.grid?.measurePath?.(
+      points,
+      {
+        cost: true
+      }
+    );
+
+    const measuredDistance = Number(
+      measured?.cost ??
+      measured?.distance
+    );
+
+    if (
+      Number.isFinite(measuredDistance) &&
+      measuredDistance > 0
+    ) {
+      return normalizeSceneDistance(
+        measuredDistance
+      );
+    }
+  } catch (error) {
+    console.warn(
+      `${MODULE_TITLE} | Foundry path measurement failed; using geometric fallback.`,
+      error
+    );
+  }
+
+  const gridSize = Number(
+    canvas?.dimensions?.size ??
+    tokenDocument?.parent?.grid?.size ??
+    100
+  );
+
+  let pixelDistance = 0;
+
+  for (let index = 1; index < points.length; index += 1) {
+    const previous = points[index - 1];
+    const current = points[index];
+
+    pixelDistance += Math.hypot(
+      current.x - previous.x,
+      current.y - previous.y
+    );
+  }
+
+  if (!Number.isFinite(gridSize) || gridSize <= 0) {
+    return 0;
+  }
+
+  return pixelDistance / gridSize;
+}
+
+function frameHelmRoundMovementDistance(distance) {
+  const numeric = Number(distance);
+
+  if (!Number.isFinite(numeric) || numeric <= 0) {
+    return 0;
+  }
+
+  return Math.round(numeric * 100) / 100;
+}
+
+Hooks.on(
+  "moveToken",
+  (tokenDocument, movement) => {
+    const state = frameHelmTurnState.current;
+
+    if (!frameHelmMovementTokenMatches(
+      tokenDocument,
+      state
+    )) {
+      return;
+    }
+
+    const distance = frameHelmRoundMovementDistance(
+      frameHelmMeasureMovementPath(
+        tokenDocument,
+        movement
+      )
+    );
+
+    if (distance <= 0) return;
+
+    try {
+      const result = state.trackTokenMovement(
+        distance,
+        {
+          movementId: movement?.id ?? null,
+          method: movement?.method ?? null,
+          origin: frameHelmPoint(movement?.origin),
+          destination: frameHelmPoint(
+            movement?.destination
+          )
+        }
+      );
+
+      if (!result.tracked) return;
+
+      for (const automaticAction of (
+        result.automaticActions ?? []
+      )) {
+        if (!automaticAction.committed) {
+          ui.notifications.warn(
+            `Frame Helm tracked movement beyond the current allowance, but could not automatically commit Boost: ${automaticAction.reason ?? "no legal action budget remains"}.`
+          );
+          continue;
+        }
+
+        if (
+          automaticAction.source === "overcharge" &&
+          automaticAction.triggeredOvercharge
+        ) {
+          ui.notifications.warn(
+            `Movement triggered Overcharge Boost. Apply ${automaticAction.heatFormula ?? "the current Overcharge cost"} Heat.`
+          );
+        } else if (
+          automaticAction.source === "overcharge"
+        ) {
+          ui.notifications.info(
+            "Movement automatically spent the available Overcharge action on Boost."
+          );
+        } else {
+          ui.notifications.info(
+            "Movement exceeded Speed. Boost was automatically committed."
+          );
+        }
+      }
+
+      if (result.excess > 0) {
+        ui.notifications.warn(
+          `Frame Helm recorded ${result.excess} excess movement beyond the currently legal movement allowance. The token was not stopped.`
+        );
+      }
+
+      frameHelmTurnState.renderApplication();
+    } catch (error) {
+      console.error(
+        `${MODULE_TITLE} | Could not track token movement.`,
+        error
+      );
+
+      ui.notifications.warn(
+        `Frame Helm could not track this movement: ${error.message}`
+      );
+    }
+  }
+);
