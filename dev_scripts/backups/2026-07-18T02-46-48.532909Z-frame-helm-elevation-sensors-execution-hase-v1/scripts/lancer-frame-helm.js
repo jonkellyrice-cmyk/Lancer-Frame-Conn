@@ -612,66 +612,6 @@ function registerUniversalActions() {
       icon: "fas fa-dice-d20"
     },
     {
-      id: "full.skill-check.hull",
-      label: "Hull Check",
-      shortDescription: "Roll a mech skill check using HULL.",
-      category: "full",
-      parentId: "full.skill-check",
-      cost: "full",
-      order: 10,
-      icon: "fas fa-shield-halved",
-      duplicateKey: "full.skill-check",
-      metadata: {
-        statPath: "hull",
-        statLabel: "HULL"
-      }
-    },
-    {
-      id: "full.skill-check.agi",
-      label: "Agility Check",
-      shortDescription: "Roll a mech skill check using AGI.",
-      category: "full",
-      parentId: "full.skill-check",
-      cost: "full",
-      order: 20,
-      icon: "fas fa-person-running",
-      duplicateKey: "full.skill-check",
-      metadata: {
-        statPath: "agi",
-        statLabel: "AGI"
-      }
-    },
-    {
-      id: "full.skill-check.sys",
-      label: "Systems Check",
-      shortDescription: "Roll a mech skill check using SYS.",
-      category: "full",
-      parentId: "full.skill-check",
-      cost: "full",
-      order: 30,
-      icon: "fas fa-microchip",
-      duplicateKey: "full.skill-check",
-      metadata: {
-        statPath: "sys",
-        statLabel: "SYS"
-      }
-    },
-    {
-      id: "full.skill-check.eng",
-      label: "Engineering Check",
-      shortDescription: "Roll a mech skill check using ENG.",
-      category: "full",
-      parentId: "full.skill-check",
-      cost: "full",
-      order: 40,
-      icon: "fas fa-screwdriver-wrench",
-      duplicateKey: "full.skill-check",
-      metadata: {
-        statPath: "eng",
-        statLabel: "ENG"
-      }
-    },
-    {
       id: "special.overcharge",
       label: "Overcharge",
       shortDescription: "Take Heat to gain one additional quick action as a free action.",
@@ -1632,16 +1572,12 @@ class FrameHelmTurnState {
     const duplicateKey = this.actionDuplicateKey(action);
 
     this.usedActions.push({
-      id: foundry.utils.randomID(),
       actionId: action.id,
       duplicateKey,
       source: useOvercharge
         ? "overcharge"
         : "normal",
       timestamp: Date.now(),
-      executed: false,
-      executedAt: null,
-      executionMetadata: {},
       metadata: {
         ...metadata
       }
@@ -1663,38 +1599,6 @@ class FrameHelmTurnState {
     });
 
     return this.snapshot();
-  }
-
-  markCommittedActionExecuted(
-    entryId,
-    executionMetadata = {}
-  ) {
-    const entry = this.usedActions.find(candidate => {
-      return candidate.id === entryId;
-    });
-
-    if (!entry) {
-      throw new Error(
-        "The committed action could not be found."
-      );
-    }
-
-    entry.executed = true;
-    entry.executedAt = Date.now();
-    entry.executionMetadata = {
-      ...entry.executionMetadata,
-      ...executionMetadata
-    };
-
-    this.recordHistory("execute-action", {
-      entryId,
-      actionId: entry.actionId,
-      executionMetadata: {
-        ...executionMetadata
-      }
-    });
-
-    return entry;
   }
 
   markReactionAvailable() {
@@ -1758,9 +1662,6 @@ class FrameHelmTurnState {
         ...entry,
         metadata: {
           ...entry.metadata
-        },
-        executionMetadata: {
-          ...entry.executionMetadata
         }
       })),
       usedDuplicateKeys: [
@@ -2481,9 +2382,6 @@ class FrameHelmApplication extends Application {
 
       if (!action) continue;
 
-      const executionKind =
-        frameHelmActionExecutionKind(action);
-
       entries.push({
         type: action.category,
         icon: action.icon || "fas fa-bolt",
@@ -2496,16 +2394,7 @@ class FrameHelmApplication extends Application {
               : action.cost === "quick"
                 ? "Quick action"
                 : action.cost,
-        timestamp: usedAction.timestamp,
-        entryId: usedAction.id ?? null,
-        actionId: action.id,
-        requiresTarget: action.requiresTarget,
-        executionKind,
-        executable: Boolean(
-          usedAction.id &&
-          executionKind
-        ),
-        executed: Boolean(usedAction.executed)
+        timestamp: usedAction.timestamp
       });
     }
 
@@ -2531,22 +2420,6 @@ class FrameHelmApplication extends Application {
                 <strong>${foundry.utils.escapeHTML(entry.label)}</strong>
                 <small>${foundry.utils.escapeHTML(entry.detail)}</small>
               </span>
-
-              ${
-                entry.executable
-                  ? `
-                    <button
-                      type="button"
-                      class="frame-helm-plan-execute${entry.executed ? " frame-helm-plan-executed" : ""}"
-                      data-frame-helm-plan-execute="${foundry.utils.escapeHTML(entry.entryId)}"
-                      aria-label="${entry.executed ? "Roll this committed action again" : "Execute this committed action"}"
-                      title="${entry.executed ? "Executed — click to roll again" : "Execute in Lancer"}"
-                    >
-                      <i class="fas fa-dice-d20"></i>
-                    </button>
-                  `
-                  : ""
-              }
             </li>
           `;
         }).join("")
@@ -3216,35 +3089,6 @@ class FrameHelmApplication extends Application {
     return notices.join("");
   }
 
-  renderSkillCheckChoices(state) {
-    const choices = frameHelmActionRegistry
-      .childrenOf("full.skill-check")
-      .map(action => {
-        return this.renderFullActionChoice(
-          action,
-          state
-        );
-      })
-      .join("");
-
-    return `
-      <section class="frame-helm-skill-check-selector">
-        <div class="frame-helm-full-requirement">
-          <i class="fas fa-dice-d20"></i>
-          <span>
-            Choose the mech skill used for this full-action check.
-            The committed check can then be rolled from the plan
-            through the native Lancer character-sheet flow.
-          </span>
-        </div>
-
-        <div class="frame-helm-action-list">
-          ${choices}
-        </div>
-      </section>
-    `;
-  }
-
   renderFullActionExecution(action, state) {
     const permission = state
       ? frameHelmTurnState.current.canUseAction(action)
@@ -3299,26 +3143,24 @@ class FrameHelmApplication extends Application {
         )
       : null;
 
-    const content = selectedAction?.id === "full.skill-check"
-      ? this.renderSkillCheckChoices(state)
-      : selectedAction
-        ? this.renderFullActionExecution(
-            selectedAction,
-            state
-          )
-        : `
-          <div class="frame-helm-action-list">
-            ${frameHelmActionRegistry
-              .roots("full")
-              .map(action => {
-                return this.renderFullActionChoice(
-                  action,
-                  state
-                );
-              })
-              .join("")}
-          </div>
-        `;
+    const content = selectedAction
+      ? this.renderFullActionExecution(
+          selectedAction,
+          state
+        )
+      : `
+        <div class="frame-helm-action-list">
+          ${frameHelmActionRegistry
+            .roots("full")
+            .map(action => {
+              return this.renderFullActionChoice(
+                action,
+                state
+              );
+            })
+            .join("")}
+        </div>
+      `;
 
     const heading = selectedAction
       ? selectedAction.label
@@ -3779,16 +3621,6 @@ class FrameHelmApplication extends Application {
       }
     );
 
-    html.find("[data-frame-helm-plan-execute]").on(
-      "click",
-      event => {
-        const entryId =
-          event.currentTarget.dataset.frameHelmPlanExecute;
-
-        this.executeCommittedPlanEntry(entryId);
-      }
-    );
-
     html.find("[data-frame-helm-command]").on(
       "click",
       event => {
@@ -3920,89 +3752,6 @@ class FrameHelmApplication extends Application {
       this.render(false);
     } catch (error) {
       ui.notifications.warn(error.message);
-    }
-  }
-
-  async executeCommittedPlanEntry(entryId) {
-    const state = frameHelmTurnState.current;
-    const token = this.getControlledToken();
-    const actor = token?.actor ?? null;
-
-    if (!state) {
-      ui.notifications.warn(
-        "Begin a turn plan before executing committed actions."
-      );
-      return;
-    }
-
-    if (!actor) {
-      ui.notifications.warn(
-        "Select the mech whose committed action should be executed."
-      );
-      return;
-    }
-
-    const committedEntry = state.usedActions.find(entry => {
-      return entry.id === entryId;
-    });
-
-    if (!committedEntry) {
-      ui.notifications.error(
-        "That committed action is no longer present in the plan."
-      );
-      return;
-    }
-
-    const action = frameHelmActionRegistry.get(
-      committedEntry.actionId
-    );
-
-    if (!action) {
-      ui.notifications.error(
-        "The committed action is not registered."
-      );
-      return;
-    }
-
-    if (
-      action.requiresTarget &&
-      (game.user?.targets?.size ?? 0) < 1
-    ) {
-      ui.notifications.warn(
-        `${action.label} requires a target. Use Foundry's Target tool to target a token, then click the d20 again.`
-      );
-      return;
-    }
-
-    try {
-      const targetIds = [
-        ...(game.user?.targets ?? [])
-      ].map(target => {
-        return target?.document?.id ?? target?.id;
-      }).filter(Boolean);
-
-      await frameHelmExecuteActionRoll(
-        actor,
-        action
-      );
-
-      state.markCommittedActionExecuted(
-        entryId,
-        {
-          targetIds
-        }
-      );
-
-      this.render(false);
-    } catch (error) {
-      console.error(
-        `${MODULE_TITLE} | Could not execute committed action.`,
-        error
-      );
-
-      ui.notifications.warn(
-        `Frame Helm could not execute ${action.label}: ${error.message}`
-      );
     }
   }
 
@@ -4140,21 +3889,7 @@ class FrameHelmApplication extends Application {
 
     if (command === "full-back") {
       if (this.selectedFullActionId) {
-        const selectedAction =
-          frameHelmActionRegistry.get(
-            this.selectedFullActionId
-          );
-
-        const parentAction = selectedAction?.parentId
-          ? frameHelmActionRegistry.get(
-              selectedAction.parentId
-            )
-          : null;
-
-        this.selectedFullActionId =
-          parentAction?.category === "full"
-            ? parentAction.id
-            : null;
+        this.selectedFullActionId = null;
       } else {
         this.selectedCategory = null;
       }
@@ -4420,7 +4155,6 @@ Hooks.once("init", () => {
   console.log(`${MODULE_TITLE} | Initializing.`);
   registerSettings();
   initializeActionRegistry();
-  installFrameHelmRuntimeStyles();
 });
 
 Hooks.once("ready", () => {
@@ -4531,8 +4265,6 @@ Hooks.on("controlToken", () => {
   if (frameHelmApplication?.rendered) {
     frameHelmApplication.render(false);
   }
-
-  refreshFrameHelmSensorContacts();
 });
 
 Hooks.on("deleteToken", () => {
@@ -4586,13 +4318,10 @@ function refreshFrameHelmTelemetry() {
 Hooks.on("updateActor", actor => {
   if (frameHelmDisplaysActor(actor)) {
     refreshFrameHelmTelemetry();
-    refreshFrameHelmSensorContacts();
   }
 });
 
 Hooks.on("updateToken", tokenDocument => {
-  refreshFrameHelmSensorContacts();
-
   if (!frameHelmApplication?.rendered) return;
 
   const displayedToken = displayedFrameHelmToken();
@@ -5011,635 +4740,4 @@ Hooks.on(
       );
     }
   }
-);
-
-/* ==========================================================
-   Universal action execution
-   ========================================================== */
-
-const FRAME_HELM_NO_ROLL_ACTIONS = new Set([
-  "movement.standard",
-  "movement.jump",
-  "movement.climb",
-  "movement.fly",
-  "movement.teleport",
-  "quick.boost",
-  "quick.hide",
-  "quick.prepare",
-  "quick.shut-down",
-  "quick.self-destruct",
-  "full.disengage",
-  "full.boot-up",
-  "full.mount-dismount",
-  "special.end-turn"
-]);
-
-function frameHelmActionExecutionKind(action) {
-  if (!action || FRAME_HELM_NO_ROLL_ACTIONS.has(action.id)) {
-    return null;
-  }
-
-  if (action.metadata?.statPath) {
-    return "stat";
-  }
-
-  if (
-    [
-      "quick.skirmish",
-      "quick.grapple",
-      "quick.ram",
-      "full.barrage",
-      "full.improvised-attack",
-      "reaction.overwatch"
-    ].includes(action.id)
-  ) {
-    return "basic-attack";
-  }
-
-  if (
-    [
-      "quick.quick-tech.invade",
-      "quick.quick-tech.invade.fragment-signal"
-    ].includes(action.id)
-  ) {
-    return "basic-tech-attack";
-  }
-
-  if (action.id === "quick.quick-tech.scan") {
-    return "scan";
-  }
-
-  if (action.id === "full.stabilize") {
-    return "stabilize";
-  }
-
-  if (action.id === "special.overcharge") {
-    return "overcharge";
-  }
-
-  return "choose-stat";
-}
-
-function frameHelmChooseMechStat(action) {
-  return new Promise(resolve => {
-    const choices = [
-      ["hull", "HULL"],
-      ["agi", "AGI"],
-      ["sys", "SYS"],
-      ["eng", "ENG"]
-    ];
-
-    const buttons = Object.fromEntries(
-      choices.map(([path, label]) => {
-        return [
-          path,
-          {
-            icon: '<i class="fas fa-dice-d20"></i>',
-            label,
-            callback: () => resolve({
-              path,
-              label
-            })
-          }
-        ];
-      })
-    );
-
-    new Dialog({
-      title: `${action.label} — Choose Mech Skill`,
-      content: `
-        <p>
-          Choose the mech skill used to resolve
-          <strong>${foundry.utils.escapeHTML(action.label)}</strong>.
-        </p>
-      `,
-      buttons,
-      close: () => resolve(null)
-    }).render(true);
-  });
-}
-
-async function frameHelmExecuteActionRoll(
-  actor,
-  action
-) {
-  const kind = frameHelmActionExecutionKind(action);
-
-  if (!kind) {
-    throw new Error(
-      "This action does not require a dice or sheet workflow."
-    );
-  }
-
-  if (kind === "stat") {
-    return actor.beginStatFlow(
-      action.metadata.statPath,
-      action.metadata.statLabel ?? action.label
-    );
-  }
-
-  if (kind === "basic-attack") {
-    return actor.beginBasicAttackFlow(action.label);
-  }
-
-  if (kind === "basic-tech-attack") {
-    return actor.beginBasicTechAttackFlow(action.label);
-  }
-
-  if (kind === "scan") {
-    return actor.beginScanFlow();
-  }
-
-  if (kind === "stabilize") {
-    return actor.beginStabilizeFlow();
-  }
-
-  if (kind === "overcharge") {
-    return actor.beginOverchargeFlow();
-  }
-
-  const selectedStat =
-    await frameHelmChooseMechStat(action);
-
-  if (!selectedStat) {
-    throw new Error("Mech skill selection was cancelled.");
-  }
-
-  return actor.beginStatFlow(
-    selectedStat.path,
-    `${action.label} — ${selectedStat.label}`
-  );
-}
-
-/* ==========================================================
-   Elevation movement tracking
-   ========================================================== */
-
-const frameHelmElevationOrigins = new Map();
-
-function frameHelmElevationKey(tokenDocument) {
-  return String(
-    tokenDocument?.uuid ??
-    `${tokenDocument?.parent?.id ?? "scene"}:${tokenDocument?.id ?? "token"}`
-  );
-}
-
-Hooks.on(
-  "preUpdateToken",
-  (tokenDocument, changes) => {
-    if (
-      !Object.prototype.hasOwnProperty.call(
-        changes,
-        "elevation"
-      )
-    ) {
-      return;
-    }
-
-    frameHelmElevationOrigins.set(
-      frameHelmElevationKey(tokenDocument),
-      Number(tokenDocument.elevation) || 0
-    );
-  }
-);
-
-Hooks.on(
-  "updateToken",
-  (tokenDocument, changes) => {
-    if (
-      !Object.prototype.hasOwnProperty.call(
-        changes,
-        "elevation"
-      )
-    ) {
-      return;
-    }
-
-    const state = frameHelmTurnState.current;
-
-    if (!frameHelmMovementTokenMatches(
-      tokenDocument,
-      state
-    )) {
-      return;
-    }
-
-    const key = frameHelmElevationKey(
-      tokenDocument
-    );
-
-    const previousElevation =
-      frameHelmElevationOrigins.get(key);
-
-    frameHelmElevationOrigins.delete(key);
-
-    const nextElevation = Number(
-      changes.elevation
-    );
-
-    if (
-      !Number.isFinite(previousElevation) ||
-      !Number.isFinite(nextElevation)
-    ) {
-      return;
-    }
-
-    const sceneDistance = Number(
-      tokenDocument?.parent?.grid?.distance ??
-      canvas?.dimensions?.distance ??
-      1
-    );
-
-    const elevationDistance = Math.abs(
-      nextElevation - previousElevation
-    );
-
-    const movementSpaces =
-      Number.isFinite(sceneDistance) &&
-      sceneDistance > 0
-        ? elevationDistance / sceneDistance
-        : elevationDistance;
-
-    const distance = frameHelmRoundMovementDistance(
-      movementSpaces
-    );
-
-    if (distance <= 0) return;
-
-    try {
-      const result = state.trackTokenMovement(
-        distance,
-        {
-          movementId:
-            `elevation:${key}:${previousElevation}:${nextElevation}:${Date.now()}`,
-          method: "elevation",
-          origin: {
-            x: Number(tokenDocument.x) || 0,
-            y: Number(tokenDocument.y) || 0,
-            elevation: previousElevation
-          },
-          destination: {
-            x: Number(tokenDocument.x) || 0,
-            y: Number(tokenDocument.y) || 0,
-            elevation: nextElevation
-          }
-        }
-      );
-
-      if (!result.tracked) return;
-
-      ui.notifications.info(
-        `Elevation changed by ${distance} space(s); Frame Helm recorded it as movement.`
-      );
-
-      if (result.excess > 0) {
-        ui.notifications.warn(
-          `Frame Helm recorded ${result.excess} excess movement beyond the currently legal movement allowance.`
-        );
-      }
-
-      frameHelmTurnState.renderApplication();
-    } catch (error) {
-      console.error(
-        `${MODULE_TITLE} | Could not track elevation movement.`,
-        error
-      );
-
-      ui.notifications.warn(
-        `Frame Helm could not track the elevation change: ${error.message}`
-      );
-    }
-  }
-);
-
-/* ==========================================================
-   Sensor contacts through darkness
-   ========================================================== */
-
-let frameHelmSensorLayer = null;
-
-function installFrameHelmRuntimeStyles() {
-  if (document.getElementById(
-    "lancer-frame-helm-runtime-styles"
-  )) {
-    return;
-  }
-
-  const style = document.createElement("style");
-  style.id = "lancer-frame-helm-runtime-styles";
-  style.textContent = `
-    .frame-helm-plan-entry {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .frame-helm-plan-copy {
-      flex: 1 1 auto;
-      min-width: 0;
-    }
-
-    .frame-helm-plan-execute {
-      flex: 0 0 auto;
-      width: 2rem;
-      height: 2rem;
-      padding: 0;
-      border: 1px solid rgba(255, 255, 255, 0.28);
-      border-radius: 50%;
-      background: rgba(10, 18, 24, 0.9);
-      color: #f3f5f7;
-      cursor: pointer;
-    }
-
-    .frame-helm-plan-execute:hover {
-      border-color: #ff4b4b;
-      color: #ff6b6b;
-    }
-
-    .frame-helm-plan-executed {
-      border-color: #65d88a;
-      color: #65d88a;
-    }
-
-    .frame-helm-skill-check-selector {
-      display: grid;
-      gap: 0.75rem;
-    }
-  `;
-
-  document.head.appendChild(style);
-}
-
-function frameHelmDestroySensorLayer() {
-  if (!frameHelmSensorLayer) return;
-
-  try {
-    frameHelmSensorLayer.destroy({
-      children: true
-    });
-  } catch (error) {
-    console.warn(
-      `${MODULE_TITLE} | Could not destroy sensor contact layer cleanly.`,
-      error
-    );
-  }
-
-  frameHelmSensorLayer = null;
-}
-
-function frameHelmCreateSensorCircle(radius) {
-  const graphics = new PIXI.Graphics();
-
-  if (
-    typeof graphics.circle === "function" &&
-    typeof graphics.stroke === "function"
-  ) {
-    graphics
-      .circle(0, 0, radius)
-      .stroke({
-        color: 0xff3030,
-        width: 3,
-        alpha: 0.95
-      });
-  } else {
-    graphics.lineStyle(
-      3,
-      0xff3030,
-      0.95
-    );
-    graphics.drawCircle(0, 0, radius);
-  }
-
-  return graphics;
-}
-
-function frameHelmCreateSensorLabel(name) {
-  const style = {
-    fontFamily: "Arial, sans-serif",
-    fontSize: 14,
-    fontWeight: "bold",
-    fill: 0xff5a5a,
-    stroke: {
-      color: 0x160000,
-      width: 4
-    },
-    align: "center"
-  };
-
-  let label;
-
-  try {
-    label = new PIXI.Text({
-      text: name,
-      style
-    });
-  } catch (_error) {
-    label = new PIXI.Text(
-      name,
-      new PIXI.TextStyle({
-        fontFamily: style.fontFamily,
-        fontSize: style.fontSize,
-        fontWeight: style.fontWeight,
-        fill: style.fill,
-        stroke: "#160000",
-        strokeThickness: 4,
-        align: style.align
-      })
-    );
-  }
-
-  label.anchor?.set?.(0.5, 1);
-  return label;
-}
-
-function frameHelmSensorDistance(
-  sourceToken,
-  targetToken
-) {
-  const source = sourceToken?.center;
-  const target = targetToken?.center;
-
-  if (!source || !target) {
-    return Infinity;
-  }
-
-  try {
-    const measured = canvas?.grid?.measurePath?.(
-      [source, target],
-      {
-        cost: true
-      }
-    );
-
-    const sceneDistance = Number(
-      canvas?.scene?.grid?.distance ??
-      canvas?.dimensions?.distance ??
-      1
-    );
-
-    const measuredDistance = Number(
-      measured?.cost ??
-      measured?.distance
-    );
-
-    if (Number.isFinite(measuredDistance)) {
-      return (
-        Number.isFinite(sceneDistance) &&
-        sceneDistance > 0
-      )
-        ? measuredDistance / sceneDistance
-        : measuredDistance;
-    }
-  } catch (error) {
-    console.warn(
-      `${MODULE_TITLE} | Sensor range measurement fell back to geometry.`,
-      error
-    );
-  }
-
-  const gridSize = Number(
-    canvas?.dimensions?.size ?? 100
-  );
-
-  if (!Number.isFinite(gridSize) || gridSize <= 0) {
-    return Infinity;
-  }
-
-  return Math.hypot(
-    target.x - source.x,
-    target.y - source.y
-  ) / gridSize;
-}
-
-function frameHelmSensorSourceToken() {
-  const controlled =
-    canvas?.tokens?.controlled ?? [];
-
-  if (controlled.length > 0) {
-    return controlled[0];
-  }
-
-  return (
-    game.combat?.combatant?.token?.object ??
-    null
-  );
-}
-
-function refreshFrameHelmSensorContacts() {
-  if (!canvas?.ready || !canvas?.interface) {
-    frameHelmDestroySensorLayer();
-    return;
-  }
-
-  frameHelmDestroySensorLayer();
-
-  const sourceToken =
-    frameHelmSensorSourceToken();
-
-  const sensorRange = Number(
-    sourceToken?.actor?.system?.sensor_range
-  );
-
-  if (
-    !sourceToken ||
-    !Number.isFinite(sensorRange) ||
-    sensorRange <= 0
-  ) {
-    return;
-  }
-
-  const layer = new PIXI.Container();
-  layer.name = "lancer-frame-helm-sensor-contacts";
-  layer.eventMode = "none";
-  layer.interactiveChildren = false;
-  layer.zIndex = 100000;
-
-  for (const token of (
-    canvas?.tokens?.placeables ?? []
-  )) {
-    if (
-      token === sourceToken ||
-      Number(token?.document?.disposition) >= 0
-    ) {
-      continue;
-    }
-
-    const distance = frameHelmSensorDistance(
-      sourceToken,
-      token
-    );
-
-    if (
-      !Number.isFinite(distance) ||
-      distance > sensorRange
-    ) {
-      continue;
-    }
-
-    const contact = new PIXI.Container();
-    contact.position.set(
-      token.center.x,
-      token.center.y
-    );
-
-    const radius = Math.max(
-      10,
-      Math.min(
-        Number(token.w) || 30,
-        Number(token.h) || 30
-      ) * 0.22
-    );
-
-    const circle =
-      frameHelmCreateSensorCircle(radius);
-
-    const label =
-      frameHelmCreateSensorLabel(
-        token.document?.name ??
-        token.name ??
-        "CONTACT"
-      );
-
-    label.position.set(
-      0,
-      -radius - 6
-    );
-
-    contact.addChild(circle);
-    contact.addChild(label);
-    layer.addChild(contact);
-  }
-
-  canvas.interface.addChild(layer);
-  frameHelmSensorLayer = layer;
-}
-
-Hooks.on(
-  "canvasReady",
-  refreshFrameHelmSensorContacts
-);
-
-Hooks.on(
-  "canvasPan",
-  refreshFrameHelmSensorContacts
-);
-
-Hooks.on(
-  "createToken",
-  refreshFrameHelmSensorContacts
-);
-
-Hooks.on(
-  "deleteToken",
-  refreshFrameHelmSensorContacts
-);
-
-Hooks.on(
-  "refreshToken",
-  refreshFrameHelmSensorContacts
-);
-
-Hooks.on(
-  "sightRefresh",
-  refreshFrameHelmSensorContacts
 );
