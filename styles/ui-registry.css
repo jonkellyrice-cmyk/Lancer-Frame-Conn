@@ -17,12 +17,14 @@
  *   application.
  *
  * PURPOSE:
- *   Establish a stable import spine for feature-owned CSS before
- *   Frame Helm is decomposed into independent feature domains.
+ *   Establish a stable import spine for feature-owned CSS as
+ *   Frame Helm is progressively decomposed into independent
+ *   feature domains.
  *
  * IMPORTS:
  *   - ui-contract.css
- *   - registered feature styles, when they exist
+ *   - ui-sensors.css
+ *   - additional registered feature styles as they are extracted
  *
  * OWNS:
  *   - Shared UI contract import
@@ -47,21 +49,27 @@
  *   ui-contract.css
  *       ↓
  *   ui-registry.css
+ *       ├── ui-sensors.css
+ *       └── future registered feature styles
  *       ↓
  *   lancer-frame-helm.css
  *
- * Future feature styles plug into this registry:
+ * FEATURE REGISTRATION STATUS:
  *
- *   ui-contract.css
- *       ↓
- *   ui-registry.css
- *       ├── features/movement.css
- *       ├── features/actions.css
- *       ├── features/telemetry.css
- *       ├── features/sensors.css
- *       └── ...
- *       ↓
- *   lancer-frame-helm.css
+ *   Registered core feature styles:
+ *
+ *     - Sensors
+ *         stylesheet:
+ *           ui-sensors.css
+ *
+ *         runtime feature:
+ *           scripts/sensors-feature.js
+ *
+ *         UI runtime feature:
+ *           styles/ui-sensors.js
+ *
+ *   Future feature styles will be registered here as their
+ *   corresponding runtime domains are extracted.
  *
  * DESIGN CONTRACT:
  *
@@ -88,13 +96,19 @@
  *   Import order is architectural.
  *
  *   Lower-level shared contracts are loaded first.
- *   Independent feature styles are loaded afterward.
+ *
+ *   Core feature styles are loaded afterward in explicit
+ *   registration order.
+ *
+ *   Extension feature styles, if introduced, are loaded after
+ *   core feature styles.
+ *
  *   The primary application stylesheet is loaded last and may
  *   compose or specialize registered feature surfaces.
  *
  * REGISTRY POLICY:
  *
- *   A stylesheet being placed in a feature folder does not make
+ *   A stylesheet existing in the styles directory does not make
  *   it active.
  *
  *   A feature becomes part of the Frame Helm UI style graph only
@@ -114,6 +128,14 @@
  *
  *     ui-registry.css
  *         determines which feature UI styles participate
+ *
+ * IMPORTANT:
+ *
+ *   JavaScript UI feature modules such as ui-sensors.js are not
+ *   imported through this stylesheet.
+ *
+ *   Their JavaScript dependency and registration path remains
+ *   part of the JavaScript feature-composition graph.
  */
 
 
@@ -129,16 +151,25 @@
    ============================================================ */
 
 /**
- * No feature styles are registered yet.
+ * Sensors
  *
- * Future imports belong here.
+ * Owns presentation values and stylesheet concerns belonging to
+ * the Sensors feature, including the values consumed by its PIXI
+ * UI construction module.
+ */
+@import "./ui-sensors.css";
+
+
+/**
+ * Future core feature imports belong below in deliberate
+ * dependency/load order.
  *
- * Example:
+ * Examples:
  *
- * @import "./features/movement.css";
- * @import "./features/action-planning.css";
- * @import "./features/telemetry.css";
- * @import "./features/sensors.css";
+ * @import "./ui-movement.css";
+ * @import "./ui-actions.css";
+ * @import "./ui-turn.css";
+ * @import "./ui-telemetry.css";
  */
 
 
@@ -153,10 +184,10 @@
  *
  * No extension styles are registered yet.
  *
- * Example:
+ * Examples:
  *
- * @import "./features/extensions/targeting.css";
- * @import "./features/extensions/tactical-overlay.css";
+ * @import "./ui-targeting.css";
+ * @import "./ui-tactical-overlay.css";
  */
 
 

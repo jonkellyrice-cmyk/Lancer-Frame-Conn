@@ -1,0 +1,144 @@
+/**
+ * ============================================================
+ * FILE PATH / NAME
+ * ============================================================
+ *
+ * styles/ui-sensors.css
+ */
+
+/**
+ * ============================================================
+ * FRAME HELM UI FEATURE -- SENSORS
+ * ============================================================
+ *
+ * ROLE:
+ *   Owns visual configuration belonging specifically to the
+ *   Frame Helm Sensors UI feature.
+ *
+ * FEATURE:
+ *   sensors
+ *
+ * RUNTIME DOMAIN:
+ *   scripts/sensors-feature.js
+ *
+ * EXECUTABLE UI:
+ *   styles/ui-sensors.js
+ *
+ * PURPOSE:
+ *   Provide the authoritative visual configuration for sensor
+ *   contacts while allowing the executable PIXI presentation
+ *   layer to remain in JavaScript.
+ *
+ * OWNS:
+ *   - Sensor contact color.
+ *   - Sensor contact opacity.
+ *   - Sensor contact stroke width.
+ *   - Sensor marker sizing.
+ *   - Sensor label color.
+ *   - Sensor label outline.
+ *   - Sensor label typography.
+ *   - Sensor label spacing.
+ *   - Sensor overlay stacking priority.
+ *
+ * DOES NOT OWN:
+ *   - Sensor range calculations.
+ *   - Hostility determination.
+ *   - Contact discovery.
+ *   - PIXI object construction.
+ *   - Canvas attachment.
+ *   - Canvas layer destruction.
+ *   - Application/window composition.
+ *   - Shared Frame Helm primitives.
+ *
+ * IMPLEMENTATION CONTRACT:
+ *
+ *   PIXI cannot consume ordinary CSS selectors because sensor
+ *   contacts are canvas objects rather than DOM elements.
+ *
+ *   Therefore Sensors UI configuration is exposed here through
+ *   feature-owned CSS custom properties.
+ *
+ *   styles/ui-sensors.js reads these values when constructing the
+ *   PIXI sensor overlay.
+ *
+ * DEPENDENCY FLOW:
+ *
+ *   ui-dsl.css
+ *       ↓
+ *   ui-contract.css
+ *       ↓
+ *   ui-sensors.css
+ *       ↓
+ *   ui-registry.css
+ *       ↓
+ *   lancer-frame-helm.css
+ *
+ * RUNTIME PRESENTATION FLOW:
+ *
+ *   ui-sensors.css
+ *       ↓ visual configuration
+ *   ui-sensors.js
+ *       ↓ PIXI composition
+ *   Foundry canvas.interface
+ *
+ * STABILITY CONTRACT:
+ *
+ *   The default values below reproduce the previous Sensors
+ *   presentation:
+ *
+ *   - red circle: #ff3030
+ *   - circle width: 3
+ *   - circle alpha: 0.95
+ *   - minimum radius: 10
+ *   - radius scale: 0.22
+ *   - label red: #ff5a5a
+ *   - label outline: #160000
+ *   - label size: 14
+ *   - label outline width: 4
+ *   - label offset: 6
+ *   - canvas z-index: 100000
+ * ============================================================
+ */
+
+
+/* ============================================================
+   Sensors UI visual contract
+   ============================================================ */
+
+:root {
+  --fh-sensor-contact-color:
+    #ff3030;
+
+  --fh-sensor-contact-stroke-width:
+    3;
+
+  --fh-sensor-contact-alpha:
+    0.95;
+
+  --fh-sensor-contact-radius-minimum:
+    10;
+
+  --fh-sensor-contact-radius-scale:
+    0.22;
+
+  --fh-sensor-label-color:
+    #ff5a5a;
+
+  --fh-sensor-label-stroke-color:
+    #160000;
+
+  --fh-sensor-label-font-family:
+    Arial, sans-serif;
+
+  --fh-sensor-label-font-size:
+    14;
+
+  --fh-sensor-label-stroke-width:
+    4;
+
+  --fh-sensor-label-offset:
+    6;
+
+  --fh-sensor-layer-z-index:
+    100000;
+}

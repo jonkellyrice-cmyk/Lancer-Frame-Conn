@@ -3,7 +3,7 @@
  * FILE PATH / NAME
  * ============================================================
  *
- * scripts/frame-helm/feature-registry.js
+ * scripts/feature-registry.js
  */
 
 /**
@@ -55,25 +55,32 @@
  *        ├── run lifecycle handlers
  *        └── expose domain surfaces
  *
- * FEATURE FILES:
+ * CURRENT EXTRACTED FEATURES:
+ *
+ *   sensors-feature.js
+ *
+ * FUTURE FEATURE FILES:
  *
  *   actions-feature.js
  *   turn-feature.js
  *   movement-feature.js
- *   sensors-feature.js
  *   telemetry-feature.js
  *   ...
  *
- *        │
- *        ▼
- *
- *   frameHelmFeatureRegistry.register(feature)
- *
  * IMPORTANT:
- *   This file intentionally registers NO features itself.
+ *   Extracted feature domains are imported and registered below
+ *   against the canonical Frame Helm feature registry.
  *
- *   The primary interface surface remains responsible for
- *   importing concrete features and registering them explicitly.
+ *   Registration alone does NOT:
+ *
+ *     - install Foundry hooks
+ *     - run lifecycle handlers
+ *     - replace lancer-frame-helm.js as runtime orchestrator
+ *
+ *   scripts/lancer-frame-helm.js remains the authoritative
+ *   runtime/orchestration surface and is responsible for invoking
+ *   registry hook installation and lifecycle operations at the
+ *   appropriate Foundry startup boundaries.
  */
 
 
@@ -83,6 +90,10 @@ import {
   assertFrameHelmFeatureDefinition,
   summarizeFrameHelmFeature
 } from "./feature-contract.js";
+
+import {
+  frameHelmSensorsFeature
+} from "./sensors-feature.js";
 
 
 /* ============================================================
@@ -121,7 +132,8 @@ function normalizeFrameHelmRegistryIdentifier(
   value,
   description
 ) {
-  const normalized = String(value ?? "").trim();
+  const normalized =
+    String(value ?? "").trim();
 
   if (!normalized) {
     throw new Error(
@@ -144,8 +156,10 @@ function createFrameHelmFeatureRuntimeRecord(
 ) {
   return {
     feature,
+
     state:
-      FRAME_HELM_FEATURE_RUNTIME_STATES.REGISTERED,
+      FRAME_HELM_FEATURE_RUNTIME_STATES
+        .REGISTERED,
 
     installedHooks: [],
 
@@ -167,25 +181,29 @@ export class FrameHelmFeatureRegistry {
     /**
      * Registered feature definitions indexed by feature id.
      */
-    this.features = new Map();
+    this.features =
+      new Map();
 
     /**
      * Runtime bookkeeping indexed by feature id.
      */
-    this.runtime = new Map();
+    this.runtime =
+      new Map();
 
     /**
      * Maps capability id -> owning feature id.
      *
      * One capability has one canonical provider.
      */
-    this.capabilityProviders = new Map();
+    this.capabilityProviders =
+      new Map();
 
     /**
      * Tracks whether Foundry hooks declared by registered
      * features have been installed.
      */
-    this.hooksInstalled = false;
+    this.hooksInstalled =
+      false;
   }
 
 
@@ -213,7 +231,9 @@ export class FrameHelmFeatureRegistry {
    * features have been registered.
    */
   register(feature) {
-    assertFrameHelmFeatureDefinition(feature);
+    assertFrameHelmFeatureDefinition(
+      feature
+    );
 
     if (
       feature.contractVersion !==
@@ -224,13 +244,20 @@ export class FrameHelmFeatureRegistry {
       );
     }
 
-    if (this.features.has(feature.id)) {
+    if (
+      this.features.has(
+        feature.id
+      )
+    ) {
       throw new Error(
         `Frame Helm feature already registered: ${feature.id}`
       );
     }
 
-    for (const capability of feature.provides) {
+    for (
+      const capability
+      of feature.provides
+    ) {
       const existingProvider =
         this.capabilityProviders.get(
           capability
@@ -255,7 +282,10 @@ export class FrameHelmFeatureRegistry {
       )
     );
 
-    for (const capability of feature.provides) {
+    for (
+      const capability
+      of feature.provides
+    ) {
       this.capabilityProviders.set(
         capability,
         feature.id
@@ -277,7 +307,8 @@ export class FrameHelmFeatureRegistry {
     }
 
     return features.map(
-      feature => this.register(feature)
+      feature =>
+        this.register(feature)
     );
   }
 
@@ -296,7 +327,10 @@ export class FrameHelmFeatureRegistry {
         "Frame Helm feature lookup"
       );
 
-    return this.features.get(id) ?? null;
+    return (
+      this.features.get(id) ??
+      null
+    );
   }
 
 
@@ -310,7 +344,9 @@ export class FrameHelmFeatureRegistry {
         "Frame Helm feature lookup"
       );
 
-    return this.features.has(id);
+    return this.features.has(
+      id
+    );
   }
 
 
@@ -357,8 +393,10 @@ export class FrameHelmFeatureRegistry {
         "Frame Helm capability lookup"
       );
 
-    return this.capabilityProviders.has(
-      capabilityId
+    return (
+      this.capabilityProviders.has(
+        capabilityId
+      )
     );
   }
 
@@ -382,9 +420,12 @@ export class FrameHelmFeatureRegistry {
       return null;
     }
 
-    return this.features.get(
-      providerId
-    ) ?? null;
+    return (
+      this.features.get(
+        providerId
+      ) ??
+      null
+    );
   }
 
 
@@ -398,9 +439,12 @@ export class FrameHelmFeatureRegistry {
         "Frame Helm capability lookup"
       );
 
-    return this.capabilityProviders.get(
-      capabilityId
-    ) ?? null;
+    return (
+      this.capabilityProviders.get(
+        capabilityId
+      ) ??
+      null
+    );
   }
 
 
@@ -422,9 +466,12 @@ export class FrameHelmFeatureRegistry {
       return null;
     }
 
-    return feature.commands[
-      String(commandName)
-    ] ?? null;
+    return (
+      feature.commands[
+        String(commandName)
+      ] ??
+      null
+    );
   }
 
 
@@ -442,9 +489,12 @@ export class FrameHelmFeatureRegistry {
       return null;
     }
 
-    return feature.queries[
-      String(queryName)
-    ] ?? null;
+    return (
+      feature.queries[
+        String(queryName)
+      ] ??
+      null
+    );
   }
 
 
@@ -462,9 +512,12 @@ export class FrameHelmFeatureRegistry {
       return null;
     }
 
-    return feature.api[
-      String(memberName)
-    ] ?? null;
+    return (
+      feature.api[
+        String(memberName)
+      ] ??
+      null
+    );
   }
 
 
@@ -475,7 +528,10 @@ export class FrameHelmFeatureRegistry {
     const feature =
       this.get(featureId);
 
-    return feature?.api ?? null;
+    return (
+      feature?.api ??
+      null
+    );
   }
 
 
@@ -489,9 +545,14 @@ export class FrameHelmFeatureRegistry {
    */
   getCapabilityApi(capability) {
     const provider =
-      this.featureProviding(capability);
+      this.featureProviding(
+        capability
+      );
 
-    return provider?.api ?? null;
+    return (
+      provider?.api ??
+      null
+    );
   }
 
 
@@ -522,7 +583,9 @@ export class FrameHelmFeatureRegistry {
 
     return feature.dependsOn.filter(
       capability =>
-        !this.hasCapability(capability)
+        !this.hasCapability(
+          capability
+        )
     );
   }
 
@@ -550,7 +613,9 @@ export class FrameHelmFeatureRegistry {
 
     return feature.optionalDependsOn.filter(
       capability =>
-        this.hasCapability(capability)
+        this.hasCapability(
+          capability
+        )
     );
   }
 
@@ -578,7 +643,9 @@ export class FrameHelmFeatureRegistry {
 
     return feature.optionalDependsOn.filter(
       capability =>
-        !this.hasCapability(capability)
+        !this.hasCapability(
+          capability
+        )
     );
   }
 
@@ -586,33 +653,45 @@ export class FrameHelmFeatureRegistry {
   /**
    * Validates every registered feature's required capabilities.
    *
-   * This should normally run after the primary composition surface
-   * has registered all current domains.
+   * This should normally run after all extracted feature domains
+   * have been registered.
    */
   validateDependencies() {
     const failures = [];
 
-    for (const feature of this.features.values()) {
+    for (
+      const feature
+      of this.features.values()
+    ) {
       const missing =
-        this.missingDependenciesFor(feature);
+        this.missingDependenciesFor(
+          feature
+        );
 
-      if (missing.length > 0) {
+      if (
+        missing.length > 0
+      ) {
         failures.push({
-          featureId: feature.id,
+          featureId:
+            feature.id,
+
           missing
         });
       }
     }
 
-    if (failures.length > 0) {
-      const description = failures
-        .map(failure => {
-          return (
-            `${failure.featureId}: ` +
-            failure.missing.join(", ")
-          );
-        })
-        .join("; ");
+    if (
+      failures.length > 0
+    ) {
+      const description =
+        failures
+          .map(failure => {
+            return (
+              `${failure.featureId}: ` +
+              failure.missing.join(", ")
+            );
+          })
+          .join("; ");
 
       throw new Error(
         `Frame Helm feature dependency validation failed. ${description}`
@@ -636,48 +715,82 @@ export class FrameHelmFeatureRegistry {
    */
   orderedFeatures() {
     const ordered = [];
-    const visiting = new Set();
-    const visited = new Set();
+    const visiting =
+      new Set();
+    const visited =
+      new Set();
 
-    const visitFeature = feature => {
-      if (visited.has(feature.id)) {
-        return;
-      }
+    const visitFeature =
+      feature => {
+        if (
+          visited.has(
+            feature.id
+          )
+        ) {
+          return;
+        }
 
-      if (visiting.has(feature.id)) {
-        throw new Error(
-          `Frame Helm feature dependency cycle detected at "${feature.id}".`
-        );
-      }
-
-      visiting.add(feature.id);
-
-      for (const capability of feature.dependsOn) {
-        const provider =
-          this.featureProviding(
-            capability
-          );
-
-        if (!provider) {
+        if (
+          visiting.has(
+            feature.id
+          )
+        ) {
           throw new Error(
-            `Frame Helm feature "${feature.id}" requires missing capability "${capability}".`
+            `Frame Helm feature dependency cycle detected at "${feature.id}".`
           );
         }
 
-        if (provider.id === feature.id) {
-          continue;
+        visiting.add(
+          feature.id
+        );
+
+        for (
+          const capability
+          of feature.dependsOn
+        ) {
+          const provider =
+            this.featureProviding(
+              capability
+            );
+
+          if (!provider) {
+            throw new Error(
+              `Frame Helm feature "${feature.id}" requires missing capability "${capability}".`
+            );
+          }
+
+          if (
+            provider.id ===
+            feature.id
+          ) {
+            continue;
+          }
+
+          visitFeature(
+            provider
+          );
         }
 
-        visitFeature(provider);
-      }
+        visiting.delete(
+          feature.id
+        );
 
-      visiting.delete(feature.id);
-      visited.add(feature.id);
-      ordered.push(feature);
-    };
+        visited.add(
+          feature.id
+        );
 
-    for (const feature of this.features.values()) {
-      visitFeature(feature);
+        ordered.push(
+          feature
+        );
+      };
+
+    for (
+      const feature
+      of this.features.values()
+    ) {
+      visitFeature(
+        feature
+      );
     }
 
     return ordered;
@@ -709,18 +822,23 @@ export class FrameHelmFeatureRegistry {
       );
     }
 
-    const registry = this;
+    const registry =
+      this;
 
     return Object.freeze({
       feature,
       registry,
 
       hasFeature(featureId) {
-        return registry.has(featureId);
+        return registry.has(
+          featureId
+        );
       },
 
       getFeature(featureId) {
-        return registry.get(featureId);
+        return registry.get(
+          featureId
+        );
       },
 
       hasCapability(capability) {
@@ -746,7 +864,9 @@ export class FrameHelmFeatureRegistry {
       },
 
       getApi(featureId) {
-        return registry.getApi(featureId);
+        return registry.getApi(
+          featureId
+        );
       },
 
       getCommand(
@@ -811,7 +931,9 @@ export class FrameHelmFeatureRegistry {
     }
 
     const runtime =
-      this.runtime.get(feature.id);
+      this.runtime.get(
+        feature.id
+      );
 
     if (!runtime) {
       throw new Error(
@@ -843,7 +965,9 @@ export class FrameHelmFeatureRegistry {
       );
 
     const result =
-      await handler(context);
+      await handler(
+        context
+      );
 
     runtime.lifecycleRuns[
       normalizedPhase
@@ -865,23 +989,35 @@ export class FrameHelmFeatureRegistry {
     runtime,
     phase
   ) {
-    if (phase === "initialize") {
+    if (
+      phase ===
+      "initialize"
+    ) {
       runtime.state =
-        FRAME_HELM_FEATURE_RUNTIME_STATES.INITIALIZED;
+        FRAME_HELM_FEATURE_RUNTIME_STATES
+          .INITIALIZED;
 
       return;
     }
 
-    if (phase === "ready") {
+    if (
+      phase ===
+      "ready"
+    ) {
       runtime.state =
-        FRAME_HELM_FEATURE_RUNTIME_STATES.READY;
+        FRAME_HELM_FEATURE_RUNTIME_STATES
+          .READY;
 
       return;
     }
 
-    if (phase === "shutdown") {
+    if (
+      phase ===
+      "shutdown"
+    ) {
       runtime.state =
-        FRAME_HELM_FEATURE_RUNTIME_STATES.SHUT_DOWN;
+        FRAME_HELM_FEATURE_RUNTIME_STATES
+          .SHUT_DOWN;
     }
   }
 
@@ -917,7 +1053,8 @@ export class FrameHelmFeatureRegistry {
       this.orderedFeatures();
 
     if (
-      normalizedPhase === "shutdown"
+      normalizedPhase ===
+      "shutdown"
     ) {
       features = [
         ...features
@@ -926,7 +1063,10 @@ export class FrameHelmFeatureRegistry {
 
     const results = [];
 
-    for (const feature of features) {
+    for (
+      const feature
+      of features
+    ) {
       results.push(
         await this.runFeatureLifecycle(
           feature,
@@ -948,11 +1088,13 @@ export class FrameHelmFeatureRegistry {
     );
   }
 
+
   ready() {
     return this.runLifecycle(
       "ready"
     );
   }
+
 
   shutdown() {
     return this.runLifecycle(
@@ -972,28 +1114,31 @@ export class FrameHelmFeatureRegistry {
    * followed by the feature construction context as the final
    * argument.
    *
-   * Example feature hook:
+   * IMPORTANT:
+   *   The registry does not install hooks merely because a feature
+   *   has been registered.
    *
-   *   hooks: {
-   *     updateActor(
-   *       actor,
-   *       changes,
-   *       options,
-   *       userId,
-   *       context
-   *     ) {
-   *       ...
-   *     }
-   *   }
+   *   The authoritative runtime must explicitly call:
+   *
+   *     frameHelmFeatureRegistry.installHooks()
+   *
+   *   at the appropriate startup boundary.
    */
   installHooks() {
-    if (this.hooksInstalled) {
+    if (
+      this.hooksInstalled
+    ) {
       return;
     }
 
-    for (const feature of this.orderedFeatures()) {
+    for (
+      const feature
+      of this.orderedFeatures()
+    ) {
       const runtime =
-        this.runtime.get(feature.id);
+        this.runtime.get(
+          feature.id
+        );
 
       const context =
         this.createFeatureContext(
@@ -1001,24 +1146,37 @@ export class FrameHelmFeatureRegistry {
         );
 
       for (
-        const [hookName, declaration]
-        of Object.entries(feature.hooks)
+        const [
+          hookName,
+          declaration
+        ]
+        of Object.entries(
+          feature.hooks
+        )
       ) {
         const handlers =
-          Array.isArray(declaration)
+          Array.isArray(
+            declaration
+          )
             ? declaration
-            : [declaration];
+            : [
+                declaration
+              ];
 
-        for (const handler of handlers) {
-          const hookId = Hooks.on(
-            hookName,
-            (...args) => {
-              return handler(
-                ...args,
-                context
-              );
-            }
-          );
+        for (
+          const handler
+          of handlers
+        ) {
+          const hookId =
+            Hooks.on(
+              hookName,
+              (...args) => {
+                return handler(
+                  ...args,
+                  context
+                );
+              }
+            );
 
           runtime.installedHooks.push({
             hookName,
@@ -1028,7 +1186,8 @@ export class FrameHelmFeatureRegistry {
       }
     }
 
-    this.hooksInstalled = true;
+    this.hooksInstalled =
+      true;
   }
 
 
@@ -1038,7 +1197,10 @@ export class FrameHelmFeatureRegistry {
    * Useful for development reloads and explicit teardown.
    */
   uninstallHooks() {
-    for (const runtime of this.runtime.values()) {
+    for (
+      const runtime
+      of this.runtime.values()
+    ) {
       for (
         const installed
         of runtime.installedHooks
@@ -1056,10 +1218,12 @@ export class FrameHelmFeatureRegistry {
         }
       }
 
-      runtime.installedHooks = [];
+      runtime.installedHooks =
+        [];
     }
 
-    this.hooksInstalled = false;
+    this.hooksInstalled =
+      false;
   }
 
 
@@ -1078,7 +1242,8 @@ export class FrameHelmFeatureRegistry {
       );
 
     return (
-      this.runtime.get(id)?.state ??
+      this.runtime.get(id)
+        ?.state ??
       null
     );
   }
@@ -1137,43 +1302,56 @@ export class FrameHelmFeatureRegistry {
         this.hooksInstalled,
 
       features:
-        this.list().map(feature => {
-          const runtime =
-            this.runtime.get(feature.id);
+        this.list().map(
+          feature => {
+            const runtime =
+              this.runtime.get(
+                feature.id
+              );
 
-          return {
-            ...summarizeFrameHelmFeature(
-              feature
-            ),
-
-            runtimeState:
-              runtime?.state ?? null,
-
-            lifecycleRuns: {
-              ...(runtime?.lifecycleRuns ?? {})
-            },
-
-            installedHooks:
-              runtime?.installedHooks.map(
-                entry => entry.hookName
-              ) ?? [],
-
-            missingDependencies:
-              this.missingDependenciesFor(
+            return {
+              ...summarizeFrameHelmFeature(
                 feature
               ),
 
-            availableOptionalDependencies:
-              this.availableOptionalDependenciesFor(
-                feature
-              ),
+              runtimeState:
+                runtime?.state ??
+                null,
 
-            unavailableOptionalDependencies:
-              this.unavailableOptionalDependenciesFor(
-                feature
-              )
-          };
-        }),
+              lifecycleRuns: {
+                ...(
+                  runtime
+                    ?.lifecycleRuns ??
+                  {}
+                )
+              },
+
+              installedHooks:
+                runtime
+                  ?.installedHooks
+                  .map(
+                    entry =>
+                      entry.hookName
+                  ) ??
+                [],
+
+              missingDependencies:
+                this.missingDependenciesFor(
+                  feature
+                ),
+
+              availableOptionalDependencies:
+                this.availableOptionalDependenciesFor(
+                  feature
+                ),
+
+              unavailableOptionalDependencies:
+                this.unavailableOptionalDependenciesFor(
+                  feature
+                )
+            };
+          }
+        ),
 
       capabilities:
         Object.fromEntries(
@@ -1193,6 +1371,11 @@ export class FrameHelmFeatureRegistry {
    * Intended primarily for development and testing.
    *
    * Installed Foundry hooks are removed first.
+   *
+   * IMPORTANT:
+   *   clear() also removes canonical feature registrations.
+   *   A caller using this during development must explicitly
+   *   register required features again afterward.
    */
   clear() {
     this.uninstallHooks();
@@ -1211,25 +1394,46 @@ export class FrameHelmFeatureRegistry {
 /**
  * Single Frame Helm feature registry instance.
  *
- * Concrete feature modules are intentionally NOT imported or
- * registered here.
+ * Extracted domain definitions are registered immediately below.
  *
- * The primary composition surface will eventually do something
- * equivalent to:
+ * Registration is intentionally separate from runtime startup:
  *
- *   frameHelmFeatureRegistry.registerMany([
- *     frameHelmActionsFeature,
- *     frameHelmTurnFeature,
- *     frameHelmMovementFeature,
- *     frameHelmTelemetryFeature,
- *     frameHelmSensorFeature
- *   ]);
+ *   - no hooks are installed here
+ *   - no lifecycle handlers are run here
+ *   - no Foundry startup work occurs here
  *
- *   frameHelmFeatureRegistry.validateDependencies();
- *
- * Keeping registration outside this file preserves an explicit
- * composition root and avoids turning the registry into a hidden
- * dependency-discovery mechanism.
+ * lancer-frame-helm.js remains responsible for runtime
+ * orchestration.
  */
 export const frameHelmFeatureRegistry =
   new FrameHelmFeatureRegistry();
+
+
+/* ============================================================
+   Canonical extracted feature registration
+   ============================================================ */
+
+/**
+ * Register currently-extracted Frame Helm feature domains.
+ *
+ * As additional domains leave lancer-frame-helm.js, import their
+ * definitions above and add them to this declaration-order list.
+ *
+ * Required dependency ordering does not need to be maintained
+ * manually here because orderedFeatures() resolves the runtime
+ * dependency order from declared capabilities.
+ */
+frameHelmFeatureRegistry.registerMany([
+  frameHelmSensorsFeature
+]);
+
+
+/**
+ * Validate the currently-known feature graph immediately after
+ * canonical registration.
+ *
+ * The sensor feature currently declares no required capabilities,
+ * so this establishes the same validation boundary that future
+ * extracted domains will use.
+ */
+frameHelmFeatureRegistry.validateDependencies();
