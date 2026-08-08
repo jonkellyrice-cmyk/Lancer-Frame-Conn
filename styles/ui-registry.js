@@ -6,6 +6,7 @@
  * styles/ui-registry.js
  */
 
+
 /**
  * ============================================================
  * FRAME HELM EXECUTABLE UI REGISTRY
@@ -49,6 +50,7 @@
  *     ui-sensors.js
  *     ui-application.js
  *     ui-turn.js
+ *     ui-movement.js
  *     future ui-*.js
  *          │
  *          ▼
@@ -66,6 +68,7 @@
  *     ui-sensors.css
  *     ui-application.css
  *     ui-turn.css
+ *     ui-movement.css
  *     future ui-*.css
  *          │
  *          ▼
@@ -102,6 +105,7 @@
  *
  *        ui-application.js
  *        ui-turn.js
+ *        ui-movement.js
  *
  *
  *   2. PRESENTATION MODULE + REGISTRY ADAPTER
@@ -170,6 +174,11 @@ import {
 import {
   frameHelmTurnUiFeature
 } from "./ui-turn.js";
+
+
+import {
+  frameHelmMovementUiFeature
+} from "./ui-movement.js";
 
 
 /* ============================================================
@@ -326,13 +335,31 @@ export const frameHelmSensorsUiFeature =
  *     frameHelmTurnUiFeature
  *
  *
+ *   Movement UI
+ *
+ *     ui-movement.js
+ *          ↓
+ *     frameHelmMovementUiFeature
+ *
+ *     required runtime capabilities:
+ *
+ *       - movement
+ *       - movement.tracking
+ *       - turn.state
+ *
+ *     The turn.state requirement is transitional because the
+ *     authoritative movement-accounting object still currently
+ *     resides on FrameHelmTurnState.
+ *
+ *
  * Future executable UI features should be added here.
  */
 export const FRAME_HELM_UI_FEATURES =
   Object.freeze([
     frameHelmSensorsUiFeature,
     frameHelmApplicationUiFeature,
-    frameHelmTurnUiFeature
+    frameHelmTurnUiFeature,
+    frameHelmMovementUiFeature
   ]);
 
 
@@ -518,6 +545,16 @@ export function snapshotFrameHelmUiRegistry() {
             implementationModule:
               feature.metadata
                 ?.implementationModule ??
+              null,
+
+            domainFeature:
+              feature.metadata
+                ?.domainFeature ??
+              null,
+
+            transitionalStateFeature:
+              feature.metadata
+                ?.transitionalStateFeature ??
               null,
 
             companionStylesheet:

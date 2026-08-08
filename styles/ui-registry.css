@@ -26,6 +26,7 @@
  *   - ui-sensors.css
  *   - ui-actions.css
  *   - ui-turn.css
+ *   - ui-movement.css
  *   - ui-application.css
  *   - additional registered feature styles as they are extracted
  *
@@ -55,6 +56,7 @@
  *       ├── ui-sensors.css
  *       ├── ui-actions.css
  *       ├── ui-turn.css
+ *       ├── ui-movement.css
  *       ├── ui-application.css
  *       └── future registered feature styles
  *       ↓
@@ -74,6 +76,7 @@
  *         UI runtime feature:
  *           styles/ui-sensors.js
  *
+ *
  *     - Actions
  *         stylesheet:
  *           ui-actions.css
@@ -83,6 +86,7 @@
  *
  *         UI runtime feature:
  *           none currently required
+ *
  *
  *     - Turn
  *         stylesheet:
@@ -103,6 +107,37 @@
  *           - Turn semantic state presentation
  *           - Turn-specific responsive behavior
  *
+ *
+ *     - Movement
+ *         stylesheet:
+ *           ui-movement.css
+ *
+ *         runtime feature:
+ *           scripts/movement-feature.js
+ *
+ *         UI runtime feature:
+ *           styles/ui-movement.js
+ *
+ *         owns:
+ *           - Movement panel presentation
+ *           - Movement speed-setup presentation
+ *           - Movement tracker presentation
+ *           - Movement-mode presentation
+ *           - Movement budget presentation
+ *           - Movement commitment presentation
+ *           - Movement controls
+ *           - Movement ledger presentation
+ *           - standard-movement pool presentation
+ *           - Boost movement presentation
+ *           - Overcharge Boost movement presentation
+ *           - tracked-distance presentation
+ *           - excess-movement presentation
+ *           - Movement segment presentation
+ *           - elevation-movement presentation
+ *           - Movement semantic state presentation
+ *           - Movement-specific responsive behavior
+ *
+ *
  *     - Application
  *         stylesheet:
  *           ui-application.css
@@ -115,6 +150,7 @@
  *           - primary Frame Helm shell presentation
  *           - application-header presentation
  *           - application-specific responsive window behavior
+ *
  *
  *   Future feature styles will be registered here as their
  *   corresponding runtime domains are extracted.
@@ -150,6 +186,14 @@
  *
  *   Domain-oriented feature presentation is loaded before the
  *   Application stylesheet.
+ *
+ *   Turn is loaded before Movement because Movement currently
+ *   consumes movement-accounting state that remains temporarily
+ *   owned by the Turn domain.
+ *
+ *   This ordering does not create a CSS dependency between the
+ *   two files. It merely keeps the stylesheet declaration order
+ *   aligned with the current domain architecture.
  *
  *   Application-owned styling is loaded after lower-level feature
  *   styles because it owns the shell in which those feature
@@ -195,6 +239,7 @@
  *
  *     - ui-sensors.js
  *     - ui-turn.js
+ *     - ui-movement.js
  *     - ui-application.js
  *
  *   are not imported through this stylesheet.
@@ -224,6 +269,11 @@
  *     - Turn requires ui-turn.js because authoritative Turn state
  *       is adapted into explicit presentation models and semantic
  *       DOM state before being consumed by the Application UI.
+ *
+ *     - Movement requires ui-movement.js because physical
+ *       Movement integration and authoritative movement-accounting
+ *       state are adapted into explicit Movement presentation
+ *       models and semantic DOM state.
  *
  *     - Application requires ui-application.js because it owns
  *       the Foundry Application class, application instance, and
@@ -259,12 +309,15 @@
  * Owns generic action-catalog and action-menu presentation
  * belonging to the Actions feature.
  *
- * More specialized presentation for Movement and future
- * independently-owned action subdomains remains outside this
- * feature until those domains are extracted.
+ * More specialized presentation for independently-owned action
+ * subdomains remains outside this feature.
  *
  * Turn-owned Overcharge and committed-plan presentation no longer
  * belong to Actions presentation.
+ *
+ * Movement-owned movement-mode, movement-budget, movement-ledger,
+ * and movement-state presentation no longer belong to Actions
+ * presentation.
  */
 @import "./ui-actions.css";
 
@@ -299,6 +352,48 @@
 
 
 /**
+ * Movement
+ *
+ * Owns presentation belonging specifically to the Movement
+ * feature and its executable presentation adapter.
+ *
+ * This includes:
+ *
+ *   - movement panel presentation
+ *   - movement speed setup
+ *   - movement tracker
+ *   - movement modes
+ *   - movement budget state
+ *   - movement summary
+ *   - movement controls
+ *   - movement commitment state
+ *   - movement ledger
+ *   - standard movement usage
+ *   - Boost movement usage
+ *   - Overcharge Boost movement usage
+ *   - total tracked movement
+ *   - excess movement
+ *   - movement segments
+ *   - elevation movement presentation
+ *   - Movement semantic classes/data states
+ *   - Movement-specific responsive behavior
+ *
+ * Physical Foundry movement integration is owned by:
+ *
+ *   scripts/movement-feature.js
+ *
+ * Executable Movement presentation modeling is owned by:
+ *
+ *   styles/ui-movement.js
+ *
+ * Movement accounting remains transitionally represented by
+ * Turn state until that state ownership is migrated into the
+ * Movement feature.
+ */
+@import "./ui-movement.css";
+
+
+/**
  * Application
  *
  * Owns presentation belonging specifically to the primary Frame
@@ -329,7 +424,6 @@
  *
  * Examples:
  *
- * @import "./ui-movement.css";
  * @import "./ui-action-execution.css";
  * @import "./ui-telemetry.css";
  */

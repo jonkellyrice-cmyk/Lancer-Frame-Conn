@@ -5,7 +5,6 @@
  *
  * styles/ui-orchestrator.css
  */
-
 /**
  * ============================================================
  * FRAME HELM PUBLIC UI COMPOSITION SURFACE
@@ -33,6 +32,7 @@
  *   - ui-sensors.css
  *   - ui-actions.css
  *   - ui-turn.css
+ *   - ui-movement.css
  *   - ui-application.css
  *   - future registered feature styles
  *
@@ -46,11 +46,9 @@
  * CURRENTLY IMPLEMENTS:
  *   - Landscape cockpit composition
  *   - Controlled-unit presentation
- *   - Movement presentation
  *   - Quick-action presentation
  *   - Full-action presentation
  *   - Telemetry presentation
- *   - Movement-ledger presentation
  *   - Cross-feature responsive presentation
  *
  * REGISTERED FEATURE PRESENTATION:
@@ -66,6 +64,9 @@
  *
  *     - Turn
  *         ui-turn.css
+ *
+ *     - Movement
+ *         ui-movement.css
  *
  *     - Application
  *         ui-application.css
@@ -84,6 +85,14 @@
  *   - Overcharge presentation
  *   - Committed-plan presentation
  *   - Turn semantic-state presentation
+ *   - Movement presentation
+ *   - Movement speed-setup presentation
+ *   - Movement-mode presentation
+ *   - Movement tracking presentation
+ *   - Movement commitment presentation
+ *   - Movement ledger presentation
+ *   - Movement semantic-state presentation
+ *   - Movement-specific responsive behavior
  *   - Foundry application-window presentation
  *   - Frame Helm application-shell presentation
  *   - Frame Helm application-header presentation
@@ -98,6 +107,7 @@
  *       ├── ui-sensors.css
  *       ├── ui-actions.css
  *       ├── ui-turn.css
+ *       ├── ui-movement.css
  *       ├── ui-application.css
  *       └── future feature styles
  *       ↓
@@ -140,19 +150,13 @@
  *   responsive behavior, dimensions, states, and visual
  *   presentation are preserved by their registered replacement.
  */
-
-
 /* ============================================================
    UI construction spine
    ============================================================ */
-
 @import "./ui-registry.css";
-
-
 /* ============================================================
    Registered feature presentation -- Application
    ============================================================ */
-
 /**
  * Foundry Application and Frame Helm application-shell
  * presentation no longer lives in this public composition
@@ -182,12 +186,9 @@
  *
  * Cross-feature cockpit composition remains below.
  */
-
-
 /* ============================================================
    Registered feature presentation -- Turn
    ============================================================ */
-
 /**
  * Turn-specific presentation no longer lives in this public
  * composition stylesheet.
@@ -223,80 +224,107 @@
  * Cross-feature layout involving Turn surfaces may still be
  * coordinated here when no single feature owns the relationship.
  */
-
-
+/* ============================================================
+   Registered feature presentation -- Movement
+   ============================================================ */
+/**
+ * Movement-specific presentation no longer lives in this public
+ * composition stylesheet.
+ *
+ * Ownership now resides in:
+ *
+ *   styles/ui-movement.css
+ *
+ * ui-movement.css is registered through:
+ *
+ *   styles/ui-registry.css
+ *
+ * Executable Movement presentation modeling is owned by:
+ *
+ *   styles/ui-movement.js
+ *
+ * Physical Foundry movement integration is owned by:
+ *
+ *   scripts/movement-feature.js
+ *
+ * Authoritative movement accounting currently remains
+ * transitionally represented by:
+ *
+ *   scripts/turn-feature.js
+ *
+ * The extracted Movement UI owns:
+ *
+ *   - Movement panel presentation
+ *   - Movement speed-setup presentation
+ *   - Movement tracker presentation
+ *   - Movement-mode presentation
+ *   - Movement budget presentation
+ *   - Movement summary presentation
+ *   - Movement control presentation
+ *   - Movement commitment presentation
+ *   - Movement ledger presentation
+ *   - Standard movement pool presentation
+ *   - Boost movement pool presentation
+ *   - Overcharge Boost movement presentation
+ *   - Total tracked movement presentation
+ *   - Excess movement presentation
+ *   - Movement segment presentation
+ *   - Elevation movement presentation
+ *   - Movement semantic-state styling
+ *   - Movement-specific responsive behavior
+ *
+ * Cross-feature layout involving Movement surfaces may still be
+ * coordinated here when no single feature owns the relationship.
+ */
 /* ============================================================
    Landscape cockpit composition
    ============================================================ */
-
 .frame-helm-horizontal-layout {
   display: grid;
-
   grid-template-columns:
     minmax(285px, 0.82fr)
     minmax(390px, 1.45fr);
-
   flex: 1;
-
   width: 100%;
   height: 100%;
-
   min-height: 0;
-
   gap: 0.75rem;
-
   overflow: hidden;
 }
-
 .frame-helm-overview-column,
 .frame-helm-action-column {
   display: flex;
   flex-direction: column;
-
   width: 100%;
   height: 100%;
-
   min-width: 0;
   min-height: 0;
-
   gap: 0.75rem;
 }
-
 .frame-helm-overview-column {
   overflow-y: auto;
   overflow-x: hidden;
-
   padding-right: 0.4rem;
   padding-bottom: 1rem;
-
   scrollbar-gutter: stable;
 }
-
 .frame-helm-action-column {
   overflow: hidden;
-
   border-left:
     1px solid var(
       --fh-cyan-muted,
       rgba(86, 224, 223, 0.34)
     );
-
   padding-left: 0.75rem;
 }
-
-
 /* ============================================================
    Controlled unit panel
    ============================================================ */
-
 .frame-helm-unit-panel {
   display: flex;
   align-items: center;
-
   gap: 0.75rem;
-
   padding: 0.65rem;
-
   clip-path:
     polygon(
       0 0,
@@ -306,25 +334,17 @@
       0 100%
     );
 }
-
 .frame-helm-unit-image {
   flex: 0 0 48px;
-
   width: 48px;
   height: 48px;
-
   border:
     2px solid var(--fh-cyan);
-
   border-radius: 0;
-
   background: #020708;
-
   object-fit: cover;
-
   box-shadow:
     0 0 10px rgba(79, 237, 231, 0.36);
-
   clip-path:
     polygon(
       12% 0,
@@ -337,56 +357,40 @@
       0 12%
     );
 }
-
 .frame-helm-unit-image-empty {
   display: flex;
   align-items: center;
   justify-content: center;
-
   font-size: 1.4rem;
 }
-
 .frame-helm-unit-text {
   display: flex;
   flex: 1;
   flex-direction: column;
-
   min-width: 0;
 }
-
 .frame-helm-unit-text strong,
 .frame-helm-unit-text small {
   overflow: hidden;
-
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 .frame-helm-unit-text strong {
   font-size: 1.05rem;
 }
-
 .frame-helm-unit-text small {
   margin-top: 0.15rem;
-
   color: var(--fh-text-muted);
-
   opacity: 0.7;
 }
-
 .frame-helm-label {
   font-size: 0.7rem;
-
   letter-spacing: 0.08em;
-
   opacity: 0.7;
 }
-
-
 /* ============================================================
    Registered feature presentation -- Actions
    ============================================================ */
-
 /**
  * Generic Actions presentation no longer lives in this public
  * composition stylesheet.
@@ -410,456 +414,138 @@
  *   - generic empty-action presentation
  *   - Actions-owned responsive menu behavior
  *
- * Turn-specific Overcharge and committed-plan presentation is now
+ * Turn-specific Overcharge and committed-plan presentation is
  * owned by ui-turn.css.
  *
- * More specialized Movement, Quick Action, and Full Action
- * presentation remains below until those domains receive their
- * own UI feature extraction.
+ * Movement-specific presentation is owned by ui-movement.css.
+ *
+ * More specialized Quick Action and Full Action presentation
+ * remains below until those domains receive their own UI feature
+ * extraction.
  */
-
-
-/* ============================================================
-   Current feature implementation -- Movement
-   ============================================================ */
-
-.frame-helm-action-column > .frame-helm-movement-panel {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-
-  width: 100%;
-  height: 100%;
-
-  min-height: 0;
-  max-height: 100%;
-
-  gap: 0.55rem;
-
-  overflow-y: auto;
-  overflow-x: hidden;
-
-  padding-right: 0.55rem;
-  padding-bottom: 3rem;
-
-  scrollbar-gutter: stable;
-
-  clip-path: none;
-}
-
-.frame-helm-movement-panel .frame-helm-section-heading {
-  flex: 0 0 auto;
-}
-
-.frame-helm-movement-speed-setup,
-.frame-helm-movement-tracker,
-.frame-helm-movement-modes {
-  flex: 0 0 auto;
-
-  width: 100%;
-  height: auto;
-
-  max-height: none;
-
-  gap: 0.55rem;
-
-  padding: 0.7rem;
-
-  overflow: visible;
-
-  clip-path:
-    polygon(
-      0 0,
-      calc(100% - 12px) 0,
-      100% 12px,
-      100% 100%,
-      0 100%
-    );
-}
-
-.frame-helm-movement-speed-setup > label,
-.frame-helm-movement-subheading {
-  font-size: 0.72rem;
-  font-weight: 700;
-
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-
-  opacity: 0.75;
-}
-
-.frame-helm-movement-input-row {
-  display: grid;
-
-  grid-template-columns:
-    minmax(70px, 0.35fr)
-    minmax(150px, 1fr);
-
-  gap: 0.5rem;
-}
-
-.frame-helm-movement-input-row input,
-.frame-helm-movement-input-row button {
-  min-height: 2.35rem;
-
-  margin: 0;
-}
-
-.frame-helm-movement-input-row input {
-  border:
-    1px solid var(--fh-cyan-muted);
-
-  border-radius: 0;
-
-  background: #02090c;
-
-  color: var(--fh-cyan-bright);
-
-  font-family: monospace;
-}
-
-.frame-helm-movement-note {
-  margin: 0;
-
-  color: var(--fh-text-muted);
-
-  font-size: 0.72rem;
-
-  line-height: 1.3;
-
-  opacity: 1;
-}
-
-.frame-helm-movement-mode {
-  gap: 0.65rem;
-}
-
-.frame-helm-movement-mode strong {
-  font-size: 0.92rem;
-}
-
-.frame-helm-movement-mode small,
-.frame-helm-movement-mode em {
-  font-size: 0.72rem;
-}
-
-.frame-helm-movement-mode small {
-  opacity: 0.72;
-}
-
-.frame-helm-movement-mode em {
-  opacity: 0.62;
-}
-
-.frame-helm-movement-mode-selected {
-  outline:
-    1px solid var(--fh-amber);
-
-  outline-offset: -2px;
-
-  background:
-    linear-gradient(
-      90deg,
-      rgba(255, 184, 74, 0.18),
-      transparent
-    ),
-    rgba(24, 22, 12, 0.95);
-
-  color: #fff2d2;
-
-  font-weight: 700;
-
-  box-shadow:
-    inset 4px 0 0 var(--fh-amber),
-    0 0 12px rgba(255, 184, 74, 0.18);
-}
-
-.frame-helm-movement-summary {
-  grid-template-columns:
-    repeat(3, minmax(0, 1fr));
-
-  gap: 0.45rem;
-}
-
-.frame-helm-movement-summary > div,
-.frame-helm-movement-current-mode {
-  padding: 0.45rem;
-}
-
-.frame-helm-movement-summary span,
-.frame-helm-movement-current-mode span {
-  font-size: 0.65rem;
-
-  opacity: 0.65;
-}
-
-.frame-helm-movement-summary strong,
-.frame-helm-movement-current-mode strong {
-  font-size: 0.88rem;
-}
-
-.frame-helm-movement-controls {
-  display: grid;
-
-  grid-template-columns:
-    1fr 1fr;
-
-  gap: 0.5rem;
-}
-
-.frame-helm-movement-controls button {
-  min-height: 2.35rem;
-
-  margin: 0;
-}
-
-.frame-helm-movement-modes {
-  padding-bottom: 0.8rem;
-}
-
-.frame-helm-movement-tracker {
-  margin-bottom: 1rem;
-}
-
-
-/* ============================================================
-   Current feature implementation -- Movement commitment state
-   ============================================================ */
-
-.frame-helm-movement-commit-note {
-  border:
-    1px solid var(--fh-cyan-muted);
-
-  border-left:
-    3px solid var(--fh-cyan);
-
-  background:
-    linear-gradient(
-      90deg,
-      rgba(86, 224, 223, 0.12),
-      transparent
-    ),
-    rgba(2, 11, 14, 0.66);
-
-  padding: 0.6rem 0.7rem;
-
-  color: var(--fh-text-muted);
-}
-
-.frame-helm-movement-panel
-.frame-helm-movement-mode:not(:disabled) {
-  cursor: pointer;
-}
-
-.frame-helm-movement-panel
-.frame-helm-movement-mode:not(:disabled)::after {
-  flex: 0 0 auto;
-
-  margin-top: 0.2rem;
-
-  color: var(--fh-amber);
-
-  font-family:
-    "Font Awesome 6 Free";
-
-  font-weight: 900;
-
-  content: "\\f00c";
-
-  opacity: 0.65;
-}
-
-.frame-helm-movement-panel
-.frame-helm-movement-mode:not(:disabled):hover::after {
-  opacity: 1;
-
-  text-shadow:
-    0 0 7px rgba(255, 184, 74, 0.5);
-}
-
-
 /* ============================================================
    Current feature implementation -- Quick actions
    ============================================================ */
-
 .frame-helm-quick-budget {
   flex: 0 0 auto;
-
   grid-template-columns:
     repeat(2, minmax(0, 1fr));
-
   gap: 0.5rem;
 }
-
 .frame-helm-quick-budget span {
   font-size: 0.65rem;
-
   opacity: 0.65;
 }
-
 .frame-helm-quick-budget strong {
   font-size: 0.88rem;
 }
-
 .frame-helm-quick-choice {
   min-height: 4rem;
 }
-
 .frame-helm-quick-detail {
   flex: 1 1 auto;
-
   min-height: 0;
   max-height: 100%;
-
   padding:
     0.75rem
     0.5rem
     2.5rem
     0.75rem;
-
   overflow-y: auto;
   overflow-x: hidden;
-
   scrollbar-gutter: stable;
-
   clip-path: none;
 }
-
 .frame-helm-quick-requirement > i {
   flex: 0 0 auto;
-
   font-size: 1rem;
 }
-
 .frame-helm-quick-execution-options {
   display: flex;
   flex-direction: column;
-
   gap: 0.5rem;
 }
-
 .frame-helm-quick-execute-button strong {
   font-size: 0.92rem;
 }
-
 .frame-helm-quick-execute-button small {
   font-size: 0.72rem;
 }
-
 .frame-helm-quick-placeholder-note {
   margin: 0;
-
   color: var(--fh-text-muted);
-
   font-size: 0.7rem;
   font-style: italic;
-
   line-height: 1.3;
-
   opacity: 1;
 }
-
-
 /* ============================================================
    Current feature implementation -- Full actions
    ============================================================ */
-
 .frame-helm-full-budget {
   flex: 0 0 auto;
-
   grid-template-columns:
     repeat(2, minmax(0, 1fr));
-
   gap: 0.5rem;
 }
-
 .frame-helm-full-budget span {
   font-size: 0.65rem;
-
   opacity: 0.65;
 }
-
 .frame-helm-full-budget strong {
   font-size: 0.88rem;
 }
-
 .frame-helm-full-choice {
   min-height: 4rem;
 }
-
 .frame-helm-full-detail {
   flex: 1 1 auto;
-
   min-height: 0;
   max-height: 100%;
-
   padding:
     0.75rem
     0.5rem
     2.5rem
     0.75rem;
-
   overflow-y: auto;
   overflow-x: hidden;
-
   scrollbar-gutter: stable;
-
   clip-path: none;
 }
-
 .frame-helm-full-requirement > i {
   flex: 0 0 1.3rem;
-
   width: 1.3rem;
-
   font-size: 1rem;
-
   text-align: center;
 }
-
 .frame-helm-full-execute-button strong {
   font-size: 0.92rem;
 }
-
 .frame-helm-full-execute-button small {
   font-size: 0.72rem;
 }
-
 .frame-helm-full-placeholder-note {
   margin: 0;
-
   color: var(--fh-text-muted);
-
   font-size: 0.7rem;
   font-style: italic;
-
   line-height: 1.3;
-
   opacity: 1;
 }
-
-
 /* ============================================================
    Current feature implementation -- MECH//STATS telemetry
    ============================================================ */
-
 .frame-helm-mech-stats-bar {
   display: grid;
-
   grid-template-columns:
     minmax(150px, 0.72fr)
     minmax(0, 4.7fr);
-
   flex: 0 0 auto;
-
   min-height: 76px;
-
   border:
     1px solid var(--fh-line);
-
   border-left:
     4px solid var(--fh-cyan);
-
   background:
     linear-gradient(
       105deg,
@@ -867,11 +553,9 @@
       transparent 44%
     ),
     var(--fh-bg-panel);
-
   box-shadow:
     inset 0 0 18px rgba(0, 0, 0, 0.42),
     var(--fh-shadow);
-
   clip-path:
     polygon(
       0 0,
@@ -881,58 +565,42 @@
       0 100%
     );
 }
-
 .frame-helm-mech-stats-heading {
   display: flex;
   flex-direction: column;
   justify-content: center;
-
   min-width: 0;
-
   border-right:
     1px solid var(--fh-cyan-muted);
-
   background:
     linear-gradient(
       90deg,
       rgba(86, 224, 223, 0.13),
       transparent
     );
-
   padding: 0.7rem 0.8rem;
 }
-
 .frame-helm-mech-stats-heading span {
   color:
     var(--fh-cyan-bright);
-
   font-family: monospace;
   font-size: 0.9rem;
   font-weight: 700;
-
   letter-spacing: 0.08em;
-
   text-shadow:
     0 0 8px rgba(86, 224, 223, 0.46);
-
   white-space: nowrap;
 }
-
 .frame-helm-mech-stats-heading small {
   margin-top: 0.2rem;
-
   color: var(--fh-amber);
-
   font-family: monospace;
   font-size: 0.62rem;
-
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
-
 .frame-helm-mech-stats-grid {
   display: grid;
-
   grid-template-columns:
     minmax(108px, 1.3fr)
     minmax(108px, 1.3fr)
@@ -942,51 +610,36 @@
     minmax(108px, 1.3fr)
     minmax(108px, 1.3fr)
     minmax(108px, 1.3fr);
-
   align-items: stretch;
-
   min-width: 0;
-
   overflow-x: auto;
 }
-
 .frame-helm-stat-label {
   font-size: 0.62rem;
-
   letter-spacing: 0.07em;
   line-height: 1;
-
   white-space: nowrap;
 }
-
 .frame-helm-stat-cell input:hover,
 .frame-helm-stat-cell input:focus {
   border-color:
     var(--fh-cyan);
-
   outline: none;
-
   color: #ffffff;
-
   box-shadow:
     inset 3px 0 0 var(--fh-cyan),
     0 0 8px rgba(86, 224, 223, 0.18);
 }
-
 .frame-helm-stat-divider {
   color: var(--fh-amber);
-
   font-family: monospace;
   font-size: 0.85rem;
   font-weight: 700;
-
   text-align: center;
 }
-
 .frame-helm-stat-single input {
   max-width: 64px;
 }
-
 .frame-helm-stat-cell:nth-child(2),
 .frame-helm-stat-cell:nth-child(5),
 .frame-helm-stat-cell:nth-child(7) {
@@ -997,7 +650,6 @@
       transparent
     );
 }
-
 .frame-helm-stat-cell:nth-child(2)
 .frame-helm-stat-label,
 .frame-helm-stat-cell:nth-child(5)
@@ -1006,117 +658,41 @@
 .frame-helm-stat-label {
   color: #d8b977;
 }
-
-
 /* ============================================================
    Current feature implementation -- Live telemetry states
    ============================================================ */
-
 .frame-helm-stat-cell input[readonly] {
   cursor: default;
 }
-
 .frame-helm-stat-cell input[readonly]:focus {
   border-color:
     var(--fh-cyan-muted);
-
   color:
     var(--fh-cyan-bright);
-
   box-shadow:
     inset 2px 0 0 rgba(86, 224, 223, 0.3);
 }
-
 .frame-helm-stat-unavailable {
   align-items: stretch;
 }
-
 .frame-helm-stat-unavailable strong {
   display: flex;
   align-items: center;
   justify-content: center;
-
   min-height: 1.85rem;
-
   border:
     1px dashed rgba(148, 185, 188, 0.35);
-
   background:
     rgba(1, 9, 12, 0.55);
-
   color:
     var(--fh-text-muted);
-
   font-family: monospace;
   font-size: 0.75rem;
-
   letter-spacing: 0.06em;
 }
-
-
-/* ============================================================
-   Current feature implementation -- Dragged-movement ledger
-   ============================================================ */
-
-.frame-helm-movement-ledger {
-  grid-template-columns:
-    repeat(4, minmax(0, 1fr));
-}
-
-.frame-helm-movement-ledger > div {
-  gap: 0.2rem;
-
-  background:
-    linear-gradient(
-      90deg,
-      rgba(38, 126, 132, 0.12),
-      transparent
-    ),
-    rgba(2, 11, 14, 0.72);
-
-  padding: 0.45rem 0.5rem;
-}
-
-.frame-helm-movement-ledger span {
-  font-size: 0.62rem;
-
-  letter-spacing: 0.05em;
-}
-
-.frame-helm-movement-ledger strong {
-  font-size: 0.82rem;
-}
-
-.frame-helm-movement-ledger
-.frame-helm-movement-excess-active {
-  border-color:
-    var(--fh-red);
-
-  background:
-    linear-gradient(
-      90deg,
-      rgba(255, 93, 103, 0.18),
-      transparent
-    ),
-    rgba(22, 6, 9, 0.86);
-
-  box-shadow:
-    inset 3px 0 0 var(--fh-red),
-    0 0 10px rgba(255, 93, 103, 0.1);
-}
-
-.frame-helm-movement-ledger
-.frame-helm-movement-excess-active span,
-.frame-helm-movement-ledger
-.frame-helm-movement-excess-active strong {
-  color: #ffd6d9;
-}
-
-
 /* ============================================================
    Cross-feature composition -- Narrow-window fallback
    ============================================================ */
-
 /**
  * Application-window-specific responsive behavior is owned by:
  *
@@ -1130,112 +706,83 @@
  *
  *   ui-turn.css
  *
- * The rules here remain because they coordinate the shared
- * cockpit columns and feature surfaces which have not yet been
- * independently extracted.
+ * Movement-specific responsive behavior is owned by:
+ *
+ *   ui-movement.css
+ *
+ * The rules here remain only where they coordinate the shared
+ * cockpit columns or multiple currently non-extracted feature
+ * surfaces.
  */
-
 @media (max-width: 820px) {
   .frame-helm-horizontal-layout {
     display: flex;
     flex-direction: column;
-
     height: auto;
-
     overflow: visible;
   }
-
   .frame-helm-overview-column,
   .frame-helm-action-column {
     height: auto;
-
     overflow: visible;
   }
-
   .frame-helm-action-column {
     border-left: 0;
-
     border-top:
       1px solid var(
         --fh-cyan-muted,
         rgba(86, 224, 223, 0.34)
       );
-
     padding-top: 0.75rem;
     padding-left: 0;
   }
-
-  .frame-helm-action-column > .frame-helm-movement-panel,
   .frame-helm-action-column .frame-helm-quick-detail,
   .frame-helm-action-column .frame-helm-full-detail {
     width: 100%;
     height: auto;
-
     min-height: 0;
     max-height: none;
-
     overflow: visible;
-
     padding-right: 0;
   }
-
-  .frame-helm-action-column > .frame-helm-movement-panel {
-    padding-bottom: 1rem;
-  }
-
-  .frame-helm-movement-ledger {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
-  }
 }
-
-
 /* ============================================================
    Cross-feature composition -- Compact control fallback
    ============================================================ */
-
 /**
- * Turn-owned compact budget behavior has moved to ui-turn.css.
+ * Turn-owned compact budget behavior is owned by ui-turn.css.
  *
- * The remaining rules belong to Movement and the currently
+ * Movement-owned compact control behavior is owned by
+ * ui-movement.css.
+ *
+ * The remaining compact rules belong only to currently
  * non-extracted Quick/Full Action presentation.
  */
-
 @media (max-width: 500px) {
-  .frame-helm-movement-input-row,
-  .frame-helm-movement-controls,
   .frame-helm-quick-budget,
   .frame-helm-full-budget {
     grid-template-columns:
       1fr;
   }
 }
-
-
 /* ============================================================
    Current feature composition -- Telemetry responsive fallback
    ============================================================ */
-
 @media (max-width: 900px) {
   .frame-helm-mech-stats-bar {
     grid-template-columns:
       1fr;
   }
-
   .frame-helm-mech-stats-heading {
     border-right:
       0;
-
     border-bottom:
       1px solid var(--fh-cyan-muted);
-
     padding-top:
       0.45rem;
-
     padding-bottom:
       0.45rem;
   }
-
   .frame-helm-mech-stats-grid {
     min-height:
       68px;
