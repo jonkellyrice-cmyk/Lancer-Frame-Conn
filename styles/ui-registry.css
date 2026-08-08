@@ -25,6 +25,7 @@
  *   - ui-contract.css
  *   - ui-sensors.css
  *   - ui-actions.css
+ *   - ui-turn.css
  *   - ui-application.css
  *   - additional registered feature styles as they are extracted
  *
@@ -53,6 +54,7 @@
  *   ui-registry.css
  *       ├── ui-sensors.css
  *       ├── ui-actions.css
+ *       ├── ui-turn.css
  *       ├── ui-application.css
  *       └── future registered feature styles
  *       ↓
@@ -81,6 +83,25 @@
  *
  *         UI runtime feature:
  *           none currently required
+ *
+ *     - Turn
+ *         stylesheet:
+ *           ui-turn.css
+ *
+ *         runtime feature:
+ *           scripts/turn-feature.js
+ *
+ *         UI runtime feature:
+ *           styles/ui-turn.js
+ *
+ *         owns:
+ *           - turn-budget presentation
+ *           - Protocol presentation
+ *           - Reaction presentation
+ *           - Overcharge presentation
+ *           - committed-plan presentation
+ *           - Turn semantic state presentation
+ *           - Turn-specific responsive behavior
  *
  *     - Application
  *         stylesheet:
@@ -127,6 +148,9 @@
  *   Core feature styles are loaded afterward in explicit
  *   registration order.
  *
+ *   Domain-oriented feature presentation is loaded before the
+ *   Application stylesheet.
+ *
  *   Application-owned styling is loaded after lower-level feature
  *   styles because it owns the shell in which those feature
  *   surfaces are presented.
@@ -148,27 +172,41 @@
  *   when its stylesheet is explicitly imported through this
  *   registry.
  *
- *   This mirrors scripts/feature-registry.js:
+ *   This mirrors the executable JavaScript composition graph:
  *
  *     feature-contract.js
- *         defines what may plug in
+ *         defines what executable features may plug in
  *
  *     feature-registry.js
- *         determines what has plugged in
+ *         determines which runtime/domain features participate
+ *
+ *     ui-registry.js
+ *         determines which executable UI features participate
  *
  *     ui-contract.css
- *         defines how feature UI may participate
+ *         defines how feature UI styling may participate
  *
  *     ui-registry.css
  *         determines which feature UI styles participate
  *
  * IMPORTANT:
  *
- *   JavaScript UI feature modules such as ui-sensors.js and
- *   ui-application.js are not imported through this stylesheet.
+ *   JavaScript UI feature modules such as:
+ *
+ *     - ui-sensors.js
+ *     - ui-turn.js
+ *     - ui-application.js
+ *
+ *   are not imported through this stylesheet.
  *
  *   Their JavaScript dependency and registration path remains
- *   part of the JavaScript feature-composition graph through:
+ *   part of the executable JavaScript feature-composition graph.
+ *
+ *   Executable UI features are composed through:
+ *
+ *     styles/ui-registry.js
+ *
+ *   and enter the wider runtime feature graph through:
  *
  *     scripts/feature-registry.js
  *
@@ -182,6 +220,10 @@
  *
  *     - Actions currently requires only ui-actions.css because
  *       its extracted UI ownership is stylesheet-based.
+ *
+ *     - Turn requires ui-turn.js because authoritative Turn state
+ *       is adapted into explicit presentation models and semantic
+ *       DOM state before being consumed by the Application UI.
  *
  *     - Application requires ui-application.js because it owns
  *       the Foundry Application class, application instance, and
@@ -217,12 +259,43 @@
  * Owns generic action-catalog and action-menu presentation
  * belonging to the Actions feature.
  *
- * More specialized presentation for Movement, Quick Actions,
- * Full Actions, Overcharge, and committed-plan state remains
- * outside this feature until those more specific domains are
- * extracted.
+ * More specialized presentation for Movement and future
+ * independently-owned action subdomains remains outside this
+ * feature until those domains are extracted.
+ *
+ * Turn-owned Overcharge and committed-plan presentation no longer
+ * belong to Actions presentation.
  */
 @import "./ui-actions.css";
+
+
+/**
+ * Turn
+ *
+ * Owns presentation belonging specifically to the Turn feature
+ * and its executable presentation adapter.
+ *
+ * This includes:
+ *
+ *   - turn-budget presentation
+ *   - quick/full budget state
+ *   - Protocol state
+ *   - Reaction state
+ *   - Overcharge state
+ *   - committed-plan presentation
+ *   - committed-action execution state
+ *   - Turn semantic classes/data states
+ *   - Turn-specific responsive behavior
+ *
+ * Authoritative gameplay state remains owned by:
+ *
+ *   scripts/turn-feature.js
+ *
+ * Executable Turn presentation modeling is owned by:
+ *
+ *   styles/ui-turn.js
+ */
+@import "./ui-turn.css";
 
 
 /**
@@ -256,7 +329,6 @@
  *
  * Examples:
  *
- * @import "./ui-turn.css";
  * @import "./ui-movement.css";
  * @import "./ui-action-execution.css";
  * @import "./ui-telemetry.css";
