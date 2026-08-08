@@ -1,0 +1,678 @@
+/**
+ * ============================================================
+ * FILE PATH / NAME
+ * ============================================================
+ *
+ * styles/ui-actions.css
+ */
+
+/**
+ * ============================================================
+ * FRAME HELM UI FEATURE -- ACTIONS
+ * ============================================================
+ *
+ * ROLE:
+ *   Owns stylesheet presentation belonging specifically to the
+ *   Frame Helm Actions feature domain.
+ *
+ * FEATURE:
+ *   actions
+ *
+ * RUNTIME OWNER:
+ *   scripts/actions-feature.js
+ *
+ * UI RUNTIME OWNER:
+ *   styles/ui-actions.js
+ *
+ * PURPOSE:
+ *   Establish the Actions feature's UI ownership boundary within
+ *   the Frame Helm UI feature spine.
+ *
+ * OWNS:
+ *
+ *   - Action-panel internal composition
+ *   - Action-category presentation
+ *   - Action-list presentation
+ *   - Action navigation controls
+ *   - Quick-action presentation
+ *   - Full-action presentation
+ *   - Action requirement presentation
+ *   - Overcharge presentation
+ *   - Action-specific unavailable states
+ *   - Action-specific responsive presentation
+ *
+ * DOES NOT OWN:
+ *
+ *   - Foundry window composition
+ *   - Overall Frame Helm application layout
+ *   - Frame Helm shell composition
+ *   - Action-column placement within the application
+ *   - Controlled-unit presentation
+ *   - Turn-plan presentation
+ *   - Movement presentation
+ *   - Sensor presentation
+ *   - Telemetry presentation
+ *   - Shared design tokens
+ *   - Shared UI primitives
+ *
+ * DEPENDENCY FLOW:
+ *
+ *   ui-dsl.css
+ *       ↓
+ *   ui-contract.css
+ *       ↓
+ *   ui-actions.css
+ *       ↓
+ *   ui-registry.css
+ *       ↓
+ *   lancer-frame-helm.css
+ *
+ * COMPOSITION CONTRACT:
+ *
+ *   lancer-frame-helm.css owns where the Actions feature is
+ *   placed in the overall application.
+ *
+ *   For example:
+ *
+ *     .frame-helm-action-column
+ *
+ *   remains application-level composition.
+ *
+ *   This file owns how the Actions feature lays itself out once
+ *   placed inside that composition surface.
+ *
+ * EXTRACTION SOURCE:
+ *
+ *   These declarations were extracted from:
+ *
+ *     styles/lancer-frame-helm.css
+ *
+ *   Their selectors and declarations are preserved so existing
+ *   presentation remains unchanged.
+ *
+ * STABILITY CONTRACT:
+ *
+ *   This extraction changes stylesheet ownership only.
+ *
+ *   Existing action presentation, cascade behavior, dimensions,
+ *   states, scrolling behavior, and responsive behavior are
+ *   preserved.
+ */
+
+
+/* ============================================================
+   Actions -- Panel composition
+   ============================================================ */
+
+.frame-helm-action-column > .frame-helm-action-panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+
+  width: 100%;
+  height: 100%;
+
+  min-height: 0;
+  max-height: 100%;
+
+  gap: 0.55rem;
+
+  overflow: hidden;
+
+  padding-bottom: 0;
+
+  clip-path: none;
+}
+
+
+/* ============================================================
+   Actions -- Section heading
+   ============================================================ */
+
+.frame-helm-section-heading {
+  display: flex;
+  align-items: center;
+
+  flex: 0 0 auto;
+
+  min-height: 2rem;
+
+  border-bottom:
+    1px solid var(--fh-cyan-muted);
+
+  padding-bottom: 0.4rem;
+
+  color: var(--fh-cyan);
+
+  font-family: monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  text-shadow:
+    0 0 6px rgba(86, 224, 223, 0.35);
+}
+
+.frame-helm-section-heading-with-back {
+  gap: 0.55rem;
+}
+
+.frame-helm-section-heading-with-back > div {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+}
+
+.frame-helm-section-heading-with-back small {
+  margin-top: 0.1rem;
+
+  font-size: 0.68rem;
+  font-weight: 400;
+
+  letter-spacing: normal;
+  text-transform: none;
+
+  opacity: 0.7;
+}
+
+.frame-helm-back-button {
+  flex: 0 0 2rem;
+
+  width: 2rem;
+  height: 2rem;
+
+  margin: 0;
+  padding: 0;
+}
+
+.frame-helm-category-arrow {
+  flex: 0 0 auto;
+
+  margin-top: 0.2rem;
+
+  color: var(--fh-amber);
+
+  opacity: 0.5;
+}
+
+.frame-helm-category-unavailable {
+  opacity: 0.55;
+}
+
+
+/* ============================================================
+   Actions -- Menu grids
+   ============================================================ */
+
+.frame-helm-action-column .frame-helm-category-list,
+.frame-helm-action-column .frame-helm-action-list {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  grid-auto-rows: max-content;
+
+  align-content: start;
+  align-items: start;
+
+  flex: 1 1 auto;
+
+  min-height: 0;
+  max-height: 100%;
+
+  row-gap: 0.6rem;
+  column-gap: 0.6rem;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  padding-right: 0.5rem;
+  padding-bottom: 2.75rem;
+
+  scrollbar-gutter: stable;
+}
+
+.frame-helm-action-column .frame-helm-category-list::after,
+.frame-helm-action-column .frame-helm-action-list::after {
+  display: block;
+
+  grid-column: 1 / -1;
+
+  width: 100%;
+  height: 1.75rem;
+
+  content: "";
+}
+
+.frame-helm-category-copy strong,
+.frame-helm-action-copy strong {
+  font-size: 0.95rem;
+}
+
+.frame-helm-category-copy small,
+.frame-helm-action-copy small {
+  font-size: 0.75rem;
+}
+
+.frame-helm-no-actions {
+  gap: 0.6rem;
+
+  min-height: 100px;
+
+  padding: 1rem;
+
+  opacity: 0.7;
+}
+
+
+/* ============================================================
+   Actions -- Quick action budget
+   ============================================================ */
+
+.frame-helm-quick-budget {
+  flex: 0 0 auto;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 0.5rem;
+}
+
+.frame-helm-quick-budget span {
+  font-size: 0.65rem;
+
+  opacity: 0.65;
+}
+
+.frame-helm-quick-budget strong {
+  font-size: 0.88rem;
+}
+
+
+/* ============================================================
+   Actions -- Quick action choices
+   ============================================================ */
+
+.frame-helm-quick-choice {
+  min-height: 4rem;
+}
+
+
+/* ============================================================
+   Actions -- Quick action detail
+   ============================================================ */
+
+.frame-helm-quick-detail {
+  flex: 1 1 auto;
+
+  min-height: 0;
+  max-height: 100%;
+
+  padding:
+    0.75rem
+    0.5rem
+    2.5rem
+    0.75rem;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  scrollbar-gutter: stable;
+
+  clip-path: none;
+}
+
+.frame-helm-quick-requirement > i {
+  flex: 0 0 auto;
+
+  font-size: 1rem;
+}
+
+.frame-helm-quick-execution-options {
+  display: flex;
+  flex-direction: column;
+
+  gap: 0.5rem;
+}
+
+.frame-helm-quick-execute-button strong {
+  font-size: 0.92rem;
+}
+
+.frame-helm-quick-execute-button small {
+  font-size: 0.72rem;
+}
+
+.frame-helm-quick-placeholder-note {
+  margin: 0;
+
+  color: var(--fh-text-muted);
+
+  font-size: 0.7rem;
+  font-style: italic;
+
+  line-height: 1.3;
+
+  opacity: 1;
+}
+
+
+/* ============================================================
+   Actions -- Full action budget
+   ============================================================ */
+
+.frame-helm-full-budget {
+  flex: 0 0 auto;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 0.5rem;
+}
+
+.frame-helm-full-budget span {
+  font-size: 0.65rem;
+
+  opacity: 0.65;
+}
+
+.frame-helm-full-budget strong {
+  font-size: 0.88rem;
+}
+
+
+/* ============================================================
+   Actions -- Full action choices
+   ============================================================ */
+
+.frame-helm-full-choice {
+  min-height: 4rem;
+}
+
+
+/* ============================================================
+   Actions -- Full action detail
+   ============================================================ */
+
+.frame-helm-full-detail {
+  flex: 1 1 auto;
+
+  min-height: 0;
+  max-height: 100%;
+
+  padding:
+    0.75rem
+    0.5rem
+    2.5rem
+    0.75rem;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  scrollbar-gutter: stable;
+
+  clip-path: none;
+}
+
+.frame-helm-full-requirement > i {
+  flex: 0 0 1.3rem;
+
+  width: 1.3rem;
+
+  font-size: 1rem;
+
+  text-align: center;
+}
+
+.frame-helm-full-execute-button strong {
+  font-size: 0.92rem;
+}
+
+.frame-helm-full-execute-button small {
+  font-size: 0.72rem;
+}
+
+.frame-helm-full-placeholder-note {
+  margin: 0;
+
+  color: var(--fh-text-muted);
+
+  font-size: 0.7rem;
+  font-style: italic;
+
+  line-height: 1.3;
+
+  opacity: 1;
+}
+
+
+/* ============================================================
+   Actions -- Overcharge execution state
+   ============================================================ */
+
+.frame-helm-overcharge-execute:not(:disabled) {
+  border-color:
+    var(--fh-amber);
+
+  outline: none;
+
+  color: #ffe5b5;
+
+  box-shadow:
+    inset 4px 0 0 var(--fh-amber),
+    0 0 12px rgba(255, 184, 74, 0.16);
+}
+
+
+/* ============================================================
+   Actions -- Overcharge action warning
+   ============================================================ */
+
+.frame-helm-action-overcharge-warning {
+  display: flex !important;
+  align-items: center;
+
+  gap: 0.35rem;
+
+  margin-top: 0.35rem;
+
+  color: var(--fh-amber);
+
+  font-family: monospace;
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 700;
+
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+
+  text-shadow:
+    0 0 6px rgba(255, 184, 74, 0.34);
+}
+
+.frame-helm-action-overcharge-warning i {
+  flex: 0 0 auto;
+}
+
+
+/* ============================================================
+   Actions -- Overcharge quick-action choice
+   ============================================================ */
+
+.frame-helm-quick-choice-overcharge {
+  border-color:
+    var(--fh-amber-muted) !important;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 184, 74, 0.12),
+      transparent
+    ),
+    rgba(18, 16, 9, 0.94) !important;
+
+  box-shadow:
+    inset 3px 0 0 var(--fh-amber),
+    0 0 10px rgba(255, 184, 74, 0.08) !important;
+}
+
+.frame-helm-quick-choice-overcharge:hover {
+  border-color:
+    var(--fh-amber) !important;
+
+  box-shadow:
+    inset 4px 0 0 var(--fh-amber),
+    0 0 14px rgba(255, 184, 74, 0.18) !important;
+}
+
+
+/* ============================================================
+   Actions -- Overcharge warning panel
+   ============================================================ */
+
+.frame-helm-overcharge-warning-panel {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+
+  width: 100%;
+  height: auto;
+
+  min-height: 3rem;
+
+  gap: 0.6rem;
+
+  border:
+    1px solid var(--fh-amber);
+
+  border-left:
+    4px solid var(--fh-amber);
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 184, 74, 0.17),
+      transparent
+    ),
+    rgba(23, 16, 5, 0.86);
+
+  padding: 0.65rem 0.75rem;
+
+  color: #ffe2ad;
+
+  font-size: 0.75rem;
+
+  line-height: 1.35;
+
+  box-shadow:
+    inset 0 0 12px rgba(255, 184, 74, 0.05),
+    0 0 10px rgba(255, 184, 74, 0.09);
+}
+
+.frame-helm-overcharge-warning-panel i {
+  flex: 0 0 1.2rem;
+
+  width: 1.2rem;
+
+  margin-top: 0.08rem;
+
+  color: var(--fh-amber);
+
+  font-size: 1rem;
+
+  text-align: center;
+
+  text-shadow:
+    0 0 7px rgba(255, 184, 74, 0.45);
+}
+
+.frame-helm-overcharge-warning-panel span {
+  min-width: 0;
+
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+
+/* ============================================================
+   Actions -- Automatic Overcharge execution
+   ============================================================ */
+
+.frame-helm-auto-overcharge-execute:not(:disabled) {
+  border-color:
+    var(--fh-amber) !important;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 184, 74, 0.22),
+      transparent
+    ),
+    rgba(24, 17, 6, 0.96) !important;
+
+  color:
+    #fff0cf !important;
+
+  box-shadow:
+    inset 5px 0 0 var(--fh-amber),
+    0 0 14px rgba(255, 184, 74, 0.16) !important;
+}
+
+.frame-helm-auto-overcharge-execute:not(:disabled):hover {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 184, 74, 0.32),
+      transparent
+    ),
+    rgba(31, 21, 7, 0.98) !important;
+
+  box-shadow:
+    inset 6px 0 0 var(--fh-amber),
+    0 0 18px rgba(255, 184, 74, 0.25) !important;
+}
+
+
+/* ============================================================
+   Actions -- Narrow-window fallback
+   ============================================================ */
+
+@media (max-width: 820px) {
+  .frame-helm-action-column > .frame-helm-action-panel,
+  .frame-helm-action-column .frame-helm-category-list,
+  .frame-helm-action-column .frame-helm-action-list,
+  .frame-helm-action-column .frame-helm-quick-detail,
+  .frame-helm-action-column .frame-helm-full-detail {
+    width: 100%;
+    height: auto;
+
+    min-height: 0;
+    max-height: none;
+
+    overflow: visible;
+
+    padding-right: 0;
+  }
+
+  .frame-helm-action-column .frame-helm-category-list,
+  .frame-helm-action-column .frame-helm-action-list {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+
+/* ============================================================
+   Actions -- Compact control fallback
+   ============================================================ */
+
+@media (max-width: 500px) {
+  .frame-helm-quick-budget,
+  .frame-helm-full-budget {
+    grid-template-columns: 1fr;
+  }
+}

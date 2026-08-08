@@ -57,15 +57,17 @@
  *
  * CURRENT EXTRACTED FEATURES:
  *
- *   sensors-feature.js
+ *   - actions-feature.js
+ *   - sensors-feature.js
  *
  * FUTURE FEATURE FILES:
  *
- *   actions-feature.js
- *   turn-feature.js
- *   movement-feature.js
- *   telemetry-feature.js
- *   ...
+ *   - turn-feature.js
+ *   - movement-feature.js
+ *   - action-execution-feature.js
+ *   - telemetry-feature.js
+ *   - application-feature.js
+ *   - ...
  *
  * IMPORTANT:
  *   Extracted feature domains are imported and registered below
@@ -81,6 +83,18 @@
  *   runtime/orchestration surface and is responsible for invoking
  *   registry hook installation and lifecycle operations at the
  *   appropriate Foundry startup boundaries.
+ *
+ * SYNCHRONOUS STARTUP CONTRACT:
+ *
+ *   actions-feature.js intentionally does NOT initialize its
+ *   action catalog through the asynchronous feature lifecycle.
+ *
+ *   lancer-frame-helm.js must continue invoking:
+ *
+ *     initializeFrameHelmActionRegistry()
+ *
+ *   synchronously from the Foundry init hook until startup
+ *   orchestration is deliberately migrated.
  */
 
 
@@ -90,6 +104,10 @@ import {
   assertFrameHelmFeatureDefinition,
   summarizeFrameHelmFeature
 } from "./feature-contract.js";
+
+import {
+  frameHelmActionsFeature
+} from "./actions-feature.js";
 
 import {
   frameHelmSensorsFeature
@@ -1416,24 +1434,50 @@ export const frameHelmFeatureRegistry =
 /**
  * Register currently-extracted Frame Helm feature domains.
  *
+ * Current feature graph:
+ *
+ *   actions
+ *     ├── actions.registry
+ *     ├── actions.catalog
+ *     └── actions.registration
+ *
+ *   sensors
+ *     ├── sensors.contacts
+ *     ├── sensors.refresh
+ *     └── sensors.measurement
+ *
+ * Neither feature currently declares required dependencies on the
+ * other.
+ *
  * As additional domains leave lancer-frame-helm.js, import their
  * definitions above and add them to this declaration-order list.
  *
  * Required dependency ordering does not need to be maintained
- * manually here because orderedFeatures() resolves the runtime
- * dependency order from declared capabilities.
+ * manually here because orderedFeatures() resolves runtime order
+ * from declared capabilities.
  */
 frameHelmFeatureRegistry.registerMany([
+  frameHelmActionsFeature,
   frameHelmSensorsFeature
 ]);
 
+
+/* ============================================================
+   Canonical feature graph validation
+   ============================================================ */
 
 /**
  * Validate the currently-known feature graph immediately after
  * canonical registration.
  *
- * The sensor feature currently declares no required capabilities,
- * so this establishes the same validation boundary that future
- * extracted domains will use.
+ * This validates feature capability ownership and required
+ * dependencies only.
+ *
+ * It does NOT initialize the Actions feature's action catalog.
+ *
+ * initializeFrameHelmActionRegistry() intentionally remains a
+ * synchronous operation invoked by lancer-frame-helm.js during
+ * Foundry init.
  */
-frameHelmFeatureRegistry.validateDependencies();
+frameHelmFeatureRegistry
+  .validateDependencies();

@@ -1,907 +1,113 @@
-import {
-  defineFrameHelmActionCategory,
-  defineFrameHelmMovementAction,
-  defineFrameHelmQuickAction,
-  defineFrameHelmFullAction,
-  defineFrameHelmSpecialAction,
-  defineFrameHelmReaction,
-  defineFrameHelmTargetRequirement,
-  defineFrameHelmMechSkillMetadata,
-  defineFrameHelmRequiresFlightCapabilityMetadata,
-  defineFrameHelmRequiresTeleportCapabilityMetadata,
-  defineFrameHelmHideRequirementMetadata,
-  defineFrameHelmRequiresFullActionSystemMetadata,
-  defineFrameHelmMountDismountModesMetadata,
-  defineFrameHelmOverchargeMetadata
-} from "./frame-helm/dsl.js";
+/**
+ * ============================================================
+ * FILE PATH / NAME
+ * ============================================================
+ *
+ * scripts/lancer-frame-helm.js
+ */
+
+/**
+ * ============================================================
+ * FRAME HELM RUNTIME / ORCHESTRATION SURFACE
+ * ============================================================
+ *
+ * ROLE:
+ *   Provides the authoritative Frame Helm Foundry runtime and
+ *   application-orchestration surface.
+ *
+ * PURPOSE:
+ *   Compose registered Frame Helm feature domains with the
+ *   remaining application, turn, movement, execution, telemetry,
+ *   and Foundry integration behavior that has not yet been
+ *   extracted into independent features.
+ *
+ * CURRENT EXTRACTED DOMAINS:
+ *
+ *   - actions
+ *   - sensors
+ *
+ * FEATURE COMPOSITION:
+ *
+ *   feature-contract.js
+ *        ↓
+ *   feature-registry.js
+ *        ├── actions-feature.js
+ *        ├── sensors-feature.js
+ *        └── future feature domains
+ *        ↓
+ *   lancer-frame-helm.js
+ *
+ * IMPORTANT:
+ *
+ *   This file no longer owns:
+ *
+ *   - action registry implementation
+ *   - universal action category declarations
+ *   - universal action declarations
+ *   - action-catalog initialization
+ *   - sensor-contact rendering
+ *   - sensor-contact PIXI lifecycle
+ *   - sensor-distance measurement
+ *   - sensor-specific Foundry hooks
+ *
+ *   Those responsibilities are consumed through the canonical
+ *   feature registry.
+ */
+
 
 import {
   frameHelmFeatureRegistry
 } from "./feature-registry.js";
 
 
-const MODULE_ID = "lancer-frame-helm";
-const MODULE_TITLE = "Lancer: Frame Helm";
+const MODULE_ID =
+  "lancer-frame-helm";
+
+const MODULE_TITLE =
+  "Lancer: Frame Helm";
 
 
 /* ==========================================================
-   Action registry
+   Extracted Actions feature surface
    ========================================================== */
 
-class FrameHelmActionRegistry {
-  constructor() {
-    this.actions = new Map();
-    this.categories = new Map();
-  }
-
-  registerCategory(category) {
-    if (!category || typeof category !== "object") {
-      throw new TypeError(
-        "Frame Helm categories must be objects."
-      );
-    }
-
-    const id = String(category.id ?? "").trim();
-
-    if (!id) {
-      throw new Error(
-        "Frame Helm categories require a non-empty id."
-      );
-    }
-
-    if (this.categories.has(id)) {
-      throw new Error(
-        `Frame Helm category already registered: ${id}`
-      );
-    }
-
-    const normalizedCategory = Object.freeze({
-      id,
-      label: String(category.label ?? id),
-      description: String(category.description ?? ""),
-      order: Number.isFinite(category.order)
-        ? category.order
-        : 0,
-      icon: String(category.icon ?? ""),
-      visible: category.visible !== false
-    });
-
-    this.categories.set(id, normalizedCategory);
-
-    return normalizedCategory;
-  }
-
-  register(action) {
-    if (!action || typeof action !== "object") {
-      throw new TypeError(
-        "Frame Helm actions must be objects."
-      );
-    }
-
-    const id = String(action.id ?? "").trim();
-    const category = String(action.category ?? "").trim();
-
-    if (!id) {
-      throw new Error(
-        "Frame Helm actions require a non-empty id."
-      );
-    }
-
-    if (!category) {
-      throw new Error(
-        `Frame Helm action ${id} requires a category.`
-      );
-    }
-
-    if (!this.categories.has(category)) {
-      throw new Error(
-        `Frame Helm action ${id} references unknown category: ${category}`
-      );
-    }
-
-    if (this.actions.has(id)) {
-      throw new Error(
-        `Frame Helm action already registered: ${id}`
-      );
-    }
-
-    const normalizedAction = Object.freeze({
-      id,
-
-      label:
-        String(action.label ?? id),
-
-      shortDescription:
-        String(
-          action.shortDescription ?? ""
-        ),
-
-      description:
-        String(action.description ?? ""),
-
-      category,
-
-      parentId:
-        action.parentId
-          ? String(action.parentId)
-          : null,
-
-      cost:
-        String(action.cost ?? "none"),
-
-      order:
-        Number.isFinite(action.order)
-          ? action.order
-          : 0,
-
-      icon:
-        String(action.icon ?? ""),
-
-      tags:
-        Object.freeze(
-          Array.isArray(action.tags)
-            ? [...action.tags].map(String)
-            : []
-        ),
-
-      requiresTarget:
-        Boolean(action.requiresTarget),
-
-      targetType:
-        action.targetType
-          ? String(action.targetType)
-          : null,
-
-      duplicateKey:
-        String(
-          action.duplicateKey ?? id
-        ),
-
-      repeatRule:
-        String(
-          action.repeatRule ??
-          "once-per-turn"
-        ),
-
-      movementMode:
-        action.movementMode
-          ? String(action.movementMode)
-          : null,
-
-      visible:
-        action.visible !== false,
-
-      metadata:
-        Object.freeze({
-          ...(action.metadata ?? {})
-        })
-    });
-
-    this.actions.set(
-      id,
-      normalizedAction
-    );
-
-    return normalizedAction;
-  }
-
-  registerMany(actions) {
-    if (!Array.isArray(actions)) {
-      throw new TypeError(
-        "Frame Helm registerMany requires an array."
-      );
-    }
-
-    return actions.map(
-      action => this.register(action)
-    );
-  }
-
-  get(id) {
-    return (
-      this.actions.get(String(id)) ??
-      null
-    );
-  }
-
-  getCategory(id) {
-    return (
-      this.categories.get(String(id)) ??
-      null
-    );
-  }
-
-  has(id) {
-    return this.actions.has(
-      String(id)
-    );
-  }
-
-  listCategories({
-    includeHidden = false
-  } = {}) {
-    return [
-      ...this.categories.values()
-    ]
-      .filter(category => {
-        return (
-          includeHidden ||
-          category.visible
-        );
-      })
-      .sort((left, right) => {
-        return (
-          left.order - right.order ||
-          left.label.localeCompare(
-            right.label
-          )
-        );
-      });
-  }
-
-  list({
-    category = null,
-    parentId = undefined,
-    includeHidden = false
-  } = {}) {
-    return [
-      ...this.actions.values()
-    ]
-      .filter(action => {
-        if (
-          !includeHidden &&
-          !action.visible
-        ) {
-          return false;
-        }
-
-        if (
-          category &&
-          action.category !== category
-        ) {
-          return false;
-        }
-
-        if (
-          parentId !== undefined &&
-          action.parentId !== parentId
-        ) {
-          return false;
-        }
-
-        return true;
-      })
-      .sort((left, right) => {
-        return (
-          left.order - right.order ||
-          left.label.localeCompare(
-            right.label
-          )
-        );
-      });
-  }
-
-  childrenOf(
-    parentId,
-    options = {}
-  ) {
-    return this.list({
-      ...options,
-      parentId: String(parentId)
-    });
-  }
-
-  roots(
-    category = null,
-    options = {}
-  ) {
-    return this.list({
-      ...options,
-      category,
-      parentId: null
-    });
-  }
-
-  clear() {
-    this.actions.clear();
-    this.categories.clear();
-  }
-
-  toJSON() {
-    return {
-      categories:
-        this.listCategories({
-          includeHidden: true
-        }),
-
-      actions:
-        this.list({
-          includeHidden: true
-        })
-    };
-  }
-}
-
-
-const frameHelmActionRegistry =
-  new FrameHelmActionRegistry();
-
-
-/* ==========================================================
-   Universal action declarations
-   ========================================================== */
-
-function registerUniversalActionCategories() {
-  [
-    defineFrameHelmActionCategory({
-      id: "movement",
-      label: "Movement",
-      description:
-        "Movement available to the active unit.",
-      order: 10,
-      icon: "fas fa-person-running"
-    }),
-
-    defineFrameHelmActionCategory({
-      id: "quick",
-      label: "Quick Actions",
-      description:
-        "Spend one quick-action slot.",
-      order: 20,
-      icon: "fas fa-bolt"
-    }),
-
-    defineFrameHelmActionCategory({
-      id: "full",
-      label: "Full Actions",
-      description:
-        "Spend the unit's full action.",
-      order: 30,
-      icon: "fas fa-hourglass"
-    }),
-
-    defineFrameHelmActionCategory({
-      id: "special",
-      label: "Special Actions",
-      description:
-        "Actions outside the normal quick/full budget.",
-      order: 40,
-      icon: "fas fa-star"
-    }),
-
-    defineFrameHelmActionCategory({
-      id: "reaction",
-      label: "Reactions",
-      description:
-        "Actions triggered during any character's turn.",
-      order: 50,
-      icon: "fas fa-reply"
-    }),
-
-    defineFrameHelmActionCategory({
-      id: "protocol",
-      label: "Protocols",
-      description:
-        "Free actions usable only at the start of a turn.",
-      order: 60,
-      icon: "fas fa-microchip"
-    })
-  ].forEach(category => {
-    frameHelmActionRegistry
-      .registerCategory(category);
-  });
-}
-
-
-function registerUniversalActions() {
-  frameHelmActionRegistry.registerMany([
-    /* ----------------------------------------------------------
-       Movement
-       ---------------------------------------------------------- */
-
-    defineFrameHelmMovementAction({
-      id: "movement.standard",
-      label: "Standard Move",
-      shortDescription:
-        "Move up to your Speed.",
-      order: 10,
-      icon: "fas fa-person-walking",
-      movementMode: "standard"
-    }),
-
-    defineFrameHelmMovementAction({
-      id: "movement.jump",
-      label: "Jump",
-      shortDescription:
-        "Jump instead of making a normal standard move.",
-      parentId: "movement.standard",
-      order: 20,
-      icon: "fas fa-arrow-up",
-      duplicateKey: "movement.standard",
-      movementMode: "jump"
-    }),
-
-    defineFrameHelmMovementAction({
-      id: "movement.climb",
-      label: "Climb",
-      shortDescription:
-        "Climb at half Speed.",
-      parentId: "movement.standard",
-      order: 30,
-      icon: "fas fa-mountain",
-      duplicateKey: "movement.standard",
-      movementMode: "climb"
-    }),
-
-    defineFrameHelmMovementAction({
-      id: "movement.fly",
-      label: "Fly",
-      shortDescription:
-        "Use available flight movement.",
-      parentId: "movement.standard",
-      order: 40,
-      icon: "fas fa-plane-up",
-      duplicateKey: "movement.standard",
-      movementMode: "flight",
-
-      metadata:
-        defineFrameHelmRequiresFlightCapabilityMetadata()
-    }),
-
-    defineFrameHelmMovementAction({
-      id: "movement.teleport",
-      label: "Teleport",
-      shortDescription:
-        "Use an available teleport movement effect.",
-      parentId: "movement.standard",
-      order: 50,
-      icon: "fas fa-wand-sparkles",
-      duplicateKey: "movement.standard",
-      movementMode: "teleport",
-
-      metadata:
-        defineFrameHelmRequiresTeleportCapabilityMetadata()
-    }),
-
-    /* ----------------------------------------------------------
-       Quick actions
-       ---------------------------------------------------------- */
-
-    defineFrameHelmQuickAction({
-      id: "quick.skirmish",
-      label: "Skirmish",
-      shortDescription:
-        "Attack with one weapon.",
-      order: 10,
-      icon: "fas fa-crosshairs",
-
-      ...defineFrameHelmTargetRequirement(
-        "attack"
-      )
-    }),
-
-    defineFrameHelmQuickAction({
-      id: "quick.boost",
-      label: "Boost",
-      shortDescription:
-        "Move again, up to your Speed.",
-      order: 20,
-      icon: "fas fa-forward-fast",
-      movementMode: "boost"
-    }),
-
-    defineFrameHelmQuickAction({
-      id: "quick.grapple",
-      label: "Grapple",
-      shortDescription:
-        "Make a melee attack to grapple an adjacent character.",
-      order: 30,
-      icon: "fas fa-hand-fist",
-
-      ...defineFrameHelmTargetRequirement(
-        "adjacent-character"
-      )
-    }),
-
-    defineFrameHelmQuickAction({
-      id: "quick.hide",
-      label: "Hide",
-      shortDescription:
-        "Become Hidden when the requirements are met.",
-      order: 40,
-      icon: "fas fa-user-ninja",
-
-      metadata:
-        defineFrameHelmHideRequirementMetadata()
-    }),
-
-    defineFrameHelmQuickAction({
-      id: "quick.quick-tech",
-      label: "Quick Tech",
-      shortDescription:
-        "Choose one available quick-tech option.",
-      order: 50,
-      icon: "fas fa-satellite-dish",
-      repeatRule:
-        "different-child-per-use"
-    }),
-
-    defineFrameHelmQuickAction({
-      id: "quick.quick-tech.bolster",
-      label: "Bolster",
-      shortDescription:
-        "Give another character Accuracy on a skill check or save.",
-      parentId: "quick.quick-tech",
-      order: 10,
-      icon: "fas fa-shield-plus",
-
-      ...defineFrameHelmTargetRequirement(
-        "character-in-sensors"
-      )
-    }),
-
-    defineFrameHelmQuickAction({
-      id: "quick.quick-tech.scan",
-      label: "Scan",
-      shortDescription:
-        "Learn information about a target within Sensors.",
-      parentId: "quick.quick-tech",
-      order: 20,
-      icon: "fas fa-radar",
-
-      ...defineFrameHelmTargetRequirement(
-        "character-or-object-in-sensors"
-      )
-    }),
-
-    defineFrameHelmQuickAction({
-      id: "quick.quick-tech.lock-on",
-      label: "Lock On",
-      shortDescription:
-        "Give a target the Lock On condition.",
-      parentId: "quick.quick-tech",
-      order: 30,
-      icon: "fas fa-bullseye",
-
-      ...defineFrameHelmTargetRequirement(
-        "character-in-sensors"
-      )
-    }),
-
-    defineFrameHelmQuickAction({
-      id: "quick.quick-tech.invade",
-      label: "Invade",
-      shortDescription:
-        "Make a tech attack against a character within Sensors.",
-      parentId: "quick.quick-tech",
-      order: 40,
-      icon: "fas fa-virus",
-
-      ...defineFrameHelmTargetRequirement(
-        "character-in-sensors"
-      )
-    }),
-
-    defineFrameHelmQuickAction({
-      id:
-        "quick.quick-tech.invade.fragment-signal",
-
-      label:
-        "Fragment Signal",
-
-      shortDescription:
-        "On a successful Invade, the target becomes Impaired and Slowed.",
-
-      parentId:
-        "quick.quick-tech.invade",
-
-      order: 10,
-      icon: "fas fa-signal",
-
-      ...defineFrameHelmTargetRequirement(
-        "character-in-sensors"
-      )
-    }),
-
-    defineFrameHelmQuickAction({
-      id: "quick.ram",
-      label: "Ram",
-      shortDescription:
-        "Knock an adjacent target Prone and optionally push it.",
-      order: 60,
-      icon:
-        "fas fa-people-arrows-left-right",
-
-      ...defineFrameHelmTargetRequirement(
-        "adjacent-character"
-      )
-    }),
-
-    defineFrameHelmQuickAction({
-      id: "quick.search",
-      label: "Search",
-      shortDescription:
-        "Attempt to reveal a Hidden character within Sensors.",
-      order: 70,
-      icon:
-        "fas fa-magnifying-glass",
-
-      ...defineFrameHelmTargetRequirement(
-        "suspected-hidden-character"
-      )
-    }),
-
-    defineFrameHelmQuickAction({
-      id: "quick.prepare",
-      label: "Prepare",
-      shortDescription:
-        "Prepare another quick action with a specified trigger.",
-      order: 80,
-      icon: "fas fa-clock"
-    }),
-
-    defineFrameHelmQuickAction({
-      id: "quick.shut-down",
-      label: "Shut Down",
-      shortDescription:
-        "Power the mech down and enter the Shut Down state.",
-      order: 90,
-      icon: "fas fa-power-off"
-    }),
-
-    defineFrameHelmQuickAction({
-      id: "quick.self-destruct",
-      label: "Self-Destruct",
-      shortDescription:
-        "Begin a delayed reactor meltdown.",
-      order: 100,
-      icon: "fas fa-radiation"
-    }),
-
-    /* ----------------------------------------------------------
-       Full actions
-       ---------------------------------------------------------- */
-
-    defineFrameHelmFullAction({
-      id: "full.barrage",
-      label: "Barrage",
-      shortDescription:
-        "Attack with two weapons or one Superheavy weapon.",
-      order: 10,
-      icon: "fas fa-gun",
-
-      ...defineFrameHelmTargetRequirement(
-        "attack"
-      )
-    }),
-
-    defineFrameHelmFullAction({
-      id: "full.disengage",
-      label: "Disengage",
-      shortDescription:
-        "Ignore engagement and movement reactions for this turn.",
-      order: 20,
-      icon:
-        "fas fa-person-walking-arrow-right"
-    }),
-
-    defineFrameHelmFullAction({
-      id: "full.full-tech",
-      label: "Full Tech",
-      shortDescription:
-        "Take two Quick Tech options or one Full Tech option.",
-      order: 30,
-      icon: "fas fa-laptop-code",
-      repeatRule:
-        "full-tech-selection"
-    }),
-
-    defineFrameHelmFullAction({
-      id: "full.improvised-attack",
-      label: "Improvised Attack",
-      shortDescription:
-        "Make an improvised melee attack against an adjacent target.",
-      order: 40,
-      icon: "fas fa-hammer",
-
-      ...defineFrameHelmTargetRequirement(
-        "adjacent-character"
-      )
-    }),
-
-    defineFrameHelmFullAction({
-      id: "full.stabilize",
-      label: "Stabilize",
-      shortDescription:
-        "Clear heat or restore HP, then perform one additional stabilization option.",
-      order: 50,
-      icon:
-        "fas fa-screwdriver-wrench"
-    }),
-
-    defineFrameHelmFullAction({
-      id: "full.activate",
-      label: "Activate",
-      shortDescription:
-        "Activate a system or piece of equipment with a Full Action activation cost.",
-      order: 60,
-      icon: "fas fa-gears",
-
-      metadata:
-        defineFrameHelmRequiresFullActionSystemMetadata()
-    }),
-
-    defineFrameHelmFullAction({
-      id: "full.boot-up",
-      label: "Boot Up",
-      shortDescription:
-        "Clear Shut Down and restore the mech to a powered state.",
-      order: 70,
-      icon: "fas fa-toggle-on"
-    }),
-
-    defineFrameHelmFullAction({
-      id: "full.mount-dismount",
-      label: "Mount, Dismount, or Eject",
-      shortDescription:
-        "Mount or dismount a mech or vehicle, or eject from your mech.",
-      order: 80,
-      icon:
-        "fas fa-person-arrow-up-from-line",
-
-      metadata:
-        defineFrameHelmMountDismountModesMetadata()
-    }),
-
-    defineFrameHelmFullAction({
-      id: "full.skill-check",
-      label: "Skill Check",
-      shortDescription:
-        "Attempt a complex activity not covered by another action.",
-      order: 90,
-      icon: "fas fa-dice-d20"
-    }),
-
-    defineFrameHelmFullAction({
-      id: "full.skill-check.hull",
-      label: "Hull Check",
-      shortDescription:
-        "Roll a mech skill check using HULL.",
-      parentId: "full.skill-check",
-      order: 10,
-      icon: "fas fa-shield-halved",
-      duplicateKey: "full.skill-check",
-
-      metadata:
-        defineFrameHelmMechSkillMetadata({
-          statPath: "hull",
-          statLabel: "HULL"
-        })
-    }),
-
-    defineFrameHelmFullAction({
-      id: "full.skill-check.agi",
-      label: "Agility Check",
-      shortDescription:
-        "Roll a mech skill check using AGI.",
-      parentId: "full.skill-check",
-      order: 20,
-      icon: "fas fa-person-running",
-      duplicateKey: "full.skill-check",
-
-      metadata:
-        defineFrameHelmMechSkillMetadata({
-          statPath: "agi",
-          statLabel: "AGI"
-        })
-    }),
-
-    defineFrameHelmFullAction({
-      id: "full.skill-check.sys",
-      label: "Systems Check",
-      shortDescription:
-        "Roll a mech skill check using SYS.",
-      parentId: "full.skill-check",
-      order: 30,
-      icon: "fas fa-microchip",
-      duplicateKey: "full.skill-check",
-
-      metadata:
-        defineFrameHelmMechSkillMetadata({
-          statPath: "sys",
-          statLabel: "SYS"
-        })
-    }),
-
-    defineFrameHelmFullAction({
-      id: "full.skill-check.eng",
-      label: "Engineering Check",
-      shortDescription:
-        "Roll a mech skill check using ENG.",
-      parentId: "full.skill-check",
-      order: 40,
-      icon:
-        "fas fa-screwdriver-wrench",
-      duplicateKey:
-        "full.skill-check",
-
-      metadata:
-        defineFrameHelmMechSkillMetadata({
-          statPath: "eng",
-          statLabel: "ENG"
-        })
-    }),
-
-    /* ----------------------------------------------------------
-       Special actions
-       ---------------------------------------------------------- */
-
-    defineFrameHelmSpecialAction({
-      id: "special.overcharge",
-      label: "Overcharge",
-      shortDescription:
-        "Take Heat to gain one additional quick action as a free action.",
-      cost: "overcharge",
-      order: 10,
-      icon:
-        "fas fa-temperature-high",
-
-      metadata:
-        defineFrameHelmOverchargeMetadata()
-    }),
-
-    defineFrameHelmSpecialAction({
-      id: "special.end-turn",
-      label: "End Turn",
-      shortDescription:
-        "Declare that the active unit has finished its turn.",
-      cost: "none",
-      order: 1000,
-      icon:
-        "fas fa-flag-checkered",
-      repeatRule:
-        "unrestricted"
-    }),
-
-    /* ----------------------------------------------------------
-       Reactions
-       ---------------------------------------------------------- */
-
-    defineFrameHelmReaction({
-      id: "reaction.brace",
-      label: "Brace",
-      shortDescription:
-        "Gain Resistance to the triggering attack and hinder later attacks.",
-      order: 10,
-      icon: "fas fa-shield-halved"
-    }),
-
-    defineFrameHelmReaction({
-      id: "reaction.overwatch",
-      label: "Overwatch",
-      shortDescription:
-        "Skirmish when a hostile character begins movement within Threat.",
-      order: 20,
-      icon: "fas fa-eye",
-
-      ...defineFrameHelmTargetRequirement(
-        "hostile-in-threat"
-      )
-    })
-  ]);
-}
-
-
-function initializeActionRegistry() {
-  frameHelmActionRegistry.clear();
-
-  registerUniversalActionCategories();
-  registerUniversalActions();
-
-  console.log(
-    `${MODULE_TITLE} | Registered ${frameHelmActionRegistry.actions.size} universal actions.`
+/**
+ * Resolve the Actions domain exclusively through the canonical
+ * feature registry.
+ *
+ * lancer-frame-helm.js intentionally does NOT import
+ * actions-feature.js directly.
+ *
+ * This preserves feature-registry.js as the composition boundary.
+ */
+const frameHelmActionsApi =
+  frameHelmFeatureRegistry.getApi(
+    "actions"
+  );
+
+if (!frameHelmActionsApi) {
+  throw new Error(
+    "Frame Helm | The registered Actions feature API could not be resolved."
   );
 }
+
+
+/**
+ * Preserve the established local registry identifier so remaining
+ * runtime consumers do not need to know that ownership has moved.
+ */
+const frameHelmActionRegistry =
+  frameHelmActionsApi.registry;
+
+
+/**
+ * Preserve synchronous initialization during Foundry init.
+ *
+ * The Actions feature owns the implementation; this runtime owns
+ * the startup boundary at which initialization occurs.
+ */
+const initializeFrameHelmActionRegistry =
+  frameHelmActionsApi.initialize;
 
 
 /* ==========================================================
@@ -931,12 +137,16 @@ class FrameHelmTurnState {
         context.sceneId ?? null,
 
       round:
-        Number.isFinite(context.round)
+        Number.isFinite(
+          context.round
+        )
           ? context.round
           : null,
 
       turn:
-        Number.isFinite(context.turn)
+        Number.isFinite(
+          context.turn
+        )
           ? context.turn
           : null
     };
@@ -948,12 +158,16 @@ class FrameHelmTurnState {
 
     const speed =
       hasSpeedValue
-        ? Number(context.speed)
+        ? Number(
+            context.speed
+          )
         : null;
 
     this.speed =
       speed !== null &&
-      Number.isFinite(speed) &&
+      Number.isFinite(
+        speed
+      ) &&
       speed >= 0
         ? speed
         : null;
@@ -993,46 +207,75 @@ class FrameHelmTurnState {
         []
     };
 
-    this.actionMode = null;
+    this.actionMode =
+      null;
 
-    this.quickActionsRemaining = 2;
+    this.quickActionsRemaining =
+      2;
 
-    this.fullActionAvailable = true;
+    this.fullActionAvailable =
+      true;
 
     this.overcharge = {
-      used: false,
-      quickActionRemaining: 0,
-      heatFormula: null
+      used:
+        false,
+
+      quickActionRemaining:
+        0,
+
+      heatFormula:
+        null
     };
 
     this.protocol = {
-      available: true,
-      used: false,
-      startOfTurnOpen: true
+      available:
+        true,
+
+      used:
+        false,
+
+      startOfTurnOpen:
+        true
     };
 
     this.reaction = {
-      usedThisTurn: false,
-      actionId: null
+      usedThisTurn:
+        false,
+
+      actionId:
+        null
     };
 
-    this.usedActions = [];
-    this.usedDuplicateKeys = [];
-    this.history = [];
+    this.usedActions =
+      [];
 
-    this.ended = false;
-    this.startedAt = Date.now();
-    this.endedAt = null;
+    this.usedDuplicateKeys =
+      [];
+
+    this.history =
+      [];
+
+    this.ended =
+      false;
+
+    this.startedAt =
+      Date.now();
+
+    this.endedAt =
+      null;
 
     return this;
   }
+
 
   setSpeed(speed) {
     const numericSpeed =
       Number(speed);
 
     if (
-      !Number.isFinite(numericSpeed) ||
+      !Number.isFinite(
+        numericSpeed
+      ) ||
       numericSpeed < 0
     ) {
       throw new TypeError(
@@ -1077,8 +320,11 @@ class FrameHelmTurnState {
       );
     }
 
-    return this.movement.remaining;
+    return (
+      this.movement.remaining
+    );
   }
+
 
   spendMovement(distance) {
     this.assertTurnActive();
@@ -1098,7 +344,8 @@ class FrameHelmTurnState {
     }
 
     if (
-      this.movement.maximum === null
+      this.movement.maximum ===
+      null
     ) {
       throw new Error(
         "Movement speed has not been assigned to this turn."
@@ -1121,7 +368,8 @@ class FrameHelmTurnState {
       numericDistance;
 
     if (
-      this.movement.remaining === 0
+      this.movement.remaining ===
+      0
     ) {
       this.movement.completed =
         true;
@@ -1137,8 +385,11 @@ class FrameHelmTurnState {
       }
     );
 
-    return this.movement.remaining;
+    return (
+      this.movement.remaining
+    );
   }
+
 
   completeMovement() {
     this.assertTurnActive();
@@ -1155,14 +406,18 @@ class FrameHelmTurnState {
     );
   }
 
+
   reopenMovement() {
     this.assertTurnActive();
 
     if (
-      this.movement.maximum !== null &&
-      this.movement.remaining <= 0
+      this.movement.maximum !==
+        null &&
+      this.movement.remaining <=
+        0
     ) {
-      this.movement.spent = 0;
+      this.movement.spent =
+        0;
 
       this.movement.remaining =
         this.movement.maximum;
@@ -1180,11 +435,15 @@ class FrameHelmTurnState {
     );
   }
 
-  commitMovement(actionId) {
+
+  commitMovement(
+    actionId
+  ) {
     this.assertTurnActive();
 
     if (
-      this.movement.maximum === null
+      this.movement.maximum ===
+      null
     ) {
       throw new Error(
         "Movement speed has not been assigned to this turn."
@@ -1200,7 +459,8 @@ class FrameHelmTurnState {
     }
 
     if (
-      this.movement.remaining <= 0
+      this.movement.remaining <=
+      0
     ) {
       throw new Error(
         "No movement remains to commit."
@@ -1213,8 +473,11 @@ class FrameHelmTurnState {
     this.movement.spent +=
       committedDistance;
 
-    this.movement.remaining = 0;
-    this.movement.completed = true;
+    this.movement.remaining =
+      0;
+
+    this.movement.completed =
+      true;
 
     this.closeProtocolWindow();
 
@@ -1222,6 +485,7 @@ class FrameHelmTurnState {
       "movement-commit",
       {
         actionId,
+
         distance:
           committedDistance
       }
@@ -1230,23 +494,27 @@ class FrameHelmTurnState {
     return committedDistance;
   }
 
+
   refreshMovementFromBoost() {
     this.assertTurnActive();
 
     if (
-      this.movement.maximum === null
+      this.movement.maximum ===
+      null
     ) {
       this.recordHistory(
         "boost-movement-refill",
         {
-          distance: null
+          distance:
+            null
         }
       );
 
       return null;
     }
 
-    this.movement.spent = 0;
+    this.movement.spent =
+      0;
 
     this.movement.remaining =
       this.movement.maximum;
@@ -1262,19 +530,25 @@ class FrameHelmTurnState {
       }
     );
 
-    return this.movement.remaining;
-  }
-
-  movementBoostEntries() {
-    return this.usedActions.filter(
-      entry => {
-        return (
-          entry.actionId ===
-          "quick.boost"
-        );
-      }
+    return (
+      this.movement.remaining
     );
   }
+
+
+  movementBoostEntries() {
+    return (
+      this.usedActions.filter(
+        entry => {
+          return (
+            entry.actionId ===
+            "quick.boost"
+          );
+        }
+      )
+    );
+  }
+
 
   movementBoostCount() {
     return (
@@ -1282,6 +556,7 @@ class FrameHelmTurnState {
         .length
     );
   }
+
 
   hasProcessedMovementId(
     movementId
@@ -1294,10 +569,13 @@ class FrameHelmTurnState {
       this.movement
         .processedMovementIds
         .includes(
-          String(movementId)
+          String(
+            movementId
+          )
         )
     );
   }
+
 
   rememberMovementId(
     movementId
@@ -1307,7 +585,9 @@ class FrameHelmTurnState {
     }
 
     const normalizedId =
-      String(movementId);
+      String(
+        movementId
+      );
 
     if (
       !this.movement
@@ -1339,6 +619,7 @@ class FrameHelmTurnState {
     }
   }
 
+
   ensureAutomaticMovementBoost({
     forceOvercharge = false
   } = {}) {
@@ -1351,7 +632,9 @@ class FrameHelmTurnState {
 
     if (!boostAction) {
       return {
-        committed: false,
+        committed:
+          false,
+
         reason:
           "Boost is not registered."
       };
@@ -1370,7 +653,9 @@ class FrameHelmTurnState {
           boostAction,
           {
             metadata: {
-              automatic: true,
+              automatic:
+                true,
+
               reason:
                 "token-movement"
             }
@@ -1380,19 +665,26 @@ class FrameHelmTurnState {
         this.recordHistory(
           "automatic-movement-boost",
           {
-            source: "normal"
+            source:
+              "normal"
           }
         );
 
         return {
-          committed: true,
-          source: "normal",
-          heatFormula: null
+          committed:
+            true,
+
+          source:
+            "normal",
+
+          heatFormula:
+            null
         };
       }
     }
 
-    let heatFormula = null;
+    let heatFormula =
+      null;
 
     let triggeredOvercharge =
       false;
@@ -1411,29 +703,38 @@ class FrameHelmTurnState {
       this.canUseAction(
         boostAction,
         {
-          useOvercharge: true
+          useOvercharge:
+            true
         }
       );
 
     if (
-      !overchargePermission.allowed
+      !overchargePermission
+        .allowed
     ) {
       return {
-        committed: false,
+        committed:
+          false,
+
         triggeredOvercharge,
         heatFormula,
+
         reason:
-          overchargePermission.reason
+          overchargePermission
+            .reason
       };
     }
 
     this.useAction(
       boostAction,
       {
-        useOvercharge: true,
+        useOvercharge:
+          true,
 
         metadata: {
-          automatic: true,
+          automatic:
+            true,
+
           reason:
             "token-movement"
         }
@@ -1451,12 +752,17 @@ class FrameHelmTurnState {
     );
 
     return {
-      committed: true,
-      source: "overcharge",
+      committed:
+        true,
+
+      source:
+        "overcharge",
+
       triggeredOvercharge,
       heatFormula
     };
   }
+
 
   recalculateTrackedMovement() {
     const speed =
@@ -1470,7 +776,9 @@ class FrameHelmTurnState {
       ) || 0;
 
     if (
-      !Number.isFinite(speed) ||
+      !Number.isFinite(
+        speed
+      ) ||
       speed <= 0
     ) {
       this.movement.standardUsed =
@@ -1531,7 +839,8 @@ class FrameHelmTurnState {
       normalBoostCount > 0
         ? Math.min(
             Math.max(
-              total - speed,
+              total -
+                speed,
               0
             ),
             speed
@@ -1585,8 +894,10 @@ class FrameHelmTurnState {
     }
 
     if (
-      overchargeBoostCount > 0 &&
-      total > overchargeStart
+      overchargeBoostCount >
+        0 &&
+      total >
+        overchargeStart
     ) {
       currentPoolUsed =
         overchargeBoostUsed;
@@ -1629,6 +940,7 @@ class FrameHelmTurnState {
       0;
   }
 
+
   trackTokenMovement(
     distance,
     {
@@ -1641,7 +953,9 @@ class FrameHelmTurnState {
     this.assertTurnActive();
 
     const numericDistance =
-      Number(distance);
+      Number(
+        distance
+      );
 
     if (
       !Number.isFinite(
@@ -1650,8 +964,12 @@ class FrameHelmTurnState {
       numericDistance <= 0
     ) {
       return {
-        tracked: false,
-        distance: 0,
+        tracked:
+          false,
+
+        distance:
+          0,
+
         reason:
           "Movement distance was zero."
       };
@@ -1663,8 +981,12 @@ class FrameHelmTurnState {
       )
     ) {
       return {
-        tracked: false,
-        distance: 0,
+        tracked:
+          false,
+
+        distance:
+          0,
+
         reason:
           "Movement was already recorded."
       };
@@ -1676,7 +998,9 @@ class FrameHelmTurnState {
       );
 
     if (
-      !Number.isFinite(speed) ||
+      !Number.isFinite(
+        speed
+      ) ||
       speed <= 0
     ) {
       throw new Error(
@@ -1704,23 +1028,28 @@ class FrameHelmTurnState {
     ) {
       const result =
         this.ensureAutomaticMovementBoost({
-          forceOvercharge: false
+          forceOvercharge:
+            false
         });
 
       automaticActions.push({
-        threshold: speed,
+        threshold:
+          speed,
+
         ...result
       });
     }
 
     if (
-      newTotal > speed * 2 &&
+      newTotal >
+        speed * 2 &&
       this.movementBoostCount() <
         2
     ) {
       const result =
         this.ensureAutomaticMovementBoost({
-          forceOvercharge: true
+          forceOvercharge:
+            true
         });
 
       automaticActions.push({
@@ -1740,22 +1069,30 @@ class FrameHelmTurnState {
 
       movementId:
         movementId
-          ? String(movementId)
+          ? String(
+              movementId
+            )
           : null,
 
       method:
         method
-          ? String(method)
+          ? String(
+              method
+            )
           : null,
 
       origin:
         origin
-          ? { ...origin }
+          ? {
+              ...origin
+            }
           : null,
 
       destination:
         destination
-          ? { ...destination }
+          ? {
+              ...destination
+            }
           : null,
 
       timestamp:
@@ -1793,7 +1130,8 @@ class FrameHelmTurnState {
     );
 
     return {
-      tracked: true,
+      tracked:
+        true,
 
       distance:
         numericDistance,
@@ -1821,6 +1159,7 @@ class FrameHelmTurnState {
     };
   }
 
+
   closeProtocolWindow() {
     if (
       !this.protocol
@@ -1840,6 +1179,7 @@ class FrameHelmTurnState {
         false;
     }
   }
+
 
   useProtocol(
     actionId = null
@@ -1877,6 +1217,7 @@ class FrameHelmTurnState {
     );
   }
 
+
   overchargeHeatFormula(
     overchargeCount = 0
   ) {
@@ -1900,6 +1241,7 @@ class FrameHelmTurnState {
 
     return "1d6+4";
   }
+
 
   useOvercharge({
     previousOvercharges = 0
@@ -1945,7 +1287,10 @@ class FrameHelmTurnState {
     );
   }
 
-  actionDuplicateKey(action) {
+
+  actionDuplicateKey(
+    action
+  ) {
     return String(
       action?.duplicateKey ??
       action?.id ??
@@ -1953,16 +1298,20 @@ class FrameHelmTurnState {
     );
   }
 
+
   hasUsedDuplicateKey(
     duplicateKey
   ) {
     return (
       this.usedDuplicateKeys
         .includes(
-          String(duplicateKey)
+          String(
+            duplicateKey
+          )
         )
     );
   }
+
 
   canUseAction(
     actionOrId,
@@ -1972,22 +1321,31 @@ class FrameHelmTurnState {
     } = {}
   ) {
     const action =
-      typeof actionOrId === "string"
-        ? frameHelmActionRegistry.get(
-            actionOrId
-          )
+      typeof actionOrId ===
+      "string"
+        ? frameHelmActionRegistry
+            .get(
+              actionOrId
+            )
         : actionOrId;
 
     if (!action) {
       return {
-        allowed: false,
-        reason: "Unknown action."
+        allowed:
+          false,
+
+        reason:
+          "Unknown action."
       };
     }
 
-    if (this.ended) {
+    if (
+      this.ended
+    ) {
       return {
-        allowed: false,
+        allowed:
+          false,
+
         reason:
           "The turn has already ended."
       };
@@ -1998,19 +1356,25 @@ class FrameHelmTurnState {
       "special.end-turn"
     ) {
       return {
-        allowed: true,
-        reason: null
+        allowed:
+          true,
+
+        reason:
+          null
       };
     }
 
     if (
-      action.cost === "movement"
+      action.cost ===
+      "movement"
     ) {
       if (
         this.movement.completed
       ) {
         return {
-          allowed: false,
+          allowed:
+            false,
+
           reason:
             "Movement has been marked complete."
         };
@@ -2021,45 +1385,59 @@ class FrameHelmTurnState {
         0
       ) {
         return {
-          allowed: false,
+          allowed:
+            false,
+
           reason:
             "No standard movement remains."
         };
       }
 
       return {
-        allowed: true,
-        reason: null
+        allowed:
+          true,
+
+        reason:
+          null
       };
     }
 
     if (
-      action.cost === "overcharge"
+      action.cost ===
+      "overcharge"
     ) {
       if (
         this.overcharge.used
       ) {
         return {
-          allowed: false,
+          allowed:
+            false,
+
           reason:
             "Overcharge has already been used this turn."
         };
       }
 
       return {
-        allowed: true,
-        reason: null
+        allowed:
+          true,
+
+        reason:
+          null
       };
     }
 
     if (
-      action.cost === "full"
+      action.cost ===
+      "full"
     ) {
       if (
         !this.fullActionAvailable
       ) {
         return {
-          allowed: false,
+          allowed:
+            false,
+
           reason:
             "The normal action budget has already been spent."
         };
@@ -2070,20 +1448,26 @@ class FrameHelmTurnState {
         "quick"
       ) {
         return {
-          allowed: false,
+          allowed:
+            false,
+
           reason:
             "A quick action has already been taken."
         };
       }
 
       return {
-        allowed: true,
-        reason: null
+        allowed:
+          true,
+
+        reason:
+          null
       };
     }
 
     if (
-      action.cost === "quick"
+      action.cost ===
+      "quick"
     ) {
       const duplicateKey =
         this.actionDuplicateKey(
@@ -2102,7 +1486,9 @@ class FrameHelmTurnState {
           !this.overcharge.used
         ) {
           return {
-            allowed: false,
+            allowed:
+              false,
+
             reason:
               "Overcharge has not been activated."
           };
@@ -2114,16 +1500,23 @@ class FrameHelmTurnState {
           1
         ) {
           return {
-            allowed: false,
+            allowed:
+              false,
+
             reason:
               "The Overcharge quick action has been spent."
           };
         }
 
         return {
-          allowed: true,
-          reason: null,
-          source: "overcharge"
+          allowed:
+            true,
+
+          reason:
+            null,
+
+          source:
+            "overcharge"
         };
       }
 
@@ -2132,7 +1525,9 @@ class FrameHelmTurnState {
         "full"
       ) {
         return {
-          allowed: false,
+          allowed:
+            false,
+
           reason:
             "A full action has already been taken."
         };
@@ -2143,7 +1538,9 @@ class FrameHelmTurnState {
         1
       ) {
         return {
-          allowed: false,
+          allowed:
+            false,
+
           reason:
             "No normal quick actions remain."
         };
@@ -2156,16 +1553,23 @@ class FrameHelmTurnState {
           "unrestricted"
       ) {
         return {
-          allowed: false,
+          allowed:
+            false,
+
           reason:
             "This action has already been taken this turn. Use Overcharge to repeat it."
         };
       }
 
       return {
-        allowed: true,
-        reason: null,
-        source: "normal"
+        allowed:
+          true,
+
+        reason:
+          null,
+
+        source:
+          "normal"
       };
     }
 
@@ -2178,23 +1582,32 @@ class FrameHelmTurnState {
           .usedThisTurn
       ) {
         return {
-          allowed: false,
+          allowed:
+            false,
+
           reason:
             "A reaction has already been used during this turn."
         };
       }
 
       return {
-        allowed: true,
-        reason: null
+        allowed:
+          true,
+
+        reason:
+          null
       };
     }
 
     return {
-      allowed: true,
-      reason: null
+      allowed:
+        true,
+
+      reason:
+        null
     };
   }
+
 
   useAction(
     actionOrId,
@@ -2205,10 +1618,12 @@ class FrameHelmTurnState {
     } = {}
   ) {
     const action =
-      typeof actionOrId === "string"
-        ? frameHelmActionRegistry.get(
-            actionOrId
-          )
+      typeof actionOrId ===
+      "string"
+        ? frameHelmActionRegistry
+            .get(
+              actionOrId
+            )
         : actionOrId;
 
     const permission =
@@ -2234,7 +1649,9 @@ class FrameHelmTurnState {
     ) {
       this.endTurn();
 
-      return this.snapshot();
+      return (
+        this.snapshot()
+      );
     }
 
     if (
@@ -2245,11 +1662,14 @@ class FrameHelmTurnState {
         metadata
       );
 
-      return this.snapshot();
+      return (
+        this.snapshot()
+      );
     }
 
     if (
-      action.cost === "quick"
+      action.cost ===
+      "quick"
     ) {
       if (
         useOvercharge
@@ -2270,7 +1690,8 @@ class FrameHelmTurnState {
     }
 
     if (
-      action.cost === "full"
+      action.cost ===
+      "full"
     ) {
       this.actionMode =
         "full";
@@ -2294,7 +1715,8 @@ class FrameHelmTurnState {
     }
 
     if (
-      action.cost !== "none"
+      action.cost !==
+      "none"
     ) {
       this.closeProtocolWindow();
     }
@@ -2362,8 +1784,11 @@ class FrameHelmTurnState {
       }
     );
 
-    return this.snapshot();
+    return (
+      this.snapshot()
+    );
   }
+
 
   markCommittedActionExecuted(
     entryId,
@@ -2413,6 +1838,7 @@ class FrameHelmTurnState {
     return entry;
   }
 
+
   markReactionAvailable() {
     this.reaction.usedThisTurn =
       false;
@@ -2421,13 +1847,19 @@ class FrameHelmTurnState {
       null;
   }
 
+
   endTurn() {
-    if (this.ended) {
+    if (
+      this.ended
+    ) {
       return;
     }
 
-    this.ended = true;
-    this.endedAt = Date.now();
+    this.ended =
+      true;
+
+    this.endedAt =
+      Date.now();
 
     this.protocol.available =
       false;
@@ -2442,13 +1874,17 @@ class FrameHelmTurnState {
     );
   }
 
+
   assertTurnActive() {
-    if (this.ended) {
+    if (
+      this.ended
+    ) {
       throw new Error(
         "The current Frame Helm turn has ended."
       );
     }
   }
+
 
   recordHistory(
     type,
@@ -2456,6 +1892,7 @@ class FrameHelmTurnState {
   ) {
     this.history.push({
       type,
+
       timestamp:
         Date.now(),
 
@@ -2464,6 +1901,7 @@ class FrameHelmTurnState {
       }
     });
   }
+
 
   snapshot() {
     return {
@@ -2544,10 +1982,14 @@ class FrameHelmTurnState {
 
 class FrameHelmTurnStateManager {
   constructor() {
-    this.current = null;
+    this.current =
+      null;
   }
 
-  beginTurn(context = {}) {
+
+  beginTurn(
+    context = {}
+  ) {
     this.current =
       new FrameHelmTurnState(
         context
@@ -2560,24 +2002,36 @@ class FrameHelmTurnStateManager {
 
     this.renderApplication();
 
-    return this.current;
+    return (
+      this.current
+    );
   }
 
-  ensureTurn(context = {}) {
+
+  ensureTurn(
+    context = {}
+  ) {
     if (
       !this.current ||
       this.current.ended
     ) {
-      return this.beginTurn(
-        context
+      return (
+        this.beginTurn(
+          context
+        )
       );
     }
 
-    return this.current;
+    return (
+      this.current
+    );
   }
 
+
   endTurn() {
-    if (!this.current) {
+    if (
+      !this.current
+    ) {
       return null;
     }
 
@@ -2585,21 +2039,28 @@ class FrameHelmTurnStateManager {
 
     this.renderApplication();
 
-    return this.current.snapshot();
+    return (
+      this.current.snapshot()
+    );
   }
 
+
   clear() {
-    this.current = null;
+    this.current =
+      null;
 
     this.renderApplication();
   }
 
+
   snapshot() {
     return (
-      this.current?.snapshot() ??
+      this.current
+        ?.snapshot() ??
       null
     );
   }
+
 
   renderApplication() {
     if (
@@ -2704,7 +2165,8 @@ function syncTurnStateToCombat(
 
   const currentContext =
     frameHelmTurnState
-      .current?.context;
+      .current
+      ?.context;
 
   const isSameTurn =
     Boolean(
@@ -2719,7 +2181,9 @@ function syncTurnStateToCombat(
         context.turn
     );
 
-  if (isSameTurn) {
+  if (
+    isSameTurn
+  ) {
     return (
       frameHelmTurnState.current
     );
@@ -2743,28 +2207,14 @@ function syncTurnStateToCombat(
  * Keep the complete FrameHelmApplication class from the current
  * file here exactly as-is.
  *
- * There is no sensor-domain implementation inside the class.
- */
-
-
-/*
- * IMPORTANT:
+ * The class may continue consuming:
  *
- * The complete existing FrameHelmApplication implementation from
- * your source remains here without alteration.
+ *   frameHelmActionRegistry
  *
- * This includes:
+ * exactly as before.
  *
- *   - telemetry rendering
- *   - action selection
- *   - movement controls
- *   - committed plan rendering
- *   - full/quick action selection
- *   - action execution controls
- *   - begin/reset/end turn controls
- *
- * No methods need to be removed because none of them own the
- * sensor overlay implementation.
+ * That local identifier now resolves to the Actions feature's
+ * registered API rather than a registry implemented by this file.
  */
 
 
@@ -2777,16 +2227,21 @@ function syncTurnStateToCombat(
    Frame Helm application instance
    ========================================================== */
 
-let frameHelmApplication = null;
+let frameHelmApplication =
+  null;
 
 
 function getFrameHelmApplication() {
-  if (!frameHelmApplication) {
+  if (
+    !frameHelmApplication
+  ) {
     frameHelmApplication =
       new FrameHelmApplication();
   }
 
-  return frameHelmApplication;
+  return (
+    frameHelmApplication
+  );
 }
 
 
@@ -2805,12 +2260,15 @@ function openFrameHelm() {
   }
 
   getFrameHelmApplication()
-    .render(true);
+    .render(
+      true
+    );
 }
 
 
 function closeFrameHelm() {
-  frameHelmApplication?.close();
+  frameHelmApplication
+    ?.close();
 }
 
 
@@ -2846,7 +2304,9 @@ function registerSettings() {
 
       onChange:
         enabled => {
-          if (!enabled) {
+          if (
+            !enabled
+          ) {
             closeFrameHelm();
           }
         }
@@ -2876,7 +2336,9 @@ function addFrameHelmControlButton(
    * Older Foundry versions supplied an array. Support both.
    */
   const tokenControls =
-    Array.isArray(controls)
+    Array.isArray(
+      controls
+    )
       ? controls.find(
           control =>
             control.name ===
@@ -2886,7 +2348,9 @@ function addFrameHelmControlButton(
         controls?.token ??
         null;
 
-  if (!tokenControls) {
+  if (
+    !tokenControls
+  ) {
     console.warn(
       `${MODULE_TITLE} | Token scene controls could not be located.`,
       controls
@@ -2927,7 +2391,9 @@ function addFrameHelmControlButton(
           "lancer-frame-helm"
       );
 
-    if (!alreadyExists) {
+    if (
+      !alreadyExists
+    ) {
       tokenControls.tools.push(
         tool
       );
@@ -2936,7 +2402,8 @@ function addFrameHelmControlButton(
     return;
   }
 
-  tokenControls.tools ??= {};
+  tokenControls.tools ??=
+    {};
 
   if (
     !tokenControls.tools[
@@ -2963,22 +2430,25 @@ Hooks.once(
 
     registerSettings();
 
-    initializeActionRegistry();
+    /*
+     * Action catalog implementation now belongs entirely to
+     * actions-feature.js.
+     *
+     * The runtime keeps responsibility for choosing the Foundry
+     * startup boundary at which that synchronous initialization
+     * occurs.
+     */
+    initializeFrameHelmActionRegistry();
 
     /*
      * Extracted feature domains have already been registered by
      * feature-registry.js.
-     *
-     * Validate their capability graph before installing their
-     * Foundry hooks.
      */
     frameHelmFeatureRegistry
       .validateDependencies();
 
     /*
      * Install Foundry hooks declared by extracted features.
-     *
-     * sensors-feature.js now owns all sensor-contact hooks.
      */
     frameHelmFeatureRegistry
       .installHooks();
@@ -3004,53 +2474,66 @@ Hooks.once(
         );
       },
 
+      /*
+       * Preserve the established action-registry public surface.
+       *
+       * Its implementation is now owned by actions-feature.js.
+       */
       registry:
         frameHelmActionRegistry,
 
       /*
-       * Expose the feature spine separately from the existing
-       * action registry so the established public API is not
-       * renamed or broken.
+       * Expose the feature spine separately from the action
+       * registry.
        */
       features:
         frameHelmFeatureRegistry,
 
       turn: {
-        begin: context => {
-          return (
-            frameHelmTurnState
-              .beginTurn(context)
-          );
-        },
+        begin:
+          context => {
+            return (
+              frameHelmTurnState
+                .beginTurn(
+                  context
+                )
+            );
+          },
 
-        ensure: context => {
-          return (
-            frameHelmTurnState
-              .ensureTurn(context)
-          );
-        },
+        ensure:
+          context => {
+            return (
+              frameHelmTurnState
+                .ensureTurn(
+                  context
+                )
+            );
+          },
 
-        end: () => {
-          return (
-            frameHelmTurnState
-              .endTurn()
-          );
-        },
+        end:
+          () => {
+            return (
+              frameHelmTurnState
+                .endTurn()
+            );
+          },
 
-        clear: () => {
-          return (
-            frameHelmTurnState
-              .clear()
-          );
-        },
+        clear:
+          () => {
+            return (
+              frameHelmTurnState
+                .clear()
+            );
+          },
 
-        sync: combat => {
-          return (
-            syncTurnStateToCombat(
-              combat
-            )
-          );
-        },
+        sync:
+          combat => {
+            return (
+              syncTurnStateToCombat(
+                combat
+              )
+            );
+          },
 
         get current() {
           return (
@@ -3146,16 +2629,32 @@ Hooks.once(
           }
       },
 
+      /*
+       * Preserve the existing convenience action API.
+       *
+       * These calls now delegate into the Actions feature-owned
+       * registry.
+       */
       actions: {
         get:
-          id =>
-            frameHelmActionRegistry
-              .get(id),
+          id => {
+            return (
+              frameHelmActionRegistry
+                .get(
+                  id
+                )
+            );
+          },
 
         list:
-          options =>
-            frameHelmActionRegistry
-              .list(options),
+          options => {
+            return (
+              frameHelmActionRegistry
+                .list(
+                  options
+                )
+            );
+          },
 
         roots:
           (
@@ -3199,7 +2698,9 @@ Hooks.once(
           action => {
             return (
               frameHelmActionRegistry
-                .register(action)
+                .register(
+                  action
+                )
             );
           }
       }
@@ -3222,12 +2723,6 @@ Hooks.on(
 );
 
 
-/*
- * Sensor refresh is no longer manually requested here.
- *
- * sensors-feature.js owns the controlToken sensor reaction through
- * its feature-contract hook declarations.
- */
 Hooks.on(
   "controlToken",
   () => {
@@ -3287,12 +2782,15 @@ function frameHelmDisplaysActor(
       ?.actor ??
     null;
 
-  if (!displayedActor) {
+  if (
+    !displayedActor
+  ) {
     return false;
   }
 
   return Boolean(
-    displayedActor === actor ||
+    displayedActor ===
+      actor ||
     (
       displayedActor.uuid &&
       actor.uuid &&
@@ -3361,7 +2859,8 @@ Hooks.on(
     const displayedTokenId =
       displayedToken?.id ??
       displayedToken
-        ?.document?.id ??
+        ?.document
+        ?.id ??
       null;
 
     if (
@@ -3565,20 +3064,32 @@ function frameHelmMovementTokenMatches(
 }
 
 
-function frameHelmPoint(point) {
-  if (!point) {
+function frameHelmPoint(
+  point
+) {
+  if (
+    !point
+  ) {
     return null;
   }
 
   const x =
-    Number(point.x);
+    Number(
+      point.x
+    );
 
   const y =
-    Number(point.y);
+    Number(
+      point.y
+    );
 
   if (
-    !Number.isFinite(x) ||
-    !Number.isFinite(y)
+    !Number.isFinite(
+      x
+    ) ||
+    !Number.isFinite(
+      y
+    )
   ) {
     return null;
   }
@@ -3604,7 +3115,8 @@ function frameHelmPoint(point) {
 function frameHelmCollectMovementPoints(
   movement
 ) {
-  const points = [];
+  const points =
+    [];
 
   const addPoint =
     point => {
@@ -3613,12 +3125,16 @@ function frameHelmCollectMovementPoints(
           point
         );
 
-      if (!normalized) {
+      if (
+        !normalized
+      ) {
         return;
       }
 
       const previous =
-        points.at(-1);
+        points.at(
+          -1
+        );
 
       if (
         previous &&
@@ -3657,7 +3173,9 @@ function frameHelmCollectMovementPoints(
     of waypointSources
   ) {
     if (
-      !Array.isArray(source)
+      !Array.isArray(
+        source
+      )
     ) {
       continue;
     }
@@ -3707,7 +3225,9 @@ function frameHelmNumericMovementDistance(
     of candidates
   ) {
     const numeric =
-      Number(candidate);
+      Number(
+        candidate
+      );
 
     if (
       Number.isFinite(
@@ -3817,7 +3337,8 @@ function frameHelmMeasureMovementPath(
         Number.isFinite(
           sceneGridDistance
         ) &&
-        sceneGridDistance > 0
+        sceneGridDistance >
+          0
       ) {
         return (
           distance /
@@ -3829,7 +3350,8 @@ function frameHelmMeasureMovementPath(
     };
 
   if (
-    directDistance !== null
+    directDistance !==
+    null
   ) {
     return (
       normalizeSceneDistance(
@@ -3844,18 +3366,21 @@ function frameHelmMeasureMovementPath(
     );
 
   if (
-    points.length < 2
+    points.length <
+    2
   ) {
     return 0;
   }
 
   try {
     const measured =
-      canvas?.grid
+      canvas
+        ?.grid
         ?.measurePath?.(
           points,
           {
-            cost: true
+            cost:
+              true
           }
         );
 
@@ -3869,7 +3394,8 @@ function frameHelmMeasureMovementPath(
       Number.isFinite(
         measuredDistance
       ) &&
-      measuredDistance > 0
+      measuredDistance >
+        0
     ) {
       return (
         normalizeSceneDistance(
@@ -3896,7 +3422,8 @@ function frameHelmMeasureMovementPath(
       100
     );
 
-  let pixelDistance = 0;
+  let pixelDistance =
+    0;
 
   for (
     let index = 1;
@@ -3904,10 +3431,14 @@ function frameHelmMeasureMovementPath(
     index += 1
   ) {
     const previous =
-      points[index - 1];
+      points[
+        index - 1
+      ];
 
     const current =
-      points[index];
+      points[
+        index
+      ];
 
     pixelDistance +=
       Math.hypot(
@@ -3939,7 +3470,9 @@ function frameHelmRoundMovementDistance(
   distance
 ) {
   const numeric =
-    Number(distance);
+    Number(
+      distance
+    );
 
   if (
     !Number.isFinite(
@@ -3952,7 +3485,8 @@ function frameHelmRoundMovementDistance(
 
   return (
     Math.round(
-      numeric * 100
+      numeric *
+      100
     ) / 100
   );
 }
@@ -4067,7 +3601,8 @@ Hooks.on(
       }
 
       if (
-        result.excess > 0
+        result.excess >
+        0
       ) {
         ui.notifications.warn(
           `Frame Helm recorded ${result.excess} excess movement beyond the currently legal movement allowance. The token was not stopped.`
@@ -4094,6 +3629,14 @@ Hooks.on(
    Universal action execution
    ========================================================== */
 
+/**
+ * Action definitions and the action registry have been extracted,
+ * but execution against the Lancer actor API remains part of the
+ * runtime for now.
+ *
+ * This is a separate future extraction candidate.
+ */
+
 const FRAME_HELM_NO_ROLL_ACTIONS =
   new Set([
     "movement.standard",
@@ -4119,7 +3662,9 @@ function frameHelmActionExecutionKind(
   if (
     !action ||
     FRAME_HELM_NO_ROLL_ACTIONS
-      .has(action.id)
+      .has(
+        action.id
+      )
   ) {
     return null;
   }
@@ -4139,7 +3684,9 @@ function frameHelmActionExecutionKind(
       "full.barrage",
       "full.improvised-attack",
       "reaction.overwatch"
-    ].includes(action.id)
+    ].includes(
+      action.id
+    )
   ) {
     return "basic-attack";
   }
@@ -4148,9 +3695,13 @@ function frameHelmActionExecutionKind(
     [
       "quick.quick-tech.invade",
       "quick.quick-tech.invade.fragment-signal"
-    ].includes(action.id)
+    ].includes(
+      action.id
+    )
   ) {
-    return "basic-tech-attack";
+    return (
+      "basic-tech-attack"
+    );
   }
 
   if (
@@ -4184,10 +3735,22 @@ function frameHelmChooseMechStat(
   return new Promise(
     resolve => {
       const choices = [
-        ["hull", "HULL"],
-        ["agi", "AGI"],
-        ["sys", "SYS"],
-        ["eng", "ENG"]
+        [
+          "hull",
+          "HULL"
+        ],
+        [
+          "agi",
+          "AGI"
+        ],
+        [
+          "sys",
+          "SYS"
+        ],
+        [
+          "eng",
+          "ENG"
+        ]
       ];
 
       const buttons =
@@ -4234,8 +3797,12 @@ function frameHelmChooseMechStat(
 
         close:
           () =>
-            resolve(null)
-      }).render(true);
+            resolve(
+              null
+            )
+      }).render(
+        true
+      );
     }
   );
 }
@@ -4250,22 +3817,27 @@ async function frameHelmExecuteActionRoll(
       action
     );
 
-  if (!kind) {
+  if (
+    !kind
+  ) {
     throw new Error(
       "This action does not require a dice or sheet workflow."
     );
   }
 
   if (
-    kind === "stat"
+    kind ===
+    "stat"
   ) {
-    return actor.beginStatFlow(
-      action.metadata
-        .statPath,
+    return (
+      actor.beginStatFlow(
+        action.metadata
+          .statPath,
 
-      action.metadata
-        .statLabel ??
-        action.label
+        action.metadata
+          .statLabel ??
+          action.label
+      )
     );
   }
 
@@ -4292,7 +3864,8 @@ async function frameHelmExecuteActionRoll(
   }
 
   if (
-    kind === "scan"
+    kind ===
+    "scan"
   ) {
     return (
       actor.beginScanFlow()
@@ -4322,16 +3895,20 @@ async function frameHelmExecuteActionRoll(
       action
     );
 
-  if (!selectedStat) {
+  if (
+    !selectedStat
+  ) {
     throw new Error(
       "Mech skill selection was cancelled."
     );
   }
 
-  return actor.beginStatFlow(
-    selectedStat.path,
+  return (
+    actor.beginStatFlow(
+      selectedStat.path,
 
-    `${action.label} -- ${selectedStat.label}`
+      `${action.label} -- ${selectedStat.label}`
+    )
   );
 }
 
@@ -4533,7 +4110,8 @@ Hooks.on(
       );
 
       if (
-        result.excess > 0
+        result.excess >
+        0
       ) {
         ui.notifications.warn(
           `Frame Helm recorded ${result.excess} excess movement beyond the currently legal movement allowance.`
@@ -4561,26 +4139,39 @@ Hooks.on(
    ========================================================== */
 
 /**
- * Sensor contacts through darkness are no longer implemented
- * inside this file.
+ * The following feature domains no longer have implementations
+ * inside this file:
  *
- * Ownership now lives in:
+ *   ACTIONS
  *
- *   scripts/sensors-feature.js
+ *     scripts/actions-feature.js
  *
- * sensors-feature.js is imported and canonically registered by:
+ *     Owns:
+ *       - FrameHelmActionRegistry
+ *       - canonical action registry instance
+ *       - universal action categories
+ *       - universal action declarations
+ *       - action-catalog initialization
+ *
+ *   SENSORS
+ *
+ *     scripts/sensors-feature.js
+ *
+ *     Owns:
+ *       - sensor contacts
+ *       - sensor-source resolution
+ *       - sensor-distance measurement
+ *       - sensor PIXI overlay lifecycle
+ *       - sensor-specific Foundry hooks
+ *
+ * Both features are imported and canonically registered by:
  *
  *   scripts/feature-registry.js
  *
- * This runtime imports only the canonical feature registry.
+ * This runtime depends only on:
  *
- * During init:
+ *   frameHelmFeatureRegistry
  *
- *   frameHelmFeatureRegistry.installHooks()
- *
- * installs the sensor feature's Foundry hook declarations.
- *
- * No sensor PIXI state, drawing utilities, distance calculations,
- * contact-refresh implementation, or sensor-specific Foundry hooks
- * remain duplicated in this orchestration file.
+ * and resolves extracted feature surfaces through that canonical
+ * composition boundary.
  */
