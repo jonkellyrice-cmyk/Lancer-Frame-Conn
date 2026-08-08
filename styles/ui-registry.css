@@ -1,0 +1,178 @@
+/**
+ * ============================================================
+ * FILE PATH / NAME
+ * ============================================================
+ *
+ * styles/ui-registry.css
+ */
+
+/**
+ * ============================================================
+ * FRAME HELM UI REGISTRY
+ * ============================================================
+ *
+ * ROLE:
+ *   Provides the single stylesheet aggregation boundary through
+ *   which registered Frame Helm feature UI styles enter the
+ *   application.
+ *
+ * PURPOSE:
+ *   Establish a stable import spine for feature-owned CSS before
+ *   Frame Helm is decomposed into independent feature domains.
+ *
+ * IMPORTS:
+ *   - ui-contract.css
+ *   - registered feature styles, when they exist
+ *
+ * OWNS:
+ *   - Shared UI contract import
+ *   - Feature-style registration order
+ *   - Feature-style aggregation boundary
+ *   - Cross-feature stylesheet load ordering
+ *
+ * DOES NOT OWN:
+ *   - Shared visual primitives
+ *   - Shared design tokens
+ *   - Public UI contract definitions
+ *   - Feature-specific styling
+ *   - Primary Frame Helm composition
+ *   - Responsive feature behavior
+ *   - JavaScript feature registration
+ *   - Runtime stylesheet injection
+ *
+ * REGISTRATION MODEL:
+ *
+ *   ui-dsl.css
+ *       ↓
+ *   ui-contract.css
+ *       ↓
+ *   ui-registry.css
+ *       ↓
+ *   lancer-frame-helm.css
+ *
+ * Future feature styles plug into this registry:
+ *
+ *   ui-contract.css
+ *       ↓
+ *   ui-registry.css
+ *       ├── features/movement.css
+ *       ├── features/actions.css
+ *       ├── features/telemetry.css
+ *       ├── features/sensors.css
+ *       └── ...
+ *       ↓
+ *   lancer-frame-helm.css
+ *
+ * DESIGN CONTRACT:
+ *
+ *   This file is an aggregation boundary, not a styling layer.
+ *
+ *   Feature CSS imported here:
+ *
+ *     - MUST depend only on the public UI contract and lower
+ *       layers unless an explicitly documented dependency exists
+ *
+ *     - MUST NOT depend on selectors owned by unrelated features
+ *
+ *     - SHOULD scope feature-specific selectors beneath the
+ *       feature's public UI root where practical
+ *
+ *     - MUST NOT redefine the public UI contract
+ *
+ *     - MUST NOT redefine shared DSL primitives
+ *
+ *     - SHOULD contain only presentation owned by that feature
+ *
+ * IMPORT ORDER:
+ *
+ *   Import order is architectural.
+ *
+ *   Lower-level shared contracts are loaded first.
+ *   Independent feature styles are loaded afterward.
+ *   The primary application stylesheet is loaded last and may
+ *   compose or specialize registered feature surfaces.
+ *
+ * REGISTRY POLICY:
+ *
+ *   A stylesheet being placed in a feature folder does not make
+ *   it active.
+ *
+ *   A feature becomes part of the Frame Helm UI style graph only
+ *   when its stylesheet is explicitly imported through this
+ *   registry.
+ *
+ *   This mirrors scripts/frame-helm/feature-registry.js:
+ *
+ *     feature-contract.js
+ *         defines what may plug in
+ *
+ *     feature-registry.js
+ *         determines what has plugged in
+ *
+ *     ui-contract.css
+ *         defines how feature UI may participate
+ *
+ *     ui-registry.css
+ *         determines which feature UI styles participate
+ */
+
+
+/* ============================================================
+   UI Registry -- Public contract
+   ============================================================ */
+
+@import "./ui-contract.css";
+
+
+/* ============================================================
+   UI Registry -- Registered core feature styles
+   ============================================================ */
+
+/**
+ * No feature styles are registered yet.
+ *
+ * Future imports belong here.
+ *
+ * Example:
+ *
+ * @import "./features/movement.css";
+ * @import "./features/action-planning.css";
+ * @import "./features/telemetry.css";
+ * @import "./features/sensors.css";
+ */
+
+
+/* ============================================================
+   UI Registry -- Registered extension feature styles
+   ============================================================ */
+
+/**
+ * Reserved for independently pluggable or optional feature
+ * packages if Frame Helm later distinguishes core features from
+ * extensions.
+ *
+ * No extension styles are registered yet.
+ *
+ * Example:
+ *
+ * @import "./features/extensions/targeting.css";
+ * @import "./features/extensions/tactical-overlay.css";
+ */
+
+
+/* ============================================================
+   UI Registry -- Integration overrides
+   ============================================================ */
+
+/**
+ * Reserved for the rare case where two registered feature UI
+ * packages require an explicitly owned integration rule.
+ *
+ * Prefer putting styling inside the owning feature whenever
+ * possible.
+ *
+ * Cross-feature rules should not be added here merely for
+ * convenience.
+ *
+ * No integration overrides are currently registered.
+ */

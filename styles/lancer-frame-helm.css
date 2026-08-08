@@ -8,42 +8,116 @@
 
 /**
  * ============================================================
- * FRAME HELM FEATURE STYLES
+ * FRAME HELM PUBLIC UI COMPOSITION SURFACE
  * ============================================================
  *
  * ROLE:
- *   Owns Frame Helm-specific composition, layout, feature states,
- *   and exceptions built on top of the shared UI DSL.
+ *   Provides the primary Frame Helm stylesheet composition
+ *   surface.
+ *
+ *   Until feature styling is physically decomposed, this file
+ *   continues to contain the existing feature implementations
+ *   while consuming the stable Frame Helm UI construction spine.
+ *
+ * PURPOSE:
+ *   Preserve the current Frame Helm presentation exactly while
+ *   establishing the architectural boundary through which future
+ *   feature-owned styles will be registered and composed.
  *
  * IMPORTS:
+ *   - ui-registry.css
+ *
+ * INDIRECTLY RECEIVES:
+ *   - ui-contract.css
  *   - ui-dsl.css
+ *   - future registered feature styles
  *
  * OWNS:
+ *   - Primary Foundry window composition
+ *   - Frame Helm shell composition
+ *   - Current monolithic feature-style implementation
+ *   - Current feature integration rules
+ *   - Application-level responsive composition
+ *   - Final application-level specialization
+ *
+ * CURRENTLY IMPLEMENTS:
  *   - Foundry window composition
- *   - Frame Helm shell layout
- *   - Unit panel composition
- *   - Turn-budget composition
- *   - Action-menu composition
- *   - Movement-specific layout
- *   - Quick-action-specific layout
- *   - Full-action-specific layout
- *   - Committed-plan composition
- *   - Overcharge-specific states
- *   - Telemetry-bar composition
- *   - Movement-ledger composition
- *   - Responsive feature layout
+ *   - Legacy header presentation
+ *   - Landscape cockpit composition
+ *   - Controlled-unit presentation
+ *   - Turn-budget presentation
+ *   - Action-menu presentation
+ *   - Movement presentation
+ *   - Quick-action presentation
+ *   - Full-action presentation
+ *   - Overcharge presentation
+ *   - Committed-plan presentation
+ *   - Telemetry presentation
+ *   - Movement-ledger presentation
+ *   - Responsive presentation
  *
  * DOES NOT OWN:
- *   - Shared cockpit design tokens
- *   - Shared panel surfaces
- *   - Shared metric-cell presentation
- *   - Shared action-card presentation
- *   - Shared requirement presentation
- *   - Shared telemetry-cell presentation
- *   - Shared scrollbar presentation
+ *   - Shared UI design tokens
+ *   - Shared semantic visual primitives
+ *   - Public UI contract definitions
+ *   - Feature registration policy
+ *   - JavaScript feature registration
+ *
+ * DEPENDENCY FLOW:
+ *
+ *   ui-dsl.css
+ *       ↓
+ *   ui-contract.css
+ *       ↓
+ *   ui-registry.css
+ *       ↓
+ *   lancer-frame-helm.css
+ *
+ * FUTURE FEATURE FLOW:
+ *
+ *   feature stylesheet
+ *       ↓
+ *   ui-registry.css
+ *       ↓
+ *   lancer-frame-helm.css
+ *
+ * MIGRATION CONTRACT:
+ *
+ *   No feature styles are split from this file yet.
+ *
+ *   As feature domains are extracted:
+ *
+ *     1. The extracted stylesheet MUST comply with
+ *        ui-contract.css.
+ *
+ *     2. The extracted stylesheet MUST be registered through
+ *        ui-registry.css.
+ *
+ *     3. The corresponding rules MUST then be removed from this
+ *        file only after their registered replacement exists.
+ *
+ *     4. This file MUST NOT import individual feature
+ *        stylesheets directly.
+ *
+ *     5. This file remains the public application composition
+ *        surface regardless of how many feature styles are
+ *        eventually registered beneath it.
+ *
+ * STABILITY CONTRACT:
+ *
+ *   This rewrite changes stylesheet dependency architecture only.
+ *
+ *   Existing selectors, declarations, cascade behavior,
+ *   responsive behavior, dimensions, states, and visual
+ *   presentation are preserved.
  */
 
-@import "./ui-dsl.css";
+
+/* ============================================================
+   UI construction spine
+   ============================================================ */
+
+@import "./ui-registry.css";
 
 
 /* ============================================================
@@ -751,8 +825,18 @@
 
 
 /* ============================================================
-   Movement submenu
+   Current feature implementation -- Movement
    ============================================================ */
+
+/**
+ * FUTURE EXTRACTION TARGET:
+ *
+ *   When Movement becomes an independent feature stylesheet,
+ *   these rules may move into that feature package and be
+ *   registered through ui-registry.css.
+ *
+ *   Until then they remain authoritative here.
+ */
 
 .frame-helm-action-column > .frame-helm-movement-panel {
   display: flex;
@@ -954,7 +1038,7 @@
 
 
 /* ============================================================
-   Movement commitment state
+   Current feature implementation -- Movement commitment state
    ============================================================ */
 
 .frame-helm-movement-commit-note {
@@ -1007,8 +1091,15 @@
 
 
 /* ============================================================
-   Quick action submenu
+   Current feature implementation -- Quick actions
    ============================================================ */
+
+/**
+ * FUTURE EXTRACTION TARGET:
+ *
+ *   Quick-action presentation may later become feature-owned and
+ *   register through ui-registry.css.
+ */
 
 .frame-helm-quick-budget {
   flex: 0 0 auto;
@@ -1085,8 +1176,15 @@
 
 
 /* ============================================================
-   Full action submenu
+   Current feature implementation -- Full actions
    ============================================================ */
+
+/**
+ * FUTURE EXTRACTION TARGET:
+ *
+ *   Full-action presentation may later become feature-owned and
+ *   register through ui-registry.css.
+ */
 
 .frame-helm-full-budget {
   flex: 0 0 auto;
@@ -1160,8 +1258,15 @@
 
 
 /* ============================================================
-   Overcharge presentation
+   Current feature implementation -- Overcharge
    ============================================================ */
+
+/**
+ * FUTURE EXTRACTION TARGET:
+ *
+ *   Overcharge-specific presentation may later follow its owning
+ *   action feature through ui-registry.css.
+ */
 
 .frame-helm-overcharge-execute:not(:disabled) {
   border-color:
@@ -1327,8 +1432,15 @@
 
 
 /* ============================================================
-   Committed plan
+   Current feature implementation -- Committed plan
    ============================================================ */
+
+/**
+ * FUTURE EXTRACTION TARGET:
+ *
+ *   Turn-plan presentation may later become feature-owned and
+ *   register through ui-registry.css.
+ */
 
 .frame-helm-plan-panel {
   display: flex;
@@ -1554,8 +1666,15 @@
 
 
 /* ============================================================
-   MECH//STATS telemetry bar
+   Current feature implementation -- MECH//STATS telemetry
    ============================================================ */
+
+/**
+ * FUTURE EXTRACTION TARGET:
+ *
+ *   Telemetry presentation may later become feature-owned and
+ *   register through ui-registry.css.
+ */
 
 .frame-helm-mech-stats-bar {
   display: grid;
@@ -1720,7 +1839,7 @@
 
 
 /* ============================================================
-   Live telemetry states
+   Current feature implementation -- Live telemetry states
    ============================================================ */
 
 .frame-helm-stat-cell input[readonly] {
@@ -1766,7 +1885,7 @@
 
 
 /* ============================================================
-   Dragged-movement ledger
+   Current feature implementation -- Dragged-movement ledger
    ============================================================ */
 
 .frame-helm-movement-ledger {
@@ -1825,8 +1944,17 @@
 
 
 /* ============================================================
-   Narrow-window fallback
+   Application composition -- Narrow-window fallback
    ============================================================ */
+
+/**
+ * These responsive rules remain application-level composition
+ * while the relevant features are still implemented here.
+ *
+ * When feature styles are eventually extracted, responsive rules
+ * that are purely feature-internal may travel with their owning
+ * feature. Cross-feature layout remains here.
+ */
 
 @media (max-width: 820px) {
   .lancer-frame-helm {
@@ -1901,7 +2029,7 @@
 
 
 /* ============================================================
-   Compact control fallback
+   Application composition -- Compact control fallback
    ============================================================ */
 
 @media (max-width: 500px) {
@@ -1917,7 +2045,7 @@
 
 
 /* ============================================================
-   Telemetry responsive fallback
+   Application composition -- Telemetry responsive fallback
    ============================================================ */
 
 @media (max-width: 900px) {
