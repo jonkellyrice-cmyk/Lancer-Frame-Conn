@@ -15,14 +15,14 @@
  *   Provides the primary Frame Helm stylesheet composition
  *   surface.
  *
- *   Until feature styling is physically decomposed, this file
- *   continues to contain the existing feature implementations
- *   while consuming the stable Frame Helm UI construction spine.
+ *   Feature-owned styling is progressively removed from this
+ *   file and supplied through the registered Frame Helm UI
+ *   feature graph.
  *
  * PURPOSE:
- *   Preserve the current Frame Helm presentation exactly while
- *   establishing the architectural boundary through which future
- *   feature-owned styles will be registered and composed.
+ *   Preserve the current Frame Helm presentation while acting as
+ *   the final application-level composition surface above the
+ *   shared UI contract and registered feature styles.
  *
  * IMPORTS:
  *   - ui-registry.css
@@ -30,13 +30,16 @@
  * INDIRECTLY RECEIVES:
  *   - ui-contract.css
  *   - ui-dsl.css
+ *   - ui-sensors.css
+ *   - ui-actions.css
  *   - future registered feature styles
  *
  * OWNS:
  *   - Primary Foundry window composition
  *   - Frame Helm shell composition
- *   - Current monolithic feature-style implementation
- *   - Current feature integration rules
+ *   - Application-level cockpit composition
+ *   - Current non-extracted feature-style implementation
+ *   - Cross-feature integration rules
  *   - Application-level responsive composition
  *   - Final application-level specialization
  *
@@ -46,7 +49,6 @@
  *   - Landscape cockpit composition
  *   - Controlled-unit presentation
  *   - Turn-budget presentation
- *   - Action-menu presentation
  *   - Movement presentation
  *   - Quick-action presentation
  *   - Full-action presentation
@@ -54,7 +56,18 @@
  *   - Committed-plan presentation
  *   - Telemetry presentation
  *   - Movement-ledger presentation
- *   - Responsive presentation
+ *   - Cross-feature responsive presentation
+ *
+ * REGISTERED FEATURE PRESENTATION:
+ *
+ *   The following feature presentation has been extracted and is
+ *   received indirectly through ui-registry.css:
+ *
+ *     - Sensors
+ *         ui-sensors.css
+ *
+ *     - Actions
+ *         ui-actions.css
  *
  * DOES NOT OWN:
  *   - Shared UI design tokens
@@ -62,6 +75,8 @@
  *   - Public UI contract definitions
  *   - Feature registration policy
  *   - JavaScript feature registration
+ *   - Generic Actions feature presentation
+ *   - Sensors feature presentation
  *
  * DEPENDENCY FLOW:
  *
@@ -70,10 +85,13 @@
  *   ui-contract.css
  *       ↓
  *   ui-registry.css
+ *       ├── ui-sensors.css
+ *       ├── ui-actions.css
+ *       └── future feature styles
  *       ↓
  *   lancer-frame-helm.css
  *
- * FUTURE FEATURE FLOW:
+ * FEATURE FLOW:
  *
  *   feature stylesheet
  *       ↓
@@ -83,9 +101,7 @@
  *
  * MIGRATION CONTRACT:
  *
- *   No feature styles are split from this file yet.
- *
- *   As feature domains are extracted:
+ *   As additional feature domains are extracted:
  *
  *     1. The extracted stylesheet MUST comply with
  *        ui-contract.css.
@@ -94,22 +110,23 @@
  *        ui-registry.css.
  *
  *     3. The corresponding rules MUST then be removed from this
- *        file only after their registered replacement exists.
+ *        file once their registered replacement exists.
  *
  *     4. This file MUST NOT import individual feature
  *        stylesheets directly.
  *
  *     5. This file remains the public application composition
  *        surface regardless of how many feature styles are
- *        eventually registered beneath it.
+ *        registered beneath it.
  *
  * STABILITY CONTRACT:
  *
- *   This rewrite changes stylesheet dependency architecture only.
+ *   Feature extraction changes stylesheet ownership and
+ *   dependency architecture only.
  *
  *   Existing selectors, declarations, cascade behavior,
  *   responsive behavior, dimensions, states, and visual
- *   presentation are preserved.
+ *   presentation are preserved by their registered replacement.
  */
 
 
@@ -661,167 +678,36 @@
 
 
 /* ============================================================
-   Action panel composition
+   Registered feature presentation -- Actions
    ============================================================ */
 
-.frame-helm-action-column > .frame-helm-action-panel {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-
-  width: 100%;
-  height: 100%;
-
-  min-height: 0;
-  max-height: 100%;
-
-  gap: 0.55rem;
-
-  overflow: hidden;
-
-  padding-bottom: 0;
-
-  clip-path: none;
-}
-
-.frame-helm-section-heading {
-  display: flex;
-  align-items: center;
-
-  flex: 0 0 auto;
-
-  min-height: 2rem;
-
-  border-bottom:
-    1px solid var(--fh-cyan-muted);
-
-  padding-bottom: 0.4rem;
-
-  color: var(--fh-cyan);
-
-  font-family: monospace;
-  font-size: 0.75rem;
-  font-weight: 700;
-
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-
-  text-shadow:
-    0 0 6px rgba(86, 224, 223, 0.35);
-}
-
-.frame-helm-section-heading-with-back {
-  gap: 0.55rem;
-}
-
-.frame-helm-section-heading-with-back > div {
-  display: flex;
-  flex-direction: column;
-
-  min-width: 0;
-}
-
-.frame-helm-section-heading-with-back small {
-  margin-top: 0.1rem;
-
-  font-size: 0.68rem;
-  font-weight: 400;
-
-  letter-spacing: normal;
-  text-transform: none;
-
-  opacity: 0.7;
-}
-
-.frame-helm-back-button {
-  flex: 0 0 2rem;
-
-  width: 2rem;
-  height: 2rem;
-
-  margin: 0;
-  padding: 0;
-}
-
-.frame-helm-category-arrow {
-  flex: 0 0 auto;
-
-  margin-top: 0.2rem;
-
-  color: var(--fh-amber);
-
-  opacity: 0.5;
-}
-
-.frame-helm-category-unavailable {
-  opacity: 0.55;
-}
-
-
-/* ============================================================
-   Action menu grids
-   ============================================================ */
-
-.frame-helm-action-column .frame-helm-category-list,
-.frame-helm-action-column .frame-helm-action-list {
-  display: grid;
-
-  grid-template-columns:
-    repeat(2, minmax(0, 1fr));
-
-  grid-auto-rows: max-content;
-
-  align-content: start;
-  align-items: start;
-
-  flex: 1 1 auto;
-
-  min-height: 0;
-  max-height: 100%;
-
-  row-gap: 0.6rem;
-  column-gap: 0.6rem;
-
-  overflow-y: auto;
-  overflow-x: hidden;
-
-  padding-right: 0.5rem;
-  padding-bottom: 2.75rem;
-
-  scrollbar-gutter: stable;
-}
-
-.frame-helm-action-column .frame-helm-category-list::after,
-.frame-helm-action-column .frame-helm-action-list::after {
-  display: block;
-
-  grid-column: 1 / -1;
-
-  width: 100%;
-  height: 1.75rem;
-
-  content: "";
-}
-
-.frame-helm-category-copy strong,
-.frame-helm-action-copy strong {
-  font-size: 0.95rem;
-}
-
-.frame-helm-category-copy small,
-.frame-helm-action-copy small {
-  font-size: 0.75rem;
-}
-
-.frame-helm-no-actions {
-  gap: 0.6rem;
-
-  min-height: 100px;
-
-  padding: 1rem;
-
-  opacity: 0.7;
-}
+/**
+ * Generic Actions presentation no longer lives in this public
+ * composition stylesheet.
+ *
+ * Ownership now resides in:
+ *
+ *   styles/ui-actions.css
+ *
+ * ui-actions.css is registered through:
+ *
+ *   styles/ui-registry.css
+ *
+ * The extracted Actions UI owns:
+ *
+ *   - generic action-panel composition
+ *   - action section headings
+ *   - action navigation/back controls
+ *   - category arrows and unavailable states
+ *   - category/action menu grids
+ *   - generic action copy typography
+ *   - generic empty-action presentation
+ *   - Actions-owned responsive menu behavior
+ *
+ * More specialized Movement, Quick Action, Full Action,
+ * Overcharge, and committed-plan presentation remains below
+ * until those domains receive their own UI feature extraction.
+ */
 
 
 /* ============================================================
@@ -1265,7 +1151,7 @@
  * FUTURE EXTRACTION TARGET:
  *
  *   Overcharge-specific presentation may later follow its owning
- *   action feature through ui-registry.css.
+ *   action-budget feature through ui-registry.css.
  */
 
 .frame-helm-overcharge-execute:not(:disabled) {
@@ -1948,12 +1834,12 @@
    ============================================================ */
 
 /**
- * These responsive rules remain application-level composition
- * while the relevant features are still implemented here.
+ * Generic Actions-owned responsive behavior now resides in:
  *
- * When feature styles are eventually extracted, responsive rules
- * that are purely feature-internal may travel with their owning
- * feature. Cross-feature layout remains here.
+ *   ui-actions.css
+ *
+ * The rules below retain application-level and currently
+ * non-extracted feature-specific responsive behavior.
  */
 
 @media (max-width: 820px) {
@@ -1990,10 +1876,7 @@
     padding-left: 0;
   }
 
-  .frame-helm-action-column > .frame-helm-action-panel,
   .frame-helm-action-column > .frame-helm-movement-panel,
-  .frame-helm-action-column .frame-helm-category-list,
-  .frame-helm-action-column .frame-helm-action-list,
   .frame-helm-action-column .frame-helm-quick-detail,
   .frame-helm-action-column .frame-helm-full-detail {
     width: 100%;
@@ -2005,12 +1888,6 @@
     overflow: visible;
 
     padding-right: 0;
-  }
-
-  .frame-helm-action-column .frame-helm-category-list,
-  .frame-helm-action-column .frame-helm-action-list {
-    display: flex;
-    flex-direction: column;
   }
 
   .frame-helm-action-column > .frame-helm-movement-panel {
