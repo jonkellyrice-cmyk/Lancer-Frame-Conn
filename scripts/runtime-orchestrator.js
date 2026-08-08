@@ -8,23 +8,29 @@
 
 /**
  * ============================================================
- * FRAME HELM RUNTIME / ORCHESTRATION SURFACE
+ * FRAME HELM RUNTIME ORCHESTRATOR
  * ============================================================
  *
  * ROLE:
- *   Provides the authoritative Frame Helm Foundry runtime and
- *   application-orchestration surface.
+ *   Provides the authoritative Foundry startup, runtime
+ *   composition, and cross-feature orchestration surface for
+ *   Frame Helm.
  *
  * PURPOSE:
- *   Compose registered Frame Helm feature domains with the
- *   remaining application, turn, movement, execution, telemetry,
- *   and Foundry integration behavior that has not yet been
- *   extracted into independent features.
+ *   Compose registered Frame Helm features while retaining only
+ *   behavior that genuinely belongs to application-wide runtime
+ *   orchestration.
  *
  * CURRENT EXTRACTED DOMAINS:
  *
- *   - actions
- *   - sensors
+ *   - Actions
+ *       scripts/actions-feature.js
+ *
+ *   - Sensors
+ *       scripts/sensors-feature.js
+ *
+ *   - Application UI
+ *       styles/ui-application.js
  *
  * FEATURE COMPOSITION:
  *
@@ -33,32 +39,51 @@
  *   feature-registry.js
  *        ├── actions-feature.js
  *        ├── sensors-feature.js
+ *        ├── ui-application.js
  *        └── future feature domains
  *        ↓
- *   lancer-frame-helm.js
+ *   runtime-orchestrator.js
  *
- * IMPORTANT:
+ * CURRENTLY OWNS:
  *
- *   This file no longer owns:
+ *   - Foundry startup boundaries
+ *   - Module settings registration
+ *   - Scene-control integration
+ *   - Turn-state domain, pending extraction
+ *   - Combat-turn synchronization, pending extraction
+ *   - Movement tracking, pending extraction
+ *   - Elevation movement tracking, pending extraction
+ *   - Action execution, pending extraction
+ *   - Public game.lancerFrameHelm composition
  *
- *   - action registry implementation
- *   - universal action category declarations
- *   - universal action declarations
- *   - action-catalog initialization
- *   - sensor-contact rendering
- *   - sensor-contact PIXI lifecycle
- *   - sensor-distance measurement
- *   - sensor-specific Foundry hooks
+ * NO LONGER OWNS:
  *
- *   Those responsibilities are consumed through the canonical
- *   feature registry.
+ *   - Action registry implementation
+ *   - Universal action declarations
+ *   - Sensor rendering
+ *   - Sensor hook behavior
+ *   - FrameHelmApplication
+ *   - Application singleton state
+ *   - Application open/close behavior
+ *   - Application rendering implementation
+ *   - Controlled-token UI lookup
+ *   - Application refresh hooks
+ *   - Application stylesheet installation
  */
 
+
+/* ============================================================
+   Imports
+   ============================================================ */
 
 import {
   frameHelmFeatureRegistry
 } from "./feature-registry.js";
 
+
+/* ============================================================
+   Module identity
+   ============================================================ */
 
 const MODULE_ID =
   "lancer-frame-helm";
@@ -67,19 +92,20 @@ const MODULE_TITLE =
   "Lancer: Frame Helm";
 
 
-/* ==========================================================
-   Extracted Actions feature surface
-   ========================================================== */
+/* ============================================================
+   Registered feature surfaces
+   ============================================================ */
 
 /**
- * Resolve the Actions domain exclusively through the canonical
- * feature registry.
- *
- * lancer-frame-helm.js intentionally does NOT import
- * actions-feature.js directly.
- *
- * This preserves feature-registry.js as the composition boundary.
+ * The runtime consumes extracted domains only through the
+ * canonical feature registry.
  */
+
+
+/* ------------------------------------------------------------
+   Actions
+   ------------------------------------------------------------ */
+
 const frameHelmActionsApi =
   frameHelmFeatureRegistry.getApi(
     "actions"
@@ -92,49 +118,102 @@ if (!frameHelmActionsApi) {
 }
 
 
-/**
- * Preserve the established local registry identifier so remaining
- * runtime consumers do not need to know that ownership has moved.
- */
 const frameHelmActionRegistry =
   frameHelmActionsApi.registry;
 
 
-/**
- * Preserve synchronous initialization during Foundry init.
- *
- * The Actions feature owns the implementation; this runtime owns
- * the startup boundary at which initialization occurs.
- */
 const initializeFrameHelmActionRegistry =
   frameHelmActionsApi.initialize;
 
 
-/* ==========================================================
+/* ------------------------------------------------------------
+   Application UI
+   ------------------------------------------------------------ */
+
+const frameHelmApplicationApi =
+  frameHelmFeatureRegistry.getApi(
+    "application-ui"
+  );
+
+if (!frameHelmApplicationApi) {
+  throw new Error(
+    "Frame Helm | The registered Application UI feature API could not be resolved."
+  );
+}
+
+
+/**
+ * Transitional local aliases.
+ *
+ * These preserve readable runtime composition without allowing
+ * this file to directly import ui-application.js.
+ */
+const openFrameHelm =
+  (...args) =>
+    frameHelmApplicationApi
+      .open(
+        ...args
+      );
+
+
+const closeFrameHelm =
+  (...args) =>
+    frameHelmApplicationApi
+      .close(
+        ...args
+      );
+
+
+function renderFrameHelmApplication(
+  force = false
+) {
+  return (
+    frameHelmApplicationApi
+      .render?.(
+        force
+      ) ??
+    null
+  );
+}
+
+
+/* ============================================================
    Turn state
-   ========================================================== */
+   ============================================================ */
 
 class FrameHelmTurnState {
-  constructor(context = {}) {
-    this.reset(context);
+  constructor(
+    context = {}
+  ) {
+    this.reset(
+      context
+    );
   }
 
-  reset(context = {}) {
+
+  reset(
+    context = {}
+  ) {
     this.context = {
       combatId:
-        context.combatId ?? null,
+        context.combatId ??
+        null,
 
       combatantId:
-        context.combatantId ?? null,
+        context.combatantId ??
+        null,
 
       tokenId:
-        context.tokenId ?? null,
+        context.tokenId ??
+        null,
 
       actorId:
-        context.actorId ?? null,
+        context.actorId ??
+        null,
 
       sceneId:
-        context.sceneId ?? null,
+        context.sceneId ??
+        null,
 
       round:
         Number.isFinite(
@@ -151,10 +230,12 @@ class FrameHelmTurnState {
           : null
     };
 
+
     const hasSpeedValue =
       context.speed !== null &&
       context.speed !== undefined &&
       context.speed !== "";
+
 
     const speed =
       hasSpeedValue
@@ -162,6 +243,7 @@ class FrameHelmTurnState {
             context.speed
           )
         : null;
+
 
     this.speed =
       speed !== null &&
@@ -171,6 +253,7 @@ class FrameHelmTurnState {
       speed >= 0
         ? speed
         : null;
+
 
     this.movement = {
       maximum:
@@ -207,14 +290,18 @@ class FrameHelmTurnState {
         []
     };
 
+
     this.actionMode =
       null;
+
 
     this.quickActionsRemaining =
       2;
 
+
     this.fullActionAvailable =
       true;
+
 
     this.overcharge = {
       used:
@@ -227,6 +314,7 @@ class FrameHelmTurnState {
         null
     };
 
+
     this.protocol = {
       available:
         true,
@@ -238,6 +326,7 @@ class FrameHelmTurnState {
         true
     };
 
+
     this.reaction = {
       usedThisTurn:
         false,
@@ -246,31 +335,47 @@ class FrameHelmTurnState {
         null
     };
 
+
     this.usedActions =
       [];
+
 
     this.usedDuplicateKeys =
       [];
 
+
     this.history =
       [];
+
 
     this.ended =
       false;
 
+
     this.startedAt =
       Date.now();
 
+
     this.endedAt =
       null;
+
 
     return this;
   }
 
 
-  setSpeed(speed) {
+  /* ==========================================================
+     Turn state -- Speed
+     ========================================================== */
+
+  setSpeed(
+    speed
+  ) {
     const numericSpeed =
-      Number(speed);
+      Number(
+        speed
+      );
+
 
     if (
       !Number.isFinite(
@@ -283,23 +388,29 @@ class FrameHelmTurnState {
       );
     }
 
+
     const previousMaximum =
       this.movement.maximum;
+
 
     const previousSpent =
       this.movement.spent;
 
+
     this.speed =
       numericSpeed;
 
+
     this.movement.maximum =
       numericSpeed;
+
 
     this.movement.spent =
       Math.min(
         previousSpent,
         numericSpeed
       );
+
 
     this.movement.remaining =
       Math.max(
@@ -308,8 +419,10 @@ class FrameHelmTurnState {
           this.movement.spent
       );
 
+
     if (
-      previousMaximum === null
+      previousMaximum ===
+      null
     ) {
       this.recordHistory(
         "set-speed",
@@ -320,17 +433,28 @@ class FrameHelmTurnState {
       );
     }
 
+
     return (
       this.movement.remaining
     );
   }
 
 
-  spendMovement(distance) {
+  /* ==========================================================
+     Turn state -- Movement
+     ========================================================== */
+
+  spendMovement(
+    distance
+  ) {
     this.assertTurnActive();
 
+
     const numericDistance =
-      Number(distance);
+      Number(
+        distance
+      );
+
 
     if (
       !Number.isFinite(
@@ -343,6 +467,7 @@ class FrameHelmTurnState {
       );
     }
 
+
     if (
       this.movement.maximum ===
       null
@@ -351,6 +476,7 @@ class FrameHelmTurnState {
         "Movement speed has not been assigned to this turn."
       );
     }
+
 
     if (
       numericDistance >
@@ -361,11 +487,14 @@ class FrameHelmTurnState {
       );
     }
 
+
     this.movement.spent +=
       numericDistance;
 
+
     this.movement.remaining -=
       numericDistance;
+
 
     if (
       this.movement.remaining ===
@@ -375,7 +504,9 @@ class FrameHelmTurnState {
         true;
     }
 
+
     this.closeProtocolWindow();
+
 
     this.recordHistory(
       "spend-movement",
@@ -384,6 +515,7 @@ class FrameHelmTurnState {
           numericDistance
       }
     );
+
 
     return (
       this.movement.remaining
@@ -394,8 +526,10 @@ class FrameHelmTurnState {
   completeMovement() {
     this.assertTurnActive();
 
+
     this.movement.completed =
       true;
+
 
     this.recordHistory(
       "complete-movement",
@@ -410,6 +544,7 @@ class FrameHelmTurnState {
   reopenMovement() {
     this.assertTurnActive();
 
+
     if (
       this.movement.maximum !==
         null &&
@@ -419,12 +554,15 @@ class FrameHelmTurnState {
       this.movement.spent =
         0;
 
+
       this.movement.remaining =
         this.movement.maximum;
     }
 
+
     this.movement.completed =
       false;
+
 
     this.recordHistory(
       "reopen-movement",
@@ -441,6 +579,7 @@ class FrameHelmTurnState {
   ) {
     this.assertTurnActive();
 
+
     if (
       this.movement.maximum ===
       null
@@ -450,6 +589,7 @@ class FrameHelmTurnState {
       );
     }
 
+
     if (
       this.movement.completed
     ) {
@@ -457,6 +597,7 @@ class FrameHelmTurnState {
         "Movement has already been committed."
       );
     }
+
 
     if (
       this.movement.remaining <=
@@ -467,19 +608,25 @@ class FrameHelmTurnState {
       );
     }
 
+
     const committedDistance =
       this.movement.remaining;
+
 
     this.movement.spent +=
       committedDistance;
 
+
     this.movement.remaining =
       0;
+
 
     this.movement.completed =
       true;
 
+
     this.closeProtocolWindow();
+
 
     this.recordHistory(
       "movement-commit",
@@ -491,12 +638,14 @@ class FrameHelmTurnState {
       }
     );
 
+
     return committedDistance;
   }
 
 
   refreshMovementFromBoost() {
     this.assertTurnActive();
+
 
     if (
       this.movement.maximum ===
@@ -510,17 +659,22 @@ class FrameHelmTurnState {
         }
       );
 
+
       return null;
     }
+
 
     this.movement.spent =
       0;
 
+
     this.movement.remaining =
       this.movement.maximum;
 
+
     this.movement.completed =
       false;
+
 
     this.recordHistory(
       "boost-movement-refill",
@@ -529,6 +683,7 @@ class FrameHelmTurnState {
           this.movement.maximum
       }
     );
+
 
     return (
       this.movement.remaining
@@ -561,9 +716,12 @@ class FrameHelmTurnState {
   hasProcessedMovementId(
     movementId
   ) {
-    if (!movementId) {
+    if (
+      !movementId
+    ) {
       return false;
     }
+
 
     return (
       this.movement
@@ -580,14 +738,18 @@ class FrameHelmTurnState {
   rememberMovementId(
     movementId
   ) {
-    if (!movementId) {
+    if (
+      !movementId
+    ) {
       return;
     }
+
 
     const normalizedId =
       String(
         movementId
       );
+
 
     if (
       !this.movement
@@ -602,6 +764,7 @@ class FrameHelmTurnState {
           normalizedId
         );
     }
+
 
     if (
       this.movement
@@ -625,12 +788,16 @@ class FrameHelmTurnState {
   } = {}) {
     this.assertTurnActive();
 
+
     const boostAction =
       frameHelmActionRegistry.get(
         "quick.boost"
       );
 
-    if (!boostAction) {
+
+    if (
+      !boostAction
+    ) {
       return {
         committed:
           false,
@@ -640,11 +807,15 @@ class FrameHelmTurnState {
       };
     }
 
-    if (!forceOvercharge) {
+
+    if (
+      !forceOvercharge
+    ) {
       const normalPermission =
         this.canUseAction(
           boostAction
         );
+
 
       if (
         normalPermission.allowed
@@ -662,6 +833,7 @@ class FrameHelmTurnState {
           }
         );
 
+
         this.recordHistory(
           "automatic-movement-boost",
           {
@@ -669,6 +841,7 @@ class FrameHelmTurnState {
               "normal"
           }
         );
+
 
         return {
           committed:
@@ -683,11 +856,14 @@ class FrameHelmTurnState {
       }
     }
 
+
     let heatFormula =
       null;
 
+
     let triggeredOvercharge =
       false;
+
 
     if (
       !this.overcharge.used
@@ -695,9 +871,11 @@ class FrameHelmTurnState {
       heatFormula =
         this.useOvercharge();
 
+
       triggeredOvercharge =
         true;
     }
+
 
     const overchargePermission =
       this.canUseAction(
@@ -707,6 +885,7 @@ class FrameHelmTurnState {
             true
         }
       );
+
 
     if (
       !overchargePermission
@@ -725,6 +904,7 @@ class FrameHelmTurnState {
       };
     }
 
+
     this.useAction(
       boostAction,
       {
@@ -741,6 +921,7 @@ class FrameHelmTurnState {
       }
     );
 
+
     this.recordHistory(
       "automatic-movement-boost",
       {
@@ -750,6 +931,7 @@ class FrameHelmTurnState {
         heatFormula
       }
     );
+
 
     return {
       committed:
@@ -770,10 +952,12 @@ class FrameHelmTurnState {
         this.movement.maximum
       );
 
+
     const total =
       Number(
         this.movement.totalTracked
       ) || 0;
+
 
     if (
       !Number.isFinite(
@@ -784,30 +968,39 @@ class FrameHelmTurnState {
       this.movement.standardUsed =
         total;
 
+
       this.movement.boostUsed =
         0;
+
 
       this.movement
         .overchargeBoostUsed =
         0;
 
+
       this.movement.spent =
         total;
+
 
       this.movement.remaining =
         0;
 
+
       this.movement.excess =
         0;
+
 
       this.movement.completed =
         total > 0;
 
+
       return;
     }
 
+
     const boostEntries =
       this.movementBoostEntries();
+
 
     const normalBoostCount =
       boostEntries.filter(
@@ -819,6 +1012,7 @@ class FrameHelmTurnState {
         }
       ).length;
 
+
     const overchargeBoostCount =
       boostEntries.filter(
         entry => {
@@ -829,11 +1023,13 @@ class FrameHelmTurnState {
         }
       ).length;
 
+
     const standardUsed =
       Math.min(
         total,
         speed
       );
+
 
     const boostUsed =
       normalBoostCount > 0
@@ -847,12 +1043,14 @@ class FrameHelmTurnState {
           )
         : 0;
 
+
     const overchargeStart =
       speed *
       (
         1 +
         normalBoostCount
       );
+
 
     const overchargeBoostUsed =
       overchargeBoostCount > 0
@@ -866,14 +1064,17 @@ class FrameHelmTurnState {
           )
         : 0;
 
+
     const legalAllowanceCount =
       1 +
       normalBoostCount +
       overchargeBoostCount;
 
+
     const legalMaximum =
       speed *
       legalAllowanceCount;
+
 
     const excess =
       Math.max(
@@ -882,8 +1083,10 @@ class FrameHelmTurnState {
         0
       );
 
+
     let currentPoolUsed =
       standardUsed;
+
 
     if (
       normalBoostCount > 0 &&
@@ -893,15 +1096,16 @@ class FrameHelmTurnState {
         boostUsed;
     }
 
+
     if (
-      overchargeBoostCount >
-        0 &&
+      overchargeBoostCount > 0 &&
       total >
         overchargeStart
     ) {
       currentPoolUsed =
         overchargeBoostUsed;
     }
+
 
     if (
       excess > 0
@@ -910,21 +1114,27 @@ class FrameHelmTurnState {
         speed;
     }
 
+
     this.movement.standardUsed =
       standardUsed;
 
+
     this.movement.boostUsed =
       boostUsed;
+
 
     this.movement
       .overchargeBoostUsed =
       overchargeBoostUsed;
 
+
     this.movement.excess =
       excess;
 
+
     this.movement.spent =
       currentPoolUsed;
+
 
     this.movement.remaining =
       excess > 0
@@ -934,6 +1144,7 @@ class FrameHelmTurnState {
               currentPoolUsed,
             0
           );
+
 
     this.movement.completed =
       this.movement.remaining <=
@@ -952,10 +1163,12 @@ class FrameHelmTurnState {
   ) {
     this.assertTurnActive();
 
+
     const numericDistance =
       Number(
         distance
       );
+
 
     if (
       !Number.isFinite(
@@ -975,6 +1188,7 @@ class FrameHelmTurnState {
       };
     }
 
+
     if (
       this.hasProcessedMovementId(
         movementId
@@ -992,10 +1206,12 @@ class FrameHelmTurnState {
       };
     }
 
+
     const speed =
       Number(
         this.movement.maximum
       );
+
 
     if (
       !Number.isFinite(
@@ -1008,18 +1224,23 @@ class FrameHelmTurnState {
       );
     }
 
+
     const previousTotal =
       this.movement.totalTracked;
+
 
     const newTotal =
       previousTotal +
       numericDistance;
 
+
     const previousBoostCount =
       this.movementBoostCount();
 
+
     const automaticActions =
       [];
+
 
     if (
       newTotal > speed &&
@@ -1032,6 +1253,7 @@ class FrameHelmTurnState {
             false
         });
 
+
       automaticActions.push({
         threshold:
           speed,
@@ -1039,6 +1261,7 @@ class FrameHelmTurnState {
         ...result
       });
     }
+
 
     if (
       newTotal >
@@ -1052,6 +1275,7 @@ class FrameHelmTurnState {
             true
         });
 
+
       automaticActions.push({
         threshold:
           speed * 2,
@@ -1060,8 +1284,10 @@ class FrameHelmTurnState {
       });
     }
 
+
     this.movement.totalTracked =
       newTotal;
+
 
     this.movement.segments.push({
       distance:
@@ -1099,13 +1325,17 @@ class FrameHelmTurnState {
         Date.now()
     });
 
+
     this.rememberMovementId(
       movementId
     );
 
+
     this.closeProtocolWindow();
 
+
     this.recalculateTrackedMovement();
+
 
     this.recordHistory(
       "token-movement",
@@ -1128,6 +1358,7 @@ class FrameHelmTurnState {
           this.movement.excess
       }
     );
+
 
     return {
       tracked:
@@ -1160,6 +1391,10 @@ class FrameHelmTurnState {
   }
 
 
+  /* ==========================================================
+     Turn state -- Protocol
+     ========================================================== */
+
   closeProtocolWindow() {
     if (
       !this.protocol
@@ -1168,9 +1403,11 @@ class FrameHelmTurnState {
       return;
     }
 
+
     this.protocol
       .startOfTurnOpen =
       false;
+
 
     if (
       !this.protocol.used
@@ -1186,6 +1423,7 @@ class FrameHelmTurnState {
   ) {
     this.assertTurnActive();
 
+
     if (
       !this.protocol
         .startOfTurnOpen
@@ -1195,6 +1433,7 @@ class FrameHelmTurnState {
       );
     }
 
+
     if (
       this.protocol.used
     ) {
@@ -1203,11 +1442,14 @@ class FrameHelmTurnState {
       );
     }
 
+
     this.protocol.used =
       true;
 
+
     this.protocol.available =
       false;
+
 
     this.recordHistory(
       "use-protocol",
@@ -1218,6 +1460,10 @@ class FrameHelmTurnState {
   }
 
 
+  /* ==========================================================
+     Turn state -- Overcharge
+     ========================================================== */
+
   overchargeHeatFormula(
     overchargeCount = 0
   ) {
@@ -1227,17 +1473,20 @@ class FrameHelmTurnState {
       return "1";
     }
 
+
     if (
       overchargeCount === 1
     ) {
       return "1d3";
     }
 
+
     if (
       overchargeCount === 2
     ) {
       return "1d6";
     }
+
 
     return "1d6+4";
   }
@@ -1248,6 +1497,7 @@ class FrameHelmTurnState {
   } = {}) {
     this.assertTurnActive();
 
+
     if (
       this.overcharge.used
     ) {
@@ -1256,19 +1506,24 @@ class FrameHelmTurnState {
       );
     }
 
+
     this.overcharge.used =
       true;
+
 
     this.overcharge
       .quickActionRemaining =
       1;
+
 
     this.overcharge.heatFormula =
       this.overchargeHeatFormula(
         previousOvercharges
       );
 
+
     this.closeProtocolWindow();
+
 
     this.recordHistory(
       "overcharge",
@@ -1281,12 +1536,17 @@ class FrameHelmTurnState {
       }
     );
 
+
     return (
       this.overcharge
         .heatFormula
     );
   }
 
+
+  /* ==========================================================
+     Turn state -- Action legality
+     ========================================================== */
 
   actionDuplicateKey(
     action
@@ -1329,7 +1589,10 @@ class FrameHelmTurnState {
             )
         : actionOrId;
 
-    if (!action) {
+
+    if (
+      !action
+    ) {
       return {
         allowed:
           false,
@@ -1338,6 +1601,7 @@ class FrameHelmTurnState {
           "Unknown action."
       };
     }
+
 
     if (
       this.ended
@@ -1351,6 +1615,7 @@ class FrameHelmTurnState {
       };
     }
 
+
     if (
       action.id ===
       "special.end-turn"
@@ -1363,6 +1628,7 @@ class FrameHelmTurnState {
           null
       };
     }
+
 
     if (
       action.cost ===
@@ -1380,6 +1646,7 @@ class FrameHelmTurnState {
         };
       }
 
+
       if (
         this.movement.remaining ===
         0
@@ -1393,6 +1660,7 @@ class FrameHelmTurnState {
         };
       }
 
+
       return {
         allowed:
           true,
@@ -1401,6 +1669,7 @@ class FrameHelmTurnState {
           null
       };
     }
+
 
     if (
       action.cost ===
@@ -1418,6 +1687,7 @@ class FrameHelmTurnState {
         };
       }
 
+
       return {
         allowed:
           true,
@@ -1426,6 +1696,7 @@ class FrameHelmTurnState {
           null
       };
     }
+
 
     if (
       action.cost ===
@@ -1443,6 +1714,7 @@ class FrameHelmTurnState {
         };
       }
 
+
       if (
         this.actionMode ===
         "quick"
@@ -1456,6 +1728,7 @@ class FrameHelmTurnState {
         };
       }
 
+
       return {
         allowed:
           true,
@@ -1464,6 +1737,7 @@ class FrameHelmTurnState {
           null
       };
     }
+
 
     if (
       action.cost ===
@@ -1474,10 +1748,12 @@ class FrameHelmTurnState {
           action
         );
 
+
       const duplicateUsed =
         this.hasUsedDuplicateKey(
           duplicateKey
         );
+
 
       if (
         useOvercharge
@@ -1494,6 +1770,7 @@ class FrameHelmTurnState {
           };
         }
 
+
         if (
           this.overcharge
             .quickActionRemaining <
@@ -1508,6 +1785,7 @@ class FrameHelmTurnState {
           };
         }
 
+
         return {
           allowed:
             true,
@@ -1519,6 +1797,7 @@ class FrameHelmTurnState {
             "overcharge"
         };
       }
+
 
       if (
         this.actionMode ===
@@ -1533,6 +1812,7 @@ class FrameHelmTurnState {
         };
       }
 
+
       if (
         this.quickActionsRemaining <
         1
@@ -1545,6 +1825,7 @@ class FrameHelmTurnState {
             "No normal quick actions remain."
         };
       }
+
 
       if (
         duplicateUsed &&
@@ -1561,6 +1842,7 @@ class FrameHelmTurnState {
         };
       }
 
+
       return {
         allowed:
           true,
@@ -1572,6 +1854,7 @@ class FrameHelmTurnState {
           "normal"
       };
     }
+
 
     if (
       action.cost ===
@@ -1590,6 +1873,7 @@ class FrameHelmTurnState {
         };
       }
 
+
       return {
         allowed:
           true,
@@ -1598,6 +1882,7 @@ class FrameHelmTurnState {
           null
       };
     }
+
 
     return {
       allowed:
@@ -1608,6 +1893,10 @@ class FrameHelmTurnState {
     };
   }
 
+
+  /* ==========================================================
+     Turn state -- Action commitment
+     ========================================================== */
 
   useAction(
     actionOrId,
@@ -1626,6 +1915,7 @@ class FrameHelmTurnState {
             )
         : actionOrId;
 
+
     const permission =
       this.canUseAction(
         action,
@@ -1635,6 +1925,7 @@ class FrameHelmTurnState {
         }
       );
 
+
     if (
       !permission.allowed
     ) {
@@ -1643,16 +1934,19 @@ class FrameHelmTurnState {
       );
     }
 
+
     if (
       action.id ===
       "special.end-turn"
     ) {
       this.endTurn();
 
+
       return (
         this.snapshot()
       );
     }
+
 
     if (
       action.cost ===
@@ -1662,10 +1956,12 @@ class FrameHelmTurnState {
         metadata
       );
 
+
       return (
         this.snapshot()
       );
     }
+
 
     if (
       action.cost ===
@@ -1681,13 +1977,16 @@ class FrameHelmTurnState {
         this.actionMode =
           "quick";
 
+
         this.quickActionsRemaining -=
           1;
+
 
         this.fullActionAvailable =
           false;
       }
     }
+
 
     if (
       action.cost ===
@@ -1696,12 +1995,15 @@ class FrameHelmTurnState {
       this.actionMode =
         "full";
 
+
       this.fullActionAvailable =
         false;
+
 
       this.quickActionsRemaining =
         0;
     }
+
 
     if (
       action.cost ===
@@ -1710,9 +2012,11 @@ class FrameHelmTurnState {
       this.reaction.usedThisTurn =
         true;
 
+
       this.reaction.actionId =
         action.id;
     }
+
 
     if (
       action.cost !==
@@ -1721,10 +2025,12 @@ class FrameHelmTurnState {
       this.closeProtocolWindow();
     }
 
+
     const duplicateKey =
       this.actionDuplicateKey(
         action
       );
+
 
     this.usedActions.push({
       id:
@@ -1757,6 +2063,7 @@ class FrameHelmTurnState {
       }
     });
 
+
     if (
       duplicateKey &&
       !this.usedDuplicateKeys
@@ -1768,6 +2075,7 @@ class FrameHelmTurnState {
         duplicateKey
       );
     }
+
 
     this.recordHistory(
       "use-action",
@@ -1783,6 +2091,7 @@ class FrameHelmTurnState {
             : "normal"
       }
     );
+
 
     return (
       this.snapshot()
@@ -1804,22 +2113,29 @@ class FrameHelmTurnState {
         }
       );
 
-    if (!entry) {
+
+    if (
+      !entry
+    ) {
       throw new Error(
         "The committed action could not be found."
       );
     }
 
+
     entry.executed =
       true;
 
+
     entry.executedAt =
       Date.now();
+
 
     entry.executionMetadata = {
       ...entry.executionMetadata,
       ...executionMetadata
     };
+
 
     this.recordHistory(
       "execute-action",
@@ -1835,6 +2151,7 @@ class FrameHelmTurnState {
       }
     );
 
+
     return entry;
   }
 
@@ -1843,10 +2160,15 @@ class FrameHelmTurnState {
     this.reaction.usedThisTurn =
       false;
 
+
     this.reaction.actionId =
       null;
   }
 
+
+  /* ==========================================================
+     Turn state -- Lifecycle
+     ========================================================== */
 
   endTurn() {
     if (
@@ -1855,18 +2177,23 @@ class FrameHelmTurnState {
       return;
     }
 
+
     this.ended =
       true;
+
 
     this.endedAt =
       Date.now();
 
+
     this.protocol.available =
       false;
+
 
     this.protocol
       .startOfTurnOpen =
       false;
+
 
     this.recordHistory(
       "end-turn",
@@ -1885,6 +2212,10 @@ class FrameHelmTurnState {
     }
   }
 
+
+  /* ==========================================================
+     Turn state -- History and snapshot
+     ========================================================== */
 
   recordHistory(
     type,
@@ -1980,6 +2311,10 @@ class FrameHelmTurnState {
 }
 
 
+/* ============================================================
+   Turn state manager
+   ============================================================ */
+
 class FrameHelmTurnStateManager {
   constructor() {
     this.current =
@@ -1995,12 +2330,15 @@ class FrameHelmTurnStateManager {
         context
       );
 
+
     console.log(
       `${MODULE_TITLE} | Began turn state.`,
       this.current.snapshot()
     );
 
+
     this.renderApplication();
+
 
     return (
       this.current
@@ -2022,6 +2360,7 @@ class FrameHelmTurnStateManager {
       );
     }
 
+
     return (
       this.current
     );
@@ -2035,9 +2374,12 @@ class FrameHelmTurnStateManager {
       return null;
     }
 
+
     this.current.endTurn();
 
+
     this.renderApplication();
+
 
     return (
       this.current.snapshot()
@@ -2048,6 +2390,7 @@ class FrameHelmTurnStateManager {
   clear() {
     this.current =
       null;
+
 
     this.renderApplication();
   }
@@ -2062,15 +2405,14 @@ class FrameHelmTurnStateManager {
   }
 
 
+  /**
+   * Application rendering is now delegated to the registered
+   * Application UI feature.
+   */
   renderApplication() {
-    if (
-      frameHelmApplication
-        ?.rendered
-    ) {
-      frameHelmApplication.render(
-        false
-      );
-    }
+    renderFrameHelmApplication(
+      false
+    );
   }
 }
 
@@ -2079,6 +2421,10 @@ const frameHelmTurnState =
   new FrameHelmTurnStateManager();
 
 
+/* ============================================================
+   Combat turn context
+   ============================================================ */
+
 function activeCombatTurnContext(
   combat = game.combat
 ) {
@@ -2086,18 +2432,22 @@ function activeCombatTurnContext(
     combat?.combatant ??
     null;
 
+
   const tokenDocument =
     combatant?.token ??
     null;
+
 
   const actor =
     combatant?.actor ??
     null;
 
+
   const numericSpeed =
     Number(
       actor?.system?.speed
     );
+
 
   return {
     combatId:
@@ -2155,18 +2505,22 @@ function syncTurnStateToCombat(
   ) {
     frameHelmTurnState.clear();
 
+
     return null;
   }
+
 
   const context =
     activeCombatTurnContext(
       combat
     );
 
+
   const currentContext =
     frameHelmTurnState
       .current
       ?.context;
+
 
   const isSameTurn =
     Boolean(
@@ -2181,6 +2535,7 @@ function syncTurnStateToCombat(
         context.turn
     );
 
+
   if (
     isSameTurn
   ) {
@@ -2188,6 +2543,7 @@ function syncTurnStateToCombat(
       frameHelmTurnState.current
     );
   }
+
 
   return (
     frameHelmTurnState.beginTurn(
@@ -2197,84 +2553,9 @@ function syncTurnStateToCombat(
 }
 
 
-/* ==========================================================
-   Frame Helm application
-   ========================================================== */
-
-/*
- * FrameHelmApplication remains unchanged.
- *
- * Keep the complete FrameHelmApplication class from the current
- * file here exactly as-is.
- *
- * The class may continue consuming:
- *
- *   frameHelmActionRegistry
- *
- * exactly as before.
- *
- * That local identifier now resolves to the Actions feature's
- * registered API rather than a registry implemented by this file.
- */
-
-
-/*
- * [KEEP THE EXISTING FrameHelmApplication CLASS HERE VERBATIM]
- */
-
-
-/* ==========================================================
-   Frame Helm application instance
-   ========================================================== */
-
-let frameHelmApplication =
-  null;
-
-
-function getFrameHelmApplication() {
-  if (
-    !frameHelmApplication
-  ) {
-    frameHelmApplication =
-      new FrameHelmApplication();
-  }
-
-  return (
-    frameHelmApplication
-  );
-}
-
-
-function openFrameHelm() {
-  if (
-    !game.settings.get(
-      MODULE_ID,
-      "enabled"
-    )
-  ) {
-    ui.notifications.warn(
-      `${MODULE_TITLE} is currently disabled.`
-    );
-
-    return;
-  }
-
-  getFrameHelmApplication()
-    .render(
-      true
-    );
-}
-
-
-function closeFrameHelm() {
-  frameHelmApplication
-    ?.close();
-}
-
-
-/* ==========================================================
+/* ============================================================
    Settings
-   ========================================================== */
+   ============================================================ */
 
 function registerSettings() {
   game.settings.register(
@@ -2315,9 +2596,9 @@ function registerSettings() {
 }
 
 
-/* ==========================================================
-   Scene control button
-   ========================================================== */
+/* ============================================================
+   Scene control integration
+   ============================================================ */
 
 function addFrameHelmControlButton(
   controls
@@ -2331,10 +2612,7 @@ function addFrameHelmControlButton(
     return;
   }
 
-  /*
-   * Foundry v13 supplies Scene Controls as a keyed record.
-   * Older Foundry versions supplied an array. Support both.
-   */
+
   const tokenControls =
     Array.isArray(
       controls
@@ -2348,6 +2626,7 @@ function addFrameHelmControlButton(
         controls?.token ??
         null;
 
+
   if (
     !tokenControls
   ) {
@@ -2356,8 +2635,10 @@ function addFrameHelmControlButton(
       controls
     );
 
+
     return;
   }
+
 
   const tool = {
     name:
@@ -2379,6 +2660,7 @@ function addFrameHelmControlButton(
       openFrameHelm
   };
 
+
   if (
     Array.isArray(
       tokenControls.tools
@@ -2391,6 +2673,7 @@ function addFrameHelmControlButton(
           "lancer-frame-helm"
       );
 
+
     if (
       !alreadyExists
     ) {
@@ -2399,11 +2682,14 @@ function addFrameHelmControlButton(
       );
     }
 
+
     return;
   }
 
+
   tokenControls.tools ??=
     {};
+
 
   if (
     !tokenControls.tools[
@@ -2417,9 +2703,9 @@ function addFrameHelmControlButton(
 }
 
 
-/* ==========================================================
+/* ============================================================
    Foundry lifecycle
-   ========================================================== */
+   ============================================================ */
 
 Hooks.once(
   "init",
@@ -2428,32 +2714,31 @@ Hooks.once(
       `${MODULE_TITLE} | Initializing.`
     );
 
+
     registerSettings();
 
-    /*
-     * Action catalog implementation now belongs entirely to
-     * actions-feature.js.
-     *
-     * The runtime keeps responsibility for choosing the Foundry
-     * startup boundary at which that synchronous initialization
-     * occurs.
+
+    /**
+     * Actions retain synchronous catalog initialization during
+     * the current migration.
      */
     initializeFrameHelmActionRegistry();
 
-    /*
-     * Extracted feature domains have already been registered by
-     * feature-registry.js.
+
+    /**
+     * Application UI, Sensors, Actions, and future features have
+     * already been registered by feature-registry.js.
      */
     frameHelmFeatureRegistry
       .validateDependencies();
 
-    /*
-     * Install Foundry hooks declared by extracted features.
+
+    /**
+     * Feature-owned hooks, including Application UI hooks, are
+     * installed through the canonical registry.
      */
     frameHelmFeatureRegistry
       .installHooks();
-
-    installFrameHelmRuntimeStyles();
   }
 );
 
@@ -2468,26 +2753,26 @@ Hooks.once(
       close:
         closeFrameHelm,
 
+
+      /**
+       * Application ownership now belongs to application-ui.
+       */
       get application() {
         return (
-          getFrameHelmApplication()
+          frameHelmApplicationApi
+            .getApplication?.() ??
+          null
         );
       },
 
-      /*
-       * Preserve the established action-registry public surface.
-       *
-       * Its implementation is now owned by actions-feature.js.
-       */
+
       registry:
         frameHelmActionRegistry,
 
-      /*
-       * Expose the feature spine separately from the action
-       * registry.
-       */
+
       features:
         frameHelmFeatureRegistry,
+
 
       turn: {
         begin:
@@ -2500,6 +2785,7 @@ Hooks.once(
             );
           },
 
+
         ensure:
           context => {
             return (
@@ -2510,6 +2796,7 @@ Hooks.once(
             );
           },
 
+
         end:
           () => {
             return (
@@ -2518,6 +2805,7 @@ Hooks.once(
             );
           },
 
+
         clear:
           () => {
             return (
@@ -2525,6 +2813,7 @@ Hooks.once(
                 .clear()
             );
           },
+
 
         sync:
           combat => {
@@ -2535,6 +2824,7 @@ Hooks.once(
             );
           },
 
+
         get current() {
           return (
             frameHelmTurnState
@@ -2542,12 +2832,14 @@ Hooks.once(
           );
         },
 
+
         get state() {
           return (
             frameHelmTurnState
               .snapshot()
           );
         },
+
 
         canUse:
           (
@@ -2564,6 +2856,7 @@ Hooks.once(
             );
           },
 
+
         use:
           (
             actionId,
@@ -2577,11 +2870,14 @@ Hooks.once(
                   options
                 );
 
+
             frameHelmTurnState
               .renderApplication();
 
+
             return result;
           },
+
 
         move:
           distance => {
@@ -2592,11 +2888,14 @@ Hooks.once(
                   distance
                 );
 
+
             frameHelmTurnState
               .renderApplication();
 
+
             return result;
           },
+
 
         setSpeed:
           speed => {
@@ -2607,11 +2906,14 @@ Hooks.once(
                   speed
                 );
 
+
             frameHelmTurnState
               .renderApplication();
 
+
             return result;
           },
+
 
         overcharge:
           options => {
@@ -2622,93 +2924,79 @@ Hooks.once(
                   options
                 );
 
+
             frameHelmTurnState
               .renderApplication();
+
 
             return result;
           }
       },
 
-      /*
-       * Preserve the existing convenience action API.
-       *
-       * These calls now delegate into the Actions feature-owned
-       * registry.
-       */
+
       actions: {
         get:
-          id => {
-            return (
-              frameHelmActionRegistry
-                .get(
-                  id
-                )
-            );
-          },
+          id =>
+            frameHelmActionRegistry
+              .get(
+                id
+              ),
+
 
         list:
-          options => {
-            return (
-              frameHelmActionRegistry
-                .list(
-                  options
-                )
-            );
-          },
+          options =>
+            frameHelmActionRegistry
+              .list(
+                options
+              ),
+
 
         roots:
           (
             category,
             options
-          ) => {
-            return (
-              frameHelmActionRegistry
-                .roots(
-                  category,
-                  options
-                )
-            );
-          },
+          ) =>
+            frameHelmActionRegistry
+              .roots(
+                category,
+                options
+              ),
+
 
         childrenOf:
           (
             parentId,
             options
-          ) => {
-            return (
-              frameHelmActionRegistry
-                .childrenOf(
-                  parentId,
-                  options
-                )
-            );
-          },
+          ) =>
+            frameHelmActionRegistry
+              .childrenOf(
+                parentId,
+                options
+              ),
+
 
         categories:
-          options => {
-            return (
-              frameHelmActionRegistry
-                .listCategories(
-                  options
-                )
-            );
-          },
+          options =>
+            frameHelmActionRegistry
+              .listCategories(
+                options
+              ),
+
 
         register:
-          action => {
-            return (
-              frameHelmActionRegistry
-                .register(
-                  action
-                )
-            );
-          }
+          action =>
+            frameHelmActionRegistry
+              .register(
+                action
+              )
       }
     };
+
 
     syncTurnStateToCombat(
       game.combat
     );
+
 
     console.log(
       `${MODULE_TITLE} | Ready.`
@@ -2717,238 +3005,19 @@ Hooks.once(
 );
 
 
+/* ============================================================
+   Foundry scene-control hooks
+   ============================================================ */
+
 Hooks.on(
   "getSceneControlButtons",
   addFrameHelmControlButton
 );
 
 
-Hooks.on(
-  "controlToken",
-  () => {
-    if (
-      frameHelmApplication
-        ?.rendered
-    ) {
-      frameHelmApplication.render(
-        false
-      );
-    }
-  }
-);
-
-
-Hooks.on(
-  "deleteToken",
-  () => {
-    if (
-      frameHelmApplication
-        ?.rendered
-    ) {
-      frameHelmApplication.render(
-        false
-      );
-    }
-  }
-);
-
-
-/* ==========================================================
-   Live Lancer actor synchronization
-   ========================================================== */
-
-function displayedFrameHelmToken() {
-  return (
-    frameHelmApplication
-      ?.getControlledToken?.() ??
-    null
-  );
-}
-
-
-function frameHelmDisplaysActor(
-  actor
-) {
-  if (
-    !actor ||
-    !frameHelmApplication
-      ?.rendered
-  ) {
-    return false;
-  }
-
-  const displayedActor =
-    displayedFrameHelmToken()
-      ?.actor ??
-    null;
-
-  if (
-    !displayedActor
-  ) {
-    return false;
-  }
-
-  return Boolean(
-    displayedActor ===
-      actor ||
-    (
-      displayedActor.uuid &&
-      actor.uuid &&
-      displayedActor.uuid ===
-        actor.uuid
-    ) ||
-    (
-      displayedActor.id &&
-      actor.id &&
-      displayedActor.id ===
-        actor.id
-    )
-  );
-}
-
-
-function refreshFrameHelmTelemetry() {
-  if (
-    !frameHelmApplication
-      ?.rendered
-  ) {
-    return;
-  }
-
-  const token =
-    displayedFrameHelmToken();
-
-  frameHelmApplication
-    .synchronizeTurnSpeed(
-      token
-    );
-
-  frameHelmApplication.render(
-    false
-  );
-}
-
-
-Hooks.on(
-  "updateActor",
-  actor => {
-    if (
-      frameHelmDisplaysActor(
-        actor
-      )
-    ) {
-      refreshFrameHelmTelemetry();
-    }
-  }
-);
-
-
-Hooks.on(
-  "updateToken",
-  tokenDocument => {
-    if (
-      !frameHelmApplication
-        ?.rendered
-    ) {
-      return;
-    }
-
-    const displayedToken =
-      displayedFrameHelmToken();
-
-    const displayedTokenId =
-      displayedToken?.id ??
-      displayedToken
-        ?.document
-        ?.id ??
-      null;
-
-    if (
-      displayedTokenId ===
-      tokenDocument.id
-    ) {
-      refreshFrameHelmTelemetry();
-    }
-  }
-);
-
-
-Hooks.on(
-  "updateActorDelta",
-  actorDelta => {
-    if (
-      !frameHelmApplication
-        ?.rendered
-    ) {
-      return;
-    }
-
-    const displayedTokenDocument =
-      displayedFrameHelmToken()
-        ?.document ??
-      null;
-
-    const deltaParent =
-      actorDelta?.parent ??
-      null;
-
-    if (
-      displayedTokenDocument &&
-      deltaParent &&
-      displayedTokenDocument.id ===
-        deltaParent.id
-    ) {
-      refreshFrameHelmTelemetry();
-    }
-  }
-);
-
-
-Hooks.on(
-  "updateItem",
-  item => {
-    if (
-      frameHelmDisplaysActor(
-        item?.parent
-      )
-    ) {
-      refreshFrameHelmTelemetry();
-    }
-  }
-);
-
-
-Hooks.on(
-  "createItem",
-  item => {
-    if (
-      frameHelmDisplaysActor(
-        item?.parent
-      )
-    ) {
-      refreshFrameHelmTelemetry();
-    }
-  }
-);
-
-
-Hooks.on(
-  "deleteItem",
-  item => {
-    if (
-      frameHelmDisplaysActor(
-        item?.parent
-      )
-    ) {
-      refreshFrameHelmTelemetry();
-    }
-  }
-);
-
-
-/* ==========================================================
+/* ============================================================
    Combat turn synchronization
-   ========================================================== */
+   ============================================================ */
 
 Hooks.on(
   "combatStart",
@@ -2973,6 +3042,7 @@ Hooks.on(
           "turn"
         );
 
+
     const roundChanged =
       Object.prototype
         .hasOwnProperty.call(
@@ -2980,12 +3050,14 @@ Hooks.on(
           "round"
         );
 
+
     const activeChanged =
       Object.prototype
         .hasOwnProperty.call(
           changes,
           "active"
         );
+
 
     if (
       turnChanged ||
@@ -3010,15 +3082,16 @@ Hooks.on(
         ?.combatId ===
       combat.id
     ) {
-      frameHelmTurnState.clear();
+      frameHelmTurnState
+        .clear();
     }
   }
 );
 
 
-/* ==========================================================
+/* ============================================================
    Dragged token movement tracking
-   ========================================================== */
+   ============================================================ */
 
 function frameHelmMovementTokenMatches(
   tokenDocument,
@@ -3033,9 +3106,11 @@ function frameHelmMovementTokenMatches(
     return false;
   }
 
+
   const context =
     state.context ??
     {};
+
 
   const tokenMatches =
     Boolean(
@@ -3044,10 +3119,12 @@ function frameHelmMovementTokenMatches(
         tokenDocument.id
     );
 
+
   const actorId =
     tokenDocument.actor?.id ??
     tokenDocument.actorId ??
     null;
+
 
   const actorMatches =
     Boolean(
@@ -3056,6 +3133,7 @@ function frameHelmMovementTokenMatches(
       context.actorId ===
         actorId
     );
+
 
   return (
     tokenMatches ||
@@ -3073,15 +3151,18 @@ function frameHelmPoint(
     return null;
   }
 
+
   const x =
     Number(
       point.x
     );
 
+
   const y =
     Number(
       point.y
     );
+
 
   if (
     !Number.isFinite(
@@ -3093,6 +3174,7 @@ function frameHelmPoint(
   ) {
     return null;
   }
+
 
   return {
     x,
@@ -3118,6 +3200,7 @@ function frameHelmCollectMovementPoints(
   const points =
     [];
 
+
   const addPoint =
     point => {
       const normalized =
@@ -3125,16 +3208,19 @@ function frameHelmCollectMovementPoints(
           point
         );
 
+
       if (
         !normalized
       ) {
         return;
       }
 
+
       const previous =
         points.at(
           -1
         );
+
 
       if (
         previous &&
@@ -3146,14 +3232,17 @@ function frameHelmCollectMovementPoints(
         return;
       }
 
+
       points.push(
         normalized
       );
     };
 
+
   addPoint(
     movement?.origin
   );
+
 
   const waypointSources = [
     movement?.passed
@@ -3168,6 +3257,7 @@ function frameHelmCollectMovementPoints(
     movement?.waypoints
   ];
 
+
   for (
     const source
     of waypointSources
@@ -3180,6 +3270,7 @@ function frameHelmCollectMovementPoints(
       continue;
     }
 
+
     for (
       const waypoint
       of source
@@ -3190,9 +3281,11 @@ function frameHelmCollectMovementPoints(
     }
   }
 
+
   addPoint(
     movement?.destination
   );
+
 
   return points;
 }
@@ -3220,6 +3313,7 @@ function frameHelmNumericMovementDistance(
       ?.cost
   ];
 
+
   for (
     const candidate
     of candidates
@@ -3228,6 +3322,7 @@ function frameHelmNumericMovementDistance(
       Number(
         candidate
       );
+
 
     if (
       Number.isFinite(
@@ -3238,6 +3333,7 @@ function frameHelmNumericMovementDistance(
       return numeric;
     }
   }
+
 
   const measurementSources = [
     movement?.pending
@@ -3250,6 +3346,7 @@ function frameHelmNumericMovementDistance(
       ?.measurements
   ];
 
+
   for (
     const measurements
     of measurementSources
@@ -3261,6 +3358,7 @@ function frameHelmNumericMovementDistance(
     ) {
       continue;
     }
+
 
     const total =
       measurements.reduce(
@@ -3277,6 +3375,7 @@ function frameHelmNumericMovementDistance(
               0
             );
 
+
           return (
             sum +
             (
@@ -3291,12 +3390,14 @@ function frameHelmNumericMovementDistance(
         0
       );
 
+
     if (
       total > 0
     ) {
       return total;
     }
   }
+
 
   return null;
 }
@@ -3311,6 +3412,7 @@ function frameHelmMeasureMovementPath(
       movement
     );
 
+
   const sceneGridDistance =
     Number(
       tokenDocument
@@ -3323,6 +3425,7 @@ function frameHelmMeasureMovementPath(
       1
     );
 
+
   const normalizeSceneDistance =
     distance => {
       if (
@@ -3333,12 +3436,12 @@ function frameHelmMeasureMovementPath(
         return null;
       }
 
+
       if (
         Number.isFinite(
           sceneGridDistance
         ) &&
-        sceneGridDistance >
-          0
+        sceneGridDistance > 0
       ) {
         return (
           distance /
@@ -3346,8 +3449,10 @@ function frameHelmMeasureMovementPath(
         );
       }
 
+
       return distance;
     };
+
 
   if (
     directDistance !==
@@ -3360,17 +3465,19 @@ function frameHelmMeasureMovementPath(
     );
   }
 
+
   const points =
     frameHelmCollectMovementPoints(
       movement
     );
 
+
   if (
-    points.length <
-    2
+    points.length < 2
   ) {
     return 0;
   }
+
 
   try {
     const measured =
@@ -3384,18 +3491,19 @@ function frameHelmMeasureMovementPath(
           }
         );
 
+
     const measuredDistance =
       Number(
         measured?.cost ??
         measured?.distance
       );
 
+
     if (
       Number.isFinite(
         measuredDistance
       ) &&
-      measuredDistance >
-        0
+      measuredDistance > 0
     ) {
       return (
         normalizeSceneDistance(
@@ -3410,6 +3518,7 @@ function frameHelmMeasureMovementPath(
     );
   }
 
+
   const gridSize =
     Number(
       canvas
@@ -3422,8 +3531,10 @@ function frameHelmMeasureMovementPath(
       100
     );
 
+
   let pixelDistance =
     0;
+
 
   for (
     let index = 1;
@@ -3435,10 +3546,12 @@ function frameHelmMeasureMovementPath(
         index - 1
       ];
 
+
     const current =
       points[
         index
       ];
+
 
     pixelDistance +=
       Math.hypot(
@@ -3450,6 +3563,7 @@ function frameHelmMeasureMovementPath(
       );
   }
 
+
   if (
     !Number.isFinite(
       gridSize
@@ -3458,6 +3572,7 @@ function frameHelmMeasureMovementPath(
   ) {
     return 0;
   }
+
 
   return (
     pixelDistance /
@@ -3474,6 +3589,7 @@ function frameHelmRoundMovementDistance(
       distance
     );
 
+
   if (
     !Number.isFinite(
       numeric
@@ -3483,12 +3599,64 @@ function frameHelmRoundMovementDistance(
     return 0;
   }
 
+
   return (
     Math.round(
       numeric *
       100
     ) / 100
   );
+}
+
+
+function notifyAutomaticMovementActions(
+  result
+) {
+  for (
+    const automaticAction
+    of (
+      result
+        .automaticActions ??
+      []
+    )
+  ) {
+    if (
+      !automaticAction
+        .committed
+    ) {
+      ui.notifications.warn(
+        `Frame Helm tracked movement beyond the current allowance, but could not automatically commit Boost: ${automaticAction.reason ?? "no legal action budget remains"}.`
+      );
+
+
+      continue;
+    }
+
+
+    if (
+      automaticAction
+        .source ===
+        "overcharge" &&
+      automaticAction
+        .triggeredOvercharge
+    ) {
+      ui.notifications.warn(
+        `Movement triggered Overcharge Boost. Apply ${automaticAction.heatFormula ?? "the current Overcharge cost"} Heat.`
+      );
+    } else if (
+      automaticAction
+        .source ===
+      "overcharge"
+    ) {
+      ui.notifications.info(
+        "Movement automatically spent the available Overcharge action on Boost."
+      );
+    } else {
+      ui.notifications.info(
+        "Movement exceeded Speed. Boost was automatically committed."
+      );
+    }
+  }
 }
 
 
@@ -3501,6 +3669,7 @@ Hooks.on(
     const state =
       frameHelmTurnState.current;
 
+
     if (
       !frameHelmMovementTokenMatches(
         tokenDocument,
@@ -3510,6 +3679,7 @@ Hooks.on(
       return;
     }
 
+
     const distance =
       frameHelmRoundMovementDistance(
         frameHelmMeasureMovementPath(
@@ -3518,11 +3688,13 @@ Hooks.on(
         )
       );
 
+
     if (
       distance <= 0
     ) {
       return;
     }
+
 
     try {
       const result =
@@ -3550,64 +3722,27 @@ Hooks.on(
           }
         );
 
+
       if (
         !result.tracked
       ) {
         return;
       }
 
-      for (
-        const automaticAction
-        of (
-          result
-            .automaticActions ??
-          []
-        )
-      ) {
-        if (
-          !automaticAction
-            .committed
-        ) {
-          ui.notifications.warn(
-            `Frame Helm tracked movement beyond the current allowance, but could not automatically commit Boost: ${automaticAction.reason ?? "no legal action budget remains"}.`
-          );
 
-          continue;
-        }
+      notifyAutomaticMovementActions(
+        result
+      );
 
-        if (
-          automaticAction
-            .source ===
-            "overcharge" &&
-          automaticAction
-            .triggeredOvercharge
-        ) {
-          ui.notifications.warn(
-            `Movement triggered Overcharge Boost. Apply ${automaticAction.heatFormula ?? "the current Overcharge cost"} Heat.`
-          );
-        } else if (
-          automaticAction
-            .source ===
-          "overcharge"
-        ) {
-          ui.notifications.info(
-            "Movement automatically spent the available Overcharge action on Boost."
-          );
-        } else {
-          ui.notifications.info(
-            "Movement exceeded Speed. Boost was automatically committed."
-          );
-        }
-      }
 
       if (
-        result.excess >
-        0
+        result.excess > 0
       ) {
         ui.notifications.warn(
           `Frame Helm recorded ${result.excess} excess movement beyond the currently legal movement allowance. The token was not stopped.`
         );
       }
+
 
       frameHelmTurnState
         .renderApplication();
@@ -3617,6 +3752,7 @@ Hooks.on(
         error
       );
 
+
       ui.notifications.warn(
         `Frame Helm could not track this movement: ${error.message}`
       );
@@ -3625,16 +3761,15 @@ Hooks.on(
 );
 
 
-/* ==========================================================
+/* ============================================================
    Universal action execution
-   ========================================================== */
+   ============================================================ */
 
 /**
- * Action definitions and the action registry have been extracted,
- * but execution against the Lancer actor API remains part of the
- * runtime for now.
+ * This is not application UI ownership.
  *
- * This is a separate future extraction candidate.
+ * It remains here until Action Execution becomes its own
+ * registered feature.
  */
 
 const FRAME_HELM_NO_ROLL_ACTIONS =
@@ -3669,12 +3804,14 @@ function frameHelmActionExecutionKind(
     return null;
   }
 
+
   if (
     action.metadata
       ?.statPath
   ) {
     return "stat";
   }
+
 
   if (
     [
@@ -3691,6 +3828,7 @@ function frameHelmActionExecutionKind(
     return "basic-attack";
   }
 
+
   if (
     [
       "quick.quick-tech.invade",
@@ -3699,10 +3837,9 @@ function frameHelmActionExecutionKind(
       action.id
     )
   ) {
-    return (
-      "basic-tech-attack"
-    );
+    return "basic-tech-attack";
   }
+
 
   if (
     action.id ===
@@ -3711,6 +3848,7 @@ function frameHelmActionExecutionKind(
     return "scan";
   }
 
+
   if (
     action.id ===
     "full.stabilize"
@@ -3718,12 +3856,14 @@ function frameHelmActionExecutionKind(
     return "stabilize";
   }
 
+
   if (
     action.id ===
     "special.overcharge"
   ) {
     return "overcharge";
   }
+
 
   return "choose-stat";
 }
@@ -3739,19 +3879,23 @@ function frameHelmChooseMechStat(
           "hull",
           "HULL"
         ],
+
         [
           "agi",
           "AGI"
         ],
+
         [
           "sys",
           "SYS"
         ],
+
         [
           "eng",
           "ENG"
         ]
       ];
+
 
       const buttons =
         Object.fromEntries(
@@ -3781,6 +3925,7 @@ function frameHelmChooseMechStat(
             }
           )
         );
+
 
       new Dialog({
         title:
@@ -3817,6 +3962,7 @@ async function frameHelmExecuteActionRoll(
       action
     );
 
+
   if (
     !kind
   ) {
@@ -3824,6 +3970,7 @@ async function frameHelmExecuteActionRoll(
       "This action does not require a dice or sheet workflow."
     );
   }
+
 
   if (
     kind ===
@@ -3841,6 +3988,7 @@ async function frameHelmExecuteActionRoll(
     );
   }
 
+
   if (
     kind ===
     "basic-attack"
@@ -3851,6 +3999,7 @@ async function frameHelmExecuteActionRoll(
       )
     );
   }
+
 
   if (
     kind ===
@@ -3863,6 +4012,7 @@ async function frameHelmExecuteActionRoll(
     );
   }
 
+
   if (
     kind ===
     "scan"
@@ -3871,6 +4021,7 @@ async function frameHelmExecuteActionRoll(
       actor.beginScanFlow()
     );
   }
+
 
   if (
     kind ===
@@ -3881,6 +4032,7 @@ async function frameHelmExecuteActionRoll(
     );
   }
 
+
   if (
     kind ===
     "overcharge"
@@ -3890,10 +4042,12 @@ async function frameHelmExecuteActionRoll(
     );
   }
 
+
   const selectedStat =
     await frameHelmChooseMechStat(
       action
     );
+
 
   if (
     !selectedStat
@@ -3902,6 +4056,7 @@ async function frameHelmExecuteActionRoll(
       "Mech skill selection was cancelled."
     );
   }
+
 
   return (
     actor.beginStatFlow(
@@ -3913,9 +4068,9 @@ async function frameHelmExecuteActionRoll(
 }
 
 
-/* ==========================================================
+/* ============================================================
    Elevation movement tracking
-   ========================================================== */
+   ============================================================ */
 
 const frameHelmElevationOrigins =
   new Map();
@@ -3947,6 +4102,7 @@ Hooks.on(
       return;
     }
 
+
     frameHelmElevationOrigins.set(
       frameHelmElevationKey(
         tokenDocument
@@ -3976,8 +4132,10 @@ Hooks.on(
       return;
     }
 
+
     const state =
       frameHelmTurnState.current;
+
 
     if (
       !frameHelmMovementTokenMatches(
@@ -3988,24 +4146,29 @@ Hooks.on(
       return;
     }
 
+
     const key =
       frameHelmElevationKey(
         tokenDocument
       );
+
 
     const previousElevation =
       frameHelmElevationOrigins.get(
         key
       );
 
+
     frameHelmElevationOrigins.delete(
       key
     );
+
 
     const nextElevation =
       Number(
         changes.elevation
       );
+
 
     if (
       !Number.isFinite(
@@ -4017,6 +4180,7 @@ Hooks.on(
     ) {
       return;
     }
+
 
     const sceneDistance =
       Number(
@@ -4030,11 +4194,13 @@ Hooks.on(
         1
       );
 
+
     const elevationDistance =
       Math.abs(
         nextElevation -
           previousElevation
       );
+
 
     const movementSpaces =
       Number.isFinite(
@@ -4045,16 +4211,19 @@ Hooks.on(
           sceneDistance
         : elevationDistance;
 
+
     const distance =
       frameHelmRoundMovementDistance(
         movementSpaces
       );
+
 
     if (
       distance <= 0
     ) {
       return;
     }
+
 
     try {
       const result =
@@ -4099,24 +4268,27 @@ Hooks.on(
           }
         );
 
+
       if (
         !result.tracked
       ) {
         return;
       }
 
+
       ui.notifications.info(
         `Elevation changed by ${distance} space(s); Frame Helm recorded it as movement.`
       );
 
+
       if (
-        result.excess >
-        0
+        result.excess > 0
       ) {
         ui.notifications.warn(
           `Frame Helm recorded ${result.excess} excess movement beyond the currently legal movement allowance.`
         );
       }
+
 
       frameHelmTurnState
         .renderApplication();
@@ -4126,6 +4298,7 @@ Hooks.on(
         error
       );
 
+
       ui.notifications.warn(
         `Frame Helm could not track the elevation change: ${error.message}`
       );
@@ -4134,44 +4307,56 @@ Hooks.on(
 );
 
 
-/* ==========================================================
+/* ============================================================
    Extracted feature domains
-   ========================================================== */
+   ============================================================ */
 
 /**
- * The following feature domains no longer have implementations
- * inside this file:
+ * ACTIONS
  *
- *   ACTIONS
+ *   scripts/actions-feature.js
  *
- *     scripts/actions-feature.js
+ * Owns:
+ *   - Action registry implementation
+ *   - Action categories
+ *   - Universal actions
+ *   - Catalog initialization
  *
- *     Owns:
- *       - FrameHelmActionRegistry
- *       - canonical action registry instance
- *       - universal action categories
- *       - universal action declarations
- *       - action-catalog initialization
  *
- *   SENSORS
+ * SENSORS
  *
- *     scripts/sensors-feature.js
+ *   scripts/sensors-feature.js
  *
- *     Owns:
- *       - sensor contacts
- *       - sensor-source resolution
- *       - sensor-distance measurement
- *       - sensor PIXI overlay lifecycle
- *       - sensor-specific Foundry hooks
+ * Owns:
+ *   - Sensor contacts
+ *   - Sensor-source resolution
+ *   - Sensor measurement
+ *   - Sensor overlay behavior
+ *   - Sensor hooks
  *
- * Both features are imported and canonically registered by:
+ *
+ * APPLICATION UI
+ *
+ *   styles/ui-application.js
+ *
+ * Owns:
+ *   - FrameHelmApplication
+ *   - Application singleton
+ *   - Application open/close behavior
+ *   - Main UI rendering
+ *   - Controlled-token UI access
+ *   - Application refresh behavior
+ *   - Application-owned Foundry hooks
+ *   - Runtime stylesheet installation
+ *
+ *
+ * All executable feature domains are imported and registered by:
  *
  *   scripts/feature-registry.js
  *
- * This runtime depends only on:
+ * runtime-orchestrator.js imports only:
  *
  *   frameHelmFeatureRegistry
  *
- * and resolves extracted feature surfaces through that canonical
- * composition boundary.
+ * and resolves feature behavior through registered APIs.
  */

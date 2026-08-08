@@ -57,8 +57,14 @@
  *
  * CURRENT EXTRACTED FEATURES:
  *
- *   - actions-feature.js
- *   - sensors-feature.js
+ *   Runtime/domain features:
+ *
+ *     - actions-feature.js
+ *     - sensors-feature.js
+ *
+ *   Application UI feature:
+ *
+ *     - ../styles/ui-application.js
  *
  * FUTURE FEATURE FILES:
  *
@@ -66,7 +72,6 @@
  *   - movement-feature.js
  *   - action-execution-feature.js
  *   - telemetry-feature.js
- *   - application-feature.js
  *   - ...
  *
  * IMPORTANT:
@@ -77,9 +82,9 @@
  *
  *     - install Foundry hooks
  *     - run lifecycle handlers
- *     - replace lancer-frame-helm.js as runtime orchestrator
+ *     - replace runtime-orchestrator.js
  *
- *   scripts/lancer-frame-helm.js remains the authoritative
+ *   scripts/runtime-orchestrator.js remains the authoritative
  *   runtime/orchestration surface and is responsible for invoking
  *   registry hook installation and lifecycle operations at the
  *   appropriate Foundry startup boundaries.
@@ -89,7 +94,7 @@
  *   actions-feature.js intentionally does NOT initialize its
  *   action catalog through the asynchronous feature lifecycle.
  *
- *   lancer-frame-helm.js must continue invoking:
+ *   runtime-orchestrator.js must continue invoking:
  *
  *     initializeFrameHelmActionRegistry()
  *
@@ -112,6 +117,10 @@ import {
 import {
   frameHelmSensorsFeature
 } from "./sensors-feature.js";
+
+import {
+  frameHelmApplicationUiFeature
+} from "../styles/ui-application.js";
 
 
 /* ============================================================
@@ -1420,7 +1429,7 @@ export class FrameHelmFeatureRegistry {
  *   - no lifecycle handlers are run here
  *   - no Foundry startup work occurs here
  *
- * lancer-frame-helm.js remains responsible for runtime
+ * runtime-orchestrator.js remains responsible for runtime
  * orchestration.
  */
 export const frameHelmFeatureRegistry =
@@ -1446,11 +1455,24 @@ export const frameHelmFeatureRegistry =
  *     ├── sensors.refresh
  *     └── sensors.measurement
  *
- * Neither feature currently declares required dependencies on the
- * other.
+ *   application UI
+ *     └── Foundry Application/UI capabilities declared by
+ *         styles/ui-application.js
  *
- * As additional domains leave lancer-frame-helm.js, import their
- * definitions above and add them to this declaration-order list.
+ * ui-application.js is registered here because it contains
+ * executable JavaScript feature behavior.
+ *
+ * Its companion stylesheet:
+ *
+ *   styles/ui-application.css
+ *
+ * is NOT registered here. It is registered independently through:
+ *
+ *   styles/ui-registry.css
+ *
+ * As additional domains leave runtime-orchestrator.js, import
+ * their definitions above and add them to this declaration-order
+ * list.
  *
  * Required dependency ordering does not need to be maintained
  * manually here because orderedFeatures() resolves runtime order
@@ -1458,7 +1480,8 @@ export const frameHelmFeatureRegistry =
  */
 frameHelmFeatureRegistry.registerMany([
   frameHelmActionsFeature,
-  frameHelmSensorsFeature
+  frameHelmSensorsFeature,
+  frameHelmApplicationUiFeature
 ]);
 
 
@@ -1470,13 +1493,16 @@ frameHelmFeatureRegistry.registerMany([
  * Validate the currently-known feature graph immediately after
  * canonical registration.
  *
- * This validates feature capability ownership and required
- * dependencies only.
+ * This validates:
+ *
+ *   - capability ownership
+ *   - required feature dependencies
+ *   - the Application UI feature's declared dependencies
  *
  * It does NOT initialize the Actions feature's action catalog.
  *
  * initializeFrameHelmActionRegistry() intentionally remains a
- * synchronous operation invoked by lancer-frame-helm.js during
+ * synchronous operation invoked by runtime-orchestrator.js during
  * Foundry init.
  */
 frameHelmFeatureRegistry

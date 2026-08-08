@@ -25,6 +25,7 @@
  *   - ui-contract.css
  *   - ui-sensors.css
  *   - ui-actions.css
+ *   - ui-application.css
  *   - additional registered feature styles as they are extracted
  *
  * OWNS:
@@ -52,9 +53,10 @@
  *   ui-registry.css
  *       ├── ui-sensors.css
  *       ├── ui-actions.css
+ *       ├── ui-application.css
  *       └── future registered feature styles
  *       ↓
- *   lancer-frame-helm.css
+ *   ui-orchestrator.css
  *
  * FEATURE REGISTRATION STATUS:
  *
@@ -79,6 +81,19 @@
  *
  *         UI runtime feature:
  *           none currently required
+ *
+ *     - Application
+ *         stylesheet:
+ *           ui-application.css
+ *
+ *         runtime feature:
+ *           styles/ui-application.js
+ *
+ *         owns:
+ *           - Foundry application-window presentation
+ *           - primary Frame Helm shell presentation
+ *           - application-header presentation
+ *           - application-specific responsive window behavior
  *
  *   Future feature styles will be registered here as their
  *   corresponding runtime domains are extracted.
@@ -112,11 +127,17 @@
  *   Core feature styles are loaded afterward in explicit
  *   registration order.
  *
- *   Extension feature styles, if introduced, are loaded after
- *   core feature styles.
+ *   Application-owned styling is loaded after lower-level feature
+ *   styles because it owns the shell in which those feature
+ *   surfaces are presented.
  *
- *   The primary application stylesheet is loaded last and may
- *   compose or specialize registered feature surfaces.
+ *   Extension feature styles, if introduced, are loaded after
+ *   core feature styles unless an explicit dependency requires
+ *   otherwise.
+ *
+ *   ui-orchestrator.css is loaded above this registry and remains
+ *   responsible for final cross-feature composition and
+ *   application-level integration.
  *
  * REGISTRY POLICY:
  *
@@ -143,23 +164,29 @@
  *
  * IMPORTANT:
  *
- *   JavaScript UI feature modules such as ui-sensors.js are not
- *   imported through this stylesheet.
+ *   JavaScript UI feature modules such as ui-sensors.js and
+ *   ui-application.js are not imported through this stylesheet.
  *
  *   Their JavaScript dependency and registration path remains
- *   part of the JavaScript feature-composition graph.
+ *   part of the JavaScript feature-composition graph through:
+ *
+ *     scripts/feature-registry.js
  *
  *   A feature stylesheet does not inherently require a companion
  *   JavaScript UI module.
  *
  *   For example:
  *
- *     - Sensors currently requires ui-sensors.js because its
- *       visual implementation includes PIXI/canvas construction.
+ *     - Sensors requires ui-sensors.js because its visual
+ *       implementation includes PIXI/canvas construction.
  *
  *     - Actions currently requires only ui-actions.css because
- *       its extracted UI ownership is stylesheet-based and the
- *       existing application runtime still owns DOM construction.
+ *       its extracted UI ownership is stylesheet-based.
+ *
+ *     - Application requires ui-application.js because it owns
+ *       the Foundry Application class, application instance, and
+ *       application-window lifecycle in addition to its CSS
+ *       presentation.
  */
 
 
@@ -199,13 +226,39 @@
 
 
 /**
+ * Application
+ *
+ * Owns presentation belonging specifically to the primary Frame
+ * Helm Foundry Application and application shell.
+ *
+ * This includes:
+ *
+ *   - Foundry application window
+ *   - Foundry window header
+ *   - window controls
+ *   - window content surface
+ *   - resize/minimized presentation
+ *   - Frame Helm shell
+ *   - application header
+ *   - application eyebrow
+ *   - window hint
+ *   - application-window-only responsive behavior
+ *
+ * Cross-feature layout remains the responsibility of
+ * ui-orchestrator.css.
+ */
+@import "./ui-application.css";
+
+
+/**
  * Future core feature imports belong below in deliberate
  * dependency/load order.
  *
  * Examples:
  *
- * @import "./ui-movement.css";
  * @import "./ui-turn.css";
+ * @import "./ui-movement.css";
+ * @import "./ui-action-execution.css";
  * @import "./ui-telemetry.css";
  */
 

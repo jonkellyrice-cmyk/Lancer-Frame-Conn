@@ -3,7 +3,7 @@
  * FILE PATH / NAME
  * ============================================================
  *
- * styles/lancer-frame-helm.css
+ * styles/ui-orchestrator.css
  */
 
 /**
@@ -12,8 +12,8 @@
  * ============================================================
  *
  * ROLE:
- *   Provides the primary Frame Helm stylesheet composition
- *   surface.
+ *   Provides the final Frame Helm stylesheet composition and
+ *   cross-feature UI orchestration surface.
  *
  *   Feature-owned styling is progressively removed from this
  *   file and supplied through the registered Frame Helm UI
@@ -21,8 +21,8 @@
  *
  * PURPOSE:
  *   Preserve the current Frame Helm presentation while acting as
- *   the final application-level composition surface above the
- *   shared UI contract and registered feature styles.
+ *   the final composition layer above the shared UI contract and
+ *   registered feature styles.
  *
  * IMPORTS:
  *   - ui-registry.css
@@ -32,20 +32,17 @@
  *   - ui-dsl.css
  *   - ui-sensors.css
  *   - ui-actions.css
+ *   - ui-application.css
  *   - future registered feature styles
  *
  * OWNS:
- *   - Primary Foundry window composition
- *   - Frame Helm shell composition
  *   - Application-level cockpit composition
  *   - Current non-extracted feature-style implementation
  *   - Cross-feature integration rules
- *   - Application-level responsive composition
+ *   - Cross-feature responsive composition
  *   - Final application-level specialization
  *
  * CURRENTLY IMPLEMENTS:
- *   - Foundry window composition
- *   - Legacy header presentation
  *   - Landscape cockpit composition
  *   - Controlled-unit presentation
  *   - Turn-budget presentation
@@ -69,6 +66,9 @@
  *     - Actions
  *         ui-actions.css
  *
+ *     - Application
+ *         ui-application.css
+ *
  * DOES NOT OWN:
  *   - Shared UI design tokens
  *   - Shared semantic visual primitives
@@ -77,6 +77,9 @@
  *   - JavaScript feature registration
  *   - Generic Actions feature presentation
  *   - Sensors feature presentation
+ *   - Foundry application-window presentation
+ *   - Frame Helm application-shell presentation
+ *   - Frame Helm application-header presentation
  *
  * DEPENDENCY FLOW:
  *
@@ -87,9 +90,10 @@
  *   ui-registry.css
  *       ├── ui-sensors.css
  *       ├── ui-actions.css
+ *       ├── ui-application.css
  *       └── future feature styles
  *       ↓
- *   lancer-frame-helm.css
+ *   ui-orchestrator.css
  *
  * FEATURE FLOW:
  *
@@ -97,7 +101,7 @@
  *       ↓
  *   ui-registry.css
  *       ↓
- *   lancer-frame-helm.css
+ *   ui-orchestrator.css
  *
  * MIGRATION CONTRACT:
  *
@@ -115,7 +119,7 @@
  *     4. This file MUST NOT import individual feature
  *        stylesheets directly.
  *
- *     5. This file remains the public application composition
+ *     5. This file remains the public cross-feature composition
  *        surface regardless of how many feature styles are
  *        registered beneath it.
  *
@@ -138,272 +142,38 @@
 
 
 /* ============================================================
-   Foundry window
+   Registered feature presentation -- Application
    ============================================================ */
 
-.lancer-frame-helm {
-  min-width: 680px;
-  min-height: 330px;
-
-  color: var(--fh-text);
-
-  border:
-    1px solid var(--fh-cyan-muted);
-
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.8),
-    0 0 24px rgba(30, 220, 218, 0.2),
-    0 14px 40px rgba(0, 0, 0, 0.7);
-}
-
-.lancer-frame-helm .window-header {
-  height: 34px;
-
-  border-bottom:
-    1px solid var(--fh-cyan);
-
-  background:
-    linear-gradient(
-      90deg,
-      #07151a,
-      #0d2931 58%,
-      #07151a
-    );
-
-  color: var(--fh-cyan-bright);
-
-  cursor: move;
-
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-
-  box-shadow:
-    0 2px 12px rgba(65, 226, 223, 0.18);
-}
-
-.lancer-frame-helm.minimized .window-header {
-  cursor: move;
-}
-
-.lancer-frame-helm .window-header .window-title {
-  font-family: monospace;
-  font-size: 0.83rem;
-  font-weight: 700;
-}
-
-.lancer-frame-helm .window-header a {
-  color: var(--fh-text-muted);
-  text-shadow: none;
-}
-
-.lancer-frame-helm .window-header a:hover {
-  color: var(--fh-cyan-bright);
-
-  text-shadow:
-    0 0 8px var(--fh-cyan);
-}
-
-.lancer-frame-helm .window-header .frame-helm-minimize {
-  order: 98;
-}
-
-.lancer-frame-helm .window-header .close {
-  order: 99;
-}
-
-.lancer-frame-helm .window-content {
-  position: relative;
-
-  padding: 0;
-
-  overflow: hidden auto;
-
-  background:
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.018) 0,
-      rgba(255, 255, 255, 0.018) 1px,
-      transparent 1px,
-      transparent 4px
-    ),
-    radial-gradient(
-      circle at 50% 0%,
-      rgba(42, 161, 166, 0.16),
-      transparent 42%
-    ),
-    var(--fh-bg-deep);
-
-  color: var(--fh-text);
-}
-
-.lancer-frame-helm .window-content::before {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-
-  border:
-    1px solid rgba(89, 233, 228, 0.15);
-
-  pointer-events: none;
-
-  content: "";
-}
-
-.lancer-frame-helm .window-resizable-handle {
-  border-color:
-    transparent
-    var(--fh-cyan)
-    var(--fh-cyan)
-    transparent;
-
-  color: var(--fh-cyan);
-}
-
-.lancer-frame-helm.minimized {
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.8),
-    0 0 18px rgba(30, 220, 218, 0.24);
-}
-
-
-/* ============================================================
-   Frame Helm shell
-   ============================================================ */
-
-.frame-helm-shell {
-  position: relative;
-  z-index: 1;
-
-  display: flex;
-  flex-direction: column;
-
-  flex: 1;
-
-  width: 100%;
-  height: 100%;
-
-  min-width: 0;
-  min-height: 0;
-
-  gap: 0.75rem;
-
-  padding: 0.85rem;
-}
-
-
-/* ============================================================
-   Legacy header
-   ============================================================ */
-
-.frame-helm-header {
-  position: relative;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  min-height: 62px;
-
-  border:
-    1px solid var(--fh-line);
-
-  border-left:
-    4px solid var(--fh-cyan);
-
-  background:
-    linear-gradient(
-      110deg,
-      rgba(41, 111, 120, 0.25),
-      transparent 65%
-    ),
-    var(--fh-bg-panel);
-
-  padding: 0.65rem 0.75rem;
-
-  box-shadow:
-    var(--fh-shadow);
-
-  clip-path:
-    polygon(
-      0 0,
-      calc(100% - 18px) 0,
-      100% 18px,
-      100% 100%,
-      0 100%
-    );
-}
-
-.frame-helm-header::after {
-  position: absolute;
-
-  right: 10px;
-  bottom: 7px;
-
-  width: 58px;
-  height: 3px;
-
-  background:
-    repeating-linear-gradient(
-      90deg,
-      var(--fh-amber) 0,
-      var(--fh-amber) 5px,
-      transparent 5px,
-      transparent 9px
-    );
-
-  content: "";
-
-  opacity: 0.8;
-}
-
-.frame-helm-header h2 {
-  margin: 0;
-
-  color: var(--fh-cyan-bright);
-
-  font-family: monospace;
-  font-size: 1.25rem;
-
-  letter-spacing: 0.04em;
-
-  text-shadow:
-    0 0 8px rgba(86, 224, 223, 0.45);
-}
-
-.frame-helm-eyebrow {
-  margin: 0 0 0.2rem;
-
-  color: var(--fh-amber);
-
-  font-family: monospace;
-  font-size: 0.7rem;
-  font-weight: 700;
-
-  letter-spacing: 0.16em;
-
-  opacity: 1;
-}
-
-.frame-helm-window-hint {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 2rem;
-  height: 2rem;
-
-  border:
-    1px solid var(--fh-cyan-muted);
-
-  border-radius: 50%;
-
-  background:
-    rgba(0, 0, 0, 0.28);
-
-  color: var(--fh-cyan);
-
-  opacity: 0.6;
-}
+/**
+ * Foundry Application and Frame Helm application-shell
+ * presentation no longer lives in this public composition
+ * stylesheet.
+ *
+ * Ownership now resides in:
+ *
+ *   styles/ui-application.css
+ *
+ * ui-application.css is registered through:
+ *
+ *   styles/ui-registry.css
+ *
+ * The extracted Application UI owns:
+ *
+ *   - .lancer-frame-helm window presentation
+ *   - Foundry window header presentation
+ *   - window-title and window-control presentation
+ *   - window-content presentation
+ *   - resize-handle presentation
+ *   - minimized-window presentation
+ *   - .frame-helm-shell
+ *   - .frame-helm-header
+ *   - .frame-helm-eyebrow
+ *   - .frame-helm-window-hint
+ *   - application-window-specific responsive behavior
+ *
+ * Cross-feature cockpit composition remains below.
+ */
 
 
 /* ============================================================
@@ -714,16 +484,6 @@
    Current feature implementation -- Movement
    ============================================================ */
 
-/**
- * FUTURE EXTRACTION TARGET:
- *
- *   When Movement becomes an independent feature stylesheet,
- *   these rules may move into that feature package and be
- *   registered through ui-registry.css.
- *
- *   Until then they remain authoritative here.
- */
-
 .frame-helm-action-column > .frame-helm-movement-panel {
   display: flex;
   flex: 1 1 auto;
@@ -980,13 +740,6 @@
    Current feature implementation -- Quick actions
    ============================================================ */
 
-/**
- * FUTURE EXTRACTION TARGET:
- *
- *   Quick-action presentation may later become feature-owned and
- *   register through ui-registry.css.
- */
-
 .frame-helm-quick-budget {
   flex: 0 0 auto;
 
@@ -1016,7 +769,11 @@
   min-height: 0;
   max-height: 100%;
 
-  padding: 0.75rem 0.5rem 2.5rem 0.75rem;
+  padding:
+    0.75rem
+    0.5rem
+    2.5rem
+    0.75rem;
 
   overflow-y: auto;
   overflow-x: hidden;
@@ -1065,13 +822,6 @@
    Current feature implementation -- Full actions
    ============================================================ */
 
-/**
- * FUTURE EXTRACTION TARGET:
- *
- *   Full-action presentation may later become feature-owned and
- *   register through ui-registry.css.
- */
-
 .frame-helm-full-budget {
   flex: 0 0 auto;
 
@@ -1101,7 +851,11 @@
   min-height: 0;
   max-height: 100%;
 
-  padding: 0.75rem 0.5rem 2.5rem 0.75rem;
+  padding:
+    0.75rem
+    0.5rem
+    2.5rem
+    0.75rem;
 
   overflow-y: auto;
   overflow-x: hidden;
@@ -1146,13 +900,6 @@
 /* ============================================================
    Current feature implementation -- Overcharge
    ============================================================ */
-
-/**
- * FUTURE EXTRACTION TARGET:
- *
- *   Overcharge-specific presentation may later follow its owning
- *   action-budget feature through ui-registry.css.
- */
 
 .frame-helm-overcharge-execute:not(:disabled) {
   border-color:
@@ -1321,13 +1068,6 @@
    Current feature implementation -- Committed plan
    ============================================================ */
 
-/**
- * FUTURE EXTRACTION TARGET:
- *
- *   Turn-plan presentation may later become feature-owned and
- *   register through ui-registry.css.
- */
-
 .frame-helm-plan-panel {
   display: flex;
   flex: 0 0 auto;
@@ -1428,7 +1168,10 @@
 
   margin: 0;
 
-  padding: 0 0 0.45rem;
+  padding:
+    0
+    0
+    0.45rem;
 
   overflow-y: auto;
   overflow-x: hidden;
@@ -1554,13 +1297,6 @@
 /* ============================================================
    Current feature implementation -- MECH//STATS telemetry
    ============================================================ */
-
-/**
- * FUTURE EXTRACTION TARGET:
- *
- *   Telemetry presentation may later become feature-owned and
- *   register through ui-registry.css.
- */
 
 .frame-helm-mech-stats-bar {
   display: grid;
@@ -1830,23 +1566,23 @@
 
 
 /* ============================================================
-   Application composition -- Narrow-window fallback
+   Cross-feature composition -- Narrow-window fallback
    ============================================================ */
 
 /**
- * Generic Actions-owned responsive behavior now resides in:
+ * Application-window-specific responsive behavior is now owned by:
+ *
+ *   ui-application.css
+ *
+ * Generic Actions-owned responsive behavior is owned by:
  *
  *   ui-actions.css
  *
- * The rules below retain application-level and currently
- * non-extracted feature-specific responsive behavior.
+ * The rules here are retained because they coordinate multiple
+ * remaining feature surfaces.
  */
 
 @media (max-width: 820px) {
-  .lancer-frame-helm {
-    min-width: 360px;
-  }
-
   .frame-helm-horizontal-layout {
     display: flex;
     flex-direction: column;
@@ -1906,7 +1642,7 @@
 
 
 /* ============================================================
-   Application composition -- Compact control fallback
+   Cross-feature composition -- Compact control fallback
    ============================================================ */
 
 @media (max-width: 500px) {
@@ -1916,31 +1652,38 @@
   .frame-helm-movement-controls,
   .frame-helm-quick-budget,
   .frame-helm-full-budget {
-    grid-template-columns: 1fr;
+    grid-template-columns:
+      1fr;
   }
 }
 
 
 /* ============================================================
-   Application composition -- Telemetry responsive fallback
+   Current feature composition -- Telemetry responsive fallback
    ============================================================ */
 
 @media (max-width: 900px) {
   .frame-helm-mech-stats-bar {
-    grid-template-columns: 1fr;
+    grid-template-columns:
+      1fr;
   }
 
   .frame-helm-mech-stats-heading {
-    border-right: 0;
+    border-right:
+      0;
 
     border-bottom:
       1px solid var(--fh-cyan-muted);
 
-    padding-top: 0.45rem;
-    padding-bottom: 0.45rem;
+    padding-top:
+      0.45rem;
+
+    padding-bottom:
+      0.45rem;
   }
 
   .frame-helm-mech-stats-grid {
-    min-height: 68px;
+    min-height:
+      68px;
   }
 }
