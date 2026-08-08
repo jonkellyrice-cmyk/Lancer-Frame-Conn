@@ -54,6 +54,7 @@
  *     actions-feature.js
  *     sensors-feature.js
  *     turn-feature.js
+ *     movement-feature.js
  *     future *-feature.js
  *            │
  *            │
@@ -109,6 +110,7 @@
  *     - actions-feature.js
  *     - sensors-feature.js
  *     - turn-feature.js
+ *     - movement-feature.js
  *
  *   Executable UI package:
  *
@@ -124,7 +126,6 @@
  *
  *   Runtime/domain:
  *
- *     - movement-feature.js
  *     - action-execution-feature.js
  *     - telemetry-feature.js
  *     - ...
@@ -192,9 +193,27 @@
  *   Those bindings are configured by runtime-orchestrator.js
  *   after resolving the registered feature APIs.
  *
- *   Movement-specific state currently retained by turn-feature.js
- *   is transitional and is expected to move into the future
- *   movement-feature.js extraction.
+ * MOVEMENT COMPOSITION CONTRACT:
+ *
+ *   movement-feature.js owns Foundry token-movement
+ *   interpretation, path measurement, elevation-change
+ *   interpretation, movement-triggered notifications, and
+ *   movement-specific Foundry hooks.
+ *
+ *   During the current migration, authoritative movement
+ *   accounting still resides inside FrameHelmTurnState.
+ *
+ *   Movement therefore consumes:
+ *
+ *     - the current Turn state
+ *     - Application UI rendering
+ *
+ *   through explicit runtime bindings configured by
+ *   runtime-orchestrator.js.
+ *
+ *   The future second-stage Movement migration may relocate the
+ *   movement accounting/state currently retained by
+ *   turn-feature.js into movement-feature.js.
  *
  * EXECUTABLE UI COMPOSITION CONTRACT:
  *
@@ -249,6 +268,11 @@ import {
 import {
   frameHelmTurnFeature
 } from "./turn-feature.js";
+
+
+import {
+  frameHelmMovementFeature
+} from "./movement-feature.js";
 
 
 /* ============================================================
@@ -1887,7 +1911,8 @@ const FRAME_HELM_RUNTIME_FEATURES =
   Object.freeze([
     frameHelmActionsFeature,
     frameHelmSensorsFeature,
-    frameHelmTurnFeature
+    frameHelmTurnFeature,
+    frameHelmMovementFeature
   ]);
 
 
@@ -1930,6 +1955,28 @@ const FRAME_HELM_RUNTIME_FEATURES =
  *       - turn.reaction
  *       - turn.committed-actions
  *       - turn.combat-sync
+ *
+ *
+ *   movement
+ *
+ *     provides:
+ *       - movement
+ *       - movement.tracking
+ *       - movement.measurement
+ *       - movement.token
+ *       - movement.elevation
+ *       - movement.notifications
+ *
+ *     requires:
+ *       - turn.state
+ *
+ *     optionally consumes:
+ *       - turn.actions
+ *       - ui.application.rendering
+ *
+ *     transitional relationship:
+ *       - movement-feature.js owns Foundry/token interpretation
+ *       - FrameHelmTurnState still owns movement accounting
  *
  *
  * Executable UI package:
@@ -2005,6 +2052,13 @@ const FRAME_HELM_RUNTIME_FEATURES =
  *   turn              ui-application
  *
  *
+ *   turn
+ *      │
+ *      │ turn.state
+ *      ▼
+ *   movement
+ *
+ *
  *   sensors
  *      │
  *      │ sensors.contacts
@@ -2024,6 +2078,20 @@ const FRAME_HELM_RUNTIME_FEATURES =
  *
  * JAVASCRIPT / CSS REGISTRATION
  * =============================
+ *
+ * Runtime/domain JavaScript:
+ *
+ *   actions-feature.js
+ *   sensors-feature.js
+ *   turn-feature.js
+ *   movement-feature.js
+ *        │
+ *        ▼
+ *   FRAME_HELM_RUNTIME_FEATURES
+ *        │
+ *        ▼
+ *   feature-registry.js
+ *
  *
  * Executable JavaScript UI:
  *
@@ -2068,6 +2136,9 @@ const FRAME_HELM_RUNTIME_FEATURES =
  *
  * orderedFeatures() derives dependency-safe ordering from each
  * feature's required capabilities.
+ *
+ * Since Movement requires turn.state, Turn is guaranteed to be
+ * ordered before Movement even if declaration order later changes.
  */
 frameHelmFeatureRegistry.registerMany([
   ...FRAME_HELM_RUNTIME_FEATURES,
@@ -2096,11 +2167,13 @@ frameHelmFeatureRegistry.registerMany([
  *   - required runtime/domain dependencies
  *   - required executable UI dependencies
  *   - dependencies crossing the runtime/UI package boundary
+ *   - Movement's required turn.state dependency
  *
  * It does NOT:
  *
  *   - initialize the Actions catalog
  *   - configure Turn runtime bindings
+ *   - configure Movement runtime bindings
  *   - configure Application UI runtime bindings
  *   - configure Turn UI runtime bindings
  *   - render UI

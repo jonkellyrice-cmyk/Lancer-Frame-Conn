@@ -6,6 +6,7 @@
  * scripts/runtime-orchestrator.js
  */
 
+
 /**
  * ============================================================
  * FRAME HELM RUNTIME ORCHESTRATOR
@@ -32,6 +33,9 @@
  *   - Turn
  *       scripts/turn-feature.js
  *
+ *   - Movement
+ *       scripts/movement-feature.js
+ *
  *   - Application UI
  *       styles/ui-application.js
  *
@@ -43,7 +47,8 @@
  *        ├── actions-feature.js
  *        ├── sensors-feature.js
  *        ├── turn-feature.js
- *        ├── ui-application.js
+ *        ├── movement-feature.js
+ *        ├── executable UI package
  *        └── future feature domains
  *        ↓
  *   runtime-orchestrator.js
@@ -54,8 +59,6 @@
  *   - Module settings registration
  *   - Scene-control integration
  *   - Cross-feature runtime binding
- *   - Movement tracking, pending extraction
- *   - Elevation movement tracking, pending extraction
  *   - Action execution, pending extraction
  *   - Public game.lancerFrameHelm composition
  *
@@ -79,6 +82,16 @@
  *   - Combat-turn context resolution
  *   - Combat-turn synchronization
  *   - Turn-specific Foundry combat hooks
+ *   - Movement-token identity matching
+ *   - Movement-path normalization
+ *   - Movement-path measurement
+ *   - Movement rounding
+ *   - Movement-triggered Boost notifications
+ *   - moveToken handling
+ *   - Elevation-origin tracking
+ *   - Elevation-change interpretation
+ *   - Elevation movement handling
+ *   - Movement-specific Foundry hooks
  */
 
 
@@ -121,7 +134,10 @@ const frameHelmActionsApi =
     "actions"
   );
 
-if (!frameHelmActionsApi) {
+
+if (
+  !frameHelmActionsApi
+) {
   throw new Error(
     "Frame Helm | The registered Actions feature API could not be resolved."
   );
@@ -145,7 +161,10 @@ const frameHelmTurnApi =
     "turn"
   );
 
-if (!frameHelmTurnApi) {
+
+if (
+  !frameHelmTurnApi
+) {
   throw new Error(
     "Frame Helm | The registered Turn feature API could not be resolved."
   );
@@ -153,8 +172,8 @@ if (!frameHelmTurnApi) {
 
 
 /**
- * Transitional accessor used by Movement and other domains which
- * have not yet been extracted.
+ * Transitional accessor used by extracted features which still
+ * consume the mutable Turn state model.
  *
  * Turn-state ownership belongs entirely to turn-feature.js.
  */
@@ -185,12 +204,29 @@ function getFrameHelmTurnStateManager() {
 
 
 /* ------------------------------------------------------------
+   Movement
+   ------------------------------------------------------------ */
+
+const frameHelmMovementApi =
+  frameHelmFeatureRegistry.getApi(
+    "movement"
+  );
+
+
+if (
+  !frameHelmMovementApi
+) {
+  throw new Error(
+    "Frame Helm | The registered Movement feature API could not be resolved."
+  );
+}
+
+
+/* ------------------------------------------------------------
    Application UI
    ------------------------------------------------------------ */
 
 /**
- * NOTE:
- *
  * ui-application.js declares:
  *
  *   id: "ui-application"
@@ -202,7 +238,10 @@ const frameHelmApplicationApi =
     "ui-application"
   );
 
-if (!frameHelmApplicationApi) {
+
+if (
+  !frameHelmApplicationApi
+) {
   throw new Error(
     "Frame Helm | The registered Application UI feature API could not be resolved."
   );
@@ -243,16 +282,20 @@ function renderFrameHelmApplication(
    ============================================================ */
 
 /**
- * Several extracted domains still consume capabilities belonging
- * to domains which have not yet been independently extracted.
+ * Extracted domains still consume a small number of capabilities
+ * belonging to other domains.
  *
  * Keep those relationships explicit here rather than allowing
- * features to import one another directly.
+ * feature implementations to import one another directly.
  */
 function configureFrameHelmRuntimeBindings() {
+  /* ----------------------------------------------------------
+     Turn bindings
+     ---------------------------------------------------------- */
+
   /**
-   * Turn depends on the Actions registry and requests Application
-   * rendering when turn state changes.
+   * Turn consumes the canonical Actions registry and requests
+   * Application rendering when turn-visible state changes.
    */
   frameHelmTurnApi
     .configureRuntime?.({
@@ -268,9 +311,48 @@ function configureFrameHelmRuntimeBindings() {
     });
 
 
+  /* ----------------------------------------------------------
+     Movement bindings
+     ---------------------------------------------------------- */
+
+  /**
+   * Movement interprets Foundry token movement and elevation
+   * changes against the authoritative Turn state.
+   *
+   * Movement state accounting remains transitional inside
+   * FrameHelmTurnState during this stage of decomposition.
+   *
+   * Movement therefore receives:
+   *
+   *   - current Turn state
+   *   - Application rendering
+   *
+   * rather than importing either domain directly.
+   */
+  frameHelmMovementApi
+    .configureRuntime?.({
+      getTurnState:
+        () =>
+          getFrameHelmTurnState(),
+
+      renderApplication:
+        force =>
+          renderFrameHelmApplication(
+            force
+          )
+    });
+
+
+  /* ----------------------------------------------------------
+     Application UI bindings
+     ---------------------------------------------------------- */
+
   /**
    * Application UI consumes Turn state and the still-local Action
    * Execution implementation.
+   *
+   * Action Execution will leave this binding when
+   * action-execution-feature.js is extracted.
    */
   frameHelmApplicationApi
     .configureRuntime?.({
@@ -381,6 +463,7 @@ function addFrameHelmControlButton(
       controls
     );
 
+
     return;
   }
 
@@ -427,6 +510,7 @@ function addFrameHelmControlButton(
       );
     }
 
+
     return;
   }
 
@@ -472,6 +556,12 @@ Hooks.once(
     /**
      * Establish explicit cross-feature runtime dependencies before
      * feature-owned hooks begin consuming those surfaces.
+     *
+     * This now configures:
+     *
+     *   - Turn
+     *   - Movement
+     *   - Application UI
      */
     configureFrameHelmRuntimeBindings();
 
@@ -492,6 +582,8 @@ Hooks.once(
      *   - Sensors hooks
      *   - Application UI hooks
      *   - Turn/combat synchronization hooks
+     *   - Movement hooks
+     *   - Elevation movement hooks
      */
     frameHelmFeatureRegistry
       .installHooks();
@@ -671,6 +763,21 @@ Hooks.once(
 
 
       /* --------------------------------------------------------
+         Movement
+         -------------------------------------------------------- */
+
+      /**
+       * Movement's main behavior is automatic and hook-driven.
+       *
+       * Exposing its API here nevertheless keeps the public runtime
+       * surface inspectable and provides access to any measurement
+       * or diagnostic helpers declared by movement-feature.js.
+       */
+      movement:
+        frameHelmMovementApi,
+
+
+      /* --------------------------------------------------------
          Actions
          -------------------------------------------------------- */
 
@@ -766,703 +873,19 @@ Hooks.on(
 
 
 /* ============================================================
-   Dragged token movement tracking
-   ============================================================ */
-
-/**
- * CURRENT EXTRACTION TARGET:
- *
- * This complete section should move next into:
- *
- *   scripts/movement-feature.js
- *
- * Turn-state ownership has already moved into turn-feature.js.
- * Movement now consumes that state through the Turn feature.
- */
-
-
-function frameHelmMovementTokenMatches(
-  tokenDocument,
-  state =
-    getFrameHelmTurnState()
-) {
-  if (
-    !tokenDocument ||
-    !state ||
-    state.ended
-  ) {
-    return false;
-  }
-
-
-  const context =
-    state.context ??
-    {};
-
-
-  const tokenMatches =
-    Boolean(
-      context.tokenId &&
-      context.tokenId ===
-        tokenDocument.id
-    );
-
-
-  const actorId =
-    tokenDocument.actor?.id ??
-    tokenDocument.actorId ??
-    null;
-
-
-  const actorMatches =
-    Boolean(
-      !context.tokenId &&
-      context.actorId &&
-      context.actorId ===
-        actorId
-    );
-
-
-  return (
-    tokenMatches ||
-    actorMatches
-  );
-}
-
-
-function frameHelmPoint(
-  point
-) {
-  if (
-    !point
-  ) {
-    return null;
-  }
-
-
-  const x =
-    Number(
-      point.x
-    );
-
-
-  const y =
-    Number(
-      point.y
-    );
-
-
-  if (
-    !Number.isFinite(
-      x
-    ) ||
-    !Number.isFinite(
-      y
-    )
-  ) {
-    return null;
-  }
-
-
-  return {
-    x,
-    y,
-
-    elevation:
-      Number.isFinite(
-        Number(
-          point.elevation
-        )
-      )
-        ? Number(
-            point.elevation
-          )
-        : undefined
-  };
-}
-
-
-function frameHelmCollectMovementPoints(
-  movement
-) {
-  const points =
-    [];
-
-
-  const addPoint =
-    point => {
-      const normalized =
-        frameHelmPoint(
-          point
-        );
-
-
-      if (
-        !normalized
-      ) {
-        return;
-      }
-
-
-      const previous =
-        points.at(
-          -1
-        );
-
-
-      if (
-        previous &&
-        previous.x ===
-          normalized.x &&
-        previous.y ===
-          normalized.y
-      ) {
-        return;
-      }
-
-
-      points.push(
-        normalized
-      );
-    };
-
-
-  addPoint(
-    movement?.origin
-  );
-
-
-  const waypointSources = [
-    movement?.passed
-      ?.waypoints,
-
-    movement?.pending
-      ?.waypoints,
-
-    movement?.history
-      ?.waypoints,
-
-    movement?.waypoints
-  ];
-
-
-  for (
-    const source
-    of waypointSources
-  ) {
-    if (
-      !Array.isArray(
-        source
-      )
-    ) {
-      continue;
-    }
-
-
-    for (
-      const waypoint
-      of source
-    ) {
-      addPoint(
-        waypoint
-      );
-    }
-  }
-
-
-  addPoint(
-    movement?.destination
-  );
-
-
-  return points;
-}
-
-
-function frameHelmNumericMovementDistance(
-  movement
-) {
-  const candidates = [
-    movement?.pending
-      ?.distance,
-
-    movement?.passed
-      ?.distance,
-
-    movement?.history
-      ?.distance,
-
-    movement?.distance,
-
-    movement?.pending
-      ?.cost,
-
-    movement?.passed
-      ?.cost
-  ];
-
-
-  for (
-    const candidate
-    of candidates
-  ) {
-    const numeric =
-      Number(
-        candidate
-      );
-
-
-    if (
-      Number.isFinite(
-        numeric
-      ) &&
-      numeric > 0
-    ) {
-      return numeric;
-    }
-  }
-
-
-  const measurementSources = [
-    movement?.pending
-      ?.measurements,
-
-    movement?.passed
-      ?.measurements,
-
-    movement?.history
-      ?.measurements
-  ];
-
-
-  for (
-    const measurements
-    of measurementSources
-  ) {
-    if (
-      !Array.isArray(
-        measurements
-      )
-    ) {
-      continue;
-    }
-
-
-    const total =
-      measurements.reduce(
-        (
-          sum,
-          measurement
-        ) => {
-          const distance =
-            Number(
-              measurement
-                ?.distance ??
-              measurement
-                ?.cost ??
-              0
-            );
-
-
-          return (
-            sum +
-            (
-              Number.isFinite(
-                distance
-              )
-                ? distance
-                : 0
-            )
-          );
-        },
-        0
-      );
-
-
-    if (
-      total > 0
-    ) {
-      return total;
-    }
-  }
-
-
-  return null;
-}
-
-
-function frameHelmMeasureMovementPath(
-  tokenDocument,
-  movement
-) {
-  const directDistance =
-    frameHelmNumericMovementDistance(
-      movement
-    );
-
-
-  const sceneGridDistance =
-    Number(
-      tokenDocument
-        ?.parent
-        ?.grid
-        ?.distance ??
-      canvas
-        ?.dimensions
-        ?.distance ??
-      1
-    );
-
-
-  const normalizeSceneDistance =
-    distance => {
-      if (
-        !Number.isFinite(
-          distance
-        )
-      ) {
-        return null;
-      }
-
-
-      if (
-        Number.isFinite(
-          sceneGridDistance
-        ) &&
-        sceneGridDistance >
-          0
-      ) {
-        return (
-          distance /
-          sceneGridDistance
-        );
-      }
-
-
-      return distance;
-    };
-
-
-  if (
-    directDistance !==
-    null
-  ) {
-    return (
-      normalizeSceneDistance(
-        directDistance
-      )
-    );
-  }
-
-
-  const points =
-    frameHelmCollectMovementPoints(
-      movement
-    );
-
-
-  if (
-    points.length <
-    2
-  ) {
-    return 0;
-  }
-
-
-  try {
-    const measured =
-      canvas
-        ?.grid
-        ?.measurePath?.(
-          points,
-          {
-            cost:
-              true
-          }
-        );
-
-
-    const measuredDistance =
-      Number(
-        measured?.cost ??
-        measured?.distance
-      );
-
-
-    if (
-      Number.isFinite(
-        measuredDistance
-      ) &&
-      measuredDistance >
-        0
-    ) {
-      return (
-        normalizeSceneDistance(
-          measuredDistance
-        )
-      );
-    }
-  } catch (error) {
-    console.warn(
-      `${MODULE_TITLE} | Foundry path measurement failed; using geometric fallback.`,
-      error
-    );
-  }
-
-
-  const gridSize =
-    Number(
-      canvas
-        ?.dimensions
-        ?.size ??
-      tokenDocument
-        ?.parent
-        ?.grid
-        ?.size ??
-      100
-    );
-
-
-  let pixelDistance =
-    0;
-
-
-  for (
-    let index = 1;
-    index < points.length;
-    index += 1
-  ) {
-    const previous =
-      points[
-        index - 1
-      ];
-
-
-    const current =
-      points[
-        index
-      ];
-
-
-    pixelDistance +=
-      Math.hypot(
-        current.x -
-          previous.x,
-
-        current.y -
-          previous.y
-      );
-  }
-
-
-  if (
-    !Number.isFinite(
-      gridSize
-    ) ||
-    gridSize <= 0
-  ) {
-    return 0;
-  }
-
-
-  return (
-    pixelDistance /
-    gridSize
-  );
-}
-
-
-function frameHelmRoundMovementDistance(
-  distance
-) {
-  const numeric =
-    Number(
-      distance
-    );
-
-
-  if (
-    !Number.isFinite(
-      numeric
-    ) ||
-    numeric <= 0
-  ) {
-    return 0;
-  }
-
-
-  return (
-    Math.round(
-      numeric *
-      100
-    ) / 100
-  );
-}
-
-
-function notifyAutomaticMovementActions(
-  result
-) {
-  for (
-    const automaticAction
-    of (
-      result
-        .automaticActions ??
-      []
-    )
-  ) {
-    if (
-      !automaticAction
-        .committed
-    ) {
-      ui.notifications.warn(
-        `Frame Helm tracked movement beyond the current allowance, but could not automatically commit Boost: ${automaticAction.reason ?? "no legal action budget remains"}.`
-      );
-
-      continue;
-    }
-
-
-    if (
-      automaticAction
-        .source ===
-        "overcharge" &&
-      automaticAction
-        .triggeredOvercharge
-    ) {
-      ui.notifications.warn(
-        `Movement triggered Overcharge Boost. Apply ${automaticAction.heatFormula ?? "the current Overcharge cost"} Heat.`
-      );
-    } else if (
-      automaticAction
-        .source ===
-        "overcharge"
-    ) {
-      ui.notifications.info(
-        "Movement automatically spent the available Overcharge action on Boost."
-      );
-    } else {
-      ui.notifications.info(
-        "Movement exceeded Speed. Boost was automatically committed."
-      );
-    }
-  }
-}
-
-
-Hooks.on(
-  "moveToken",
-  (
-    tokenDocument,
-    movement
-  ) => {
-    const state =
-      getFrameHelmTurnState();
-
-
-    if (
-      !frameHelmMovementTokenMatches(
-        tokenDocument,
-        state
-      )
-    ) {
-      return;
-    }
-
-
-    const distance =
-      frameHelmRoundMovementDistance(
-        frameHelmMeasureMovementPath(
-          tokenDocument,
-          movement
-        )
-      );
-
-
-    if (
-      distance <= 0
-    ) {
-      return;
-    }
-
-
-    try {
-      const result =
-        state.trackTokenMovement(
-          distance,
-          {
-            movementId:
-              movement?.id ??
-              null,
-
-            method:
-              movement?.method ??
-              null,
-
-            origin:
-              frameHelmPoint(
-                movement?.origin
-              ),
-
-            destination:
-              frameHelmPoint(
-                movement
-                  ?.destination
-              )
-          }
-        );
-
-
-      if (
-        !result.tracked
-      ) {
-        return;
-      }
-
-
-      notifyAutomaticMovementActions(
-        result
-      );
-
-
-      if (
-        result.excess >
-        0
-      ) {
-        ui.notifications.warn(
-          `Frame Helm recorded ${result.excess} excess movement beyond the currently legal movement allowance. The token was not stopped.`
-        );
-      }
-
-
-      renderFrameHelmApplication(
-        false
-      );
-    } catch (error) {
-      console.error(
-        `${MODULE_TITLE} | Could not track token movement.`,
-        error
-      );
-
-
-      ui.notifications.warn(
-        `Frame Helm could not track this movement: ${error.message}`
-      );
-    }
-  }
-);
-
-
-/* ============================================================
    Universal action execution
    ============================================================ */
 
 /**
- * CURRENT EXTRACTION TARGET:
+ * NEXT EXTRACTION TARGET:
  *
- * After Movement, this section should move into:
+ * This complete section should move into:
  *
  *   scripts/action-execution-feature.js
+ *
+ * It remains here temporarily because Application UI still calls
+ * this runtime-owned implementation through its explicit
+ * executeActionRoll binding.
  */
 
 const FRAME_HELM_NO_ROLL_ACTIONS =
@@ -1483,6 +906,10 @@ const FRAME_HELM_NO_ROLL_ACTIONS =
     "special.end-turn"
   ]);
 
+
+/* ============================================================
+   Action execution -- Kind resolution
+   ============================================================ */
 
 function frameHelmActionExecutionKind(
   action
@@ -1561,6 +988,10 @@ function frameHelmActionExecutionKind(
   return "choose-stat";
 }
 
+
+/* ============================================================
+   Action execution -- Mech stat selection
+   ============================================================ */
 
 function frameHelmChooseMechStat(
   action
@@ -1645,6 +1076,10 @@ function frameHelmChooseMechStat(
   );
 }
 
+
+/* ============================================================
+   Action execution -- Actor workflow delegation
+   ============================================================ */
 
 async function frameHelmExecuteActionRoll(
   actor,
@@ -1762,258 +1197,6 @@ async function frameHelmExecuteActionRoll(
 
 
 /* ============================================================
-   Elevation movement tracking
-   ============================================================ */
-
-/**
- * This belongs with Movement and should leave this file when
- * movement-feature.js is extracted.
- */
-
-const frameHelmElevationOrigins =
-  new Map();
-
-
-function frameHelmElevationKey(
-  tokenDocument
-) {
-  return String(
-    tokenDocument?.uuid ??
-    `${tokenDocument?.parent?.id ?? "scene"}:${tokenDocument?.id ?? "token"}`
-  );
-}
-
-
-Hooks.on(
-  "preUpdateToken",
-  (
-    tokenDocument,
-    changes
-  ) => {
-    if (
-      !Object.prototype
-        .hasOwnProperty.call(
-          changes,
-          "elevation"
-        )
-    ) {
-      return;
-    }
-
-
-    frameHelmElevationOrigins.set(
-      frameHelmElevationKey(
-        tokenDocument
-      ),
-
-      Number(
-        tokenDocument.elevation
-      ) || 0
-    );
-  }
-);
-
-
-Hooks.on(
-  "updateToken",
-  (
-    tokenDocument,
-    changes
-  ) => {
-    if (
-      !Object.prototype
-        .hasOwnProperty.call(
-          changes,
-          "elevation"
-        )
-    ) {
-      return;
-    }
-
-
-    const state =
-      getFrameHelmTurnState();
-
-
-    if (
-      !frameHelmMovementTokenMatches(
-        tokenDocument,
-        state
-      )
-    ) {
-      return;
-    }
-
-
-    const key =
-      frameHelmElevationKey(
-        tokenDocument
-      );
-
-
-    const previousElevation =
-      frameHelmElevationOrigins.get(
-        key
-      );
-
-
-    frameHelmElevationOrigins.delete(
-      key
-    );
-
-
-    const nextElevation =
-      Number(
-        changes.elevation
-      );
-
-
-    if (
-      !Number.isFinite(
-        previousElevation
-      ) ||
-      !Number.isFinite(
-        nextElevation
-      )
-    ) {
-      return;
-    }
-
-
-    const sceneDistance =
-      Number(
-        tokenDocument
-          ?.parent
-          ?.grid
-          ?.distance ??
-        canvas
-          ?.dimensions
-          ?.distance ??
-        1
-      );
-
-
-    const elevationDistance =
-      Math.abs(
-        nextElevation -
-          previousElevation
-      );
-
-
-    const movementSpaces =
-      Number.isFinite(
-        sceneDistance
-      ) &&
-      sceneDistance >
-        0
-        ? elevationDistance /
-          sceneDistance
-        : elevationDistance;
-
-
-    const distance =
-      frameHelmRoundMovementDistance(
-        movementSpaces
-      );
-
-
-    if (
-      distance <= 0
-    ) {
-      return;
-    }
-
-
-    try {
-      const result =
-        state.trackTokenMovement(
-          distance,
-          {
-            movementId:
-              `elevation:${key}:${previousElevation}:${nextElevation}:${Date.now()}`,
-
-            method:
-              "elevation",
-
-            origin: {
-              x:
-                Number(
-                  tokenDocument.x
-                ) || 0,
-
-              y:
-                Number(
-                  tokenDocument.y
-                ) || 0,
-
-              elevation:
-                previousElevation
-            },
-
-            destination: {
-              x:
-                Number(
-                  tokenDocument.x
-                ) || 0,
-
-              y:
-                Number(
-                  tokenDocument.y
-                ) || 0,
-
-              elevation:
-                nextElevation
-            }
-          }
-        );
-
-
-      if (
-        !result.tracked
-      ) {
-        return;
-      }
-
-
-      ui.notifications.info(
-        `Elevation changed by ${distance} space(s); Frame Helm recorded it as movement.`
-      );
-
-
-      notifyAutomaticMovementActions(
-        result
-      );
-
-
-      if (
-        result.excess >
-        0
-      ) {
-        ui.notifications.warn(
-          `Frame Helm recorded ${result.excess} excess movement beyond the currently legal movement allowance.`
-        );
-      }
-
-
-      renderFrameHelmApplication(
-        false
-      );
-    } catch (error) {
-      console.error(
-        `${MODULE_TITLE} | Could not track elevation movement.`,
-        error
-      );
-
-
-      ui.notifications.warn(
-        `Frame Helm could not track the elevation change: ${error.message}`
-      );
-    }
-  }
-);
-
-
-/* ============================================================
    Extracted feature domains
    ============================================================ */
 
@@ -2061,6 +1244,33 @@ Hooks.on(
  *   - Combat-specific Foundry hooks
  *
  *
+ * MOVEMENT
+ *
+ *   scripts/movement-feature.js
+ *
+ * Owns:
+ *   - Movement-token identity matching
+ *   - Foundry movement-point normalization
+ *   - Movement-path collection
+ *   - Foundry movement-distance extraction
+ *   - Movement-path measurement
+ *   - Movement-distance rounding
+ *   - Automatic Boost notifications
+ *   - moveToken handling
+ *   - Elevation-origin tracking
+ *   - Elevation-change interpretation
+ *   - Elevation movement handling
+ *   - Movement-specific Foundry hooks
+ *
+ * Transitional relationship:
+ *
+ *   FrameHelmTurnState still contains the authoritative movement
+ *   accounting methods consumed by Movement.
+ *
+ *   That state may migrate into movement-feature.js during a
+ *   later second-stage extraction.
+ *
+ *
  * APPLICATION UI
  *
  *   styles/ui-application.js
@@ -2077,27 +1287,29 @@ Hooks.on(
  *
  * NEXT EXTRACTION:
  *
- *   scripts/movement-feature.js
+ *   scripts/action-execution-feature.js
  *
  * Should absorb:
- *   - movement-token identity matching
- *   - movement-path normalization
- *   - movement-path measurement
- *   - movement rounding
- *   - automatic Boost notifications
- *   - moveToken hook
- *   - elevation-origin tracking
- *   - elevation movement accounting
- *   - elevation hooks
+ *   - no-roll action classification
+ *   - action execution-kind resolution
+ *   - mech-stat selection dialog
+ *   - actor workflow delegation
+ *   - frameHelmExecuteActionRoll()
  *
  *
  * All executable feature domains are imported and registered by:
  *
  *   scripts/feature-registry.js
  *
+ * Runtime/domain features are registered directly there.
+ *
+ * Executable UI features are supplied through:
+ *
+ *   styles/ui-registry.js
+ *
  * runtime-orchestrator.js imports only:
  *
  *   frameHelmFeatureRegistry
  *
- * and resolves feature behavior through registered APIs.
+ * and resolves extracted behavior through registered APIs.
  */
