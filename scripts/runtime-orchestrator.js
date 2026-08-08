@@ -29,6 +29,9 @@
  *   - Sensors
  *       scripts/sensors-feature.js
  *
+ *   - Turn
+ *       scripts/turn-feature.js
+ *
  *   - Application UI
  *       styles/ui-application.js
  *
@@ -39,6 +42,7 @@
  *   feature-registry.js
  *        ├── actions-feature.js
  *        ├── sensors-feature.js
+ *        ├── turn-feature.js
  *        ├── ui-application.js
  *        └── future feature domains
  *        ↓
@@ -49,8 +53,7 @@
  *   - Foundry startup boundaries
  *   - Module settings registration
  *   - Scene-control integration
- *   - Turn-state domain, pending extraction
- *   - Combat-turn synchronization, pending extraction
+ *   - Cross-feature runtime binding
  *   - Movement tracking, pending extraction
  *   - Elevation movement tracking, pending extraction
  *   - Action execution, pending extraction
@@ -67,8 +70,15 @@
  *   - Application open/close behavior
  *   - Application rendering implementation
  *   - Controlled-token UI lookup
- *   - Application refresh hooks
- *   - Application stylesheet installation
+ *   - Turn-state implementation
+ *   - Turn-state manager
+ *   - Turn action legality
+ *   - Protocol state
+ *   - Reaction state
+ *   - Committed-action state
+ *   - Combat-turn context resolution
+ *   - Combat-turn synchronization
+ *   - Turn-specific Foundry combat hooks
  */
 
 
@@ -127,12 +137,69 @@ const initializeFrameHelmActionRegistry =
 
 
 /* ------------------------------------------------------------
+   Turn
+   ------------------------------------------------------------ */
+
+const frameHelmTurnApi =
+  frameHelmFeatureRegistry.getApi(
+    "turn"
+  );
+
+if (!frameHelmTurnApi) {
+  throw new Error(
+    "Frame Helm | The registered Turn feature API could not be resolved."
+  );
+}
+
+
+/**
+ * Transitional accessor used by Movement and other domains which
+ * have not yet been extracted.
+ *
+ * Turn-state ownership belongs entirely to turn-feature.js.
+ */
+function getFrameHelmTurnState() {
+  return (
+    frameHelmTurnApi
+      .getCurrent?.() ??
+    frameHelmTurnApi
+      .current ??
+    null
+  );
+}
+
+
+/**
+ * Resolve the canonical Turn state manager when exposed by the
+ * feature.
+ */
+function getFrameHelmTurnStateManager() {
+  return (
+    frameHelmTurnApi
+      .getManager?.() ??
+    frameHelmTurnApi
+      .manager ??
+    null
+  );
+}
+
+
+/* ------------------------------------------------------------
    Application UI
    ------------------------------------------------------------ */
 
+/**
+ * NOTE:
+ *
+ * ui-application.js declares:
+ *
+ *   id: "ui-application"
+ *
+ * Therefore that exact identifier is used here.
+ */
 const frameHelmApplicationApi =
   frameHelmFeatureRegistry.getApi(
-    "application-ui"
+    "ui-application"
   );
 
 if (!frameHelmApplicationApi) {
@@ -142,12 +209,6 @@ if (!frameHelmApplicationApi) {
 }
 
 
-/**
- * Transitional local aliases.
- *
- * These preserve readable runtime composition without allowing
- * this file to directly import ui-application.js.
- */
 const openFrameHelm =
   (...args) =>
     frameHelmApplicationApi
@@ -178,2378 +239,63 @@ function renderFrameHelmApplication(
 
 
 /* ============================================================
-   Turn state
+   Cross-feature runtime bindings
    ============================================================ */
 
-class FrameHelmTurnState {
-  constructor(
-    context = {}
-  ) {
-    this.reset(
-      context
-    );
-  }
+/**
+ * Several extracted domains still consume capabilities belonging
+ * to domains which have not yet been independently extracted.
+ *
+ * Keep those relationships explicit here rather than allowing
+ * features to import one another directly.
+ */
+function configureFrameHelmRuntimeBindings() {
+  /**
+   * Turn depends on the Actions registry and requests Application
+   * rendering when turn state changes.
+   */
+  frameHelmTurnApi
+    .configureRuntime?.({
+      getActionRegistry:
+        () =>
+          frameHelmActionRegistry,
 
-
-  reset(
-    context = {}
-  ) {
-    this.context = {
-      combatId:
-        context.combatId ??
-        null,
-
-      combatantId:
-        context.combatantId ??
-        null,
-
-      tokenId:
-        context.tokenId ??
-        null,
-
-      actorId:
-        context.actorId ??
-        null,
-
-      sceneId:
-        context.sceneId ??
-        null,
-
-      round:
-        Number.isFinite(
-          context.round
-        )
-          ? context.round
-          : null,
-
-      turn:
-        Number.isFinite(
-          context.turn
-        )
-          ? context.turn
-          : null
-    };
-
-
-    const hasSpeedValue =
-      context.speed !== null &&
-      context.speed !== undefined &&
-      context.speed !== "";
-
-
-    const speed =
-      hasSpeedValue
-        ? Number(
-            context.speed
+      renderApplication:
+        force =>
+          renderFrameHelmApplication(
+            force
           )
-        : null;
-
-
-    this.speed =
-      speed !== null &&
-      Number.isFinite(
-        speed
-      ) &&
-      speed >= 0
-        ? speed
-        : null;
-
-
-    this.movement = {
-      maximum:
-        this.speed,
-
-      spent:
-        0,
-
-      remaining:
-        this.speed,
-
-      completed:
-        false,
-
-      totalTracked:
-        0,
-
-      standardUsed:
-        0,
-
-      boostUsed:
-        0,
-
-      overchargeBoostUsed:
-        0,
-
-      excess:
-        0,
-
-      segments:
-        [],
-
-      processedMovementIds:
-        []
-    };
-
-
-    this.actionMode =
-      null;
-
-
-    this.quickActionsRemaining =
-      2;
-
-
-    this.fullActionAvailable =
-      true;
-
-
-    this.overcharge = {
-      used:
-        false,
-
-      quickActionRemaining:
-        0,
-
-      heatFormula:
-        null
-    };
-
-
-    this.protocol = {
-      available:
-        true,
-
-      used:
-        false,
-
-      startOfTurnOpen:
-        true
-    };
-
-
-    this.reaction = {
-      usedThisTurn:
-        false,
-
-      actionId:
-        null
-    };
-
-
-    this.usedActions =
-      [];
-
-
-    this.usedDuplicateKeys =
-      [];
-
-
-    this.history =
-      [];
-
-
-    this.ended =
-      false;
-
-
-    this.startedAt =
-      Date.now();
-
-
-    this.endedAt =
-      null;
-
-
-    return this;
-  }
-
-
-  /* ==========================================================
-     Turn state -- Speed
-     ========================================================== */
-
-  setSpeed(
-    speed
-  ) {
-    const numericSpeed =
-      Number(
-        speed
-      );
-
-
-    if (
-      !Number.isFinite(
-        numericSpeed
-      ) ||
-      numericSpeed < 0
-    ) {
-      throw new TypeError(
-        "Frame Helm speed must be a non-negative number."
-      );
-    }
-
-
-    const previousMaximum =
-      this.movement.maximum;
-
-
-    const previousSpent =
-      this.movement.spent;
-
-
-    this.speed =
-      numericSpeed;
-
-
-    this.movement.maximum =
-      numericSpeed;
-
-
-    this.movement.spent =
-      Math.min(
-        previousSpent,
-        numericSpeed
-      );
-
-
-    this.movement.remaining =
-      Math.max(
-        0,
-        numericSpeed -
-          this.movement.spent
-      );
-
-
-    if (
-      previousMaximum ===
-      null
-    ) {
-      this.recordHistory(
-        "set-speed",
-        {
-          speed:
-            numericSpeed
-        }
-      );
-    }
-
-
-    return (
-      this.movement.remaining
-    );
-  }
-
-
-  /* ==========================================================
-     Turn state -- Movement
-     ========================================================== */
-
-  spendMovement(
-    distance
-  ) {
-    this.assertTurnActive();
-
-
-    const numericDistance =
-      Number(
-        distance
-      );
-
-
-    if (
-      !Number.isFinite(
-        numericDistance
-      ) ||
-      numericDistance < 0
-    ) {
-      throw new TypeError(
-        "Movement distance must be a non-negative number."
-      );
-    }
-
-
-    if (
-      this.movement.maximum ===
-      null
-    ) {
-      throw new Error(
-        "Movement speed has not been assigned to this turn."
-      );
-    }
-
-
-    if (
-      numericDistance >
-      this.movement.remaining
-    ) {
-      throw new Error(
-        `Only ${this.movement.remaining} movement remains.`
-      );
-    }
-
-
-    this.movement.spent +=
-      numericDistance;
-
-
-    this.movement.remaining -=
-      numericDistance;
-
-
-    if (
-      this.movement.remaining ===
-      0
-    ) {
-      this.movement.completed =
-        true;
-    }
-
-
-    this.closeProtocolWindow();
-
-
-    this.recordHistory(
-      "spend-movement",
-      {
-        distance:
-          numericDistance
-      }
-    );
-
-
-    return (
-      this.movement.remaining
-    );
-  }
-
-
-  completeMovement() {
-    this.assertTurnActive();
-
-
-    this.movement.completed =
-      true;
-
-
-    this.recordHistory(
-      "complete-movement",
-      {
-        remaining:
-          this.movement.remaining
-      }
-    );
-  }
-
-
-  reopenMovement() {
-    this.assertTurnActive();
-
-
-    if (
-      this.movement.maximum !==
-        null &&
-      this.movement.remaining <=
-        0
-    ) {
-      this.movement.spent =
-        0;
-
-
-      this.movement.remaining =
-        this.movement.maximum;
-    }
-
-
-    this.movement.completed =
-      false;
-
-
-    this.recordHistory(
-      "reopen-movement",
-      {
-        remaining:
-          this.movement.remaining
-      }
-    );
-  }
-
-
-  commitMovement(
-    actionId
-  ) {
-    this.assertTurnActive();
-
-
-    if (
-      this.movement.maximum ===
-      null
-    ) {
-      throw new Error(
-        "Movement speed has not been assigned to this turn."
-      );
-    }
-
-
-    if (
-      this.movement.completed
-    ) {
-      throw new Error(
-        "Movement has already been committed."
-      );
-    }
-
-
-    if (
-      this.movement.remaining <=
-      0
-    ) {
-      throw new Error(
-        "No movement remains to commit."
-      );
-    }
-
-
-    const committedDistance =
-      this.movement.remaining;
-
-
-    this.movement.spent +=
-      committedDistance;
-
-
-    this.movement.remaining =
-      0;
-
-
-    this.movement.completed =
-      true;
-
-
-    this.closeProtocolWindow();
-
-
-    this.recordHistory(
-      "movement-commit",
-      {
-        actionId,
-
-        distance:
-          committedDistance
-      }
-    );
-
-
-    return committedDistance;
-  }
-
-
-  refreshMovementFromBoost() {
-    this.assertTurnActive();
-
-
-    if (
-      this.movement.maximum ===
-      null
-    ) {
-      this.recordHistory(
-        "boost-movement-refill",
-        {
-          distance:
-            null
-        }
-      );
-
-
-      return null;
-    }
-
-
-    this.movement.spent =
-      0;
-
-
-    this.movement.remaining =
-      this.movement.maximum;
-
-
-    this.movement.completed =
-      false;
-
-
-    this.recordHistory(
-      "boost-movement-refill",
-      {
-        distance:
-          this.movement.maximum
-      }
-    );
-
-
-    return (
-      this.movement.remaining
-    );
-  }
-
-
-  movementBoostEntries() {
-    return (
-      this.usedActions.filter(
-        entry => {
-          return (
-            entry.actionId ===
-            "quick.boost"
-          );
-        }
-      )
-    );
-  }
-
-
-  movementBoostCount() {
-    return (
-      this.movementBoostEntries()
-        .length
-    );
-  }
-
-
-  hasProcessedMovementId(
-    movementId
-  ) {
-    if (
-      !movementId
-    ) {
-      return false;
-    }
-
-
-    return (
-      this.movement
-        .processedMovementIds
-        .includes(
-          String(
-            movementId
-          )
-        )
-    );
-  }
-
-
-  rememberMovementId(
-    movementId
-  ) {
-    if (
-      !movementId
-    ) {
-      return;
-    }
-
-
-    const normalizedId =
-      String(
-        movementId
-      );
-
-
-    if (
-      !this.movement
-        .processedMovementIds
-        .includes(
-          normalizedId
-        )
-    ) {
-      this.movement
-        .processedMovementIds
-        .push(
-          normalizedId
-        );
-    }
-
-
-    if (
-      this.movement
-        .processedMovementIds
-        .length > 100
-    ) {
-      this.movement
-        .processedMovementIds
-        .splice(
-          0,
-          this.movement
-            .processedMovementIds
-            .length - 100
-        );
-    }
-  }
-
-
-  ensureAutomaticMovementBoost({
-    forceOvercharge = false
-  } = {}) {
-    this.assertTurnActive();
-
-
-    const boostAction =
-      frameHelmActionRegistry.get(
-        "quick.boost"
-      );
-
-
-    if (
-      !boostAction
-    ) {
-      return {
-        committed:
-          false,
-
-        reason:
-          "Boost is not registered."
-      };
-    }
-
-
-    if (
-      !forceOvercharge
-    ) {
-      const normalPermission =
-        this.canUseAction(
-          boostAction
-        );
-
-
-      if (
-        normalPermission.allowed
-      ) {
-        this.useAction(
-          boostAction,
-          {
-            metadata: {
-              automatic:
-                true,
-
-              reason:
-                "token-movement"
-            }
-          }
-        );
-
-
-        this.recordHistory(
-          "automatic-movement-boost",
-          {
-            source:
-              "normal"
-          }
-        );
-
-
-        return {
-          committed:
-            true,
-
-          source:
-            "normal",
-
-          heatFormula:
-            null
-        };
-      }
-    }
-
-
-    let heatFormula =
-      null;
-
-
-    let triggeredOvercharge =
-      false;
-
-
-    if (
-      !this.overcharge.used
-    ) {
-      heatFormula =
-        this.useOvercharge();
-
-
-      triggeredOvercharge =
-        true;
-    }
-
-
-    const overchargePermission =
-      this.canUseAction(
-        boostAction,
-        {
-          useOvercharge:
-            true
-        }
-      );
-
-
-    if (
-      !overchargePermission
-        .allowed
-    ) {
-      return {
-        committed:
-          false,
-
-        triggeredOvercharge,
-        heatFormula,
-
-        reason:
-          overchargePermission
-            .reason
-      };
-    }
-
-
-    this.useAction(
-      boostAction,
-      {
-        useOvercharge:
-          true,
-
-        metadata: {
-          automatic:
-            true,
-
-          reason:
-            "token-movement"
-        }
-      }
-    );
-
-
-    this.recordHistory(
-      "automatic-movement-boost",
-      {
-        source:
-          "overcharge",
-
-        heatFormula
-      }
-    );
-
-
-    return {
-      committed:
-        true,
-
-      source:
-        "overcharge",
-
-      triggeredOvercharge,
-      heatFormula
-    };
-  }
-
-
-  recalculateTrackedMovement() {
-    const speed =
-      Number(
-        this.movement.maximum
-      );
-
-
-    const total =
-      Number(
-        this.movement.totalTracked
-      ) || 0;
-
-
-    if (
-      !Number.isFinite(
-        speed
-      ) ||
-      speed <= 0
-    ) {
-      this.movement.standardUsed =
-        total;
-
-
-      this.movement.boostUsed =
-        0;
-
-
-      this.movement
-        .overchargeBoostUsed =
-        0;
-
-
-      this.movement.spent =
-        total;
-
-
-      this.movement.remaining =
-        0;
-
-
-      this.movement.excess =
-        0;
-
-
-      this.movement.completed =
-        total > 0;
-
-
-      return;
-    }
-
-
-    const boostEntries =
-      this.movementBoostEntries();
-
-
-    const normalBoostCount =
-      boostEntries.filter(
-        entry => {
-          return (
-            entry.source !==
-            "overcharge"
-          );
-        }
-      ).length;
-
-
-    const overchargeBoostCount =
-      boostEntries.filter(
-        entry => {
-          return (
-            entry.source ===
-            "overcharge"
-          );
-        }
-      ).length;
-
-
-    const standardUsed =
-      Math.min(
-        total,
-        speed
-      );
-
-
-    const boostUsed =
-      normalBoostCount > 0
-        ? Math.min(
-            Math.max(
-              total -
-                speed,
-              0
-            ),
-            speed
-          )
-        : 0;
-
-
-    const overchargeStart =
-      speed *
-      (
-        1 +
-        normalBoostCount
-      );
-
-
-    const overchargeBoostUsed =
-      overchargeBoostCount > 0
-        ? Math.min(
-            Math.max(
-              total -
-                overchargeStart,
-              0
-            ),
-            speed
-          )
-        : 0;
-
-
-    const legalAllowanceCount =
-      1 +
-      normalBoostCount +
-      overchargeBoostCount;
-
-
-    const legalMaximum =
-      speed *
-      legalAllowanceCount;
-
-
-    const excess =
-      Math.max(
-        total -
-          legalMaximum,
-        0
-      );
-
-
-    let currentPoolUsed =
-      standardUsed;
-
-
-    if (
-      normalBoostCount > 0 &&
-      total > speed
-    ) {
-      currentPoolUsed =
-        boostUsed;
-    }
-
-
-    if (
-      overchargeBoostCount > 0 &&
-      total >
-        overchargeStart
-    ) {
-      currentPoolUsed =
-        overchargeBoostUsed;
-    }
-
-
-    if (
-      excess > 0
-    ) {
-      currentPoolUsed =
-        speed;
-    }
-
-
-    this.movement.standardUsed =
-      standardUsed;
-
-
-    this.movement.boostUsed =
-      boostUsed;
-
-
-    this.movement
-      .overchargeBoostUsed =
-      overchargeBoostUsed;
-
-
-    this.movement.excess =
-      excess;
-
-
-    this.movement.spent =
-      currentPoolUsed;
-
-
-    this.movement.remaining =
-      excess > 0
-        ? 0
-        : Math.max(
-            speed -
-              currentPoolUsed,
-            0
-          );
-
-
-    this.movement.completed =
-      this.movement.remaining <=
-      0;
-  }
-
-
-  trackTokenMovement(
-    distance,
-    {
-      movementId = null,
-      method = null,
-      origin = null,
-      destination = null
-    } = {}
-  ) {
-    this.assertTurnActive();
-
-
-    const numericDistance =
-      Number(
-        distance
-      );
-
-
-    if (
-      !Number.isFinite(
-        numericDistance
-      ) ||
-      numericDistance <= 0
-    ) {
-      return {
-        tracked:
-          false,
-
-        distance:
-          0,
-
-        reason:
-          "Movement distance was zero."
-      };
-    }
-
-
-    if (
-      this.hasProcessedMovementId(
-        movementId
-      )
-    ) {
-      return {
-        tracked:
-          false,
-
-        distance:
-          0,
-
-        reason:
-          "Movement was already recorded."
-      };
-    }
-
-
-    const speed =
-      Number(
-        this.movement.maximum
-      );
-
-
-    if (
-      !Number.isFinite(
-        speed
-      ) ||
-      speed <= 0
-    ) {
-      throw new Error(
-        "Frame Helm cannot track movement until the unit has a positive Speed."
-      );
-    }
-
-
-    const previousTotal =
-      this.movement.totalTracked;
-
-
-    const newTotal =
-      previousTotal +
-      numericDistance;
-
-
-    const previousBoostCount =
-      this.movementBoostCount();
-
-
-    const automaticActions =
-      [];
-
-
-    if (
-      newTotal > speed &&
-      this.movementBoostCount() <
-        1
-    ) {
-      const result =
-        this.ensureAutomaticMovementBoost({
-          forceOvercharge:
-            false
-        });
-
-
-      automaticActions.push({
-        threshold:
-          speed,
-
-        ...result
-      });
-    }
-
-
-    if (
-      newTotal >
-        speed * 2 &&
-      this.movementBoostCount() <
-        2
-    ) {
-      const result =
-        this.ensureAutomaticMovementBoost({
-          forceOvercharge:
-            true
-        });
-
-
-      automaticActions.push({
-        threshold:
-          speed * 2,
-
-        ...result
-      });
-    }
-
-
-    this.movement.totalTracked =
-      newTotal;
-
-
-    this.movement.segments.push({
-      distance:
-        numericDistance,
-
-      movementId:
-        movementId
-          ? String(
-              movementId
-            )
-          : null,
-
-      method:
-        method
-          ? String(
-              method
-            )
-          : null,
-
-      origin:
-        origin
-          ? {
-              ...origin
-            }
-          : null,
-
-      destination:
-        destination
-          ? {
-              ...destination
-            }
-          : null,
-
-      timestamp:
-        Date.now()
     });
-
-
-    this.rememberMovementId(
-      movementId
-    );
-
-
-    this.closeProtocolWindow();
-
-
-    this.recalculateTrackedMovement();
-
-
-    this.recordHistory(
-      "token-movement",
-      {
-        distance:
-          numericDistance,
-
-        totalDistance:
-          newTotal,
-
-        movementId,
-        method,
-        automaticActions,
-        previousBoostCount,
-
-        boostCount:
-          this.movementBoostCount(),
-
-        excess:
-          this.movement.excess
-      }
-    );
-
-
-    return {
-      tracked:
-        true,
-
-      distance:
-        numericDistance,
-
-      totalDistance:
-        newTotal,
-
-      remaining:
-        this.movement.remaining,
-
-      standardUsed:
-        this.movement.standardUsed,
-
-      boostUsed:
-        this.movement.boostUsed,
-
-      overchargeBoostUsed:
-        this.movement
-          .overchargeBoostUsed,
-
-      excess:
-        this.movement.excess,
-
-      automaticActions
-    };
-  }
-
-
-  /* ==========================================================
-     Turn state -- Protocol
-     ========================================================== */
-
-  closeProtocolWindow() {
-    if (
-      !this.protocol
-        .startOfTurnOpen
-    ) {
-      return;
-    }
-
-
-    this.protocol
-      .startOfTurnOpen =
-      false;
-
-
-    if (
-      !this.protocol.used
-    ) {
-      this.protocol.available =
-        false;
-    }
-  }
-
-
-  useProtocol(
-    actionId = null
-  ) {
-    this.assertTurnActive();
-
-
-    if (
-      !this.protocol
-        .startOfTurnOpen
-    ) {
-      throw new Error(
-        "Protocols can only be activated at the start of a turn."
-      );
-    }
-
-
-    if (
-      this.protocol.used
-    ) {
-      throw new Error(
-        "A protocol has already been used this turn."
-      );
-    }
-
-
-    this.protocol.used =
-      true;
-
-
-    this.protocol.available =
-      false;
-
-
-    this.recordHistory(
-      "use-protocol",
-      {
-        actionId
-      }
-    );
-  }
-
-
-  /* ==========================================================
-     Turn state -- Overcharge
-     ========================================================== */
-
-  overchargeHeatFormula(
-    overchargeCount = 0
-  ) {
-    if (
-      overchargeCount <= 0
-    ) {
-      return "1";
-    }
-
-
-    if (
-      overchargeCount === 1
-    ) {
-      return "1d3";
-    }
-
-
-    if (
-      overchargeCount === 2
-    ) {
-      return "1d6";
-    }
-
-
-    return "1d6+4";
-  }
-
-
-  useOvercharge({
-    previousOvercharges = 0
-  } = {}) {
-    this.assertTurnActive();
-
-
-    if (
-      this.overcharge.used
-    ) {
-      throw new Error(
-        "This unit has already Overcharged this turn."
-      );
-    }
-
-
-    this.overcharge.used =
-      true;
-
-
-    this.overcharge
-      .quickActionRemaining =
-      1;
-
-
-    this.overcharge.heatFormula =
-      this.overchargeHeatFormula(
-        previousOvercharges
-      );
-
-
-    this.closeProtocolWindow();
-
-
-    this.recordHistory(
-      "overcharge",
-      {
-        heatFormula:
-          this.overcharge
-            .heatFormula,
-
-        previousOvercharges
-      }
-    );
-
-
-    return (
-      this.overcharge
-        .heatFormula
-    );
-  }
-
-
-  /* ==========================================================
-     Turn state -- Action legality
-     ========================================================== */
-
-  actionDuplicateKey(
-    action
-  ) {
-    return String(
-      action?.duplicateKey ??
-      action?.id ??
-      ""
-    );
-  }
-
-
-  hasUsedDuplicateKey(
-    duplicateKey
-  ) {
-    return (
-      this.usedDuplicateKeys
-        .includes(
-          String(
-            duplicateKey
-          )
-        )
-    );
-  }
-
-
-  canUseAction(
-    actionOrId,
-    {
-      useOvercharge = false,
-      ignoreDuplicate = false
-    } = {}
-  ) {
-    const action =
-      typeof actionOrId ===
-      "string"
-        ? frameHelmActionRegistry
-            .get(
-              actionOrId
-            )
-        : actionOrId;
-
-
-    if (
-      !action
-    ) {
-      return {
-        allowed:
-          false,
-
-        reason:
-          "Unknown action."
-      };
-    }
-
-
-    if (
-      this.ended
-    ) {
-      return {
-        allowed:
-          false,
-
-        reason:
-          "The turn has already ended."
-      };
-    }
-
-
-    if (
-      action.id ===
-      "special.end-turn"
-    ) {
-      return {
-        allowed:
-          true,
-
-        reason:
-          null
-      };
-    }
-
-
-    if (
-      action.cost ===
-      "movement"
-    ) {
-      if (
-        this.movement.completed
-      ) {
-        return {
-          allowed:
-            false,
-
-          reason:
-            "Movement has been marked complete."
-        };
-      }
-
-
-      if (
-        this.movement.remaining ===
-        0
-      ) {
-        return {
-          allowed:
-            false,
-
-          reason:
-            "No standard movement remains."
-        };
-      }
-
-
-      return {
-        allowed:
-          true,
-
-        reason:
-          null
-      };
-    }
-
-
-    if (
-      action.cost ===
-      "overcharge"
-    ) {
-      if (
-        this.overcharge.used
-      ) {
-        return {
-          allowed:
-            false,
-
-          reason:
-            "Overcharge has already been used this turn."
-        };
-      }
-
-
-      return {
-        allowed:
-          true,
-
-        reason:
-          null
-      };
-    }
-
-
-    if (
-      action.cost ===
-      "full"
-    ) {
-      if (
-        !this.fullActionAvailable
-      ) {
-        return {
-          allowed:
-            false,
-
-          reason:
-            "The normal action budget has already been spent."
-        };
-      }
-
-
-      if (
-        this.actionMode ===
-        "quick"
-      ) {
-        return {
-          allowed:
-            false,
-
-          reason:
-            "A quick action has already been taken."
-        };
-      }
-
-
-      return {
-        allowed:
-          true,
-
-        reason:
-          null
-      };
-    }
-
-
-    if (
-      action.cost ===
-      "quick"
-    ) {
-      const duplicateKey =
-        this.actionDuplicateKey(
-          action
-        );
-
-
-      const duplicateUsed =
-        this.hasUsedDuplicateKey(
-          duplicateKey
-        );
-
-
-      if (
-        useOvercharge
-      ) {
-        if (
-          !this.overcharge.used
-        ) {
-          return {
-            allowed:
-              false,
-
-            reason:
-              "Overcharge has not been activated."
-          };
-        }
-
-
-        if (
-          this.overcharge
-            .quickActionRemaining <
-          1
-        ) {
-          return {
-            allowed:
-              false,
-
-            reason:
-              "The Overcharge quick action has been spent."
-          };
-        }
-
-
-        return {
-          allowed:
-            true,
-
-          reason:
-            null,
-
-          source:
-            "overcharge"
-        };
-      }
-
-
-      if (
-        this.actionMode ===
-        "full"
-      ) {
-        return {
-          allowed:
-            false,
-
-          reason:
-            "A full action has already been taken."
-        };
-      }
-
-
-      if (
-        this.quickActionsRemaining <
-        1
-      ) {
-        return {
-          allowed:
-            false,
-
-          reason:
-            "No normal quick actions remain."
-        };
-      }
-
-
-      if (
-        duplicateUsed &&
-        !ignoreDuplicate &&
-        action.repeatRule !==
-          "unrestricted"
-      ) {
-        return {
-          allowed:
-            false,
-
-          reason:
-            "This action has already been taken this turn. Use Overcharge to repeat it."
-        };
-      }
-
-
-      return {
-        allowed:
-          true,
-
-        reason:
-          null,
-
-        source:
-          "normal"
-      };
-    }
-
-
-    if (
-      action.cost ===
-      "reaction"
-    ) {
-      if (
-        this.reaction
-          .usedThisTurn
-      ) {
-        return {
-          allowed:
-            false,
-
-          reason:
-            "A reaction has already been used during this turn."
-        };
-      }
-
-
-      return {
-        allowed:
-          true,
-
-        reason:
-          null
-      };
-    }
-
-
-    return {
-      allowed:
-        true,
-
-      reason:
-        null
-    };
-  }
-
-
-  /* ==========================================================
-     Turn state -- Action commitment
-     ========================================================== */
-
-  useAction(
-    actionOrId,
-    {
-      useOvercharge = false,
-      ignoreDuplicate = false,
-      metadata = {}
-    } = {}
-  ) {
-    const action =
-      typeof actionOrId ===
-      "string"
-        ? frameHelmActionRegistry
-            .get(
-              actionOrId
-            )
-        : actionOrId;
-
-
-    const permission =
-      this.canUseAction(
-        action,
-        {
-          useOvercharge,
-          ignoreDuplicate
-        }
-      );
-
-
-    if (
-      !permission.allowed
-    ) {
-      throw new Error(
-        permission.reason
-      );
-    }
-
-
-    if (
-      action.id ===
-      "special.end-turn"
-    ) {
-      this.endTurn();
-
-
-      return (
-        this.snapshot()
-      );
-    }
-
-
-    if (
-      action.cost ===
-      "overcharge"
-    ) {
-      this.useOvercharge(
-        metadata
-      );
-
-
-      return (
-        this.snapshot()
-      );
-    }
-
-
-    if (
-      action.cost ===
-      "quick"
-    ) {
-      if (
-        useOvercharge
-      ) {
-        this.overcharge
-          .quickActionRemaining -=
-          1;
-      } else {
-        this.actionMode =
-          "quick";
-
-
-        this.quickActionsRemaining -=
-          1;
-
-
-        this.fullActionAvailable =
-          false;
-      }
-    }
-
-
-    if (
-      action.cost ===
-      "full"
-    ) {
-      this.actionMode =
-        "full";
-
-
-      this.fullActionAvailable =
-        false;
-
-
-      this.quickActionsRemaining =
-        0;
-    }
-
-
-    if (
-      action.cost ===
-      "reaction"
-    ) {
-      this.reaction.usedThisTurn =
-        true;
-
-
-      this.reaction.actionId =
-        action.id;
-    }
-
-
-    if (
-      action.cost !==
-      "none"
-    ) {
-      this.closeProtocolWindow();
-    }
-
-
-    const duplicateKey =
-      this.actionDuplicateKey(
-        action
-      );
-
-
-    this.usedActions.push({
-      id:
-        foundry.utils.randomID(),
-
-      actionId:
-        action.id,
-
-      duplicateKey,
-
-      source:
-        useOvercharge
-          ? "overcharge"
-          : "normal",
-
-      timestamp:
-        Date.now(),
-
-      executed:
-        false,
-
-      executedAt:
-        null,
-
-      executionMetadata:
-        {},
-
-      metadata: {
-        ...metadata
-      }
-    });
-
-
-    if (
-      duplicateKey &&
-      !this.usedDuplicateKeys
-        .includes(
-          duplicateKey
-        )
-    ) {
-      this.usedDuplicateKeys.push(
-        duplicateKey
-      );
-    }
-
-
-    this.recordHistory(
-      "use-action",
-      {
-        actionId:
-          action.id,
-
-        duplicateKey,
-
-        source:
-          useOvercharge
-            ? "overcharge"
-            : "normal"
-      }
-    );
-
-
-    return (
-      this.snapshot()
-    );
-  }
-
-
-  markCommittedActionExecuted(
-    entryId,
-    executionMetadata = {}
-  ) {
-    const entry =
-      this.usedActions.find(
-        candidate => {
-          return (
-            candidate.id ===
-            entryId
-          );
-        }
-      );
-
-
-    if (
-      !entry
-    ) {
-      throw new Error(
-        "The committed action could not be found."
-      );
-    }
-
-
-    entry.executed =
-      true;
-
-
-    entry.executedAt =
-      Date.now();
-
-
-    entry.executionMetadata = {
-      ...entry.executionMetadata,
-      ...executionMetadata
-    };
-
-
-    this.recordHistory(
-      "execute-action",
-      {
-        entryId,
-
-        actionId:
-          entry.actionId,
-
-        executionMetadata: {
-          ...executionMetadata
-        }
-      }
-    );
-
-
-    return entry;
-  }
-
-
-  markReactionAvailable() {
-    this.reaction.usedThisTurn =
-      false;
-
-
-    this.reaction.actionId =
-      null;
-  }
-
-
-  /* ==========================================================
-     Turn state -- Lifecycle
-     ========================================================== */
-
-  endTurn() {
-    if (
-      this.ended
-    ) {
-      return;
-    }
-
-
-    this.ended =
-      true;
-
-
-    this.endedAt =
-      Date.now();
-
-
-    this.protocol.available =
-      false;
-
-
-    this.protocol
-      .startOfTurnOpen =
-      false;
-
-
-    this.recordHistory(
-      "end-turn",
-      {}
-    );
-  }
-
-
-  assertTurnActive() {
-    if (
-      this.ended
-    ) {
-      throw new Error(
-        "The current Frame Helm turn has ended."
-      );
-    }
-  }
-
-
-  /* ==========================================================
-     Turn state -- History and snapshot
-     ========================================================== */
-
-  recordHistory(
-    type,
-    data = {}
-  ) {
-    this.history.push({
-      type,
-
-      timestamp:
-        Date.now(),
-
-      data: {
-        ...data
-      }
-    });
-  }
-
-
-  snapshot() {
-    return {
-      context: {
-        ...this.context
-      },
-
-      speed:
-        this.speed,
-
-      movement: {
-        ...this.movement
-      },
-
-      actionMode:
-        this.actionMode,
-
-      quickActionsRemaining:
-        this.quickActionsRemaining,
-
-      fullActionAvailable:
-        this.fullActionAvailable,
-
-      overcharge: {
-        ...this.overcharge
-      },
-
-      protocol: {
-        ...this.protocol
-      },
-
-      reaction: {
-        ...this.reaction
-      },
-
-      usedActions:
-        this.usedActions.map(
-          entry => ({
-            ...entry,
-
-            metadata: {
-              ...entry.metadata
-            },
-
-            executionMetadata: {
-              ...entry.executionMetadata
-            }
-          })
-        ),
-
-      usedDuplicateKeys: [
-        ...this.usedDuplicateKeys
-      ],
-
-      history:
-        this.history.map(
-          entry => ({
-            ...entry,
-
-            data: {
-              ...entry.data
-            }
-          })
-        ),
-
-      ended:
-        this.ended,
-
-      startedAt:
-        this.startedAt,
-
-      endedAt:
-        this.endedAt
-    };
-  }
-}
-
-
-/* ============================================================
-   Turn state manager
-   ============================================================ */
-
-class FrameHelmTurnStateManager {
-  constructor() {
-    this.current =
-      null;
-  }
-
-
-  beginTurn(
-    context = {}
-  ) {
-    this.current =
-      new FrameHelmTurnState(
-        context
-      );
-
-
-    console.log(
-      `${MODULE_TITLE} | Began turn state.`,
-      this.current.snapshot()
-    );
-
-
-    this.renderApplication();
-
-
-    return (
-      this.current
-    );
-  }
-
-
-  ensureTurn(
-    context = {}
-  ) {
-    if (
-      !this.current ||
-      this.current.ended
-    ) {
-      return (
-        this.beginTurn(
-          context
-        )
-      );
-    }
-
-
-    return (
-      this.current
-    );
-  }
-
-
-  endTurn() {
-    if (
-      !this.current
-    ) {
-      return null;
-    }
-
-
-    this.current.endTurn();
-
-
-    this.renderApplication();
-
-
-    return (
-      this.current.snapshot()
-    );
-  }
-
-
-  clear() {
-    this.current =
-      null;
-
-
-    this.renderApplication();
-  }
-
-
-  snapshot() {
-    return (
-      this.current
-        ?.snapshot() ??
-      null
-    );
-  }
 
 
   /**
-   * Application rendering is now delegated to the registered
-   * Application UI feature.
+   * Application UI consumes Turn state and the still-local Action
+   * Execution implementation.
    */
-  renderApplication() {
-    renderFrameHelmApplication(
-      false
-    );
-  }
-}
+  frameHelmApplicationApi
+    .configureRuntime?.({
+      getActionRegistry:
+        () =>
+          frameHelmActionRegistry,
 
+      getTurnState:
+        () =>
+          getFrameHelmTurnState(),
 
-const frameHelmTurnState =
-  new FrameHelmTurnStateManager();
+      getTurnStateManager:
+        () =>
+          getFrameHelmTurnStateManager(),
 
-
-/* ============================================================
-   Combat turn context
-   ============================================================ */
-
-function activeCombatTurnContext(
-  combat = game.combat
-) {
-  const combatant =
-    combat?.combatant ??
-    null;
-
-
-  const tokenDocument =
-    combatant?.token ??
-    null;
-
-
-  const actor =
-    combatant?.actor ??
-    null;
-
-
-  const numericSpeed =
-    Number(
-      actor?.system?.speed
-    );
-
-
-  return {
-    combatId:
-      combat?.id ??
-      null,
-
-    combatantId:
-      combatant?.id ??
-      null,
-
-    tokenId:
-      tokenDocument?.id ??
-      null,
-
-    actorId:
-      actor?.id ??
-      null,
-
-    sceneId:
-      combat?.scene?.id ??
-      canvas?.scene?.id ??
-      null,
-
-    round:
-      Number.isFinite(
-        combat?.round
-      )
-        ? combat.round
-        : null,
-
-    turn:
-      Number.isFinite(
-        combat?.turn
-      )
-        ? combat.turn
-        : null,
-
-    speed:
-      Number.isFinite(
-        numericSpeed
-      ) &&
-      numericSpeed >= 0
-        ? numericSpeed
-        : null
-  };
-}
-
-
-function syncTurnStateToCombat(
-  combat = game.combat
-) {
-  if (
-    !combat?.started ||
-    !combat.combatant
-  ) {
-    frameHelmTurnState.clear();
-
-
-    return null;
-  }
-
-
-  const context =
-    activeCombatTurnContext(
-      combat
-    );
-
-
-  const currentContext =
-    frameHelmTurnState
-      .current
-      ?.context;
-
-
-  const isSameTurn =
-    Boolean(
-      currentContext &&
-      currentContext.combatId ===
-        context.combatId &&
-      currentContext.combatantId ===
-        context.combatantId &&
-      currentContext.round ===
-        context.round &&
-      currentContext.turn ===
-        context.turn
-    );
-
-
-  if (
-    isSameTurn
-  ) {
-    return (
-      frameHelmTurnState.current
-    );
-  }
-
-
-  return (
-    frameHelmTurnState.beginTurn(
-      context
-    )
-  );
+      executeActionRoll:
+        (
+          actor,
+          action
+        ) =>
+          frameHelmExecuteActionRoll(
+            actor,
+            action
+          )
+    });
 }
 
 
@@ -2635,7 +381,6 @@ function addFrameHelmControlButton(
       controls
     );
 
-
     return;
   }
 
@@ -2682,7 +427,6 @@ function addFrameHelmControlButton(
       );
     }
 
-
     return;
   }
 
@@ -2726,16 +470,28 @@ Hooks.once(
 
 
     /**
-     * Application UI, Sensors, Actions, and future features have
-     * already been registered by feature-registry.js.
+     * Establish explicit cross-feature runtime dependencies before
+     * feature-owned hooks begin consuming those surfaces.
+     */
+    configureFrameHelmRuntimeBindings();
+
+
+    /**
+     * All extracted domains have already been registered by
+     * feature-registry.js.
      */
     frameHelmFeatureRegistry
       .validateDependencies();
 
 
     /**
-     * Feature-owned hooks, including Application UI hooks, are
-     * installed through the canonical registry.
+     * Install all feature-owned Foundry hooks.
+     *
+     * This now includes:
+     *
+     *   - Sensors hooks
+     *   - Application UI hooks
+     *   - Turn/combat synchronization hooks
      */
     frameHelmFeatureRegistry
       .installHooks();
@@ -2754,9 +510,10 @@ Hooks.once(
         closeFrameHelm,
 
 
-      /**
-       * Application ownership now belongs to application-ui.
-       */
+      /* --------------------------------------------------------
+         Application
+         -------------------------------------------------------- */
+
       get application() {
         return (
           frameHelmApplicationApi
@@ -2766,20 +523,27 @@ Hooks.once(
       },
 
 
+      /* --------------------------------------------------------
+         Feature graph
+         -------------------------------------------------------- */
+
       registry:
         frameHelmActionRegistry,
-
 
       features:
         frameHelmFeatureRegistry,
 
 
+      /* --------------------------------------------------------
+         Turn
+         -------------------------------------------------------- */
+
       turn: {
         begin:
           context => {
             return (
-              frameHelmTurnState
-                .beginTurn(
+              frameHelmTurnApi
+                .begin(
                   context
                 )
             );
@@ -2789,8 +553,8 @@ Hooks.once(
         ensure:
           context => {
             return (
-              frameHelmTurnState
-                .ensureTurn(
+              frameHelmTurnApi
+                .ensure(
                   context
                 )
             );
@@ -2800,8 +564,8 @@ Hooks.once(
         end:
           () => {
             return (
-              frameHelmTurnState
-                .endTurn()
+              frameHelmTurnApi
+                .end()
             );
           },
 
@@ -2809,7 +573,7 @@ Hooks.once(
         clear:
           () => {
             return (
-              frameHelmTurnState
+              frameHelmTurnApi
                 .clear()
             );
           },
@@ -2818,25 +582,26 @@ Hooks.once(
         sync:
           combat => {
             return (
-              syncTurnStateToCombat(
-                combat
-              )
+              frameHelmTurnApi
+                .sync(
+                  combat
+                )
             );
           },
 
 
         get current() {
           return (
-            frameHelmTurnState
-              .current
+            getFrameHelmTurnState()
           );
         },
 
 
         get state() {
           return (
-            frameHelmTurnState
-              .snapshot()
+            frameHelmTurnApi
+              .snapshot?.() ??
+            null
           );
         },
 
@@ -2847,9 +612,8 @@ Hooks.once(
             options
           ) => {
             return (
-              frameHelmTurnState
-                .ensureTurn()
-                .canUseAction(
+              frameHelmTurnApi
+                .canUse(
                   actionId,
                   options
                 )
@@ -2862,77 +626,53 @@ Hooks.once(
             actionId,
             options
           ) => {
-            const result =
-              frameHelmTurnState
-                .ensureTurn()
-                .useAction(
+            return (
+              frameHelmTurnApi
+                .use(
                   actionId,
                   options
-                );
-
-
-            frameHelmTurnState
-              .renderApplication();
-
-
-            return result;
+                )
+            );
           },
 
 
         move:
           distance => {
-            const result =
-              frameHelmTurnState
-                .ensureTurn()
-                .spendMovement(
+            return (
+              frameHelmTurnApi
+                .move(
                   distance
-                );
-
-
-            frameHelmTurnState
-              .renderApplication();
-
-
-            return result;
+                )
+            );
           },
 
 
         setSpeed:
           speed => {
-            const result =
-              frameHelmTurnState
-                .ensureTurn()
+            return (
+              frameHelmTurnApi
                 .setSpeed(
                   speed
-                );
-
-
-            frameHelmTurnState
-              .renderApplication();
-
-
-            return result;
+                )
+            );
           },
 
 
         overcharge:
           options => {
-            const result =
-              frameHelmTurnState
-                .ensureTurn()
-                .useOvercharge(
+            return (
+              frameHelmTurnApi
+                .overcharge(
                   options
-                );
-
-
-            frameHelmTurnState
-              .renderApplication();
-
-
-            return result;
+                )
+            );
           }
       },
 
+
+      /* --------------------------------------------------------
+         Actions
+         -------------------------------------------------------- */
 
       actions: {
         get:
@@ -2993,9 +733,15 @@ Hooks.once(
     };
 
 
-    syncTurnStateToCombat(
-      game.combat
-    );
+    /**
+     * Synchronize immediately with an already-running combat.
+     *
+     * Subsequent combat changes are owned by turn-feature.js.
+     */
+    frameHelmTurnApi
+      .sync?.(
+        game.combat
+      );
 
 
     console.log(
@@ -3009,6 +755,10 @@ Hooks.once(
    Foundry scene-control hooks
    ============================================================ */
 
+/**
+ * Scene-control integration remains application-wide runtime
+ * composition rather than a gameplay feature.
+ */
 Hooks.on(
   "getSceneControlButtons",
   addFrameHelmControlButton
@@ -3016,87 +766,25 @@ Hooks.on(
 
 
 /* ============================================================
-   Combat turn synchronization
-   ============================================================ */
-
-Hooks.on(
-  "combatStart",
-  combat => {
-    syncTurnStateToCombat(
-      combat
-    );
-  }
-);
-
-
-Hooks.on(
-  "updateCombat",
-  (
-    combat,
-    changes
-  ) => {
-    const turnChanged =
-      Object.prototype
-        .hasOwnProperty.call(
-          changes,
-          "turn"
-        );
-
-
-    const roundChanged =
-      Object.prototype
-        .hasOwnProperty.call(
-          changes,
-          "round"
-        );
-
-
-    const activeChanged =
-      Object.prototype
-        .hasOwnProperty.call(
-          changes,
-          "active"
-        );
-
-
-    if (
-      turnChanged ||
-      roundChanged ||
-      activeChanged
-    ) {
-      syncTurnStateToCombat(
-        combat
-      );
-    }
-  }
-);
-
-
-Hooks.on(
-  "deleteCombat",
-  combat => {
-    if (
-      frameHelmTurnState
-        .current
-        ?.context
-        ?.combatId ===
-      combat.id
-    ) {
-      frameHelmTurnState
-        .clear();
-    }
-  }
-);
-
-
-/* ============================================================
    Dragged token movement tracking
    ============================================================ */
+
+/**
+ * CURRENT EXTRACTION TARGET:
+ *
+ * This complete section should move next into:
+ *
+ *   scripts/movement-feature.js
+ *
+ * Turn-state ownership has already moved into turn-feature.js.
+ * Movement now consumes that state through the Turn feature.
+ */
+
 
 function frameHelmMovementTokenMatches(
   tokenDocument,
   state =
-    frameHelmTurnState.current
+    getFrameHelmTurnState()
 ) {
   if (
     !tokenDocument ||
@@ -3441,7 +1129,8 @@ function frameHelmMeasureMovementPath(
         Number.isFinite(
           sceneGridDistance
         ) &&
-        sceneGridDistance > 0
+        sceneGridDistance >
+          0
       ) {
         return (
           distance /
@@ -3473,7 +1162,8 @@ function frameHelmMeasureMovementPath(
 
 
   if (
-    points.length < 2
+    points.length <
+    2
   ) {
     return 0;
   }
@@ -3503,7 +1193,8 @@ function frameHelmMeasureMovementPath(
       Number.isFinite(
         measuredDistance
       ) &&
-      measuredDistance > 0
+      measuredDistance >
+        0
     ) {
       return (
         normalizeSceneDistance(
@@ -3628,7 +1319,6 @@ function notifyAutomaticMovementActions(
         `Frame Helm tracked movement beyond the current allowance, but could not automatically commit Boost: ${automaticAction.reason ?? "no legal action budget remains"}.`
       );
 
-
       continue;
     }
 
@@ -3646,7 +1336,7 @@ function notifyAutomaticMovementActions(
     } else if (
       automaticAction
         .source ===
-      "overcharge"
+        "overcharge"
     ) {
       ui.notifications.info(
         "Movement automatically spent the available Overcharge action on Boost."
@@ -3667,7 +1357,7 @@ Hooks.on(
     movement
   ) => {
     const state =
-      frameHelmTurnState.current;
+      getFrameHelmTurnState();
 
 
     if (
@@ -3736,7 +1426,8 @@ Hooks.on(
 
 
       if (
-        result.excess > 0
+        result.excess >
+        0
       ) {
         ui.notifications.warn(
           `Frame Helm recorded ${result.excess} excess movement beyond the currently legal movement allowance. The token was not stopped.`
@@ -3744,8 +1435,9 @@ Hooks.on(
       }
 
 
-      frameHelmTurnState
-        .renderApplication();
+      renderFrameHelmApplication(
+        false
+      );
     } catch (error) {
       console.error(
         `${MODULE_TITLE} | Could not track token movement.`,
@@ -3766,10 +1458,11 @@ Hooks.on(
    ============================================================ */
 
 /**
- * This is not application UI ownership.
+ * CURRENT EXTRACTION TARGET:
  *
- * It remains here until Action Execution becomes its own
- * registered feature.
+ * After Movement, this section should move into:
+ *
+ *   scripts/action-execution-feature.js
  */
 
 const FRAME_HELM_NO_ROLL_ACTIONS =
@@ -4072,6 +1765,11 @@ async function frameHelmExecuteActionRoll(
    Elevation movement tracking
    ============================================================ */
 
+/**
+ * This belongs with Movement and should leave this file when
+ * movement-feature.js is extracted.
+ */
+
 const frameHelmElevationOrigins =
   new Map();
 
@@ -4134,7 +1832,7 @@ Hooks.on(
 
 
     const state =
-      frameHelmTurnState.current;
+      getFrameHelmTurnState();
 
 
     if (
@@ -4206,7 +1904,8 @@ Hooks.on(
       Number.isFinite(
         sceneDistance
       ) &&
-      sceneDistance > 0
+      sceneDistance >
+        0
         ? elevationDistance /
           sceneDistance
         : elevationDistance;
@@ -4281,8 +1980,14 @@ Hooks.on(
       );
 
 
+      notifyAutomaticMovementActions(
+        result
+      );
+
+
       if (
-        result.excess > 0
+        result.excess >
+        0
       ) {
         ui.notifications.warn(
           `Frame Helm recorded ${result.excess} excess movement beyond the currently legal movement allowance.`
@@ -4290,8 +1995,9 @@ Hooks.on(
       }
 
 
-      frameHelmTurnState
-        .renderApplication();
+      renderFrameHelmApplication(
+        false
+      );
     } catch (error) {
       console.error(
         `${MODULE_TITLE} | Could not track elevation movement.`,
@@ -4335,6 +2041,26 @@ Hooks.on(
  *   - Sensor hooks
  *
  *
+ * TURN
+ *
+ *   scripts/turn-feature.js
+ *
+ * Owns:
+ *   - FrameHelmTurnState
+ *   - FrameHelmTurnStateManager
+ *   - Canonical turn-state instance
+ *   - Action-budget legality
+ *   - Protocol state
+ *   - Reaction state
+ *   - Overcharge turn state
+ *   - Committed-action state
+ *   - Turn history
+ *   - Turn snapshots
+ *   - Combat-turn context resolution
+ *   - Combat synchronization
+ *   - Combat-specific Foundry hooks
+ *
+ *
  * APPLICATION UI
  *
  *   styles/ui-application.js
@@ -4347,7 +2073,22 @@ Hooks.on(
  *   - Controlled-token UI access
  *   - Application refresh behavior
  *   - Application-owned Foundry hooks
- *   - Runtime stylesheet installation
+ *
+ *
+ * NEXT EXTRACTION:
+ *
+ *   scripts/movement-feature.js
+ *
+ * Should absorb:
+ *   - movement-token identity matching
+ *   - movement-path normalization
+ *   - movement-path measurement
+ *   - movement rounding
+ *   - automatic Boost notifications
+ *   - moveToken hook
+ *   - elevation-origin tracking
+ *   - elevation movement accounting
+ *   - elevation hooks
  *
  *
  * All executable feature domains are imported and registered by:
