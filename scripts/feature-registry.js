@@ -86,6 +86,7 @@
  *   turn-feature.js
  *   movement-feature.js
  *   foundry-integration-feature.js
+ *   action-execution-feature.js
  *   future *-feature.js
  *        │
  *        ▼
@@ -183,6 +184,26 @@
  *   runtime-orchestrator.js remains responsible for invoking the
  *   feature's registerSettings command during Foundry init and for
  *   installing all registered feature hooks.
+ *
+ * ACTION EXECUTION CONTRACT:
+ *
+ *   action-execution-feature.js owns:
+ *
+ *     - no-roll action classification
+ *     - execution-kind resolution
+ *     - mech-stat selection
+ *     - actor workflow delegation
+ *
+ *   It does NOT own:
+ *
+ *     - action registration
+ *     - action legality
+ *     - Turn action-budget mutation
+ *     - Lancer actor workflow implementation
+ *     - Application rendering
+ *
+ *   The Application UI may consume its execution API through
+ *   explicit runtime composition.
  */
 
 
@@ -222,6 +243,11 @@ import {
 import {
   frameHelmFoundryIntegrationFeature
 } from "./foundry-integration-feature.js";
+
+
+import {
+  frameHelmActionExecutionFeature
+} from "./action-execution-feature.js";
 
 
 /* ============================================================
@@ -268,7 +294,8 @@ export const FRAME_HELM_RUNTIME_FEATURES =
     frameHelmSensorsFeature,
     frameHelmTurnFeature,
     frameHelmMovementFeature,
-    frameHelmFoundryIntegrationFeature
+    frameHelmFoundryIntegrationFeature,
+    frameHelmActionExecutionFeature
   ]);
 
 
@@ -324,6 +351,22 @@ export const frameHelmFeatureRegistry =
  *      │
  *      ▼
  *   ui-movement
+ *
+ *
+ *   action-execution
+ *
+ *     provides:
+ *       - action-execution
+ *       - action-execution.classification
+ *       - action-execution.mech-stat-selection
+ *       - action-execution.actor-workflow
+ *
+ *     optionally consumes:
+ *       - actions.registry
+ *       - turn.actions
+ *
+ *     current consumer:
+ *       - ui-application through runtime composition
  */
 frameHelmFeatureRegistry.registerMany([
   ...FRAME_HELM_RUNTIME_FEATURES,
@@ -348,12 +391,14 @@ frameHelmFeatureRegistry.registerMany([
  *   - runtime/UI cross-package dependencies
  *   - Movement's turn.state dependency
  *   - Foundry Integration's ui.application dependency
+ *   - Action Execution feature registration
  *
  * It does NOT:
  *
  *   - initialize the Actions catalog
  *   - register Foundry settings
  *   - configure runtime bindings
+ *   - execute Action Execution workflows
  *   - install hooks
  *   - execute lifecycle phases
  *   - render application UI

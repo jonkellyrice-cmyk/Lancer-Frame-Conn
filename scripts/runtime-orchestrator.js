@@ -39,6 +39,9 @@
  *   - Foundry Integration
  *       scripts/foundry-integration-feature.js
  *
+ *   - Action Execution
+ *       scripts/action-execution-feature.js
+ *
  *   - Application UI
  *       styles/ui-application.js
  *
@@ -54,6 +57,7 @@
  *        ├── turn-feature.js
  *        ├── movement-feature.js
  *        ├── foundry-integration-feature.js
+ *        ├── action-execution-feature.js
  *        ├── executable UI package
  *        └── future feature domains
  *        ↓
@@ -63,13 +67,16 @@
  *
  *   - Foundry startup boundaries
  *   - Cross-feature runtime binding
- *   - Action execution, pending extraction
  *   - Public game.lancerFrameHelm composition
  *
  * NO LONGER OWNS:
  *
  *   - Action registry implementation
  *   - Universal action declarations
+ *   - Action execution classification
+ *   - Action execution-kind resolution
+ *   - Mech-stat selection
+ *   - Actor action-workflow delegation
  *   - Sensor rendering
  *   - Sensor hook behavior
  *   - FrameHelmApplication
@@ -227,6 +234,44 @@ if (
 
 
 /* ------------------------------------------------------------
+   Foundry integration
+   ------------------------------------------------------------ */
+
+const frameHelmFoundryIntegrationApi =
+  frameHelmFeatureRegistry.getApi(
+    "foundry-integration"
+  );
+
+
+if (
+  !frameHelmFoundryIntegrationApi
+) {
+  throw new Error(
+    "Frame Helm | The registered Foundry Integration feature API could not be resolved."
+  );
+}
+
+
+/* ------------------------------------------------------------
+   Action execution
+   ------------------------------------------------------------ */
+
+const frameHelmActionExecutionApi =
+  frameHelmFeatureRegistry.getApi(
+    "action-execution"
+  );
+
+
+if (
+  !frameHelmActionExecutionApi
+) {
+  throw new Error(
+    "Frame Helm | The registered Action Execution feature API could not be resolved."
+  );
+}
+
+
+/* ------------------------------------------------------------
    Application UI
    ------------------------------------------------------------ */
 
@@ -270,25 +315,6 @@ function renderFrameHelmApplication(
         force
       ) ??
     null
-  );
-}
-
-
-/* ------------------------------------------------------------
-   Foundry integration
-   ------------------------------------------------------------ */
-
-const frameHelmFoundryIntegrationApi =
-  frameHelmFeatureRegistry.getApi(
-    "foundry-integration"
-  );
-
-
-if (
-  !frameHelmFoundryIntegrationApi
-) {
-  throw new Error(
-    "Frame Helm | The registered Foundry Integration feature API could not be resolved."
   );
 }
 
@@ -384,11 +410,16 @@ function configureFrameHelmRuntimeBindings() {
      ---------------------------------------------------------- */
 
   /**
-   * Application UI consumes Turn state and the still-local Action
-   * Execution implementation.
+   * Application UI consumes:
    *
-   * Action Execution will leave this binding when
-   * action-execution-feature.js is extracted.
+   *   - the canonical Actions registry
+   *   - authoritative Turn state
+   *   - the Turn state manager
+   *   - Action Execution
+   *
+   * Action workflow implementation now belongs entirely to:
+   *
+   *   scripts/action-execution-feature.js
    */
   frameHelmApplicationApi
     .configureRuntime?.({
@@ -409,10 +440,11 @@ function configureFrameHelmRuntimeBindings() {
           actor,
           action
         ) =>
-          frameHelmExecuteActionRoll(
-            actor,
-            action
-          )
+          frameHelmActionExecutionApi
+            .execute(
+              actor,
+              action
+            )
     });
 }
 
@@ -424,7 +456,7 @@ function configureFrameHelmRuntimeBindings() {
 /**
  * Startup boundaries remain orchestration concerns.
  *
- * Feature-owned implementation is invoked through the registered
+ * Feature-owned implementation is invoked through registered
  * feature APIs rather than being implemented here.
  */
 
@@ -440,12 +472,15 @@ Hooks.once(
      * Establish explicit cross-feature runtime dependencies before
      * feature-owned startup work or hooks consume those surfaces.
      *
-     * This configures:
+     * This currently configures:
      *
      *   - Turn
      *   - Movement
      *   - Foundry Integration
      *   - Application UI
+     *
+     * Action Execution currently requires no runtime binding from
+     * this orchestrator.
      */
     configureFrameHelmRuntimeBindings();
 
@@ -486,6 +521,8 @@ Hooks.once(
      *   - Movement hooks
      *   - Elevation movement hooks
      *   - Foundry Integration scene-control hooks
+     *
+     * Action Execution currently declares no Foundry hooks.
      */
     frameHelmFeatureRegistry
       .installHooks();
@@ -534,6 +571,14 @@ Hooks.once(
 
       foundry:
         frameHelmFoundryIntegrationApi,
+
+
+      /* --------------------------------------------------------
+         Action execution
+         -------------------------------------------------------- */
+
+      actionExecution:
+        frameHelmActionExecutionApi,
 
 
       /* --------------------------------------------------------
@@ -768,330 +813,6 @@ Hooks.once(
 
 
 /* ============================================================
-   Universal action execution
-   ============================================================ */
-
-/**
- * NEXT EXTRACTION TARGET:
- *
- * This complete section should move into:
- *
- *   scripts/action-execution-feature.js
- *
- * It remains here temporarily because Application UI still calls
- * this runtime-owned implementation through its explicit
- * executeActionRoll binding.
- */
-
-const FRAME_HELM_NO_ROLL_ACTIONS =
-  new Set([
-    "movement.standard",
-    "movement.jump",
-    "movement.climb",
-    "movement.fly",
-    "movement.teleport",
-    "quick.boost",
-    "quick.hide",
-    "quick.prepare",
-    "quick.shut-down",
-    "quick.self-destruct",
-    "full.disengage",
-    "full.boot-up",
-    "full.mount-dismount",
-    "special.end-turn"
-  ]);
-
-
-/* ============================================================
-   Action execution -- Kind resolution
-   ============================================================ */
-
-function frameHelmActionExecutionKind(
-  action
-) {
-  if (
-    !action ||
-    FRAME_HELM_NO_ROLL_ACTIONS
-      .has(
-        action.id
-      )
-  ) {
-    return null;
-  }
-
-
-  if (
-    action.metadata
-      ?.statPath
-  ) {
-    return "stat";
-  }
-
-
-  if (
-    [
-      "quick.skirmish",
-      "quick.grapple",
-      "quick.ram",
-      "full.barrage",
-      "full.improvised-attack",
-      "reaction.overwatch"
-    ].includes(
-      action.id
-    )
-  ) {
-    return "basic-attack";
-  }
-
-
-  if (
-    [
-      "quick.quick-tech.invade",
-      "quick.quick-tech.invade.fragment-signal"
-    ].includes(
-      action.id
-    )
-  ) {
-    return "basic-tech-attack";
-  }
-
-
-  if (
-    action.id ===
-    "quick.quick-tech.scan"
-  ) {
-    return "scan";
-  }
-
-
-  if (
-    action.id ===
-    "full.stabilize"
-  ) {
-    return "stabilize";
-  }
-
-
-  if (
-    action.id ===
-    "special.overcharge"
-  ) {
-    return "overcharge";
-  }
-
-
-  return "choose-stat";
-}
-
-
-/* ============================================================
-   Action execution -- Mech stat selection
-   ============================================================ */
-
-function frameHelmChooseMechStat(
-  action
-) {
-  return new Promise(
-    resolve => {
-      const choices = [
-        [
-          "hull",
-          "HULL"
-        ],
-
-        [
-          "agi",
-          "AGI"
-        ],
-
-        [
-          "sys",
-          "SYS"
-        ],
-
-        [
-          "eng",
-          "ENG"
-        ]
-      ];
-
-
-      const buttons =
-        Object.fromEntries(
-          choices.map(
-            (
-              [
-                path,
-                label
-              ]
-            ) => {
-              return [
-                path,
-                {
-                  icon:
-                    '<i class="fas fa-dice-d20"></i>',
-
-                  label,
-
-                  callback:
-                    () =>
-                      resolve({
-                        path,
-                        label
-                      })
-                }
-              ];
-            }
-          )
-        );
-
-
-      new Dialog({
-        title:
-          `${action.label} -- Choose Mech Skill`,
-
-        content: `
-          <p>
-            Choose the mech skill used to resolve
-            <strong>${foundry.utils.escapeHTML(action.label)}</strong>.
-          </p>
-        `,
-
-        buttons,
-
-        close:
-          () =>
-            resolve(
-              null
-            )
-      }).render(
-        true
-      );
-    }
-  );
-}
-
-
-/* ============================================================
-   Action execution -- Actor workflow delegation
-   ============================================================ */
-
-async function frameHelmExecuteActionRoll(
-  actor,
-  action
-) {
-  const kind =
-    frameHelmActionExecutionKind(
-      action
-    );
-
-
-  if (
-    !kind
-  ) {
-    throw new Error(
-      "This action does not require a dice or sheet workflow."
-    );
-  }
-
-
-  if (
-    kind ===
-    "stat"
-  ) {
-    return (
-      actor.beginStatFlow(
-        action.metadata
-          .statPath,
-
-        action.metadata
-          .statLabel ??
-          action.label
-      )
-    );
-  }
-
-
-  if (
-    kind ===
-    "basic-attack"
-  ) {
-    return (
-      actor.beginBasicAttackFlow(
-        action.label
-      )
-    );
-  }
-
-
-  if (
-    kind ===
-    "basic-tech-attack"
-  ) {
-    return (
-      actor.beginBasicTechAttackFlow(
-        action.label
-      )
-    );
-  }
-
-
-  if (
-    kind ===
-    "scan"
-  ) {
-    return (
-      actor.beginScanFlow()
-    );
-  }
-
-
-  if (
-    kind ===
-    "stabilize"
-  ) {
-    return (
-      actor.beginStabilizeFlow()
-    );
-  }
-
-
-  if (
-    kind ===
-    "overcharge"
-  ) {
-    return (
-      actor.beginOverchargeFlow()
-    );
-  }
-
-
-  const selectedStat =
-    await frameHelmChooseMechStat(
-      action
-    );
-
-
-  if (
-    !selectedStat
-  ) {
-    throw new Error(
-      "Mech skill selection was cancelled."
-    );
-  }
-
-
-  return (
-    actor.beginStatFlow(
-      selectedStat.path,
-
-      `${action.label} -- ${selectedStat.label}`
-    )
-  );
-}
-
-
-/* ============================================================
    Extracted feature domains
    ============================================================ */
 
@@ -1180,6 +901,25 @@ async function frameHelmExecuteActionRoll(
  *   - Global feature-hook installation
  *
  *
+ * ACTION EXECUTION
+ *
+ *   scripts/action-execution-feature.js
+ *
+ * Owns:
+ *   - No-roll action classification
+ *   - Action execution-kind resolution
+ *   - Mech-stat selection dialog
+ *   - Actor workflow delegation
+ *   - Universal action-roll execution
+ *
+ * Does not own:
+ *   - Action registration
+ *   - Action legality
+ *   - Turn action-budget mutation
+ *   - Actor workflow implementation
+ *   - Application rendering
+ *
+ *
  * APPLICATION UI
  *
  *   styles/ui-application.js
@@ -1192,18 +932,6 @@ async function frameHelmExecuteActionRoll(
  *   - Controlled-token UI access
  *   - Application refresh behavior
  *   - Application-owned Foundry hooks
- *
- *
- * NEXT EXTRACTION:
- *
- *   scripts/action-execution-feature.js
- *
- * Should absorb:
- *   - no-roll action classification
- *   - action execution-kind resolution
- *   - mech-stat selection dialog
- *   - actor workflow delegation
- *   - frameHelmExecuteActionRoll()
  *
  *
  * All executable feature domains are declared through:
