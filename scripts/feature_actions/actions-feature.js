@@ -110,11 +110,11 @@ import {
   defineFrameHelmRequiresFullActionSystemMetadata,
   defineFrameHelmMountDismountModesMetadata,
   defineFrameHelmOverchargeMetadata
-} from "./dsl.js";
+} from "../dsl.js";
 
 import {
   defineFrameHelmFeature
-} from "./feature-contract.js";
+} from "../feature-contract.js";
 
 
 /* ============================================================

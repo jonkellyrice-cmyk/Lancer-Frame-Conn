@@ -415,7 +415,7 @@
  * Cross-feature layout remains the responsibility of
  * ui-orchestrator.css.
  */
-@import "./ui-application.css";
+@import "./ui_application/ui-application.css";
 
 
 /**

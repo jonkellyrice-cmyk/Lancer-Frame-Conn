@@ -130,7 +130,7 @@
 
 import {
   defineFrameHelmFeature
-} from "./feature-contract.js";
+} from "../feature-contract.js";
 
 
 /* ============================================================

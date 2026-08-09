@@ -222,7 +222,7 @@ import {
 
 import {
   frameHelmActionsFeature
-} from "./actions-feature.js";
+} from "./feature_actions/actions-feature.js";
 
 
 import {
@@ -232,12 +232,12 @@ import {
 
 import {
   frameHelmTurnFeature
-} from "./turn-feature.js";
+} from "./feature_turn/turn-feature.js";
 
 
 import {
   frameHelmMovementFeature
-} from "./movement-feature.js";
+} from "./feature_movement/movement-feature.js";
 
 
 import {
@@ -247,7 +247,7 @@ import {
 
 import {
   frameHelmActionExecutionFeature
-} from "./action-execution-feature.js";
+} from "./feature_actions/action-execution-feature.js";
 
 
 /* ============================================================

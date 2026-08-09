@@ -1,177 +1,154 @@
 {
   "schema_version": 2,
-  "id": "fix-frame-helm-audit-findings-2026-08-08",
-  "name": "Fix Frame Helm repository audit findings",
-  "description": "Fix the real DSL import mismatch, update stale pre-refactor runtime file references, and remove comment-only CSS import examples which the repository auditor incorrectly interprets as active dependencies.",
-
+  "id": "extract-turn-commands-and-fix-turn-api-v1",
+  "name": "Extract Turn Commands and Fix Turn API",
+  "description": "Populate the Turn command module, route the Turn feature declaration through it, and expose explicit getCurrent/getManager accessors required by application composition.",
   "backup": true,
   "allow_noop": false,
 
   "repository": {
     "require_git": true,
-    "require_clean_targets": true,
+    "require_clean_targets": false,
     "require_clean_repository": false
   },
 
-  "limits": {
-    "max_files_changed": 4,
-    "max_total_added_bytes": 4096,
-    "max_single_file_bytes": 100000,
-    "allowed_roots": [
-      "scripts",
-      "styles"
-    ]
-  },
-
   "risk_acceptance": {
-    "overwrite_files": false,
+    "overwrite_files": true,
     "delete_files": false,
     "move_files": false,
     "change_dependencies": false,
     "modify_package_manifest": false
   },
 
+  "limits": {
+    "max_files_changed": 2,
+    "max_total_added_bytes": 30000,
+    "max_single_file_bytes": 100000,
+    "allowed_roots": [
+      "scripts/feature_turn"
+    ]
+  },
+
   "preconditions": [
     {
       "type": "file_exists",
-      "file": "scripts/actions-feature.js"
+      "file": "scripts/feature_turn/turn-feature.js"
     },
     {
       "type": "file_exists",
-      "file": "scripts/sensors-feature.js"
-    },
-    {
-      "type": "file_exists",
-      "file": "scripts/dsl.js"
-    },
-    {
-      "type": "file_exists",
-      "file": "scripts/runtime-orchestrator.js"
-    },
-    {
-      "type": "file_exists",
-      "file": "styles/ui-registry.css"
+      "file": "scripts/feature_turn/turn-commands.js"
     },
     {
       "type": "contains",
-      "file": "scripts/actions-feature.js",
-      "text": "./frame-helm/dsl.js"
+      "file": "scripts/feature_turn/turn-feature.js",
+      "text": "export const frameHelmTurnFeature ="
+    },
+    {
+      "type": "contains",
+      "file": "scripts/feature_turn/turn-feature.js",
+      "text": "defineFrameHelmFeature({"
+    },
+    {
+      "type": "contains",
+      "file": "scripts/feature_turn/turn-feature.js",
+      "text": "manager:\n        frameHelmTurnState,"
     }
   ],
 
   "operations": [
     {
-      "operation": "replace",
-      "file": "scripts/actions-feature.js",
-      "find": "./frame-helm/dsl.js",
-      "replace": "./dsl.js",
-      "expected_matches": 1,
-      "must_exist": true
+      "operation": "overwrite",
+      "file": "scripts/feature_turn/turn-commands.js",
+      "must_exist": true,
+      "content": "/**\n * ============================================================\n * FILE PATH / NAME\n * ============================================================\n *\n * scripts/feature_turn/turn-commands.js\n */\n\n/**\n * ============================================================\n * FRAME HELM TURN -- COMMAND SURFACE\n * ============================================================\n *\n * ROLE:\n *   Provides the public command/query surface for the canonical\n *   Frame Helm Turn state manager.\n *\n * PURPOSE:\n *   Keep mutation wrappers and canonical state accessors outside\n *   turn-feature.js so that turn-feature.js can remain the public\n *   feature-package declaration surface.\n *\n * OWNS:\n *   - Begin-turn command delegation.\n *   - Ensure-turn command delegation.\n *   - End-turn command delegation.\n *   - Clear-turn command delegation.\n *   - Action-legality command delegation.\n *   - Action-use command delegation.\n *   - Transitional movement command delegation.\n *   - Speed mutation command delegation.\n *   - Overcharge command delegation.\n *   - Canonical current-state lookup.\n *   - Canonical manager lookup.\n *   - Canonical state snapshot lookup.\n *\n * DOES NOT OWN:\n *   - FrameHelmTurnState implementation.\n *   - FrameHelmTurnStateManager implementation.\n *   - Combat synchronization.\n *   - Runtime dependency bindings.\n *   - Feature declaration.\n *   - UI rendering implementation.\n */\n\n\n/* ============================================================\n   Imports\n   ============================================================ */\n\nimport {\n  frameHelmTurnState\n} from \"./turn-state-manager.js\";\n\n\n/* ============================================================\n   Canonical Turn queries\n   ============================================================ */\n\n/**\n * Returns the currently-active Frame Helm turn state without\n * creating a turn when none exists.\n */\nexport function getCurrentFrameHelmTurn() {\n  return (\n    frameHelmTurnState.current ??\n    null\n  );\n}\n\n\n/**\n * Returns the canonical Frame Helm turn-state manager.\n *\n * This accessor is intentionally explicit. Consumers which need\n * manager operations must not mistake the current Turn state for\n * the manager which owns it.\n */\nexport function getFrameHelmTurnStateManager() {\n  return frameHelmTurnState;\n}\n\n\n/**\n * Returns a serializable snapshot of the active Turn state.\n */\nexport function getFrameHelmTurnSnapshot() {\n  return (\n    frameHelmTurnState.snapshot()\n  );\n}\n\n\n/* ============================================================\n   Turn lifecycle commands\n   ============================================================ */\n\nexport function beginFrameHelmTurn(\n  context = {}\n) {\n  return (\n    frameHelmTurnState.beginTurn(\n      context\n    )\n  );\n}\n\n\nexport function ensureFrameHelmTurn(\n  context = {}\n) {\n  return (\n    frameHelmTurnState.ensureTurn(\n      context\n    )\n  );\n}\n\n\nexport function endFrameHelmTurn() {\n  return (\n    frameHelmTurnState.endTurn()\n  );\n}\n\n\nexport function clearFrameHelmTurn() {\n  return (\n    frameHelmTurnState.clear()\n  );\n}\n\n\n/* ============================================================\n   Turn action commands\n   ============================================================ */\n\nexport function canUseFrameHelmTurnAction(\n  actionId,\n  options\n) {\n  return (\n    frameHelmTurnState\n      .ensureTurn()\n      .canUseAction(\n        actionId,\n        options\n      )\n  );\n}\n\n\nexport function useFrameHelmTurnAction(\n  actionId,\n  options\n) {\n  const result =\n    frameHelmTurnState\n      .ensureTurn()\n      .useAction(\n        actionId,\n        options\n      );\n\n\n  frameHelmTurnState\n    .renderApplication();\n\n\n  return result;\n}\n\n\n/* ============================================================\n   Transitional movement commands\n   ============================================================ */\n\n/**\n * Movement accounting currently remains available through the\n * Turn state while its second-stage extraction is completed.\n */\nexport function spendFrameHelmTurnMovement(\n  distance\n) {\n  const result =\n    frameHelmTurnState\n      .ensureTurn()\n      .spendMovement(\n        distance\n      );\n\n\n  frameHelmTurnState\n    .renderApplication();\n\n\n  return result;\n}\n\n\nexport function setFrameHelmTurnSpeed(\n  speed\n) {\n  const result =\n    frameHelmTurnState\n      .ensureTurn()\n      .setSpeed(\n        speed\n      );\n\n\n  frameHelmTurnState\n    .renderApplication();\n\n\n  return result;\n}\n\n\n/* ============================================================\n   Turn Overcharge commands\n   ============================================================ */\n\nexport function useFrameHelmTurnOvercharge(\n  options\n) {\n  const result =\n    frameHelmTurnState\n      .ensureTurn()\n      .useOvercharge(\n        options\n      );\n\n\n  frameHelmTurnState\n    .renderApplication();\n\n\n  return result;\n}\n"
     },
 
     {
       "operation": "replace",
-      "file": "scripts/actions-feature.js",
-      "find": "scripts/lancer-frame-helm.js",
-      "replace": "scripts/runtime-orchestrator.js",
-      "expected_matches": 2,
-      "must_exist": true
+      "file": "scripts/feature_turn/turn-feature.js",
+      "find": "import {\n  defineFrameHelmFeature\n} from \"../feature-contract.js\";",
+      "replace": "import {\n  defineFrameHelmFeature\n} from \"../feature-contract.js\";\n\n\nimport {\n  beginFrameHelmTurn as commandBeginFrameHelmTurn,\n  ensureFrameHelmTurn as commandEnsureFrameHelmTurn,\n  endFrameHelmTurn as commandEndFrameHelmTurn,\n  clearFrameHelmTurn as commandClearFrameHelmTurn,\n  canUseFrameHelmTurnAction as commandCanUseFrameHelmTurnAction,\n  useFrameHelmTurnAction as commandUseFrameHelmTurnAction,\n  spendFrameHelmTurnMovement as commandSpendFrameHelmTurnMovement,\n  setFrameHelmTurnSpeed as commandSetFrameHelmTurnSpeed,\n  useFrameHelmTurnOvercharge as commandUseFrameHelmTurnOvercharge,\n  getCurrentFrameHelmTurn,\n  getFrameHelmTurnStateManager,\n  getFrameHelmTurnSnapshot\n} from \"./turn-commands.js\";",
+      "expected_matches": 1
     },
 
     {
       "operation": "replace",
-      "file": "scripts/sensors-feature.js",
-      "find": "scripts/lancer-frame-helm.js",
-      "replace": "scripts/runtime-orchestrator.js",
-      "expected_matches": 2,
-      "must_exist": true
+      "file": "scripts/feature_turn/turn-feature.js",
+      "find": "      begin:\n        beginFrameHelmTurn,\n\n      ensure:\n        ensureFrameHelmTurn,\n\n      end:\n        endFrameHelmTurn,\n\n      clear:\n        clearFrameHelmTurn,",
+      "replace": "      begin:\n        commandBeginFrameHelmTurn,\n\n      ensure:\n        commandEnsureFrameHelmTurn,\n\n      end:\n        commandEndFrameHelmTurn,\n\n      clear:\n        commandClearFrameHelmTurn,",
+      "expected_matches": 1
     },
 
     {
       "operation": "replace",
-      "file": "styles/ui-registry.css",
-      "find": "@import \"./ui-action-execution.css\";",
-      "replace": "ui-action-execution.css",
-      "expected_matches": 1,
-      "must_exist": true
+      "file": "scripts/feature_turn/turn-feature.js",
+      "find": "      canUseAction:\n        canUseFrameHelmTurnAction,\n\n      useAction:\n        useFrameHelmTurnAction,\n\n      spendMovement:\n        spendFrameHelmTurnMovement,\n\n      setSpeed:\n        setFrameHelmTurnSpeed,\n\n      overcharge:\n        useFrameHelmTurnOvercharge",
+      "replace": "      canUseAction:\n        commandCanUseFrameHelmTurnAction,\n\n      useAction:\n        commandUseFrameHelmTurnAction,\n\n      spendMovement:\n        commandSpendFrameHelmTurnMovement,\n\n      setSpeed:\n        commandSetFrameHelmTurnSpeed,\n\n      overcharge:\n        commandUseFrameHelmTurnOvercharge",
+      "expected_matches": 1
     },
 
     {
       "operation": "replace",
-      "file": "styles/ui-registry.css",
-      "find": "@import \"./ui-telemetry.css\";",
-      "replace": "ui-telemetry.css",
-      "expected_matches": 1,
-      "must_exist": true
+      "file": "scripts/feature_turn/turn-feature.js",
+      "find": "    queries: {\n      current:\n        () =>\n          frameHelmTurnState\n            .current,\n\n      snapshot:\n        () =>\n          frameHelmTurnState\n            .snapshot(),",
+      "replace": "    queries: {\n      current:\n        getCurrentFrameHelmTurn,\n\n      manager:\n        getFrameHelmTurnStateManager,\n\n      snapshot:\n        getFrameHelmTurnSnapshot,",
+      "expected_matches": 1
     },
 
     {
       "operation": "replace",
-      "file": "styles/ui-registry.css",
-      "find": "@import \"./ui-targeting.css\";",
-      "replace": "ui-targeting.css",
-      "expected_matches": 1,
-      "must_exist": true
+      "file": "scripts/feature_turn/turn-feature.js",
+      "find": "      begin:\n        beginFrameHelmTurn,\n\n      ensure:\n        ensureFrameHelmTurn,\n\n      end:\n        endFrameHelmTurn,\n\n      clear:\n        clearFrameHelmTurn,\n\n      sync:\n        syncTurnStateToCombat,\n\n      get current() {\n        return (\n          frameHelmTurnState\n            .current\n        );\n      },\n\n      get state() {\n        return (\n          frameHelmTurnState\n            .snapshot()\n        );\n      },",
+      "replace": "      begin:\n        commandBeginFrameHelmTurn,\n\n      ensure:\n        commandEnsureFrameHelmTurn,\n\n      end:\n        commandEndFrameHelmTurn,\n\n      clear:\n        commandClearFrameHelmTurn,\n\n      sync:\n        syncTurnStateToCombat,\n\n      getCurrent:\n        getCurrentFrameHelmTurn,\n\n      getManager:\n        getFrameHelmTurnStateManager,\n\n      snapshot:\n        getFrameHelmTurnSnapshot,\n\n      get current() {\n        return (\n          getCurrentFrameHelmTurn()\n        );\n      },\n\n      get state() {\n        return (\n          getFrameHelmTurnSnapshot()\n        );\n      },",
+      "expected_matches": 1
     },
 
     {
       "operation": "replace",
-      "file": "styles/ui-registry.css",
-      "find": "@import \"./ui-tactical-overlay.css\";",
-      "replace": "ui-tactical-overlay.css",
-      "expected_matches": 1,
-      "must_exist": true
+      "file": "scripts/feature_turn/turn-feature.js",
+      "find": "      canUse:\n        canUseFrameHelmTurnAction,\n\n      use:\n        useFrameHelmTurnAction,\n\n      move:\n        spendFrameHelmTurnMovement,\n\n      setSpeed:\n        setFrameHelmTurnSpeed,\n\n      overcharge:\n        useFrameHelmTurnOvercharge,",
+      "replace": "      canUse:\n        commandCanUseFrameHelmTurnAction,\n\n      use:\n        commandUseFrameHelmTurnAction,\n\n      move:\n        commandSpendFrameHelmTurnMovement,\n\n      setSpeed:\n        commandSetFrameHelmTurnSpeed,\n\n      overcharge:\n        commandUseFrameHelmTurnOvercharge,",
+      "expected_matches": 1
     }
   ],
 
   "postconditions": [
     {
       "type": "contains",
-      "file": "scripts/actions-feature.js",
-      "text": "./dsl.js"
+      "file": "scripts/feature_turn/turn-commands.js",
+      "text": "export function getCurrentFrameHelmTurn()"
     },
     {
-      "type": "not_contains",
-      "file": "scripts/actions-feature.js",
-      "text": "./frame-helm/dsl.js"
+      "type": "contains",
+      "file": "scripts/feature_turn/turn-commands.js",
+      "text": "export function getFrameHelmTurnStateManager()"
     },
     {
-      "type": "not_contains",
-      "file": "scripts/actions-feature.js",
-      "text": "scripts/lancer-frame-helm.js"
+      "type": "contains",
+      "file": "scripts/feature_turn/turn-feature.js",
+      "text": "} from \"./turn-commands.js\";"
     },
     {
-      "type": "not_contains",
-      "file": "scripts/sensors-feature.js",
-      "text": "scripts/lancer-frame-helm.js"
+      "type": "contains",
+      "file": "scripts/feature_turn/turn-feature.js",
+      "text": "getCurrent:\n        getCurrentFrameHelmTurn,"
     },
     {
-      "type": "not_contains",
-      "file": "styles/ui-registry.css",
-      "text": "@import \"./ui-action-execution.css\";"
+      "type": "contains",
+      "file": "scripts/feature_turn/turn-feature.js",
+      "text": "getManager:\n        getFrameHelmTurnStateManager,"
     },
     {
-      "type": "not_contains",
-      "file": "styles/ui-registry.css",
-      "text": "@import \"./ui-telemetry.css\";"
-    },
-    {
-      "type": "not_contains",
-      "file": "styles/ui-registry.css",
-      "text": "@import \"./ui-targeting.css\";"
-    },
-    {
-      "type": "not_contains",
-      "file": "styles/ui-registry.css",
-      "text": "@import \"./ui-tactical-overlay.css\";"
+      "type": "contains",
+      "file": "scripts/feature_turn/turn-feature.js",
+      "text": "snapshot:\n        getFrameHelmTurnSnapshot,"
     }
   ],
 
   "validation": {
     "structural": true,
     "scan_dependencies": true,
-    "link_node_modules": true,
-    "timeout_seconds": 120,
-    "commands": []
+    "commands": [],
+    "timeout_seconds": 120
   }
 }

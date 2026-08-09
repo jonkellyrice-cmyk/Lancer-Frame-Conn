@@ -168,17 +168,17 @@ import {
 
 import {
   frameHelmApplicationUiFeature
-} from "./ui-application.js";
+} from "./ui_application/ui-application.js";
 
 
 import {
   frameHelmTurnUiFeature
-} from "./ui-turn.js";
+} from "./ui_turn/ui-turn.js";
 
 
 import {
   frameHelmMovementUiFeature
-} from "./ui-movement.js";
+} from "./ui_movement/ui-movement.js";
 
 
 /* ============================================================
