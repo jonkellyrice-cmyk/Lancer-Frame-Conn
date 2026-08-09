@@ -2,37 +2,37 @@
   "audit": {
     "name": "Lancer Frame Helm Repository Audit",
     "scriptVersion": "1.0.0",
-    "generatedAt": "2026-08-09T00:44:14.660Z",
+    "generatedAt": "2026-08-09T02:23:33.712Z",
     "repositoryRoot": "C:/Users/ricej/Desktop/MDV_work/Lancer-Frame-Helm",
     "result": "failed"
   },
   "summary": {
-    "filesScanned": 32,
-    "javascriptFiles": 18,
-    "cssFiles": 9,
-    "featureDeclarations": 24,
+    "filesScanned": 44,
+    "javascriptFiles": 26,
+    "cssFiles": 10,
+    "featureDeclarations": 27,
     "featureIds": [
-      "action-execution",
       "actions",
-      "movement",
-      "foundry-integration",
       "sensors",
+      "movement",
+      "action-execution",
       "turn",
+      "foundry-integration",
+      "ui-sensors",
       "ui-application",
       "ui-movement",
-      "ui-sensors",
       "ui-turn"
     ],
     "capabilities": [],
-    "findings": 26,
-    "errors": 8,
-    "warnings": 18,
-    "info": 0
+    "findings": 70,
+    "errors": 25,
+    "warnings": 41,
+    "info": 4
   },
   "manifest": {
     "id": "lancer-frame-helm",
     "title": "Lancer Frame Helm",
-    "version": "2.0.1",
+    "version": "2.0.6",
     "compatibility": {
       "minimum": "13",
       "verified": "13",
@@ -47,6 +47,42 @@
   },
   "features": [
     {
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
+      "line": 116,
+      "id": null,
+      "domain": null,
+      "provides": [],
+      "dependsOn": [],
+      "optionalDependsOn": []
+    },
+    {
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
+      "line": 1648,
+      "id": "actions",
+      "domain": "actions",
+      "provides": [],
+      "dependsOn": [],
+      "optionalDependsOn": []
+    },
+    {
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/sensors-feature.js",
+      "line": 71,
+      "id": null,
+      "domain": null,
+      "provides": [],
+      "dependsOn": [],
+      "optionalDependsOn": []
+    },
+    {
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/sensors-feature.js",
+      "line": 368,
+      "id": "sensors",
+      "domain": "sensors",
+      "provides": [],
+      "dependsOn": [],
+      "optionalDependsOn": []
+    },
+    {
       "file": "dev_scripts/repo-audit.mjs",
       "line": 1060,
       "id": null,
@@ -60,42 +96,6 @@
       "line": 1677,
       "id": null,
       "domain": null,
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "scripts/action-execution-feature.js",
-      "line": 132,
-      "id": null,
-      "domain": null,
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "scripts/action-execution-feature.js",
-      "line": 941,
-      "id": "action-execution",
-      "domain": "action-execution",
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "scripts/actions-feature.js",
-      "line": 116,
-      "id": null,
-      "domain": null,
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "scripts/actions-feature.js",
-      "line": 1648,
-      "id": "actions",
-      "domain": "actions",
       "provides": [],
       "dependsOn": [],
       "optionalDependsOn": []
@@ -119,6 +119,69 @@
       "optionalDependsOn": []
     },
     {
+      "file": "scripts/feature_actions/action-execution-feature.js",
+      "line": 132,
+      "id": null,
+      "domain": null,
+      "provides": [],
+      "dependsOn": [],
+      "optionalDependsOn": []
+    },
+    {
+      "file": "scripts/feature_actions/action-execution-feature.js",
+      "line": 941,
+      "id": "action-execution",
+      "domain": "action-execution",
+      "provides": [],
+      "dependsOn": [],
+      "optionalDependsOn": []
+    },
+    {
+      "file": "scripts/feature_actions/actions-feature.js",
+      "line": 116,
+      "id": null,
+      "domain": null,
+      "provides": [],
+      "dependsOn": [],
+      "optionalDependsOn": []
+    },
+    {
+      "file": "scripts/feature_actions/actions-feature.js",
+      "line": 1648,
+      "id": "actions",
+      "domain": "actions",
+      "provides": [],
+      "dependsOn": [],
+      "optionalDependsOn": []
+    },
+    {
+      "file": "scripts/feature_movement/movement-feature.js",
+      "line": 172,
+      "id": null,
+      "domain": null,
+      "provides": [],
+      "dependsOn": [],
+      "optionalDependsOn": []
+    },
+    {
+      "file": "scripts/feature_movement/movement-feature.js",
+      "line": 1292,
+      "id": "movement",
+      "domain": "movement",
+      "provides": [],
+      "dependsOn": [],
+      "optionalDependsOn": []
+    },
+    {
+      "file": "scripts/feature_turn/turn-feature.js",
+      "line": 120,
+      "id": "turn",
+      "domain": "turn",
+      "provides": [],
+      "dependsOn": [],
+      "optionalDependsOn": []
+    },
+    {
       "file": "scripts/foundry-integration-feature.js",
       "line": 126,
       "id": null,
@@ -132,24 +195,6 @@
       "line": 700,
       "id": "foundry-integration",
       "domain": "foundry.integration",
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "scripts/movement-feature.js",
-      "line": 172,
-      "id": null,
-      "domain": null,
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "scripts/movement-feature.js",
-      "line": 1292,
-      "id": "movement",
-      "domain": "movement",
       "provides": [],
       "dependsOn": [],
       "optionalDependsOn": []
@@ -173,60 +218,6 @@
       "optionalDependsOn": []
     },
     {
-      "file": "scripts/turn-feature.js",
-      "line": 141,
-      "id": null,
-      "domain": null,
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "scripts/turn-feature.js",
-      "line": 2988,
-      "id": "turn",
-      "domain": "turn",
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "styles/ui-application.js",
-      "line": 122,
-      "id": null,
-      "domain": null,
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "styles/ui-application.js",
-      "line": 671,
-      "id": "ui-application",
-      "domain": "ui.application",
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "styles/ui-movement.js",
-      "line": 167,
-      "id": null,
-      "domain": null,
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "styles/ui-movement.js",
-      "line": 1635,
-      "id": "ui-movement",
-      "domain": "ui.movement",
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
       "file": "styles/ui-registry.js",
       "line": 102,
       "id": null,
@@ -245,7 +236,43 @@
       "optionalDependsOn": []
     },
     {
-      "file": "styles/ui-turn.js",
+      "file": "styles/ui_application/ui-application.js",
+      "line": 126,
+      "id": null,
+      "domain": null,
+      "provides": [],
+      "dependsOn": [],
+      "optionalDependsOn": []
+    },
+    {
+      "file": "styles/ui_application/ui-application.js",
+      "line": 4679,
+      "id": "ui-application",
+      "domain": "ui.application",
+      "provides": [],
+      "dependsOn": [],
+      "optionalDependsOn": []
+    },
+    {
+      "file": "styles/ui_movement/ui-movement.js",
+      "line": 167,
+      "id": null,
+      "domain": null,
+      "provides": [],
+      "dependsOn": [],
+      "optionalDependsOn": []
+    },
+    {
+      "file": "styles/ui_movement/ui-movement.js",
+      "line": 1635,
+      "id": "ui-movement",
+      "domain": "ui.movement",
+      "provides": [],
+      "dependsOn": [],
+      "optionalDependsOn": []
+    },
+    {
+      "file": "styles/ui_turn/ui-turn.js",
       "line": 129,
       "id": null,
       "domain": null,
@@ -254,7 +281,7 @@
       "optionalDependsOn": []
     },
     {
-      "file": "styles/ui-turn.js",
+      "file": "styles/ui_turn/ui-turn.js",
       "line": 1332,
       "id": "ui-turn",
       "domain": "ui.turn",
@@ -268,7 +295,7 @@
       "severity": "error",
       "code": "MISSING_JS_IMPORT",
       "message": "Cannot resolve JavaScript import \"./frame-helm/dsl.js\".",
-      "file": "scripts/actions-feature.js",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
       "line": 98,
       "details": {
         "import": "./frame-helm/dsl.js"
@@ -276,33 +303,167 @@
     },
     {
       "severity": "error",
-      "code": "MISSING_NAMED_EXPORT",
-      "message": "Imported symbol \"*     frameHelmActionRegistry\" was not found as a static named export of \"scripts/actions-feature.js\".",
-      "file": "scripts/actions-feature.js",
-      "line": 1858,
+      "code": "MISSING_JS_IMPORT",
+      "message": "Cannot resolve JavaScript import \"./feature-contract.js\".",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
+      "line": 115,
       "details": {
-        "importedName": "*     frameHelmActionRegistry",
-        "import": "./actions-feature.js",
-        "target": "scripts/actions-feature.js"
+        "import": "./feature-contract.js"
       }
     },
     {
       "severity": "error",
       "code": "MISSING_NAMED_EXPORT",
-      "message": "Imported symbol \"*     initializeFrameHelmActionRegistry\r\n *\" was not found as a static named export of \"scripts/actions-feature.js\".",
-      "file": "scripts/actions-feature.js",
+      "message": "Imported symbol \"*     frameHelmActionRegistry\" was not found as a static named export of \"dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js\".",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
+      "line": 1858,
+      "details": {
+        "importedName": "*     frameHelmActionRegistry",
+        "import": "./actions-feature.js",
+        "target": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "MISSING_NAMED_EXPORT",
+      "message": "Imported symbol \"*     initializeFrameHelmActionRegistry\r\n *\" was not found as a static named export of \"dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js\".",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
       "line": 1858,
       "details": {
         "importedName": "*     initializeFrameHelmActionRegistry\r\n *",
         "import": "./actions-feature.js",
-        "target": "scripts/actions-feature.js"
+        "target": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "MISSING_JS_IMPORT",
+      "message": "Cannot resolve JavaScript import \"./feature-contract.js\".",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/sensors-feature.js",
+      "line": 70,
+      "details": {
+        "import": "./feature-contract.js"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "MISSING_JS_IMPORT",
+      "message": "Cannot resolve JavaScript import \"../styles/ui-sensors.js\".",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/sensors-feature.js",
+      "line": 74,
+      "details": {
+        "import": "../styles/ui-sensors.js"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "MISSING_NAMED_EXPORT",
+      "message": "Imported symbol \"*     frameHelmActionRegistry\" was not found as a static named export of \"scripts/feature_actions/actions-feature.js\".",
+      "file": "scripts/feature_actions/actions-feature.js",
+      "line": 1858,
+      "details": {
+        "importedName": "*     frameHelmActionRegistry",
+        "import": "./actions-feature.js",
+        "target": "scripts/feature_actions/actions-feature.js"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "MISSING_NAMED_EXPORT",
+      "message": "Imported symbol \"*     initializeFrameHelmActionRegistry\r\n *\" was not found as a static named export of \"scripts/feature_actions/actions-feature.js\".",
+      "file": "scripts/feature_actions/actions-feature.js",
+      "line": 1858,
+      "details": {
+        "importedName": "*     initializeFrameHelmActionRegistry\r\n *",
+        "import": "./actions-feature.js",
+        "target": "scripts/feature_actions/actions-feature.js"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "MISSING_JS_IMPORT",
+      "message": "Cannot resolve JavaScript import \"./feature-contract.js\".",
+      "file": "scripts/feature_movement/movement-feature.js",
+      "line": 171,
+      "details": {
+        "import": "./feature-contract.js"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "MISSING_JS_IMPORT",
+      "message": "Cannot resolve JavaScript import \"../scripts/feature-contract.js\".",
+      "file": "styles/ui_movement/ui-movement.js",
+      "line": 123,
+      "details": {
+        "import": "../scripts/feature-contract.js"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "MISSING_CSS_IMPORT",
+      "message": "Cannot resolve CSS import \"./ui-contract.css\".",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/styles/ui-registry.css",
+      "line": 289,
+      "details": {
+        "import": "./ui-contract.css"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "MISSING_CSS_IMPORT",
+      "message": "Cannot resolve CSS import \"./ui-sensors.css\".",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/styles/ui-registry.css",
+      "line": 303,
+      "details": {
+        "import": "./ui-sensors.css"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "MISSING_CSS_IMPORT",
+      "message": "Cannot resolve CSS import \"./ui-actions.css\".",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/styles/ui-registry.css",
+      "line": 322,
+      "details": {
+        "import": "./ui-actions.css"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "MISSING_CSS_IMPORT",
+      "message": "Cannot resolve CSS import \"./ui-turn.css\".",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/styles/ui-registry.css",
+      "line": 351,
+      "details": {
+        "import": "./ui-turn.css"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "MISSING_CSS_IMPORT",
+      "message": "Cannot resolve CSS import \"./ui-movement.css\".",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/styles/ui-registry.css",
+      "line": 393,
+      "details": {
+        "import": "./ui-movement.css"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "MISSING_CSS_IMPORT",
+      "message": "Cannot resolve CSS import \"./ui-application.css\".",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/styles/ui-registry.css",
+      "line": 418,
+      "details": {
+        "import": "./ui-application.css"
       }
     },
     {
       "severity": "error",
       "code": "MISSING_CSS_IMPORT",
       "message": "Cannot resolve CSS import \"./ui-action-execution.css\".",
-      "file": "styles/ui-registry.css",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/styles/ui-registry.css",
       "line": 427,
       "details": {
         "import": "./ui-action-execution.css"
@@ -312,7 +473,7 @@
       "severity": "error",
       "code": "MISSING_CSS_IMPORT",
       "message": "Cannot resolve CSS import \"./ui-telemetry.css\".",
-      "file": "styles/ui-registry.css",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/styles/ui-registry.css",
       "line": 428,
       "details": {
         "import": "./ui-telemetry.css"
@@ -322,7 +483,7 @@
       "severity": "error",
       "code": "MISSING_CSS_IMPORT",
       "message": "Cannot resolve CSS import \"./ui-targeting.css\".",
-      "file": "styles/ui-registry.css",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/styles/ui-registry.css",
       "line": 445,
       "details": {
         "import": "./ui-targeting.css"
@@ -332,7 +493,7 @@
       "severity": "error",
       "code": "MISSING_CSS_IMPORT",
       "message": "Cannot resolve CSS import \"./ui-tactical-overlay.css\".",
-      "file": "styles/ui-registry.css",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/styles/ui-registry.css",
       "line": 446,
       "details": {
         "import": "./ui-tactical-overlay.css"
@@ -340,13 +501,69 @@
     },
     {
       "severity": "error",
+      "code": "MISSING_CSS_IMPORT",
+      "message": "Cannot resolve CSS import \"./ui-turn.css\".",
+      "file": "styles/ui-registry.css",
+      "line": 351,
+      "details": {
+        "import": "./ui-turn.css"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "MISSING_CSS_IMPORT",
+      "message": "Cannot resolve CSS import \"./ui-movement.css\".",
+      "file": "styles/ui-registry.css",
+      "line": 393,
+      "details": {
+        "import": "./ui-movement.css"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "DUPLICATE_FEATURE_ID",
+      "message": "Feature id \"actions\" is declared more than once.",
+      "file": "scripts/feature_actions/actions-feature.js",
+      "line": 1648,
+      "details": {
+        "firstDeclaration": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js"
+      }
+    },
+    {
+      "severity": "error",
       "code": "DUPLICATE_FEATURE_ID",
       "message": "Feature id \"movement\" is declared more than once.",
-      "file": "scripts/movement-feature.js",
+      "file": "scripts/feature_movement/movement-feature.js",
       "line": 1292,
       "details": {
         "firstDeclaration": "scripts/feature-contract.js"
       }
+    },
+    {
+      "severity": "error",
+      "code": "DUPLICATE_FEATURE_ID",
+      "message": "Feature id \"sensors\" is declared more than once.",
+      "file": "scripts/sensors-feature.js",
+      "line": 368,
+      "details": {
+        "firstDeclaration": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/sensors-feature.js"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
+      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
+      "line": 116,
+      "details": null
+    },
+    {
+      "severity": "warning",
+      "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
+      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/sensors-feature.js",
+      "line": 71,
+      "details": null
     },
     {
       "severity": "warning",
@@ -368,7 +585,15 @@
       "severity": "warning",
       "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
       "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
-      "file": "scripts/action-execution-feature.js",
+      "file": "scripts/feature-contract.js",
+      "line": 436,
+      "details": null
+    },
+    {
+      "severity": "warning",
+      "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
+      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
+      "file": "scripts/feature_actions/action-execution-feature.js",
       "line": 132,
       "details": null
     },
@@ -376,7 +601,7 @@
       "severity": "warning",
       "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
       "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
-      "file": "scripts/actions-feature.js",
+      "file": "scripts/feature_actions/actions-feature.js",
       "line": 116,
       "details": null
     },
@@ -384,8 +609,8 @@
       "severity": "warning",
       "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
       "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
-      "file": "scripts/feature-contract.js",
-      "line": 436,
+      "file": "scripts/feature_movement/movement-feature.js",
+      "line": 172,
       "details": null
     },
     {
@@ -400,40 +625,8 @@
       "severity": "warning",
       "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
       "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
-      "file": "scripts/movement-feature.js",
-      "line": 172,
-      "details": null
-    },
-    {
-      "severity": "warning",
-      "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
-      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
       "file": "scripts/sensors-feature.js",
       "line": 71,
-      "details": null
-    },
-    {
-      "severity": "warning",
-      "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
-      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
-      "file": "scripts/turn-feature.js",
-      "line": 141,
-      "details": null
-    },
-    {
-      "severity": "warning",
-      "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
-      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
-      "file": "styles/ui-application.js",
-      "line": 122,
-      "details": null
-    },
-    {
-      "severity": "warning",
-      "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
-      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
-      "file": "styles/ui-movement.js",
-      "line": 167,
       "details": null
     },
     {
@@ -448,15 +641,71 @@
       "severity": "warning",
       "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
       "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
-      "file": "styles/ui-turn.js",
+      "file": "styles/ui_application/ui-application.js",
+      "line": 126,
+      "details": null
+    },
+    {
+      "severity": "warning",
+      "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
+      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
+      "file": "styles/ui_movement/ui-movement.js",
+      "line": 167,
+      "details": null
+    },
+    {
+      "severity": "warning",
+      "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
+      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
+      "file": "styles/ui_turn/ui-turn.js",
       "line": 129,
       "details": null
     },
     {
       "severity": "warning",
+      "code": "RUNTIME_FEATURE_NOT_IMPORTED_BY_REGISTRY",
+      "message": "Runtime feature appears to declare a Frame Helm feature but is not imported by scripts/feature-registry.js.",
+      "file": "scripts/feature_actions/action-execution-feature.js",
+      "line": null,
+      "details": {
+        "expectedImport": "./action-execution-feature.js"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "RUNTIME_FEATURE_NOT_IMPORTED_BY_REGISTRY",
+      "message": "Runtime feature appears to declare a Frame Helm feature but is not imported by scripts/feature-registry.js.",
+      "file": "scripts/feature_actions/actions-feature.js",
+      "line": null,
+      "details": {
+        "expectedImport": "./actions-feature.js"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "RUNTIME_FEATURE_NOT_IMPORTED_BY_REGISTRY",
+      "message": "Runtime feature appears to declare a Frame Helm feature but is not imported by scripts/feature-registry.js.",
+      "file": "scripts/feature_movement/movement-feature.js",
+      "line": null,
+      "details": {
+        "expectedImport": "./movement-feature.js"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "RUNTIME_FEATURE_NOT_IMPORTED_BY_REGISTRY",
+      "message": "Runtime feature appears to declare a Frame Helm feature but is not imported by scripts/feature-registry.js.",
+      "file": "scripts/feature_turn/turn-feature.js",
+      "line": null,
+      "details": {
+        "expectedImport": "./turn-feature.js"
+      }
+    },
+    {
+      "severity": "warning",
       "code": "REFERENCED_REPOSITORY_FILE_MISSING",
       "message": "Repository file reference \"scripts/lancer-frame-helm.js\" does not exist.",
-      "file": "scripts/actions-feature.js",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
       "line": 1836,
       "details": {
         "referencedPath": "scripts/lancer-frame-helm.js"
@@ -466,7 +715,7 @@
       "severity": "warning",
       "code": "REFERENCED_REPOSITORY_FILE_MISSING",
       "message": "Repository file reference \"scripts/lancer-frame-helm.js\" does not exist.",
-      "file": "scripts/actions-feature.js",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
       "line": 1839,
       "details": {
         "referencedPath": "scripts/lancer-frame-helm.js"
@@ -476,7 +725,7 @@
       "severity": "warning",
       "code": "REFERENCED_REPOSITORY_FILE_MISSING",
       "message": "Repository file reference \"scripts/lancer-frame-helm.js\" does not exist.",
-      "file": "scripts/sensors-feature.js",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/sensors-feature.js",
       "line": 459,
       "details": {
         "referencedPath": "scripts/lancer-frame-helm.js"
@@ -486,7 +735,7 @@
       "severity": "warning",
       "code": "REFERENCED_REPOSITORY_FILE_MISSING",
       "message": "Repository file reference \"scripts/lancer-frame-helm.js\" does not exist.",
-      "file": "scripts/sensors-feature.js",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/sensors-feature.js",
       "line": 468,
       "details": {
         "referencedPath": "scripts/lancer-frame-helm.js"
@@ -494,14 +743,249 @@
     },
     {
       "severity": "warning",
+      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
+      "message": "Repository file reference \"scripts/actions-feature.js\" does not exist.",
+      "file": "scripts/feature_actions/action-execution-feature.js",
+      "line": 1030,
+      "details": {
+        "referencedPath": "scripts/actions-feature.js"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
+      "message": "Repository file reference \"scripts/turn-feature.js\" does not exist.",
+      "file": "scripts/feature_actions/action-execution-feature.js",
+      "line": 1033,
+      "details": {
+        "referencedPath": "scripts/turn-feature.js"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
+      "message": "Repository file reference \"styles/ui-application.js\" does not exist.",
+      "file": "scripts/feature_actions/action-execution-feature.js",
+      "line": 1036,
+      "details": {
+        "referencedPath": "styles/ui-application.js"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
+      "message": "Repository file reference \"scripts/turn-feature.js\" does not exist.",
+      "file": "scripts/feature_movement/movement-feature.js",
+      "line": 1393,
+      "details": {
+        "referencedPath": "scripts/turn-feature.js"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
+      "message": "Repository file reference \"styles/ui-movement.js\" does not exist.",
+      "file": "scripts/feature_movement/movement-feature.js",
+      "line": 1395,
+      "details": {
+        "referencedPath": "styles/ui-movement.js"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
+      "message": "Repository file reference \"styles/ui-movement.css\" does not exist.",
+      "file": "scripts/feature_movement/movement-feature.js",
+      "line": 1397,
+      "details": {
+        "referencedPath": "styles/ui-movement.css"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
+      "message": "Repository file reference \"styles/ui-turn.js\" does not exist.",
+      "file": "scripts/feature_turn/turn-feature.js",
+      "line": 494,
+      "details": {
+        "referencedPath": "styles/ui-turn.js"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
+      "message": "Repository file reference \"styles/ui-turn.css\" does not exist.",
+      "file": "scripts/feature_turn/turn-feature.js",
+      "line": 497,
+      "details": {
+        "referencedPath": "styles/ui-turn.css"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
+      "message": "Repository file reference \"styles/ui-application.js\" does not exist.",
+      "file": "scripts/foundry-integration-feature.js",
+      "line": 820,
+      "details": {
+        "referencedPath": "styles/ui-application.js"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
+      "message": "Repository file reference \"styles/ui-application.css\" does not exist.",
+      "file": "styles/ui_application/ui-application.js",
+      "line": 4790,
+      "details": {
+        "referencedPath": "styles/ui-application.css"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
+      "message": "Repository file reference \"scripts/movement-feature.js\" does not exist.",
+      "file": "styles/ui_movement/ui-movement.js",
+      "line": 1787,
+      "details": {
+        "referencedPath": "scripts/movement-feature.js"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
+      "message": "Repository file reference \"scripts/turn-feature.js\" does not exist.",
+      "file": "styles/ui_movement/ui-movement.js",
+      "line": 1790,
+      "details": {
+        "referencedPath": "scripts/turn-feature.js"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
+      "message": "Repository file reference \"styles/ui-movement.css\" does not exist.",
+      "file": "styles/ui_movement/ui-movement.js",
+      "line": 1793,
+      "details": {
+        "referencedPath": "styles/ui-movement.css"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
+      "message": "Repository file reference \"styles/ui-application.js\" does not exist.",
+      "file": "styles/ui_movement/ui-movement.js",
+      "line": 1796,
+      "details": {
+        "referencedPath": "styles/ui-application.js"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
+      "message": "Repository file reference \"scripts/turn-feature.js\" does not exist.",
+      "file": "styles/ui_turn/ui-turn.js",
+      "line": 1464,
+      "details": {
+        "referencedPath": "scripts/turn-feature.js"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
+      "message": "Repository file reference \"styles/ui-turn.css\" does not exist.",
+      "file": "styles/ui_turn/ui-turn.js",
+      "line": 1467,
+      "details": {
+        "referencedPath": "styles/ui-turn.css"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
+      "message": "Repository file reference \"styles/ui-application.js\" does not exist.",
+      "file": "styles/ui_turn/ui-turn.js",
+      "line": 1470,
+      "details": {
+        "referencedPath": "styles/ui-application.js"
+      }
+    },
+    {
+      "severity": "warning",
       "code": "CIRCULAR_JS_IMPORT",
       "message": "Circular JavaScript import dependency detected.",
-      "file": "scripts/actions-feature.js",
+      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
       "line": null,
       "details": {
         "cycle": [
-          "scripts/actions-feature.js",
-          "scripts/actions-feature.js"
+          "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
+          "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js"
+        ]
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "CIRCULAR_JS_IMPORT",
+      "message": "Circular JavaScript import dependency detected.",
+      "file": "scripts/feature_actions/actions-feature.js",
+      "line": null,
+      "details": {
+        "cycle": [
+          "scripts/feature_actions/actions-feature.js",
+          "scripts/feature_actions/actions-feature.js"
+        ]
+      }
+    },
+    {
+      "severity": "info",
+      "code": "DUPLICATE_FILE_BASENAME",
+      "message": "Multiple repository files share the basename \"backup-manifest.json\".",
+      "file": null,
+      "line": null,
+      "details": {
+        "files": [
+          "dev_scripts/backups/2026-07-18T02-46-48.532909Z-frame-helm-elevation-sensors-execution-hase-v1/backup-manifest.json",
+          "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/backup-manifest.json"
+        ]
+      }
+    },
+    {
+      "severity": "info",
+      "code": "DUPLICATE_FILE_BASENAME",
+      "message": "Multiple repository files share the basename \"actions-feature.js\".",
+      "file": null,
+      "line": null,
+      "details": {
+        "files": [
+          "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
+          "scripts/feature_actions/actions-feature.js"
+        ]
+      }
+    },
+    {
+      "severity": "info",
+      "code": "DUPLICATE_FILE_BASENAME",
+      "message": "Multiple repository files share the basename \"sensors-feature.js\".",
+      "file": null,
+      "line": null,
+      "details": {
+        "files": [
+          "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/sensors-feature.js",
+          "scripts/sensors-feature.js"
+        ]
+      }
+    },
+    {
+      "severity": "info",
+      "code": "DUPLICATE_FILE_BASENAME",
+      "message": "Multiple repository files share the basename \"ui-registry.css\".",
+      "file": null,
+      "line": null,
+      "details": {
+        "files": [
+          "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/styles/ui-registry.css",
+          "styles/ui-registry.css"
         ]
       }
     }

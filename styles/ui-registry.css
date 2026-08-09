@@ -348,7 +348,7 @@
  *
  *   styles/ui-turn.js
  */
-@import "./ui-turn.css";
+@import "./ui_turn/ui-turn.css";
 
 
 /**
@@ -390,7 +390,7 @@
  * Turn state until that state ownership is migrated into the
  * Movement feature.
  */
-@import "./ui-movement.css";
+@import "./ui_movement/ui-movement.css";
 
 
 /**
