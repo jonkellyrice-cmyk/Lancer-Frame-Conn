@@ -1205,12 +1205,30 @@ export class FrameHelmApplication
      ========================================================== */
 
   getTurnStateForDisplay() {
+  const turnState =
+    getFrameHelmApplicationTurnState();
+
+
+  if (
+    !turnState
+  ) {
+    return null;
+  }
+
+
+  if (
+    typeof turnState.snapshot ===
+    "function"
+  ) {
     return (
-      getFrameHelmApplicationTurnState()
-        ?.snapshot?.() ??
-      null
+      turnState.snapshot()
     );
   }
+
+
+  return turnState;
+}
+
 
 
   actionAvailability(
