@@ -36,6 +36,9 @@
  *   - Movement
  *       scripts/movement-feature.js
  *
+ *   - Foundry Integration
+ *       scripts/foundry-integration-feature.js
+ *
  *   - Application UI
  *       styles/ui-application.js
  *
@@ -43,11 +46,14 @@
  *
  *   feature-contract.js
  *        ↓
+ *   feature-registry-core.js
+ *        ↓
  *   feature-registry.js
  *        ├── actions-feature.js
  *        ├── sensors-feature.js
  *        ├── turn-feature.js
  *        ├── movement-feature.js
+ *        ├── foundry-integration-feature.js
  *        ├── executable UI package
  *        └── future feature domains
  *        ↓
@@ -56,8 +62,6 @@
  * CURRENTLY OWNS:
  *
  *   - Foundry startup boundaries
- *   - Module settings registration
- *   - Scene-control integration
  *   - Cross-feature runtime binding
  *   - Action execution, pending extraction
  *   - Public game.lancerFrameHelm composition
@@ -92,6 +96,9 @@
  *   - Elevation-change interpretation
  *   - Elevation movement handling
  *   - Movement-specific Foundry hooks
+ *   - Module settings implementation
+ *   - Scene-control integration implementation
+ *   - getSceneControlButtons hook behavior
  */
 
 
@@ -107,9 +114,6 @@ import {
 /* ============================================================
    Module identity
    ============================================================ */
-
-const MODULE_ID =
-  "lancer-frame-helm";
 
 const MODULE_TITLE =
   "Lancer: Frame Helm";
@@ -226,13 +230,6 @@ if (
    Application UI
    ------------------------------------------------------------ */
 
-/**
- * ui-application.js declares:
- *
- *   id: "ui-application"
- *
- * Therefore that exact identifier is used here.
- */
 const frameHelmApplicationApi =
   frameHelmFeatureRegistry.getApi(
     "ui-application"
@@ -273,6 +270,25 @@ function renderFrameHelmApplication(
         force
       ) ??
     null
+  );
+}
+
+
+/* ------------------------------------------------------------
+   Foundry integration
+   ------------------------------------------------------------ */
+
+const frameHelmFoundryIntegrationApi =
+  frameHelmFeatureRegistry.getApi(
+    "foundry-integration"
+  );
+
+
+if (
+  !frameHelmFoundryIntegrationApi
+) {
+  throw new Error(
+    "Frame Helm | The registered Foundry Integration feature API could not be resolved."
   );
 }
 
@@ -319,15 +335,8 @@ function configureFrameHelmRuntimeBindings() {
    * Movement interprets Foundry token movement and elevation
    * changes against the authoritative Turn state.
    *
-   * Movement state accounting remains transitional inside
-   * FrameHelmTurnState during this stage of decomposition.
-   *
-   * Movement therefore receives:
-   *
-   *   - current Turn state
-   *   - Application rendering
-   *
-   * rather than importing either domain directly.
+   * Movement accounting remains transitional inside
+   * FrameHelmTurnState.
    */
   frameHelmMovementApi
     .configureRuntime?.({
@@ -339,6 +348,33 @@ function configureFrameHelmRuntimeBindings() {
         force =>
           renderFrameHelmApplication(
             force
+          )
+    });
+
+
+  /* ----------------------------------------------------------
+     Foundry Integration bindings
+     ---------------------------------------------------------- */
+
+  /**
+   * Foundry Integration owns the settings and scene-control
+   * surfaces which open and close the primary Frame Helm
+   * application.
+   *
+   * Application ownership itself remains with ui-application.
+   */
+  frameHelmFoundryIntegrationApi
+    .configureRuntime?.({
+      openApplication:
+        (...args) =>
+          openFrameHelm(
+            ...args
+          ),
+
+      closeApplication:
+        (...args) =>
+          closeFrameHelm(
+            ...args
           )
     });
 
@@ -382,158 +418,15 @@ function configureFrameHelmRuntimeBindings() {
 
 
 /* ============================================================
-   Settings
-   ============================================================ */
-
-function registerSettings() {
-  game.settings.register(
-    MODULE_ID,
-    "enabled",
-    {
-      name:
-        "Enable Frame Helm",
-
-      hint:
-        "Enables the Frame Helm action-selection interface.",
-
-      scope:
-        "world",
-
-      config:
-        true,
-
-      type:
-        Boolean,
-
-      default:
-        true,
-
-      restricted:
-        true,
-
-      onChange:
-        enabled => {
-          if (
-            !enabled
-          ) {
-            closeFrameHelm();
-          }
-        }
-    }
-  );
-}
-
-
-/* ============================================================
-   Scene control integration
-   ============================================================ */
-
-function addFrameHelmControlButton(
-  controls
-) {
-  if (
-    !game.settings.get(
-      MODULE_ID,
-      "enabled"
-    )
-  ) {
-    return;
-  }
-
-
-  const tokenControls =
-    Array.isArray(
-      controls
-    )
-      ? controls.find(
-          control =>
-            control.name ===
-            "token"
-        )
-      : controls?.tokens ??
-        controls?.token ??
-        null;
-
-
-  if (
-    !tokenControls
-  ) {
-    console.warn(
-      `${MODULE_TITLE} | Token scene controls could not be located.`,
-      controls
-    );
-
-
-    return;
-  }
-
-
-  const tool = {
-    name:
-      "lancer-frame-helm",
-
-    title:
-      MODULE_TITLE,
-
-    icon:
-      "fas fa-robot",
-
-    button:
-      true,
-
-    visible:
-      true,
-
-    onClick:
-      openFrameHelm
-  };
-
-
-  if (
-    Array.isArray(
-      tokenControls.tools
-    )
-  ) {
-    const alreadyExists =
-      tokenControls.tools.some(
-        existingTool =>
-          existingTool.name ===
-          "lancer-frame-helm"
-      );
-
-
-    if (
-      !alreadyExists
-    ) {
-      tokenControls.tools.push(
-        tool
-      );
-    }
-
-
-    return;
-  }
-
-
-  tokenControls.tools ??=
-    {};
-
-
-  if (
-    !tokenControls.tools[
-      "lancer-frame-helm"
-    ]
-  ) {
-    tokenControls.tools[
-      "lancer-frame-helm"
-    ] = tool;
-  }
-}
-
-
-/* ============================================================
    Foundry lifecycle
    ============================================================ */
+
+/**
+ * Startup boundaries remain orchestration concerns.
+ *
+ * Feature-owned implementation is invoked through the registered
+ * feature APIs rather than being implemented here.
+ */
 
 Hooks.once(
   "init",
@@ -543,7 +436,28 @@ Hooks.once(
     );
 
 
-    registerSettings();
+    /**
+     * Establish explicit cross-feature runtime dependencies before
+     * feature-owned startup work or hooks consume those surfaces.
+     *
+     * This configures:
+     *
+     *   - Turn
+     *   - Movement
+     *   - Foundry Integration
+     *   - Application UI
+     */
+    configureFrameHelmRuntimeBindings();
+
+
+    /**
+     * Foundry Integration owns module-setting definitions.
+     *
+     * The runtime retains responsibility only for choosing the
+     * Foundry startup boundary at which they are registered.
+     */
+    frameHelmFoundryIntegrationApi
+      .registerSettings?.();
 
 
     /**
@@ -551,19 +465,6 @@ Hooks.once(
      * the current migration.
      */
     initializeFrameHelmActionRegistry();
-
-
-    /**
-     * Establish explicit cross-feature runtime dependencies before
-     * feature-owned hooks begin consuming those surfaces.
-     *
-     * This now configures:
-     *
-     *   - Turn
-     *   - Movement
-     *   - Application UI
-     */
-    configureFrameHelmRuntimeBindings();
 
 
     /**
@@ -577,13 +478,14 @@ Hooks.once(
     /**
      * Install all feature-owned Foundry hooks.
      *
-     * This now includes:
+     * This includes:
      *
      *   - Sensors hooks
      *   - Application UI hooks
      *   - Turn/combat synchronization hooks
      *   - Movement hooks
      *   - Elevation movement hooks
+     *   - Foundry Integration scene-control hooks
      */
     frameHelmFeatureRegistry
       .installHooks();
@@ -624,6 +526,14 @@ Hooks.once(
 
       features:
         frameHelmFeatureRegistry,
+
+
+      /* --------------------------------------------------------
+         Foundry integration
+         -------------------------------------------------------- */
+
+      foundry:
+        frameHelmFoundryIntegrationApi,
 
 
       /* --------------------------------------------------------
@@ -769,9 +679,8 @@ Hooks.once(
       /**
        * Movement's main behavior is automatic and hook-driven.
        *
-       * Exposing its API here nevertheless keeps the public runtime
-       * surface inspectable and provides access to any measurement
-       * or diagnostic helpers declared by movement-feature.js.
+       * Its API remains exposed for measurement, diagnostics, and
+       * development inspection.
        */
       movement:
         frameHelmMovementApi,
@@ -855,20 +764,6 @@ Hooks.once(
       `${MODULE_TITLE} | Ready.`
     );
   }
-);
-
-
-/* ============================================================
-   Foundry scene-control hooks
-   ============================================================ */
-
-/**
- * Scene-control integration remains application-wide runtime
- * composition rather than a gameplay feature.
- */
-Hooks.on(
-  "getSceneControlButtons",
-  addFrameHelmControlButton
 );
 
 
@@ -1267,8 +1162,22 @@ async function frameHelmExecuteActionRoll(
  *   FrameHelmTurnState still contains the authoritative movement
  *   accounting methods consumed by Movement.
  *
- *   That state may migrate into movement-feature.js during a
- *   later second-stage extraction.
+ *
+ * FOUNDRY INTEGRATION
+ *
+ *   scripts/foundry-integration-feature.js
+ *
+ * Owns:
+ *   - Module settings registration
+ *   - Enabled-state integration
+ *   - Token scene-control integration
+ *   - Frame Helm scene-control tool declaration
+ *   - getSceneControlButtons hook behavior
+ *
+ * Does not own:
+ *   - Foundry init boundary
+ *   - Foundry ready boundary
+ *   - Global feature-hook installation
  *
  *
  * APPLICATION UI
@@ -1297,11 +1206,17 @@ async function frameHelmExecuteActionRoll(
  *   - frameHelmExecuteActionRoll()
  *
  *
- * All executable feature domains are imported and registered by:
+ * All executable feature domains are declared through:
  *
  *   scripts/feature-registry.js
  *
- * Runtime/domain features are registered directly there.
+ * Registry mechanics themselves are owned by:
+ *
+ *   scripts/feature-registry-core.js
+ *
+ * Runtime/domain features are registered through:
+ *
+ *   FRAME_HELM_RUNTIME_FEATURES
  *
  * Executable UI features are supplied through:
  *

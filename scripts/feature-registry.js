@@ -85,6 +85,7 @@
  *   sensors-feature.js
  *   turn-feature.js
  *   movement-feature.js
+ *   foundry-integration-feature.js
  *   future *-feature.js
  *        │
  *        ▼
@@ -162,10 +163,26 @@
  *     - install Foundry hooks
  *     - run lifecycle handlers
  *     - initialize the Actions catalog
+ *     - register Foundry settings
  *     - configure transitional runtime bindings
  *
  *   scripts/runtime-orchestrator.js remains responsible for those
  *   runtime startup operations.
+ *
+ * FOUNDRY INTEGRATION CONTRACT:
+ *
+ *   foundry-integration-feature.js owns:
+ *
+ *     - Frame Helm module settings
+ *     - Frame Helm enabled-state integration
+ *     - Token scene-control integration
+ *     - getSceneControlButtons hook declaration
+ *
+ *   It does NOT own the Foundry init or ready startup boundaries.
+ *
+ *   runtime-orchestrator.js remains responsible for invoking the
+ *   feature's registerSettings command during Foundry init and for
+ *   installing all registered feature hooks.
  */
 
 
@@ -202,6 +219,11 @@ import {
 } from "./movement-feature.js";
 
 
+import {
+  frameHelmFoundryIntegrationFeature
+} from "./foundry-integration-feature.js";
+
+
 /* ============================================================
    Imports -- Executable UI package
    ============================================================ */
@@ -232,7 +254,7 @@ import {
  * Canonical runtime/domain feature declaration.
  *
  * This is the primary table which should be updated when a new
- * gameplay/runtime feature is extracted.
+ * gameplay/runtime/integration feature is extracted.
  *
  * Dependency-safe runtime ordering does not depend on this array
  * order.
@@ -245,7 +267,8 @@ export const FRAME_HELM_RUNTIME_FEATURES =
     frameHelmActionsFeature,
     frameHelmSensorsFeature,
     frameHelmTurnFeature,
-    frameHelmMovementFeature
+    frameHelmMovementFeature,
+    frameHelmFoundryIntegrationFeature
   ]);
 
 
@@ -271,7 +294,7 @@ export const frameHelmFeatureRegistry =
 /**
  * Register the complete Frame Helm JavaScript feature graph.
  *
- * Runtime/domain features originate from:
+ * Runtime/domain and integration features originate from:
  *
  *   FRAME_HELM_RUNTIME_FEATURES
  *
@@ -280,6 +303,27 @@ export const frameHelmFeatureRegistry =
  *   FRAME_HELM_UI_FEATURES
  *
  * Required dependencies may cross either package boundary.
+ *
+ * Current examples include:
+ *
+ *   turn
+ *      │
+ *      │ turn.state
+ *      ▼
+ *   movement
+ *
+ *
+ *   ui-application
+ *      │
+ *      │ ui.application
+ *      ▼
+ *   foundry-integration
+ *
+ *
+ *   movement + turn
+ *      │
+ *      ▼
+ *   ui-movement
  */
 frameHelmFeatureRegistry.registerMany([
   ...FRAME_HELM_RUNTIME_FEATURES,
@@ -302,10 +346,13 @@ frameHelmFeatureRegistry.registerMany([
  *   - unique capability providers
  *   - required dependency availability
  *   - runtime/UI cross-package dependencies
+ *   - Movement's turn.state dependency
+ *   - Foundry Integration's ui.application dependency
  *
  * It does NOT:
  *
  *   - initialize the Actions catalog
+ *   - register Foundry settings
  *   - configure runtime bindings
  *   - install hooks
  *   - execute lifecycle phases
