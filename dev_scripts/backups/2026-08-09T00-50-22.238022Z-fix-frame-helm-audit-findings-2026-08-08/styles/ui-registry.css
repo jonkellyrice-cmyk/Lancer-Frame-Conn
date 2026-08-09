@@ -424,8 +424,8 @@
  *
  * Examples:
  *
- * ui-action-execution.css
- * ui-telemetry.css
+ * @import "./ui-action-execution.css";
+ * @import "./ui-telemetry.css";
  */
 
 
@@ -442,8 +442,8 @@
  *
  * Examples:
  *
- * ui-targeting.css
- * ui-tactical-overlay.css
+ * @import "./ui-targeting.css";
+ * @import "./ui-tactical-overlay.css";
  */
 
 

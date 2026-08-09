@@ -456,7 +456,7 @@ export const frameHelmSensorsFeature =
         "Identifies hostile contacts within the selected unit's Lancer sensor range.",
 
       extractedFrom:
-        "scripts/runtime-orchestrator.js",
+        "scripts/lancer-frame-helm.js",
 
       uiImplementation:
         "styles/ui-sensors.js",
@@ -465,7 +465,7 @@ export const frameHelmSensorsFeature =
         "styles/ui-sensors.css",
 
       authoritativeRuntime:
-        "scripts/runtime-orchestrator.js"
+        "scripts/lancer-frame-helm.js"
     }
   });
 

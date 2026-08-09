@@ -110,7 +110,7 @@ import {
   defineFrameHelmRequiresFullActionSystemMetadata,
   defineFrameHelmMountDismountModesMetadata,
   defineFrameHelmOverchargeMetadata
-} from "./dsl.js";
+} from "./frame-helm/dsl.js";
 
 import {
   defineFrameHelmFeature
@@ -1833,10 +1833,10 @@ export const frameHelmActionsFeature =
         "Owns Frame Helm's universal action definitions, categories, and canonical action registry.",
 
       extractedFrom:
-        "scripts/runtime-orchestrator.js",
+        "scripts/lancer-frame-helm.js",
 
       authoritativeRuntime:
-        "scripts/runtime-orchestrator.js",
+        "scripts/lancer-frame-helm.js",
 
       startupModel:
         "synchronous-runtime-initialization"

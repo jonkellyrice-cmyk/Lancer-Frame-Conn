@@ -1,15 +1,28 @@
 {
   "schema_version": 2,
-  "id": "frame-helm-elevation-sensors-execution-hase-v1",
-  "name": "Add elevation movement, sensor contacts, committed execution, and HASE rolls",
-  "description": "Tracks elevation changes as movement; displays hostile sensor contacts through darkness; adds executable d20 controls to committed actions using native Lancer actor flows; and adds HULL, AGI, SYS, and ENG skill-check actions.",
+  "id": "fix-frame-helm-audit-findings-2026-08-08",
+  "name": "Fix Frame Helm repository audit findings",
+  "description": "Fix the real DSL import mismatch, update stale pre-refactor runtime file references, and remove comment-only CSS import examples which the repository auditor incorrectly interprets as active dependencies.",
+
   "backup": true,
   "allow_noop": false,
+
   "repository": {
     "require_git": true,
     "require_clean_targets": true,
     "require_clean_repository": false
   },
+
+  "limits": {
+    "max_files_changed": 4,
+    "max_total_added_bytes": 4096,
+    "max_single_file_bytes": 100000,
+    "allowed_roots": [
+      "scripts",
+      "styles"
+    ]
+  },
+
   "risk_acceptance": {
     "overwrite_files": false,
     "delete_files": false,
@@ -17,189 +30,143 @@
     "change_dependencies": false,
     "modify_package_manifest": false
   },
-  "limits": {
-    "max_files_changed": 1,
-    "max_total_added_bytes": 50000,
-    "max_single_file_bytes": 250000,
-    "allowed_roots": [
-      "scripts"
-    ]
-  },
+
   "preconditions": [
     {
       "type": "file_exists",
-      "file": "scripts/lancer-frame-helm.js"
+      "file": "scripts/actions-feature.js"
+    },
+    {
+      "type": "file_exists",
+      "file": "scripts/sensors-feature.js"
+    },
+    {
+      "type": "file_exists",
+      "file": "scripts/dsl.js"
+    },
+    {
+      "type": "file_exists",
+      "file": "scripts/runtime-orchestrator.js"
+    },
+    {
+      "type": "file_exists",
+      "file": "styles/ui-registry.css"
     },
     {
       "type": "contains",
-      "file": "scripts/lancer-frame-helm.js",
-      "text": "const MODULE_ID = \"lancer-frame-helm\";"
-    },
-    {
-      "type": "contains",
-      "file": "scripts/lancer-frame-helm.js",
-      "text": "Hooks.on(\n  \"moveToken\","
-    },
-    {
-      "type": "not_contains",
-      "file": "scripts/lancer-frame-helm.js",
-      "text": "frameHelmActionExecutionKind"
-    },
-    {
-      "type": "not_contains",
-      "file": "scripts/lancer-frame-helm.js",
-      "text": "lancer-frame-helm-sensor-contacts"
+      "file": "scripts/actions-feature.js",
+      "text": "./frame-helm/dsl.js"
     }
   ],
+
   "operations": [
     {
       "operation": "replace",
-      "file": "scripts/lancer-frame-helm.js",
-      "find": "    {\n      id: \"full.skill-check\",\n      label: \"Skill Check\",\n      shortDescription: \"Attempt a complex activity not covered by another action.\",\n      category: \"full\",\n      cost: \"full\",\n      order: 90,\n      icon: \"fas fa-dice-d20\"\n    },\n    {\n      id: \"special.overcharge\",",
-      "replace": "    {\n      id: \"full.skill-check\",\n      label: \"Skill Check\",\n      shortDescription: \"Attempt a complex activity not covered by another action.\",\n      category: \"full\",\n      cost: \"full\",\n      order: 90,\n      icon: \"fas fa-dice-d20\"\n    },\n    {\n      id: \"full.skill-check.hull\",\n      label: \"Hull Check\",\n      shortDescription: \"Roll a mech skill check using HULL.\",\n      category: \"full\",\n      parentId: \"full.skill-check\",\n      cost: \"full\",\n      order: 10,\n      icon: \"fas fa-shield-halved\",\n      duplicateKey: \"full.skill-check\",\n      metadata: {\n        statPath: \"hull\",\n        statLabel: \"HULL\"\n      }\n    },\n    {\n      id: \"full.skill-check.agi\",\n      label: \"Agility Check\",\n      shortDescription: \"Roll a mech skill check using AGI.\",\n      category: \"full\",\n      parentId: \"full.skill-check\",\n      cost: \"full\",\n      order: 20,\n      icon: \"fas fa-person-running\",\n      duplicateKey: \"full.skill-check\",\n      metadata: {\n        statPath: \"agi\",\n        statLabel: \"AGI\"\n      }\n    },\n    {\n      id: \"full.skill-check.sys\",\n      label: \"Systems Check\",\n      shortDescription: \"Roll a mech skill check using SYS.\",\n      category: \"full\",\n      parentId: \"full.skill-check\",\n      cost: \"full\",\n      order: 30,\n      icon: \"fas fa-microchip\",\n      duplicateKey: \"full.skill-check\",\n      metadata: {\n        statPath: \"sys\",\n        statLabel: \"SYS\"\n      }\n    },\n    {\n      id: \"full.skill-check.eng\",\n      label: \"Engineering Check\",\n      shortDescription: \"Roll a mech skill check using ENG.\",\n      category: \"full\",\n      parentId: \"full.skill-check\",\n      cost: \"full\",\n      order: 40,\n      icon: \"fas fa-screwdriver-wrench\",\n      duplicateKey: \"full.skill-check\",\n      metadata: {\n        statPath: \"eng\",\n        statLabel: \"ENG\"\n      }\n    },\n    {\n      id: \"special.overcharge\",",
-      "expected_matches": 1
+      "file": "scripts/actions-feature.js",
+      "find": "./frame-helm/dsl.js",
+      "replace": "./dsl.js",
+      "expected_matches": 1,
+      "must_exist": true
     },
+
     {
       "operation": "replace",
-      "file": "scripts/lancer-frame-helm.js",
-      "find": "    this.usedActions.push({\n      actionId: action.id,\n      duplicateKey,\n      source: useOvercharge\n        ? \"overcharge\"\n        : \"normal\",\n      timestamp: Date.now(),\n      metadata: {\n        ...metadata\n      }\n    });",
-      "replace": "    this.usedActions.push({\n      id: foundry.utils.randomID(),\n      actionId: action.id,\n      duplicateKey,\n      source: useOvercharge\n        ? \"overcharge\"\n        : \"normal\",\n      timestamp: Date.now(),\n      executed: false,\n      executedAt: null,\n      executionMetadata: {},\n      metadata: {\n        ...metadata\n      }\n    });",
-      "expected_matches": 1
+      "file": "scripts/actions-feature.js",
+      "find": "scripts/lancer-frame-helm.js",
+      "replace": "scripts/runtime-orchestrator.js",
+      "expected_matches": 2,
+      "must_exist": true
     },
+
     {
       "operation": "replace",
-      "file": "scripts/lancer-frame-helm.js",
-      "find": "  markReactionAvailable() {\n    this.reaction.usedThisTurn = false;\n    this.reaction.actionId = null;\n  }",
-      "replace": "  markCommittedActionExecuted(\n    entryId,\n    executionMetadata = {}\n  ) {\n    const entry = this.usedActions.find(candidate => {\n      return candidate.id === entryId;\n    });\n\n    if (!entry) {\n      throw new Error(\n        \"The committed action could not be found.\"\n      );\n    }\n\n    entry.executed = true;\n    entry.executedAt = Date.now();\n    entry.executionMetadata = {\n      ...entry.executionMetadata,\n      ...executionMetadata\n    };\n\n    this.recordHistory(\"execute-action\", {\n      entryId,\n      actionId: entry.actionId,\n      executionMetadata: {\n        ...executionMetadata\n      }\n    });\n\n    return entry;\n  }\n\n  markReactionAvailable() {\n    this.reaction.usedThisTurn = false;\n    this.reaction.actionId = null;\n  }",
-      "expected_matches": 1
+      "file": "scripts/sensors-feature.js",
+      "find": "scripts/lancer-frame-helm.js",
+      "replace": "scripts/runtime-orchestrator.js",
+      "expected_matches": 2,
+      "must_exist": true
     },
+
     {
       "operation": "replace",
-      "file": "scripts/lancer-frame-helm.js",
-      "find": "      usedActions: this.usedActions.map(entry => ({\n        ...entry,\n        metadata: {\n          ...entry.metadata\n        }\n      })),",
-      "replace": "      usedActions: this.usedActions.map(entry => ({\n        ...entry,\n        metadata: {\n          ...entry.metadata\n        },\n        executionMetadata: {\n          ...entry.executionMetadata\n        }\n      })),",
-      "expected_matches": 1
+      "file": "styles/ui-registry.css",
+      "find": "@import \"./ui-action-execution.css\";",
+      "replace": "ui-action-execution.css",
+      "expected_matches": 1,
+      "must_exist": true
     },
+
     {
       "operation": "replace",
-      "file": "scripts/lancer-frame-helm.js",
-      "find": "      entries.push({\n        type: action.category,\n        icon: action.icon || \"fas fa-bolt\",\n        label: action.label,\n        detail:\n          usedAction.source === \"overcharge\"\n            ? \"Overcharge quick action\"\n            : action.cost === \"full\"\n              ? \"Full action\"\n              : action.cost === \"quick\"\n                ? \"Quick action\"\n                : action.cost,\n        timestamp: usedAction.timestamp\n      });",
-      "replace": "      const executionKind =\n        frameHelmActionExecutionKind(action);\n\n      entries.push({\n        type: action.category,\n        icon: action.icon || \"fas fa-bolt\",\n        label: action.label,\n        detail:\n          usedAction.source === \"overcharge\"\n            ? \"Overcharge quick action\"\n            : action.cost === \"full\"\n              ? \"Full action\"\n              : action.cost === \"quick\"\n                ? \"Quick action\"\n                : action.cost,\n        timestamp: usedAction.timestamp,\n        entryId: usedAction.id ?? null,\n        actionId: action.id,\n        requiresTarget: action.requiresTarget,\n        executionKind,\n        executable: Boolean(\n          usedAction.id &&\n          executionKind\n        ),\n        executed: Boolean(usedAction.executed)\n      });",
-      "expected_matches": 1
+      "file": "styles/ui-registry.css",
+      "find": "@import \"./ui-telemetry.css\";",
+      "replace": "ui-telemetry.css",
+      "expected_matches": 1,
+      "must_exist": true
     },
+
     {
       "operation": "replace",
-      "file": "scripts/lancer-frame-helm.js",
-      "find": "              <span class=\"frame-helm-plan-copy\">\n                <strong>${foundry.utils.escapeHTML(entry.label)}</strong>\n                <small>${foundry.utils.escapeHTML(entry.detail)}</small>\n              </span>\n            </li>",
-      "replace": "              <span class=\"frame-helm-plan-copy\">\n                <strong>${foundry.utils.escapeHTML(entry.label)}</strong>\n                <small>${foundry.utils.escapeHTML(entry.detail)}</small>\n              </span>\n\n              ${\n                entry.executable\n                  ? `\n                    <button\n                      type=\"button\"\n                      class=\"frame-helm-plan-execute${entry.executed ? \" frame-helm-plan-executed\" : \"\"}\"\n                      data-frame-helm-plan-execute=\"${foundry.utils.escapeHTML(entry.entryId)}\"\n                      aria-label=\"${entry.executed ? \"Roll this committed action again\" : \"Execute this committed action\"}\"\n                      title=\"${entry.executed ? \"Executed \u2014 click to roll again\" : \"Execute in Lancer\"}\"\n                    >\n                      <i class=\"fas fa-dice-d20\"></i>\n                    </button>\n                  `\n                  : \"\"\n              }\n            </li>",
-      "expected_matches": 1
+      "file": "styles/ui-registry.css",
+      "find": "@import \"./ui-targeting.css\";",
+      "replace": "ui-targeting.css",
+      "expected_matches": 1,
+      "must_exist": true
     },
+
     {
       "operation": "replace",
-      "file": "scripts/lancer-frame-helm.js",
-      "find": "  renderFullActionExecution(action, state) {",
-      "replace": "  renderSkillCheckChoices(state) {\n    const choices = frameHelmActionRegistry\n      .childrenOf(\"full.skill-check\")\n      .map(action => {\n        return this.renderFullActionChoice(\n          action,\n          state\n        );\n      })\n      .join(\"\");\n\n    return `\n      <section class=\"frame-helm-skill-check-selector\">\n        <div class=\"frame-helm-full-requirement\">\n          <i class=\"fas fa-dice-d20\"></i>\n          <span>\n            Choose the mech skill used for this full-action check.\n            The committed check can then be rolled from the plan\n            through the native Lancer character-sheet flow.\n          </span>\n        </div>\n\n        <div class=\"frame-helm-action-list\">\n          ${choices}\n        </div>\n      </section>\n    `;\n  }\n\n  renderFullActionExecution(action, state) {",
-      "expected_matches": 1
-    },
-    {
-      "operation": "replace",
-      "file": "scripts/lancer-frame-helm.js",
-      "find": "    const content = selectedAction\n      ? this.renderFullActionExecution(\n          selectedAction,\n          state\n        )\n      : `\n        <div class=\"frame-helm-action-list\">\n          ${frameHelmActionRegistry\n            .roots(\"full\")\n            .map(action => {\n              return this.renderFullActionChoice(\n                action,\n                state\n              );\n            })\n            .join(\"\")}\n        </div>\n      `;",
-      "replace": "    const content = selectedAction?.id === \"full.skill-check\"\n      ? this.renderSkillCheckChoices(state)\n      : selectedAction\n        ? this.renderFullActionExecution(\n            selectedAction,\n            state\n          )\n        : `\n          <div class=\"frame-helm-action-list\">\n            ${frameHelmActionRegistry\n              .roots(\"full\")\n              .map(action => {\n                return this.renderFullActionChoice(\n                  action,\n                  state\n                );\n              })\n              .join(\"\")}\n          </div>\n        `;",
-      "expected_matches": 1
-    },
-    {
-      "operation": "replace",
-      "file": "scripts/lancer-frame-helm.js",
-      "find": "    html.find(\"[data-frame-helm-full-execute]\").on(\n      \"click\",\n      event => {\n        const actionId =\n          event.currentTarget.dataset.frameHelmFullExecute;\n\n        this.executeFullAction(actionId);\n      }\n    );\n\n    html.find(\"[data-frame-helm-command]\").on(",
-      "replace": "    html.find(\"[data-frame-helm-full-execute]\").on(\n      \"click\",\n      event => {\n        const actionId =\n          event.currentTarget.dataset.frameHelmFullExecute;\n\n        this.executeFullAction(actionId);\n      }\n    );\n\n    html.find(\"[data-frame-helm-plan-execute]\").on(\n      \"click\",\n      event => {\n        const entryId =\n          event.currentTarget.dataset.frameHelmPlanExecute;\n\n        this.executeCommittedPlanEntry(entryId);\n      }\n    );\n\n    html.find(\"[data-frame-helm-command]\").on(",
-      "expected_matches": 1
-    },
-    {
-      "operation": "replace",
-      "file": "scripts/lancer-frame-helm.js",
-      "find": "  executeFullAction(actionId) {",
-      "replace": "  async executeCommittedPlanEntry(entryId) {\n    const state = frameHelmTurnState.current;\n    const token = this.getControlledToken();\n    const actor = token?.actor ?? null;\n\n    if (!state) {\n      ui.notifications.warn(\n        \"Begin a turn plan before executing committed actions.\"\n      );\n      return;\n    }\n\n    if (!actor) {\n      ui.notifications.warn(\n        \"Select the mech whose committed action should be executed.\"\n      );\n      return;\n    }\n\n    const committedEntry = state.usedActions.find(entry => {\n      return entry.id === entryId;\n    });\n\n    if (!committedEntry) {\n      ui.notifications.error(\n        \"That committed action is no longer present in the plan.\"\n      );\n      return;\n    }\n\n    const action = frameHelmActionRegistry.get(\n      committedEntry.actionId\n    );\n\n    if (!action) {\n      ui.notifications.error(\n        \"The committed action is not registered.\"\n      );\n      return;\n    }\n\n    if (\n      action.requiresTarget &&\n      (game.user?.targets?.size ?? 0) < 1\n    ) {\n      ui.notifications.warn(\n        `${action.label} requires a target. Use Foundry's Target tool to target a token, then click the d20 again.`\n      );\n      return;\n    }\n\n    try {\n      const targetIds = [\n        ...(game.user?.targets ?? [])\n      ].map(target => {\n        return target?.document?.id ?? target?.id;\n      }).filter(Boolean);\n\n      await frameHelmExecuteActionRoll(\n        actor,\n        action\n      );\n\n      state.markCommittedActionExecuted(\n        entryId,\n        {\n          targetIds\n        }\n      );\n\n      this.render(false);\n    } catch (error) {\n      console.error(\n        `${MODULE_TITLE} | Could not execute committed action.`,\n        error\n      );\n\n      ui.notifications.warn(\n        `Frame Helm could not execute ${action.label}: ${error.message}`\n      );\n    }\n  }\n\n  executeFullAction(actionId) {",
-      "expected_matches": 1
-    },
-    {
-      "operation": "replace",
-      "file": "scripts/lancer-frame-helm.js",
-      "find": "    if (command === \"full-back\") {\n      if (this.selectedFullActionId) {\n        this.selectedFullActionId = null;\n      } else {\n        this.selectedCategory = null;\n      }\n\n      this.render(false);\n      return;\n    }",
-      "replace": "    if (command === \"full-back\") {\n      if (this.selectedFullActionId) {\n        const selectedAction =\n          frameHelmActionRegistry.get(\n            this.selectedFullActionId\n          );\n\n        const parentAction = selectedAction?.parentId\n          ? frameHelmActionRegistry.get(\n              selectedAction.parentId\n            )\n          : null;\n\n        this.selectedFullActionId =\n          parentAction?.category === \"full\"\n            ? parentAction.id\n            : null;\n      } else {\n        this.selectedCategory = null;\n      }\n\n      this.render(false);\n      return;\n    }",
-      "expected_matches": 1
-    },
-    {
-      "operation": "replace",
-      "file": "scripts/lancer-frame-helm.js",
-      "find": "Hooks.once(\"init\", () => {\n  console.log(`${MODULE_TITLE} | Initializing.`);\n  registerSettings();\n  initializeActionRegistry();\n});",
-      "replace": "Hooks.once(\"init\", () => {\n  console.log(`${MODULE_TITLE} | Initializing.`);\n  registerSettings();\n  initializeActionRegistry();\n  installFrameHelmRuntimeStyles();\n});",
-      "expected_matches": 1
-    },
-    {
-      "operation": "replace",
-      "file": "scripts/lancer-frame-helm.js",
-      "find": "Hooks.on(\"controlToken\", () => {\n  if (frameHelmApplication?.rendered) {\n    frameHelmApplication.render(false);\n  }\n});",
-      "replace": "Hooks.on(\"controlToken\", () => {\n  if (frameHelmApplication?.rendered) {\n    frameHelmApplication.render(false);\n  }\n\n  refreshFrameHelmSensorContacts();\n});",
-      "expected_matches": 1
-    },
-    {
-      "operation": "replace",
-      "file": "scripts/lancer-frame-helm.js",
-      "find": "Hooks.on(\"updateActor\", actor => {\n  if (frameHelmDisplaysActor(actor)) {\n    refreshFrameHelmTelemetry();\n  }\n});",
-      "replace": "Hooks.on(\"updateActor\", actor => {\n  if (frameHelmDisplaysActor(actor)) {\n    refreshFrameHelmTelemetry();\n    refreshFrameHelmSensorContacts();\n  }\n});",
-      "expected_matches": 1
-    },
-    {
-      "operation": "replace",
-      "file": "scripts/lancer-frame-helm.js",
-      "find": "Hooks.on(\"updateToken\", tokenDocument => {\n  if (!frameHelmApplication?.rendered) return;\n\n  const displayedToken = displayedFrameHelmToken();\n\n  const displayedTokenId =\n    displayedToken?.id ??\n    displayedToken?.document?.id ??\n    null;\n\n  if (displayedTokenId === tokenDocument.id) {\n    refreshFrameHelmTelemetry();\n  }\n});",
-      "replace": "Hooks.on(\"updateToken\", tokenDocument => {\n  refreshFrameHelmSensorContacts();\n\n  if (!frameHelmApplication?.rendered) return;\n\n  const displayedToken = displayedFrameHelmToken();\n\n  const displayedTokenId =\n    displayedToken?.id ??\n    displayedToken?.document?.id ??\n    null;\n\n  if (displayedTokenId === tokenDocument.id) {\n    refreshFrameHelmTelemetry();\n  }\n});",
-      "expected_matches": 1
-    },
-    {
-      "operation": "append",
-      "file": "scripts/lancer-frame-helm.js",
-      "content": "\n/* ==========================================================\n   Universal action execution\n   ========================================================== */\n\nconst FRAME_HELM_NO_ROLL_ACTIONS = new Set([\n  \"movement.standard\",\n  \"movement.jump\",\n  \"movement.climb\",\n  \"movement.fly\",\n  \"movement.teleport\",\n  \"quick.boost\",\n  \"quick.hide\",\n  \"quick.prepare\",\n  \"quick.shut-down\",\n  \"quick.self-destruct\",\n  \"full.disengage\",\n  \"full.boot-up\",\n  \"full.mount-dismount\",\n  \"special.end-turn\"\n]);\n\nfunction frameHelmActionExecutionKind(action) {\n  if (!action || FRAME_HELM_NO_ROLL_ACTIONS.has(action.id)) {\n    return null;\n  }\n\n  if (action.metadata?.statPath) {\n    return \"stat\";\n  }\n\n  if (\n    [\n      \"quick.skirmish\",\n      \"quick.grapple\",\n      \"quick.ram\",\n      \"full.barrage\",\n      \"full.improvised-attack\",\n      \"reaction.overwatch\"\n    ].includes(action.id)\n  ) {\n    return \"basic-attack\";\n  }\n\n  if (\n    [\n      \"quick.quick-tech.invade\",\n      \"quick.quick-tech.invade.fragment-signal\"\n    ].includes(action.id)\n  ) {\n    return \"basic-tech-attack\";\n  }\n\n  if (action.id === \"quick.quick-tech.scan\") {\n    return \"scan\";\n  }\n\n  if (action.id === \"full.stabilize\") {\n    return \"stabilize\";\n  }\n\n  if (action.id === \"special.overcharge\") {\n    return \"overcharge\";\n  }\n\n  return \"choose-stat\";\n}\n\nfunction frameHelmChooseMechStat(action) {\n  return new Promise(resolve => {\n    const choices = [\n      [\"hull\", \"HULL\"],\n      [\"agi\", \"AGI\"],\n      [\"sys\", \"SYS\"],\n      [\"eng\", \"ENG\"]\n    ];\n\n    const buttons = Object.fromEntries(\n      choices.map(([path, label]) => {\n        return [\n          path,\n          {\n            icon: '<i class=\"fas fa-dice-d20\"></i>',\n            label,\n            callback: () => resolve({\n              path,\n              label\n            })\n          }\n        ];\n      })\n    );\n\n    new Dialog({\n      title: `${action.label} \u2014 Choose Mech Skill`,\n      content: `\n        <p>\n          Choose the mech skill used to resolve\n          <strong>${foundry.utils.escapeHTML(action.label)}</strong>.\n        </p>\n      `,\n      buttons,\n      close: () => resolve(null)\n    }).render(true);\n  });\n}\n\nasync function frameHelmExecuteActionRoll(\n  actor,\n  action\n) {\n  const kind = frameHelmActionExecutionKind(action);\n\n  if (!kind) {\n    throw new Error(\n      \"This action does not require a dice or sheet workflow.\"\n    );\n  }\n\n  if (kind === \"stat\") {\n    return actor.beginStatFlow(\n      action.metadata.statPath,\n      action.metadata.statLabel ?? action.label\n    );\n  }\n\n  if (kind === \"basic-attack\") {\n    return actor.beginBasicAttackFlow(action.label);\n  }\n\n  if (kind === \"basic-tech-attack\") {\n    return actor.beginBasicTechAttackFlow(action.label);\n  }\n\n  if (kind === \"scan\") {\n    return actor.beginScanFlow();\n  }\n\n  if (kind === \"stabilize\") {\n    return actor.beginStabilizeFlow();\n  }\n\n  if (kind === \"overcharge\") {\n    return actor.beginOverchargeFlow();\n  }\n\n  const selectedStat =\n    await frameHelmChooseMechStat(action);\n\n  if (!selectedStat) {\n    throw new Error(\"Mech skill selection was cancelled.\");\n  }\n\n  return actor.beginStatFlow(\n    selectedStat.path,\n    `${action.label} \u2014 ${selectedStat.label}`\n  );\n}\n\n/* ==========================================================\n   Elevation movement tracking\n   ========================================================== */\n\nconst frameHelmElevationOrigins = new Map();\n\nfunction frameHelmElevationKey(tokenDocument) {\n  return String(\n    tokenDocument?.uuid ??\n    `${tokenDocument?.parent?.id ?? \"scene\"}:${tokenDocument?.id ?? \"token\"}`\n  );\n}\n\nHooks.on(\n  \"preUpdateToken\",\n  (tokenDocument, changes) => {\n    if (\n      !Object.prototype.hasOwnProperty.call(\n        changes,\n        \"elevation\"\n      )\n    ) {\n      return;\n    }\n\n    frameHelmElevationOrigins.set(\n      frameHelmElevationKey(tokenDocument),\n      Number(tokenDocument.elevation) || 0\n    );\n  }\n);\n\nHooks.on(\n  \"updateToken\",\n  (tokenDocument, changes) => {\n    if (\n      !Object.prototype.hasOwnProperty.call(\n        changes,\n        \"elevation\"\n      )\n    ) {\n      return;\n    }\n\n    const state = frameHelmTurnState.current;\n\n    if (!frameHelmMovementTokenMatches(\n      tokenDocument,\n      state\n    )) {\n      return;\n    }\n\n    const key = frameHelmElevationKey(\n      tokenDocument\n    );\n\n    const previousElevation =\n      frameHelmElevationOrigins.get(key);\n\n    frameHelmElevationOrigins.delete(key);\n\n    const nextElevation = Number(\n      changes.elevation\n    );\n\n    if (\n      !Number.isFinite(previousElevation) ||\n      !Number.isFinite(nextElevation)\n    ) {\n      return;\n    }\n\n    const sceneDistance = Number(\n      tokenDocument?.parent?.grid?.distance ??\n      canvas?.dimensions?.distance ??\n      1\n    );\n\n    const elevationDistance = Math.abs(\n      nextElevation - previousElevation\n    );\n\n    const movementSpaces =\n      Number.isFinite(sceneDistance) &&\n      sceneDistance > 0\n        ? elevationDistance / sceneDistance\n        : elevationDistance;\n\n    const distance = frameHelmRoundMovementDistance(\n      movementSpaces\n    );\n\n    if (distance <= 0) return;\n\n    try {\n      const result = state.trackTokenMovement(\n        distance,\n        {\n          movementId:\n            `elevation:${key}:${previousElevation}:${nextElevation}:${Date.now()}`,\n          method: \"elevation\",\n          origin: {\n            x: Number(tokenDocument.x) || 0,\n            y: Number(tokenDocument.y) || 0,\n            elevation: previousElevation\n          },\n          destination: {\n            x: Number(tokenDocument.x) || 0,\n            y: Number(tokenDocument.y) || 0,\n            elevation: nextElevation\n          }\n        }\n      );\n\n      if (!result.tracked) return;\n\n      ui.notifications.info(\n        `Elevation changed by ${distance} space(s); Frame Helm recorded it as movement.`\n      );\n\n      if (result.excess > 0) {\n        ui.notifications.warn(\n          `Frame Helm recorded ${result.excess} excess movement beyond the currently legal movement allowance.`\n        );\n      }\n\n      frameHelmTurnState.renderApplication();\n    } catch (error) {\n      console.error(\n        `${MODULE_TITLE} | Could not track elevation movement.`,\n        error\n      );\n\n      ui.notifications.warn(\n        `Frame Helm could not track the elevation change: ${error.message}`\n      );\n    }\n  }\n);\n\n/* ==========================================================\n   Sensor contacts through darkness\n   ========================================================== */\n\nlet frameHelmSensorLayer = null;\n\nfunction installFrameHelmRuntimeStyles() {\n  if (document.getElementById(\n    \"lancer-frame-helm-runtime-styles\"\n  )) {\n    return;\n  }\n\n  const style = document.createElement(\"style\");\n  style.id = \"lancer-frame-helm-runtime-styles\";\n  style.textContent = `\n    .frame-helm-plan-entry {\n      display: flex;\n      align-items: center;\n      gap: 0.5rem;\n    }\n\n    .frame-helm-plan-copy {\n      flex: 1 1 auto;\n      min-width: 0;\n    }\n\n    .frame-helm-plan-execute {\n      flex: 0 0 auto;\n      width: 2rem;\n      height: 2rem;\n      padding: 0;\n      border: 1px solid rgba(255, 255, 255, 0.28);\n      border-radius: 50%;\n      background: rgba(10, 18, 24, 0.9);\n      color: #f3f5f7;\n      cursor: pointer;\n    }\n\n    .frame-helm-plan-execute:hover {\n      border-color: #ff4b4b;\n      color: #ff6b6b;\n    }\n\n    .frame-helm-plan-executed {\n      border-color: #65d88a;\n      color: #65d88a;\n    }\n\n    .frame-helm-skill-check-selector {\n      display: grid;\n      gap: 0.75rem;\n    }\n  `;\n\n  document.head.appendChild(style);\n}\n\nfunction frameHelmDestroySensorLayer() {\n  if (!frameHelmSensorLayer) return;\n\n  try {\n    frameHelmSensorLayer.destroy({\n      children: true\n    });\n  } catch (error) {\n    console.warn(\n      `${MODULE_TITLE} | Could not destroy sensor contact layer cleanly.`,\n      error\n    );\n  }\n\n  frameHelmSensorLayer = null;\n}\n\nfunction frameHelmCreateSensorCircle(radius) {\n  const graphics = new PIXI.Graphics();\n\n  if (\n    typeof graphics.circle === \"function\" &&\n    typeof graphics.stroke === \"function\"\n  ) {\n    graphics\n      .circle(0, 0, radius)\n      .stroke({\n        color: 0xff3030,\n        width: 3,\n        alpha: 0.95\n      });\n  } else {\n    graphics.lineStyle(\n      3,\n      0xff3030,\n      0.95\n    );\n    graphics.drawCircle(0, 0, radius);\n  }\n\n  return graphics;\n}\n\nfunction frameHelmCreateSensorLabel(name) {\n  const style = {\n    fontFamily: \"Arial, sans-serif\",\n    fontSize: 14,\n    fontWeight: \"bold\",\n    fill: 0xff5a5a,\n    stroke: {\n      color: 0x160000,\n      width: 4\n    },\n    align: \"center\"\n  };\n\n  let label;\n\n  try {\n    label = new PIXI.Text({\n      text: name,\n      style\n    });\n  } catch (_error) {\n    label = new PIXI.Text(\n      name,\n      new PIXI.TextStyle({\n        fontFamily: style.fontFamily,\n        fontSize: style.fontSize,\n        fontWeight: style.fontWeight,\n        fill: style.fill,\n        stroke: \"#160000\",\n        strokeThickness: 4,\n        align: style.align\n      })\n    );\n  }\n\n  label.anchor?.set?.(0.5, 1);\n  return label;\n}\n\nfunction frameHelmSensorDistance(\n  sourceToken,\n  targetToken\n) {\n  const source = sourceToken?.center;\n  const target = targetToken?.center;\n\n  if (!source || !target) {\n    return Infinity;\n  }\n\n  try {\n    const measured = canvas?.grid?.measurePath?.(\n      [source, target],\n      {\n        cost: true\n      }\n    );\n\n    const sceneDistance = Number(\n      canvas?.scene?.grid?.distance ??\n      canvas?.dimensions?.distance ??\n      1\n    );\n\n    const measuredDistance = Number(\n      measured?.cost ??\n      measured?.distance\n    );\n\n    if (Number.isFinite(measuredDistance)) {\n      return (\n        Number.isFinite(sceneDistance) &&\n        sceneDistance > 0\n      )\n        ? measuredDistance / sceneDistance\n        : measuredDistance;\n    }\n  } catch (error) {\n    console.warn(\n      `${MODULE_TITLE} | Sensor range measurement fell back to geometry.`,\n      error\n    );\n  }\n\n  const gridSize = Number(\n    canvas?.dimensions?.size ?? 100\n  );\n\n  if (!Number.isFinite(gridSize) || gridSize <= 0) {\n    return Infinity;\n  }\n\n  return Math.hypot(\n    target.x - source.x,\n    target.y - source.y\n  ) / gridSize;\n}\n\nfunction frameHelmSensorSourceToken() {\n  const controlled =\n    canvas?.tokens?.controlled ?? [];\n\n  if (controlled.length > 0) {\n    return controlled[0];\n  }\n\n  return (\n    game.combat?.combatant?.token?.object ??\n    null\n  );\n}\n\nfunction refreshFrameHelmSensorContacts() {\n  if (!canvas?.ready || !canvas?.interface) {\n    frameHelmDestroySensorLayer();\n    return;\n  }\n\n  frameHelmDestroySensorLayer();\n\n  const sourceToken =\n    frameHelmSensorSourceToken();\n\n  const sensorRange = Number(\n    sourceToken?.actor?.system?.sensor_range\n  );\n\n  if (\n    !sourceToken ||\n    !Number.isFinite(sensorRange) ||\n    sensorRange <= 0\n  ) {\n    return;\n  }\n\n  const layer = new PIXI.Container();\n  layer.name = \"lancer-frame-helm-sensor-contacts\";\n  layer.eventMode = \"none\";\n  layer.interactiveChildren = false;\n  layer.zIndex = 100000;\n\n  for (const token of (\n    canvas?.tokens?.placeables ?? []\n  )) {\n    if (\n      token === sourceToken ||\n      Number(token?.document?.disposition) >= 0\n    ) {\n      continue;\n    }\n\n    const distance = frameHelmSensorDistance(\n      sourceToken,\n      token\n    );\n\n    if (\n      !Number.isFinite(distance) ||\n      distance > sensorRange\n    ) {\n      continue;\n    }\n\n    const contact = new PIXI.Container();\n    contact.position.set(\n      token.center.x,\n      token.center.y\n    );\n\n    const radius = Math.max(\n      10,\n      Math.min(\n        Number(token.w) || 30,\n        Number(token.h) || 30\n      ) * 0.22\n    );\n\n    const circle =\n      frameHelmCreateSensorCircle(radius);\n\n    const label =\n      frameHelmCreateSensorLabel(\n        token.document?.name ??\n        token.name ??\n        \"CONTACT\"\n      );\n\n    label.position.set(\n      0,\n      -radius - 6\n    );\n\n    contact.addChild(circle);\n    contact.addChild(label);\n    layer.addChild(contact);\n  }\n\n  canvas.interface.addChild(layer);\n  frameHelmSensorLayer = layer;\n}\n\nHooks.on(\n  \"canvasReady\",\n  refreshFrameHelmSensorContacts\n);\n\nHooks.on(\n  \"canvasPan\",\n  refreshFrameHelmSensorContacts\n);\n\nHooks.on(\n  \"createToken\",\n  refreshFrameHelmSensorContacts\n);\n\nHooks.on(\n  \"deleteToken\",\n  refreshFrameHelmSensorContacts\n);\n\nHooks.on(\n  \"refreshToken\",\n  refreshFrameHelmSensorContacts\n);\n\nHooks.on(\n  \"sightRefresh\",\n  refreshFrameHelmSensorContacts\n);\n"
+      "file": "styles/ui-registry.css",
+      "find": "@import \"./ui-tactical-overlay.css\";",
+      "replace": "ui-tactical-overlay.css",
+      "expected_matches": 1,
+      "must_exist": true
     }
   ],
+
   "postconditions": [
     {
       "type": "contains",
-      "file": "scripts/lancer-frame-helm.js",
-      "text": "id: \"full.skill-check.hull\""
+      "file": "scripts/actions-feature.js",
+      "text": "./dsl.js"
     },
     {
-      "type": "contains",
-      "file": "scripts/lancer-frame-helm.js",
-      "text": "markCommittedActionExecuted"
+      "type": "not_contains",
+      "file": "scripts/actions-feature.js",
+      "text": "./frame-helm/dsl.js"
     },
     {
-      "type": "contains",
-      "file": "scripts/lancer-frame-helm.js",
-      "text": "executeCommittedPlanEntry"
+      "type": "not_contains",
+      "file": "scripts/actions-feature.js",
+      "text": "scripts/lancer-frame-helm.js"
     },
     {
-      "type": "contains",
-      "file": "scripts/lancer-frame-helm.js",
-      "text": "frameHelmElevationOrigins"
+      "type": "not_contains",
+      "file": "scripts/sensors-feature.js",
+      "text": "scripts/lancer-frame-helm.js"
     },
     {
-      "type": "contains",
-      "file": "scripts/lancer-frame-helm.js",
-      "text": "refreshFrameHelmSensorContacts"
+      "type": "not_contains",
+      "file": "styles/ui-registry.css",
+      "text": "@import \"./ui-action-execution.css\";"
     },
     {
-      "type": "contains",
-      "file": "scripts/lancer-frame-helm.js",
-      "text": "actor.beginStatFlow("
+      "type": "not_contains",
+      "file": "styles/ui-registry.css",
+      "text": "@import \"./ui-telemetry.css\";"
     },
     {
-      "type": "contains",
-      "file": "scripts/lancer-frame-helm.js",
-      "text": "actor.beginBasicAttackFlow(action.label)"
+      "type": "not_contains",
+      "file": "styles/ui-registry.css",
+      "text": "@import \"./ui-targeting.css\";"
+    },
+    {
+      "type": "not_contains",
+      "file": "styles/ui-registry.css",
+      "text": "@import \"./ui-tactical-overlay.css\";"
     }
   ],
+
   "validation": {
     "structural": true,
     "scan_dependencies": true,
