@@ -2450,4 +2450,6 @@ fs.writeFileSync(“core-bonuses.md”, content, “utf8”);
 
 console.log(
   `Wrote core-bonuses.md (${content.split(“\n”).length} lines, ${Buffer.byteLength(content, “utf8”)} bytes)`
+  
+  Core Bonus notes: Improved Armament, Mount Retrofitting, and Integrated Weapon already have explicit native loadout behavior, so those should be marked native-supported rather than generally inert.
 );
