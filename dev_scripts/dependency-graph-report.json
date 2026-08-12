@@ -1,5 +1,5 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "scope": {
     "mode": "repository-runtime",
     "repository_root": ".",
@@ -61,10 +61,19 @@
     "files_reaching_runtime_terminal": 108,
     "recognized_runtime_terminal_files": 12,
     "major_runtime_streams": 7,
+    "runtime_ready_features": 4,
+    "runtime_waiting_features": 2,
+    "runtime_configuration_not_applicable_features": 4,
     "high_fan_in_files": 15,
     "high_fan_out_files": 10,
     "problem_count": 2,
-    "healthy": false
+    "healthy": false,
+    "runtime_ready": false,
+    "health": {
+      "structural": "review",
+      "runtime_flow": "healthy",
+      "runtime_readiness": "incomplete"
+    }
   },
   "architecture": {
     "folders": [
@@ -931,6 +940,132 @@
       }
     ],
     "dead_end_candidates": []
+  },
+  "runtime_readiness": {
+    "method": "static composition inference from canonical feature configureRuntime contracts and registry API configureRuntime calls",
+    "interpretation": "waiting is an informational readiness state, not a broken dependency; declared bindings are treated as expected composition inputs when a feature explicitly enumerates allowed runtime binding keys",
+    "ready_feature_count": 4,
+    "waiting_feature_count": 2,
+    "not_applicable_feature_count": 4,
+    "ready_features": [
+      {
+        "feature": "foundry-integration",
+        "feature_file": "scripts/foundry-integration-feature.js",
+        "status": "ready",
+        "runtime_terminal_reached": true,
+        "declared_bindings": [],
+        "configured_bindings": [
+          "openApplication"
+        ],
+        "configuration_files": [
+          "scripts/runtime-orchestrator.js"
+        ]
+      },
+      {
+        "feature": "movement",
+        "feature_file": "scripts/feature_movement/movement-feature.js",
+        "status": "ready",
+        "runtime_terminal_reached": true,
+        "declared_bindings": [],
+        "configured_bindings": [
+          "getTurnState"
+        ],
+        "configuration_files": [
+          "scripts/runtime-orchestrator.js"
+        ]
+      },
+      {
+        "feature": "turn",
+        "feature_file": "scripts/feature_turn/turn-feature.js",
+        "status": "ready",
+        "runtime_terminal_reached": true,
+        "declared_bindings": [],
+        "configured_bindings": [
+          "getActionRegistry"
+        ],
+        "configuration_files": [
+          "scripts/runtime-orchestrator.js"
+        ]
+      },
+      {
+        "feature": "ui-application",
+        "feature_file": "styles/ui_application/ui-application.js",
+        "status": "ready",
+        "runtime_terminal_reached": true,
+        "declared_bindings": [],
+        "configured_bindings": [
+          "getActionRegistry"
+        ],
+        "configuration_files": [
+          "scripts/runtime-orchestrator.js"
+        ]
+      }
+    ],
+    "waiting_features": [
+      {
+        "feature": "lifecycle",
+        "feature_file": "scripts/feature_lifecycle/lifecycle-feature.js",
+        "status": "wired-awaiting-runtime-configuration",
+        "runtime_terminal_reached": true,
+        "declared_bindings": [
+          "operationAdapters",
+          "stateAdapter"
+        ],
+        "configured_bindings": [],
+        "configuration_files": [],
+        "waiting_on": [
+          "operationAdapters",
+          "stateAdapter"
+        ],
+        "reason": "feature reaches the production runtime graph but one or more declared runtime composition bindings are not statically observed"
+      },
+      {
+        "feature": "targeting-spatial",
+        "feature_file": "scripts/feature_targeting_spatial/targeting-spatial-feature.js",
+        "status": "wired-awaiting-runtime-configuration",
+        "runtime_terminal_reached": true,
+        "declared_bindings": [
+          "acquisitionAdapter",
+          "augmentationResolver",
+          "queryAdapter"
+        ],
+        "configured_bindings": [],
+        "configuration_files": [],
+        "waiting_on": [
+          "acquisitionAdapter",
+          "augmentationResolver",
+          "queryAdapter"
+        ],
+        "reason": "feature reaches the production runtime graph but one or more declared runtime composition bindings are not statically observed"
+      }
+    ],
+    "not_applicable_features": [
+      {
+        "feature": "action-execution",
+        "feature_file": "scripts/feature_actions/action-execution-feature.js",
+        "status": "no-runtime-configuration-contract",
+        "runtime_terminal_reached": true
+      },
+      {
+        "feature": "actions",
+        "feature_file": "scripts/feature_actions/actions-feature.js",
+        "status": "no-runtime-configuration-contract",
+        "runtime_terminal_reached": true
+      },
+      {
+        "feature": "sensors",
+        "feature_file": "scripts/sensors-feature.js",
+        "status": "no-runtime-configuration-contract",
+        "runtime_terminal_reached": true
+      },
+      {
+        "feature": "ui-sensors",
+        "feature_file": "styles/ui-registry.js",
+        "status": "no-runtime-configuration-contract",
+        "runtime_terminal_reached": true
+      }
+    ],
+    "runtime_ready": false
   },
   "problems": {
     "broken_dependencies": [],
