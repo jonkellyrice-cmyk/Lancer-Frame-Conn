@@ -1,190 +1,191 @@
 {
-"schema_version": 2,
-"id": "use-canonical-turn-committed-plan-presentation-v1",
-"name": "Use canonical Turn committed plan presentation",
-"description": "Remove ui_application’s duplicate committed-plan reconstruction and render the canonical committed plan presentation produced by ui_turn, wiring ui_turn through runtime orchestration.",
-"backup": true,
-"allow_noop": false,
-"repository": {
-"require_git": true,
-"require_clean_targets": true,
-"require_clean_repository": false
-},
-"risk_acceptance": {
-"overwrite_files": false,
-"delete_files": false,
-"move_files": false,
-"change_dependencies": false,
-"modify_package_manifest": false
-},
-"preconditions": [
-{
-"type": "file_exists",
-"file": "styles/ui_application/ui-application.js"
-},
-{
-"type": "file_exists",
-"file": "styles/ui_turn/ui-turn.js"
-},
-{
-"type": "file_exists",
-"file": "scripts/runtime-orchestrator.js"
-},
-{
-"type": "contains",
-"file": "styles/ui_application/ui-application.js",
-"text": "  committedPlanEntries(\n    state\n  ) {"
-},
-{
-"type": "contains",
-"file": "styles/ui_turn/ui-turn.js",
-"text": "function buildFrameHelmTurnCommittedPlanPresentation("
-},
-{
-"type": "contains",
-"file": "styles/ui_turn/ui-turn.js",
-"text": "      getCommittedPlan:\n        buildFrameHelmTurnCommittedPlanPresentation,"
-},
-{
-"type": "contains",
-"file": "scripts/runtime-orchestrator.js",
-"text": "const frameHelmApplicationApi =\n  frameHelmFeatureRegistry.getApi(\n    "ui-application"\n  );"
-}
-],
-"postconditions": [
-{
-"type": "not_contains",
-"file": "styles/ui_application/ui-application.js",
-"text": "  committedPlanEntries(\n    state\n  ) {"
-},
-{
-"type": "contains",
-"file": "styles/ui_application/ui-application.js",
-"text": "function getFrameHelmApplicationCommittedPlan() {"
-},
-{
-"type": "contains",
-"file": "styles/ui_application/ui-application.js",
-"text": "    const committedPlan =\n      getFrameHelmApplicationCommittedPlan();"
-},
-{
-"type": "contains",
-"file": "styles/ui_application/ui-application.js",
-"text": "      "ui.turn.committed-actions""
-},
-{
-"type": "contains",
-"file": "styles/ui_turn/ui-turn.js",
-"text": "    detail:\n      entry?.source ===\n        "overcharge""
-},
-{
-"type": "contains",
-"file": "scripts/runtime-orchestrator.js",
-"text": "const frameHelmTurnUiApi =\n  frameHelmFeatureRegistry.getApi(\n    "ui-turn"\n  );"
-},
-{
-"type": "contains",
-"file": "scripts/runtime-orchestrator.js",
-"text": "      getCommittedPlan:\n        () =>\n          frameHelmTurnUiApi\n            .getCommittedPlan(),"
-}
-],
-"validation": {
-"structural": true,
-"scan_dependencies": true,
-"commands": [
-[
-"node",
-"–check",
-"styles/ui_turn/ui-turn.js"
-],
-[
-"node",
-"–check",
-"styles/ui_application/ui-application.js"
-],
-[
-"node",
-"–check",
-"scripts/runtime-orchestrator.js"
-]
-],
-"timeout_seconds": 60
-},
-"operations": [
-{
-"operation": "replace",
-"file": "styles/ui_turn/ui-turn.js",
-"find": "    source:\n      entry?.source ??\n      "normal",\n\n    kind,\n\n    executed:",
-"replace": "    source:\n      entry?.source ??\n      "normal",\n\n    kind,\n\n    detail:\n      entry?.source ===\n        "overcharge"\n        ? "Overcharge quick action"\n        : action?.cost ===\n            "full"\n          ? "Full action"\n          : action?.cost ===\n              "quick"\n            ? "Quick action"\n            : action?.cost ??\n              "",\n\n    executed:",
-"expected_matches": 1
-},
-{
-"operation": "replace",
-"file": "styles/ui_application/ui-application.js",
-"find": "  getTurnStateManager:\n    null,\n\n  executeActionRoll:",
-"replace": "  getTurnStateManager:\n    null,\n\n  getCommittedPlan:\n    null,\n\n  executeActionRoll:",
-"expected_matches": 1
-},
-{
-"operation": "replace",
-"file": "styles/ui_application/ui-application.js",
-"find": "    turnStateManager:\n      typeof frameHelmApplicationRuntimeBindings\n        .getTurnStateManager ===\n        "function",\n\n    actionExecution:",
-"replace": "    turnStateManager:\n      typeof frameHelmApplicationRuntimeBindings\n        .getTurnStateManager ===\n        "function",\n\n    committedPlan:\n      typeof frameHelmApplicationRuntimeBindings\n        .getCommittedPlan ===\n        "function",\n\n    actionExecution:",
-"expected_matches": 1
-},
-{
-"operation": "replace",
-"file": "styles/ui_application/ui-application.js",
-"find": "function getFrameHelmApplicationTurnStateManager() {\n  return (\n    frameHelmApplicationRuntimeBindings\n      .getTurnStateManager?.() ??\n    null\n  );\n}\n\n\nasync function executeFrameHelmApplicationActionRoll(",
-"replace": "function getFrameHelmApplicationTurnStateManager() {\n  return (\n    frameHelmApplicationRuntimeBindings\n      .getTurnStateManager?.() ??\n    null\n  );\n}\n\n\nfunction getFrameHelmApplicationCommittedPlan() {\n  return (\n    frameHelmApplicationRuntimeBindings\n      .getCommittedPlan?.() ??\n    Object.freeze({\n      empty:\n        true,\n\n      count:\n        0,\n\n      pendingCount:\n        0,\n\n      executedCount:\n        0,\n\n      entries:\n        Object.freeze([])\n    })\n  );\n}\n\n\nasync function executeFrameHelmApplicationActionRoll(",
-"expected_matches": 1
-},
-{
-"operation": "delete",
-"file": "styles/ui_application/ui-application.js",
-"find": "  committedPlanEntries(\n    state\n  ) {\n    if (\n      !state\n    ) {\n      return [];\n    }\n\n\n    const registry =\n      getFrameHelmApplicationActionRegistry();\n\n    const entries =\n      [];\n\n\n    for (\n      const event\n      of state.history ??\n        []\n    ) {\n      if (\n        event.type ===\n          "movement-segment" ||\n        event.type ===\n          "movement-commit"\n      ) {\n        const action =\n          registry.get(\n            event.data?.actionId\n          );\n\n\n        entries.push({\n          type:\n            "movement",\n\n          icon:\n            action?.icon ??\n            "fas fa-shoe-prints",\n\n          label:\n            action?.label ??\n            "Movement",\n\n          detail:\n            ${event.data?.distance ?? 0} space(s) committed,\n\n          timestamp:\n            event.timestamp\n        });\n      }\n\n\n      if (\n        event.type ===\n        "overcharge"\n      ) {\n        entries.push({\n          type:\n            "overcharge",\n\n          icon:\n            "fas fa-temperature-high",\n\n          label:\n            "Overcharge",\n\n          detail:\n            Heat ${event.data?.heatFormula ?? \"?\"},\n\n          timestamp:\n            event.timestamp\n        });\n      }\n\n\n      if (\n        event.type ===\n        "use-protocol"\n      ) {\n        const action =\n          registry.get(\n            event.data?.actionId\n          );\n\n\n        entries.push({\n          type:\n            "protocol",\n\n          icon:\n            action?.icon ??\n            "fas fa-microchip",\n\n          label:\n            action?.label ??\n            "Protocol",\n\n          detail:\n            "Start-of-turn protocol",\n\n          timestamp:\n            event.timestamp\n        });\n      }\n    }\n\n\n    for (\n      const usedAction\n      of state.usedActions ??\n        []\n    ) {\n      const action =\n        registry.get(\n          usedAction.actionId\n        );\n\n\n      if (\n        !action\n      ) {\n        continue;\n      }\n\n\n      entries.push({\n        type:\n          action.category,\n\n        icon:\n          action.icon ||\n          "fas fa-bolt",\n\n        label:\n          action.label,\n\n        detail:\n          usedAction.source ===\n          "overcharge"\n            ? "Overcharge quick action"\n            : action.cost ===\n                "full"\n              ? "Full action"\n              : action.cost ===\n                  "quick"\n                ? "Quick action"\n                : action.cost,\n\n        timestamp:\n          usedAction.timestamp\n      });\n    }\n\n\n    return (\n      entries.sort(\n        (\n          left,\n          right\n        ) => {\n          return (\n            left.timestamp -\n            right.timestamp\n          );\n        }\n      )\n    );\n  }\n",
-"expected_matches": 1
-},
-{
-"operation": "replace",
-"file": "styles/ui_application/ui-application.js",
-"find": "  renderCommittedPlan(\n    state\n  ) {\n    const entries =\n      this.committedPlanEntries(\n        state\n      );\n\n\n    const entryMarkup =\n      entries.length\n        ? entries\n            .map(\n              (\n                entry,\n                index\n              ) => {\n                return \n                  <li class=\"frame-helm-plan-entry frame-helm-plan-${foundry.utils.escapeHTML(entry.type)}\">\n                    <span class=\"frame-helm-plan-index\">\n                      ${String(index + 1).padStart(2, \"0\")}\n                    </span>\n\n                    <i class=\"${foundry.utils.escapeHTML(entry.icon)}\"></i>\n\n                    <span class=\"frame-helm-plan-copy\">\n                      <strong>\n                        ${foundry.utils.escapeHTML(entry.label)}\n                      </strong>\n\n                      <small>\n                        ${foundry.utils.escapeHTML(entry.detail)}\n                      </small>\n                    </span>\n                  </li>\n                ;\n              }\n            )\n            .join(\n              ""\n            )\n        : \n          <li class=\"frame-helm-plan-empty\">\n            <i class=\"fas fa-wave-square\"></i>\n            <span>No actions committed yet.</span>\n          </li>\n        ;\n\n\n    return \n      <section class=\"frame-helm-plan-panel\">\n        <header class=\"frame-helm-plan-header\">\n          <div>\n            <span>\n              Committed Plan\n            </span>\n\n            <small>\n              ${\n                entries.length\n                  ? ${entries.length} declared step${entries.length === 1 ? "" : "s"}\n                  : \"No declared steps\"\n              }\n            </small>\n          </div>\n\n          <i\n            class=\"fas fa-list-check frame-helm-plan-header-icon\"\n            aria-hidden=\"true\"\n          ></i>\n        </header>\n\n        <ol class=\"frame-helm-plan-list\">\n          ${entryMarkup}\n        </ol>\n      </section>\n    ;\n  }",
-"replace": "  renderCommittedPlan() {\n    const committedPlan =\n      getFrameHelmApplicationCommittedPlan();\n\n\n    const entries =\n      committedPlan?.entries ??\n      [];\n\n\n    const entryMarkup =\n      entries.length\n        ? entries\n            .map(\n              entry => {\n                return \n                  <li class=\"${foundry.utils.escapeHTML(entry.classNames)}\">\n                    <span class=\"frame-helm-plan-index\">\n                      ${foundry.utils.escapeHTML(entry.indexLabel)}\n                    </span>\n\n                    <i class=\"${foundry.utils.escapeHTML(entry.icon)}\"></i>\n\n                    <span class=\"frame-helm-plan-copy\">\n                      <strong>\n                        ${foundry.utils.escapeHTML(entry.label)}\n                      </strong>\n\n                      <small>\n                        ${foundry.utils.escapeHTML(entry.detail)}\n                      </small>\n                    </span>\n                  </li>\n                ;\n              }\n            )\n            .join(\n              ""\n            )\n        : \n          <li class=\"frame-helm-plan-empty\">\n            <i class=\"fas fa-wave-square\"></i>\n            <span>No actions committed yet.</span>\n          </li>\n        ;\n\n\n    return \n      <section class=\"frame-helm-plan-panel\">\n        <header class=\"frame-helm-plan-header\">\n          <div>\n            <span>\n              Committed Plan\n            </span>\n\n            <small>\n              ${\n                entries.length\n                  ? ${entries.length} declared step${entries.length === 1 ? "" : "s"}\n                  : \"No declared steps\"\n              }\n            </small>\n          </div>\n\n          <i\n            class=\"fas fa-list-check frame-helm-plan-header-icon\"\n            aria-hidden=\"true\"\n          ></i>\n        </header>\n\n        <ol class=\"frame-helm-plan-list\">\n          ${entryMarkup}\n        </ol>\n      </section>\n    ;\n  }",
-"expected_matches": 1
-},
-{
-"operation": "replace",
-"file": "styles/ui_application/ui-application.js",
-"find": "      ${this.renderCommittedPlan(state)}\n    ;", "replace": "      ${this.renderCommittedPlan()}\n    ;",
-"expected_matches": 1
-},
-{
-"operation": "replace",
-"file": "styles/ui_application/ui-application.js",
-"find": "    dependsOn: [\n      "actions.registry"\n    ],",
-"replace": "    dependsOn: [\n      "actions.registry",\n      "ui.turn.committed-actions"\n    ],",
-"expected_matches": 1
-},
-{
-"operation": "replace",
-"file": "scripts/runtime-orchestrator.js",
-"find": "/* ----------------------------------------\n   Application UI\n   ---------------------------------------- /\n\nconst frameHelmApplicationApi =\n  frameHelmFeatureRegistry.getApi(\n    "ui-application"\n  );",
-"replace": "/ ----------------------------------------\n   Turn UI\n   ---------------------------------------- /\n\nconst frameHelmTurnUiApi =\n  frameHelmFeatureRegistry.getApi(\n    "ui-turn"\n  );\n\n\nif (\n  !frameHelmTurnUiApi\n) {\n  throw new Error(\n    "Frame Helm | The registered Turn UI feature API could not be resolved."\n  );\n}\n\n\n/ ----------------------------------------\n   Application UI\n   ---------------------------------------- /\n\nconst frameHelmApplicationApi =\n  frameHelmFeatureRegistry.getApi(\n    "ui-application"\n  );",
-"expected_matches": 1
-},
-{
-"operation": "replace",
-"file": "scripts/runtime-orchestrator.js",
-"find": "  frameHelmTurnApi\n    .configureRuntime?.({\n      getActionRegistry:\n        () =>\n          frameHelmActionRegistry,\n\n      renderApplication:\n        force =>\n          renderFrameHelmApplication(\n            force\n          )\n    });\n\n\n  / –––––––––––––––––––––––––––––\n     Movement bindings\n     ––––––––––––––––––––––––––––– /",
-"replace": "  frameHelmTurnApi\n    .configureRuntime?.({\n      getActionRegistry:\n        () =>\n          frameHelmActionRegistry,\n\n      renderApplication:\n        force =>\n          renderFrameHelmApplication(\n            force\n          )\n    });\n\n\n  / –––––––––––––––––––––––––––––\n     Turn UI bindings\n     ––––––––––––––––––––––––––––– */\n\n  /**\n   * Turn UI converts authoritative Turn state into the canonical\n   * presentation model consumed by Application UI.\n   /\n  frameHelmTurnUiApi\n    .configureRuntime?.({\n      getTurnApi:\n        () =>\n          frameHelmTurnApi,\n\n      getActionRegistry:\n        () =>\n          frameHelmActionRegistry,\n\n      renderApplication:\n        force =>\n          renderFrameHelmApplication(\n            force\n          )\n    });\n\n\n  / –––––––––––––––––––––––––––––\n     Movement bindings\n     ––––––––––––––––––––––––––––– */",
-"expected_matches": 1
-},
-{
-"operation": "replace",
-"file": "scripts/runtime-orchestrator.js",
-"find": "      getTurnStateManager:\n        () =>\n          getFrameHelmTurnStateManager(),\n\n      executeActionRoll:",
-"replace": "      getTurnStateManager:\n        () =>\n          getFrameHelmTurnStateManager(),\n\n      getCommittedPlan:\n        () =>\n          frameHelmTurnUiApi\n            .getCommittedPlan(),\n\n      executeActionRoll:",
-"expected_matches": 1
-}
-]
+  "schema_version": 2,
+  "id": "use-canonical-turn-committed-plan-presentation-v1",
+  "name": "Use canonical Turn committed plan presentation",
+  "description": "Remove ui_application's duplicate committed-plan reconstruction and render the canonical committed plan presentation produced by ui_turn, wiring ui_turn through runtime orchestration.",
+  "backup": true,
+  "allow_noop": false,
+  "repository": {
+    "require_git": true,
+    "require_clean_targets": true,
+    "require_clean_repository": false
+  },
+  "risk_acceptance": {
+    "overwrite_files": false,
+    "delete_files": false,
+    "move_files": false,
+    "change_dependencies": false,
+    "modify_package_manifest": false
+  },
+  "preconditions": [
+    {
+      "type": "file_exists",
+      "file": "styles/ui_application/ui-application.js"
+    },
+    {
+      "type": "file_exists",
+      "file": "styles/ui_turn/ui-turn.js"
+    },
+    {
+      "type": "file_exists",
+      "file": "scripts/runtime-orchestrator.js"
+    },
+    {
+      "type": "contains",
+      "file": "styles/ui_application/ui-application.js",
+      "text": "  committedPlanEntries(\n    state\n  ) {"
+    },
+    {
+      "type": "contains",
+      "file": "styles/ui_turn/ui-turn.js",
+      "text": "function buildFrameHelmTurnCommittedPlanPresentation("
+    },
+    {
+      "type": "contains",
+      "file": "styles/ui_turn/ui-turn.js",
+      "text": "      getCommittedPlan:\n        buildFrameHelmTurnCommittedPlanPresentation,"
+    },
+    {
+      "type": "contains",
+      "file": "scripts/runtime-orchestrator.js",
+      "text": "const frameHelmApplicationApi =\n  frameHelmFeatureRegistry.getApi(\n    \"ui-application\"\n  );"
+    }
+  ],
+  "postconditions": [
+    {
+      "type": "not_contains",
+      "file": "styles/ui_application/ui-application.js",
+      "text": "  committedPlanEntries(\n    state\n  ) {"
+    },
+    {
+      "type": "contains",
+      "file": "styles/ui_application/ui-application.js",
+      "text": "function getFrameHelmApplicationCommittedPlan() {"
+    },
+    {
+      "type": "contains",
+      "file": "styles/ui_application/ui-application.js",
+      "text": "    const committedPlan =\n      getFrameHelmApplicationCommittedPlan();"
+    },
+    {
+      "type": "contains",
+      "file": "styles/ui_application/ui-application.js",
+      "text": "      \"ui.turn.committed-actions\""
+    },
+    {
+      "type": "contains",
+      "file": "styles/ui_turn/ui-turn.js",
+      "text": "    detail:\n      entry?.source ===\n        \"overcharge\""
+    },
+    {
+      "type": "contains",
+      "file": "scripts/runtime-orchestrator.js",
+      "text": "const frameHelmTurnUiApi =\n  frameHelmFeatureRegistry.getApi(\n    \"ui-turn\"\n  );"
+    },
+    {
+      "type": "contains",
+      "file": "scripts/runtime-orchestrator.js",
+      "text": "      getCommittedPlan:\n        () =>\n          frameHelmTurnUiApi\n            .getCommittedPlan(),"
+    }
+  ],
+  "validation": {
+    "structural": true,
+    "scan_dependencies": true,
+    "commands": [
+      [
+        "node",
+        "--check",
+        "styles/ui_turn/ui-turn.js"
+      ],
+      [
+        "node",
+        "--check",
+        "styles/ui_application/ui-application.js"
+      ],
+      [
+        "node",
+        "--check",
+        "scripts/runtime-orchestrator.js"
+      ]
+    ],
+    "timeout_seconds": 60
+  },
+  "operations": [
+    {
+      "operation": "replace",
+      "file": "styles/ui_turn/ui-turn.js",
+      "find": "    source:\n      entry?.source ??\n      \"normal\",\n\n    kind,\n\n    executed:",
+      "replace": "    source:\n      entry?.source ??\n      \"normal\",\n\n    kind,\n\n    detail:\n      entry?.source ===\n        \"overcharge\"\n        ? \"Overcharge quick action\"\n        : action?.cost ===\n            \"full\"\n          ? \"Full action\"\n          : action?.cost ===\n              \"quick\"\n            ? \"Quick action\"\n            : action?.cost ??\n              \"\",\n\n    executed:",
+      "expected_matches": 1
+    },
+    {
+      "operation": "replace",
+      "file": "styles/ui_application/ui-application.js",
+      "find": "  getTurnStateManager:\n    null,\n\n  executeActionRoll:",
+      "replace": "  getTurnStateManager:\n    null,\n\n  getCommittedPlan:\n    null,\n\n  executeActionRoll:",
+      "expected_matches": 1
+    },
+    {
+      "operation": "replace",
+      "file": "styles/ui_application/ui-application.js",
+      "find": "    turnStateManager:\n      typeof frameHelmApplicationRuntimeBindings\n        .getTurnStateManager ===\n        \"function\",\n\n    actionExecution:",
+      "replace": "    turnStateManager:\n      typeof frameHelmApplicationRuntimeBindings\n        .getTurnStateManager ===\n        \"function\",\n\n    committedPlan:\n      typeof frameHelmApplicationRuntimeBindings\n        .getCommittedPlan ===\n        \"function\",\n\n    actionExecution:",
+      "expected_matches": 1
+    },
+    {
+      "operation": "replace",
+      "file": "styles/ui_application/ui-application.js",
+      "find": "function getFrameHelmApplicationTurnStateManager() {\n  return (\n    frameHelmApplicationRuntimeBindings\n      .getTurnStateManager?.() ??\n    null\n  );\n}\n\n\nasync function executeFrameHelmApplicationActionRoll(",
+      "replace": "function getFrameHelmApplicationTurnStateManager() {\n  return (\n    frameHelmApplicationRuntimeBindings\n      .getTurnStateManager?.() ??\n    null\n  );\n}\n\n\nfunction getFrameHelmApplicationCommittedPlan() {\n  return (\n    frameHelmApplicationRuntimeBindings\n      .getCommittedPlan?.() ??\n    Object.freeze({\n      empty:\n        true,\n\n      count:\n        0,\n\n      pendingCount:\n        0,\n\n      executedCount:\n        0,\n\n      entries:\n        Object.freeze([])\n    })\n  );\n}\n\n\nasync function executeFrameHelmApplicationActionRoll(",
+      "expected_matches": 1
+    },
+    {
+      "operation": "delete",
+      "file": "styles/ui_application/ui-application.js",
+      "find": "  committedPlanEntries(\n    state\n  ) {\n    if (\n      !state\n    ) {\n      return [];\n    }\n\n\n    const registry =\n      getFrameHelmApplicationActionRegistry();\n\n    const entries =\n      [];\n\n\n    for (\n      const event\n      of state.history ??\n        []\n    ) {\n      if (\n        event.type ===\n          \"movement-segment\" ||\n        event.type ===\n          \"movement-commit\"\n      ) {\n        const action =\n          registry.get(\n            event.data?.actionId\n          );\n\n\n        entries.push({\n          type:\n            \"movement\",\n\n          icon:\n            action?.icon ??\n            \"fas fa-shoe-prints\",\n\n          label:\n            action?.label ??\n            \"Movement\",\n\n          detail:\n            `${event.data?.distance ?? 0} space(s) committed`,\n\n          timestamp:\n            event.timestamp\n        });\n      }\n\n\n      if (\n        event.type ===\n          \"overcharge\"\n      ) {\n        entries.push({\n          type:\n            \"overcharge\",\n\n          icon:\n            \"fas fa-temperature-high\",\n\n          label:\n            \"Overcharge\",\n\n          detail:\n            `Heat ${event.data?.heatFormula ?? \"?\"}`,\n\n          timestamp:\n            event.timestamp\n        });\n      }\n\n\n      if (\n        event.type ===\n          \"use-protocol\"\n      ) {\n        const action =\n          registry.get(\n            event.data?.actionId\n          );\n\n\n        entries.push({\n          type:\n            \"protocol\",\n\n          icon:\n            action?.icon ??\n            \"fas fa-microchip\",\n\n          label:\n            action?.label ??\n            \"Protocol\",\n\n          detail:\n            \"Start-of-turn protocol\",\n\n          timestamp:\n            event.timestamp\n        });\n      }\n    }\n\n\n    for (\n      const usedAction\n      of state.usedActions ??\n        []\n    ) {\n      const action =\n        registry.get(\n          usedAction.actionId\n        );\n\n\n      if (\n        !action\n      ) {\n        continue;\n      }\n\n\n      entries.push({\n        type:\n          action.category,\n\n        icon:\n          action.icon ||\n          \"fas fa-bolt\",\n\n        label:\n          action.label,\n\n        detail:\n          usedAction.source ===\n          \"overcharge\"\n            ? \"Overcharge quick action\"\n            : action.cost ===\n                \"full\"\n              ? \"Full action\"\n              : action.cost ===\n                  \"quick\"\n                ? \"Quick action\"\n                : action.cost,\n\n        timestamp:\n          usedAction.timestamp\n      });\n    }\n\n\n    return (\n      entries.sort(\n        (\n          left,\n          right\n        ) => {\n          return (\n            left.timestamp -\n            right.timestamp\n          );\n        }\n      )\n    );\n  }\n",
+      "expected_matches": 1
+    },
+    {
+      "operation": "replace",
+      "file": "styles/ui_application/ui-application.js",
+      "find": "  renderCommittedPlan(\n    state\n  ) {\n    const entries =\n      this.committedPlanEntries(\n        state\n      );\n\n\n    const entryMarkup =\n      entries.length\n        ? entries\n            .map(\n              (\n                entry,\n                index\n              ) => {\n                return `\n                  <li class=\"frame-helm-plan-entry frame-helm-plan-${foundry.utils.escapeHTML(entry.type)}\">\n                    <span class=\"frame-helm-plan-index\">\n                      ${String(index + 1).padStart(2, \"0\")}\n                    </span>\n\n                    <i class=\"${foundry.utils.escapeHTML(entry.icon)}\"></i>\n\n                    <span class=\"frame-helm-plan-copy\">\n                      <strong>\n                        ${foundry.utils.escapeHTML(entry.label)}\n                      </strong>\n\n                      <small>\n                        ${foundry.utils.escapeHTML(entry.detail)}\n                      </small>\n                    </span>\n                  </li>\n                `;\n              }\n            )\n            .join(\n              \"\"\n            )\n        : `\n          <li class=\"frame-helm-plan-empty\">\n            <i class=\"fas fa-wave-square\"></i>\n            <span>No actions committed yet.</span>\n          </li>\n        `;\n\n\n    return `\n      <section class=\"frame-helm-plan-panel\">\n        <header class=\"frame-helm-plan-header\">\n          <div>\n            <span>\n              Committed Plan\n            </span>\n\n            <small>\n              ${\n                entries.length\n                  ? `${entries.length} declared step${entries.length === 1 ? \"\" : \"s\"}`\n                  : \"No declared steps\"\n              }\n            </small>\n          </div>\n\n          <i\n            class=\"fas fa-list-check frame-helm-plan-header-icon\"\n            aria-hidden=\"true\"\n          ></i>\n        </header>\n\n        <ol class=\"frame-helm-plan-list\">\n          ${entryMarkup}\n        </ol>\n      </section>\n    `;\n  }",
+      "replace": "  renderCommittedPlan() {\n    const committedPlan =\n      getFrameHelmApplicationCommittedPlan();\n\n\n    const entries =\n      committedPlan?.entries ??\n      [];\n\n\n    const entryMarkup =\n      entries.length\n        ? entries\n            .map(\n              entry => {\n                return `\n                  <li class=\"${foundry.utils.escapeHTML(entry.classNames)}\">\n                    <span class=\"frame-helm-plan-index\">\n                      ${foundry.utils.escapeHTML(entry.indexLabel)}\n                    </span>\n\n                    <i class=\"${foundry.utils.escapeHTML(entry.icon)}\"></i>\n\n                    <span class=\"frame-helm-plan-copy\">\n                      <strong>\n                        ${foundry.utils.escapeHTML(entry.label)}\n                      </strong>\n\n                      <small>\n                        ${foundry.utils.escapeHTML(entry.detail)}\n                      </small>\n                    </span>\n                  </li>\n                `;\n              }\n            )\n            .join(\n              \"\"\n            )\n        : `\n          <li class=\"frame-helm-plan-empty\">\n            <i class=\"fas fa-wave-square\"></i>\n            <span>No actions committed yet.</span>\n          </li>\n        `;\n\n\n    return `\n      <section class=\"frame-helm-plan-panel\">\n        <header class=\"frame-helm-plan-header\">\n          <div>\n            <span>\n              Committed Plan\n            </span>\n\n            <small>\n              ${\n                entries.length\n                  ? `${entries.length} declared step${entries.length === 1 ? \"\" : \"s\"}`\n                  : \"No declared steps\"\n              }\n            </small>\n          </div>\n\n          <i\n            class=\"fas fa-list-check frame-helm-plan-header-icon\"\n            aria-hidden=\"true\"\n          ></i>\n        </header>\n\n        <ol class=\"frame-helm-plan-list\">\n          ${entryMarkup}\n        </ol>\n      </section>\n    `;\n  }",
+      "expected_matches": 1
+    },
+    {
+      "operation": "replace",
+      "file": "styles/ui_application/ui-application.js",
+      "find": "      ${this.renderCommittedPlan(state)}\n    `;",
+      "replace": "      ${this.renderCommittedPlan()}\n    `;",
+      "expected_matches": 1
+    },
+    {
+      "operation": "replace",
+      "file": "styles/ui_application/ui-application.js",
+      "find": "    dependsOn: [\n      \"actions.registry\"\n    ],",
+      "replace": "    dependsOn: [\n      \"actions.registry\",\n      \"ui.turn.committed-actions\"\n    ],",
+      "expected_matches": 1
+    },
+    {
+      "operation": "replace",
+      "file": "scripts/runtime-orchestrator.js",
+      "find": "/* ------------------------------------------------------------\n   Application UI\n   ------------------------------------------------------------ */\n\nconst frameHelmApplicationApi =\n  frameHelmFeatureRegistry.getApi(\n    \"ui-application\"\n  );",
+      "replace": "/* ------------------------------------------------------------\n   Turn UI\n   ------------------------------------------------------------ */\n\nconst frameHelmTurnUiApi =\n  frameHelmFeatureRegistry.getApi(\n    \"ui-turn\"\n  );\n\n\nif (\n  !frameHelmTurnUiApi\n) {\n  throw new Error(\n    \"Frame Helm | The registered Turn UI feature API could not be resolved.\"\n  );\n}\n\n\n/* ------------------------------------------------------------\n   Application UI\n   ------------------------------------------------------------ */\n\nconst frameHelmApplicationApi =\n  frameHelmFeatureRegistry.getApi(\n    \"ui-application\"\n  );",
+      "expected_matches": 1
+    },
+    {
+      "operation": "replace",
+      "file": "scripts/runtime-orchestrator.js",
+      "find": "  frameHelmTurnApi\n    .configureRuntime?.({\n      getActionRegistry:\n        () =>\n          frameHelmActionRegistry,\n\n      renderApplication:\n        force =>\n          renderFrameHelmApplication(\n            force\n          )\n    });\n\n\n  /* ----------------------------------------------------------\n     Movement bindings\n     ---------------------------------------------------------- */",
+      "replace": "  frameHelmTurnApi\n    .configureRuntime?.({\n      getActionRegistry:\n        () =>\n          frameHelmActionRegistry,\n\n      renderApplication:\n        force =>\n          renderFrameHelmApplication(\n            force\n          )\n    });\n\n\n  /* ----------------------------------------------------------\n     Turn UI bindings\n     ---------------------------------------------------------- */\n\n  /**\n   * Turn UI converts authoritative Turn state into the canonical\n   * presentation model consumed by Application UI.\n   */\n  frameHelmTurnUiApi\n    .configureRuntime?.({\n      getTurnApi:\n        () =>\n          frameHelmTurnApi,\n\n      getActionRegistry:\n        () =>\n          frameHelmActionRegistry,\n\n      renderApplication:\n        force =>\n          renderFrameHelmApplication(\n            force\n          )\n    });\n\n\n  /* ----------------------------------------------------------\n     Movement bindings\n     ---------------------------------------------------------- */",
+      "expected_matches": 1
+    },
+    {
+      "operation": "replace",
+      "file": "scripts/runtime-orchestrator.js",
+      "find": "      getTurnStateManager:\n        () =>\n          getFrameHelmTurnStateManager(),\n\n      executeActionRoll:",
+      "replace": "      getTurnStateManager:\n        () =>\n          getFrameHelmTurnStateManager(),\n\n      getCommittedPlan:\n        () =>\n          frameHelmTurnUiApi\n            .getCommittedPlan(),\n\n      executeActionRoll:",
+      "expected_matches": 1
+    }
+  ]
 }
