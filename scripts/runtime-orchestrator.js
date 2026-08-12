@@ -42,6 +42,12 @@
  *   - Action Execution
  *       scripts/action-execution-feature.js
  *
+ *   - Lifecycle
+ *       scripts/feature_lifecycle/lifecycle-feature.js
+ *
+ *   - Targeting / Spatial
+ *       scripts/feature_targeting_spatial/targeting-spatial-feature.js
+ *
  *   - Application UI
  *       styles/ui-application.js
  *
@@ -58,6 +64,8 @@
  *        ├── movement-feature.js
  *        ├── foundry-integration-feature.js
  *        ├── action-execution-feature.js
+ *        ├── lifecycle-feature.js
+ *        ├── targeting-spatial-feature.js
  *        ├── executable UI package
  *        └── future feature domains
  *        ↓
@@ -106,6 +114,8 @@
  *   - Module settings implementation
  *   - Scene-control integration implementation
  *   - getSceneControlButtons hook behavior
+ *   - Lifecycle state, dispatch, and semantic-event behavior
+ *   - Target acquisition, spatial queries, and target validation
  */
 
 
@@ -267,6 +277,44 @@ if (
 ) {
   throw new Error(
     "Frame Helm | The registered Action Execution feature API could not be resolved."
+  );
+}
+
+
+/* ------------------------------------------------------------
+   Lifecycle
+   ------------------------------------------------------------ */
+
+const frameHelmLifecycleApi =
+  frameHelmFeatureRegistry.getApi(
+    "lifecycle"
+  );
+
+
+if (
+  !frameHelmLifecycleApi
+) {
+  throw new Error(
+    "Frame Helm | The registered Lifecycle feature API could not be resolved."
+  );
+}
+
+
+/* ------------------------------------------------------------
+   Targeting / spatial
+   ------------------------------------------------------------ */
+
+const frameHelmTargetingSpatialApi =
+  frameHelmFeatureRegistry.getApi(
+    "targeting-spatial"
+  );
+
+
+if (
+  !frameHelmTargetingSpatialApi
+) {
+  throw new Error(
+    "Frame Helm | The registered Targeting / Spatial feature API could not be resolved."
   );
 }
 
@@ -446,6 +494,18 @@ function configureFrameHelmRuntimeBindings() {
               action
             )
     });
+
+
+  /**
+   * Lifecycle and Targeting / Spatial are now canonical registered
+   * features and are resolved here through the registry like every
+   * other runtime domain.
+   *
+   * Their external adapters are intentionally not invented here.
+   * They remain inactive until the native/system execution layers
+   * that own those adapters are themselves composed into the
+   * registered runtime graph.
+   */
 }
 
 
@@ -478,6 +538,10 @@ Hooks.once(
      *   - Movement
      *   - Foundry Integration
      *   - Application UI
+     *
+     * Lifecycle and Targeting / Spatial are registry-resolved but
+     * await their authoritative external adapters before feature
+     * lifecycle activation.
      *
      * Action Execution currently requires no runtime binding from
      * this orchestrator.
@@ -521,6 +585,10 @@ Hooks.once(
      *   - Movement hooks
      *   - Elevation movement hooks
      *   - Foundry Integration scene-control hooks
+     *
+     * Lifecycle and Targeting / Spatial use feature lifecycle
+     * registration for their semantic/transaction hooks rather
+     * than declaring Foundry hooks in the feature contract.
      *
      * Action Execution currently declares no Foundry hooks.
      */
@@ -579,6 +647,22 @@ Hooks.once(
 
       actionExecution:
         frameHelmActionExecutionApi,
+
+
+      /* --------------------------------------------------------
+         Lifecycle
+         -------------------------------------------------------- */
+
+      lifecycle:
+        frameHelmLifecycleApi,
+
+
+      /* --------------------------------------------------------
+         Targeting / spatial
+         -------------------------------------------------------- */
+
+      targetingSpatial:
+        frameHelmTargetingSpatialApi,
 
 
       /* --------------------------------------------------------
@@ -918,6 +1002,32 @@ Hooks.once(
  *   - Turn action-budget mutation
  *   - Actor workflow implementation
  *   - Application rendering
+ *
+ *
+ * LIFECYCLE
+ *
+ *   scripts/feature_lifecycle/lifecycle-feature.js
+ *
+ * Owns through lifecycle_service:
+ *   - Lifecycle descriptor/state access façade
+ *   - Lifecycle registration and dispatch façade
+ *   - Semantic lifecycle integration boundary
+ *
+ * Runtime adapter implementation remains externally composed.
+ *
+ *
+ * TARGETING / SPATIAL
+ *
+ *   scripts/feature_targeting_spatial/targeting-spatial-feature.js
+ *
+ * Owns through targeting-spatial_service:
+ *   - Spatial query façade
+ *   - Target acquisition façade
+ *   - Target validation façade
+ *   - Execution-transaction targeting hook façade
+ *
+ * Native query/acquisition and bridge augmentation adapters remain
+ * externally composed.
  *
  *
  * APPLICATION UI
