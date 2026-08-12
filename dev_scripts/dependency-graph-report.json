@@ -6,15 +6,15 @@
   ],
   "summary": {
     "files_scanned": 52,
-    "dependency_edges": 89,
+    "dependency_edges": 90,
     "broken_dependency_references": 0,
     "files_with_broken_dependencies": 0,
     "cycles": 0,
-    "suspicious_orphans": 1,
+    "suspicious_orphans": 0,
     "unexpected_cross_layer_dependencies": 2,
     "high_fan_in_files": 4,
     "high_fan_out_files": 7,
-    "problem_count": 3,
+    "problem_count": 2,
     "healthy": false
   },
   "architecture": {
@@ -47,7 +47,7 @@
       {
         "folder": "scripts/feature_turn",
         "file_count": 7,
-        "internal_dependency_edges": 11,
+        "internal_dependency_edges": 12,
         "outbound_dependency_edges": 1,
         "inbound_dependency_edges": 1
       },
@@ -222,14 +222,7 @@
   "problems": {
     "broken_dependencies": [],
     "cycles": [],
-    "suspicious_orphans": [
-      {
-        "file": "scripts/feature_turn/turn-state-movement.js",
-        "dependency_count": 1,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      }
-    ],
+    "suspicious_orphans": [],
     "unexpected_cross_layer_dependencies": [
       {
         "from": "scripts/feature-registry.js",
