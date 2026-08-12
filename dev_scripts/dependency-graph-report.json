@@ -50,20 +50,20 @@
     ]
   },
   "summary": {
-    "files_scanned": 106,
-    "dependency_edges": 208,
+    "files_scanned": 108,
+    "dependency_edges": 214,
     "broken_dependency_references": 0,
     "files_with_broken_dependencies": 0,
     "cycles": 0,
-    "suspicious_orphans": 2,
+    "suspicious_orphans": 0,
     "unexpected_cross_layer_dependencies": 2,
-    "runtime_flow_dead_ends": 2,
-    "files_reaching_runtime_terminal": 63,
+    "runtime_flow_dead_ends": 0,
+    "files_reaching_runtime_terminal": 108,
     "recognized_runtime_terminal_files": 12,
     "major_runtime_streams": 7,
     "high_fan_in_files": 15,
     "high_fan_out_files": 10,
-    "problem_count": 6,
+    "problem_count": 2,
     "healthy": false
   },
   "architecture": {
@@ -101,7 +101,7 @@
         "file_count": 5,
         "internal_dependency_edges": 9,
         "outbound_dependency_edges": 3,
-        "inbound_dependency_edges": 0
+        "inbound_dependency_edges": 1
       },
       {
         "folder": "native_adapter",
@@ -121,8 +121,8 @@
         "folder": "scripts",
         "file_count": 7,
         "internal_dependency_edges": 7,
-        "outbound_dependency_edges": 6,
-        "inbound_dependency_edges": 10
+        "outbound_dependency_edges": 8,
+        "inbound_dependency_edges": 12
       },
       {
         "folder": "scripts/feature_actions",
@@ -132,10 +132,24 @@
         "inbound_dependency_edges": 2
       },
       {
+        "folder": "scripts/feature_lifecycle",
+        "file_count": 1,
+        "internal_dependency_edges": 0,
+        "outbound_dependency_edges": 2,
+        "inbound_dependency_edges": 1
+      },
+      {
         "folder": "scripts/feature_movement",
         "file_count": 1,
         "internal_dependency_edges": 0,
         "outbound_dependency_edges": 1,
+        "inbound_dependency_edges": 1
+      },
+      {
+        "folder": "scripts/feature_targeting_spatial",
+        "file_count": 1,
+        "internal_dependency_edges": 0,
+        "outbound_dependency_edges": 2,
         "inbound_dependency_edges": 1
       },
       {
@@ -199,7 +213,7 @@
         "file_count": 6,
         "internal_dependency_edges": 13,
         "outbound_dependency_edges": 2,
-        "inbound_dependency_edges": 0
+        "inbound_dependency_edges": 1
       }
     ],
     "folder_edges": [
@@ -260,7 +274,17 @@
       },
       {
         "from": "scripts",
+        "to": "scripts/feature_lifecycle",
+        "count": 1
+      },
+      {
+        "from": "scripts",
         "to": "scripts/feature_movement",
+        "count": 1
+      },
+      {
+        "from": "scripts",
+        "to": "scripts/feature_targeting_spatial",
         "count": 1
       },
       {
@@ -279,8 +303,28 @@
         "count": 3
       },
       {
+        "from": "scripts/feature_lifecycle",
+        "to": "lifecycle_service",
+        "count": 1
+      },
+      {
+        "from": "scripts/feature_lifecycle",
+        "to": "scripts",
+        "count": 1
+      },
+      {
         "from": "scripts/feature_movement",
         "to": "scripts",
+        "count": 1
+      },
+      {
+        "from": "scripts/feature_targeting_spatial",
+        "to": "scripts",
+        "count": 1
+      },
+      {
+        "from": "scripts/feature_targeting_spatial",
+        "to": "targeting-spatial_service",
         "count": 1
       },
       {
@@ -358,7 +402,7 @@
       "high_fan_in": [
         {
           "file": "scripts/feature-contract.js",
-          "reverse_dependency_count": 11,
+          "reverse_dependency_count": 13,
           "dependency_count": 0
         },
         {
@@ -439,14 +483,14 @@
           "reverse_dependency_count": 1
         },
         {
+          "file": "scripts/feature-registry.js",
+          "dependency_count": 10,
+          "reverse_dependency_count": 1
+        },
+        {
           "file": "native_adapter/native-adapter.js",
           "dependency_count": 9,
           "reverse_dependency_count": 3
-        },
-        {
-          "file": "scripts/feature-registry.js",
-          "dependency_count": 8,
-          "reverse_dependency_count": 1
         },
         {
           "file": "styles/ui_application/components/application-action-surface.js",
@@ -481,7 +525,7 @@
         {
           "file": "targeting-spatial_service/targeting-spatial-service.js",
           "dependency_count": 5,
-          "reverse_dependency_count": 0
+          "reverse_dependency_count": 1
         }
       ]
     }
@@ -491,7 +535,7 @@
     "major_streams": [
       {
         "terminal_kind": "foundry-runtime-manifest",
-        "contributing_file_count": 53,
+        "contributing_file_count": 98,
         "terminal_count": 1,
         "terminals": [
           "module.json"
@@ -500,7 +544,7 @@
       },
       {
         "terminal_kind": "foundry-esmodule-entrypoint",
-        "contributing_file_count": 43,
+        "contributing_file_count": 88,
         "terminal_count": 1,
         "terminals": [
           "scripts/runtime-orchestrator.js"
@@ -509,7 +553,7 @@
       },
       {
         "terminal_kind": "foundry-hook-boundary",
-        "contributing_file_count": 43,
+        "contributing_file_count": 88,
         "terminal_count": 2,
         "terminals": [
           "scripts/feature-registry-core.js",
@@ -519,7 +563,7 @@
       },
       {
         "terminal_kind": "user-facing-application-boundary",
-        "contributing_file_count": 43,
+        "contributing_file_count": 88,
         "terminal_count": 4,
         "terminals": [
           "scripts/runtime-orchestrator.js",
@@ -573,9 +617,14 @@
       {
         "folder": "action_economy",
         "flow_file_count": 5,
-        "files_reaching_recognized_terminal": 0,
-        "terminal_kinds_reached": [],
-        "status": "review"
+        "files_reaching_recognized_terminal": 5,
+        "terminal_kinds_reached": [
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "foundry-runtime-manifest",
+          "user-facing-application-boundary"
+        ],
+        "status": "complete"
       },
       {
         "folder": "actor_owned_feature_registry",
@@ -589,30 +638,50 @@
       {
         "folder": "execution_transaction",
         "flow_file_count": 4,
-        "files_reaching_recognized_terminal": 0,
-        "terminal_kinds_reached": [],
-        "status": "review"
+        "files_reaching_recognized_terminal": 4,
+        "terminal_kinds_reached": [
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "foundry-runtime-manifest",
+          "user-facing-application-boundary"
+        ],
+        "status": "complete"
       },
       {
         "folder": "lifecycle_service",
         "flow_file_count": 5,
-        "files_reaching_recognized_terminal": 0,
-        "terminal_kinds_reached": [],
-        "status": "review"
+        "files_reaching_recognized_terminal": 5,
+        "terminal_kinds_reached": [
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "foundry-runtime-manifest",
+          "user-facing-application-boundary"
+        ],
+        "status": "complete"
       },
       {
         "folder": "native_adapter",
         "flow_file_count": 10,
-        "files_reaching_recognized_terminal": 0,
-        "terminal_kinds_reached": [],
-        "status": "review"
+        "files_reaching_recognized_terminal": 10,
+        "terminal_kinds_reached": [
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "foundry-runtime-manifest",
+          "user-facing-application-boundary"
+        ],
+        "status": "complete"
       },
       {
         "folder": "resource_service",
         "flow_file_count": 5,
-        "files_reaching_recognized_terminal": 0,
-        "terminal_kinds_reached": [],
-        "status": "review"
+        "files_reaching_recognized_terminal": 5,
+        "terminal_kinds_reached": [
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "foundry-runtime-manifest",
+          "user-facing-application-boundary"
+        ],
+        "status": "complete"
       },
       {
         "folder": "scripts",
@@ -639,7 +708,31 @@
         "status": "complete"
       },
       {
+        "folder": "scripts/feature_lifecycle",
+        "flow_file_count": 1,
+        "files_reaching_recognized_terminal": 1,
+        "terminal_kinds_reached": [
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "foundry-runtime-manifest",
+          "user-facing-application-boundary"
+        ],
+        "status": "complete"
+      },
+      {
         "folder": "scripts/feature_movement",
+        "flow_file_count": 1,
+        "files_reaching_recognized_terminal": 1,
+        "terminal_kinds_reached": [
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "foundry-runtime-manifest",
+          "user-facing-application-boundary"
+        ],
+        "status": "complete"
+      },
+      {
+        "folder": "scripts/feature_targeting_spatial",
         "flow_file_count": 1,
         "files_reaching_recognized_terminal": 1,
         "terminal_kinds_reached": [
@@ -665,16 +758,26 @@
       {
         "folder": "semantic_event_bus",
         "flow_file_count": 5,
-        "files_reaching_recognized_terminal": 0,
-        "terminal_kinds_reached": [],
-        "status": "review"
+        "files_reaching_recognized_terminal": 5,
+        "terminal_kinds_reached": [
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "foundry-runtime-manifest",
+          "user-facing-application-boundary"
+        ],
+        "status": "complete"
       },
       {
         "folder": "semantic_execution_context",
         "flow_file_count": 3,
-        "files_reaching_recognized_terminal": 0,
-        "terminal_kinds_reached": [],
-        "status": "review"
+        "files_reaching_recognized_terminal": 3,
+        "terminal_kinds_reached": [
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "foundry-runtime-manifest",
+          "user-facing-application-boundary"
+        ],
+        "status": "complete"
       },
       {
         "folder": "styles",
@@ -741,9 +844,14 @@
       {
         "folder": "targeting-spatial_service",
         "flow_file_count": 6,
-        "files_reaching_recognized_terminal": 0,
-        "terminal_kinds_reached": [],
-        "status": "review"
+        "files_reaching_recognized_terminal": 6,
+        "terminal_kinds_reached": [
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "foundry-runtime-manifest",
+          "user-facing-application-boundary"
+        ],
+        "status": "complete"
       }
     ],
     "terminal_files": [
@@ -822,73 +930,12 @@
         ]
       }
     ],
-    "dead_end_candidates": [
-      {
-        "stopped_at": "lifecycle_service/lifecycle-service.js",
-        "role": "runtime-module",
-        "expected_flow": "feed another production runtime module or a legitimate endpoint",
-        "actual_outcome": "flow has no production consumer or recognized runtime endpoint",
-        "contributing_file_count": 36,
-        "contributor_examples": [
-          "action_economy/action-economy-contract.js",
-          "action_economy/action-economy-hooks.js",
-          "action_economy/action-economy-state.js",
-          "action_economy/action-economy-transaction.js",
-          "action_economy/action-economy.js",
-          "execution_transaction/execution-transaction-contract.js",
-          "execution_transaction/execution-transaction-hooks.js",
-          "execution_transaction/execution-transaction-runner.js"
-        ],
-        "direct_dependencies": [
-          "lifecycle_service/lifecycle-contract.js",
-          "lifecycle_service/lifecycle-dispatcher.js",
-          "lifecycle_service/lifecycle-hooks.js",
-          "lifecycle_service/lifecycle-state.js"
-        ]
-      },
-      {
-        "stopped_at": "targeting-spatial_service/targeting-spatial-service.js",
-        "role": "runtime-module",
-        "expected_flow": "feed another production runtime module or a legitimate endpoint",
-        "actual_outcome": "flow has no production consumer or recognized runtime endpoint",
-        "contributing_file_count": 27,
-        "contributor_examples": [
-          "execution_transaction/execution-transaction-contract.js",
-          "execution_transaction/execution-transaction-hooks.js",
-          "execution_transaction/execution-transaction-runner.js",
-          "execution_transaction/execution-transaction.js",
-          "native_adapter/native-actors.js",
-          "native_adapter/native-adapter.js",
-          "native_adapter/native-combat.js",
-          "native_adapter/native-contract.js"
-        ],
-        "direct_dependencies": [
-          "targeting-spatial_service/targeting-spatial-contract.js",
-          "targeting-spatial_service/targeting-spatial-hooks.js",
-          "targeting-spatial_service/targeting-spatial-query.js",
-          "targeting-spatial_service/targeting-spatial-resolver.js",
-          "targeting-spatial_service/targeting-spatial-validator.js"
-        ]
-      }
-    ]
+    "dead_end_candidates": []
   },
   "problems": {
     "broken_dependencies": [],
     "cycles": [],
-    "suspicious_orphans": [
-      {
-        "file": "lifecycle_service/lifecycle-service.js",
-        "role": "runtime-module",
-        "dependency_count": 4,
-        "reason": "no production runtime file consumes this file and it is not a recognized endpoint"
-      },
-      {
-        "file": "targeting-spatial_service/targeting-spatial-service.js",
-        "role": "runtime-module",
-        "dependency_count": 5,
-        "reason": "no production runtime file consumes this file and it is not a recognized endpoint"
-      }
-    ],
+    "suspicious_orphans": [],
     "unexpected_cross_layer_dependencies": [
       {
         "from": "scripts/feature-registry.js",
@@ -901,54 +948,6 @@
         "reason": "runtime/domain source depends directly on presentation source"
       }
     ],
-    "runtime_flow_dead_ends": [
-      {
-        "stopped_at": "lifecycle_service/lifecycle-service.js",
-        "role": "runtime-module",
-        "expected_flow": "feed another production runtime module or a legitimate endpoint",
-        "actual_outcome": "flow has no production consumer or recognized runtime endpoint",
-        "contributing_file_count": 36,
-        "contributor_examples": [
-          "action_economy/action-economy-contract.js",
-          "action_economy/action-economy-hooks.js",
-          "action_economy/action-economy-state.js",
-          "action_economy/action-economy-transaction.js",
-          "action_economy/action-economy.js",
-          "execution_transaction/execution-transaction-contract.js",
-          "execution_transaction/execution-transaction-hooks.js",
-          "execution_transaction/execution-transaction-runner.js"
-        ],
-        "direct_dependencies": [
-          "lifecycle_service/lifecycle-contract.js",
-          "lifecycle_service/lifecycle-dispatcher.js",
-          "lifecycle_service/lifecycle-hooks.js",
-          "lifecycle_service/lifecycle-state.js"
-        ]
-      },
-      {
-        "stopped_at": "targeting-spatial_service/targeting-spatial-service.js",
-        "role": "runtime-module",
-        "expected_flow": "feed another production runtime module or a legitimate endpoint",
-        "actual_outcome": "flow has no production consumer or recognized runtime endpoint",
-        "contributing_file_count": 27,
-        "contributor_examples": [
-          "execution_transaction/execution-transaction-contract.js",
-          "execution_transaction/execution-transaction-hooks.js",
-          "execution_transaction/execution-transaction-runner.js",
-          "execution_transaction/execution-transaction.js",
-          "native_adapter/native-actors.js",
-          "native_adapter/native-adapter.js",
-          "native_adapter/native-combat.js",
-          "native_adapter/native-contract.js"
-        ],
-        "direct_dependencies": [
-          "targeting-spatial_service/targeting-spatial-contract.js",
-          "targeting-spatial_service/targeting-spatial-hooks.js",
-          "targeting-spatial_service/targeting-spatial-query.js",
-          "targeting-spatial_service/targeting-spatial-resolver.js",
-          "targeting-spatial_service/targeting-spatial-validator.js"
-        ]
-      }
-    ]
+    "runtime_flow_dead_ends": []
   }
 }
