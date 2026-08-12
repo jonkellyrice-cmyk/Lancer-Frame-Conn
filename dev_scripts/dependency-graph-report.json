@@ -6,15 +6,15 @@
   ],
   "summary": {
     "files_scanned": 52,
-    "dependency_edges": 8,
+    "dependency_edges": 89,
     "broken_dependency_references": 0,
     "files_with_broken_dependencies": 0,
     "cycles": 0,
-    "suspicious_orphans": 42,
-    "unexpected_cross_layer_dependencies": 0,
-    "high_fan_in_files": 0,
-    "high_fan_out_files": 1,
-    "problem_count": 42,
+    "suspicious_orphans": 1,
+    "unexpected_cross_layer_dependencies": 2,
+    "high_fan_in_files": 4,
+    "high_fan_out_files": 7,
+    "problem_count": 3,
     "healthy": false
   },
   "architecture": {
@@ -26,83 +26,194 @@
       {
         "folder": "scripts",
         "file_count": 7,
-        "internal_dependency_edges": 0,
-        "outbound_dependency_edges": 0,
-        "inbound_dependency_edges": 0
+        "internal_dependency_edges": 7,
+        "outbound_dependency_edges": 6,
+        "inbound_dependency_edges": 9
       },
       {
         "folder": "scripts/feature_actions",
         "file_count": 2,
         "internal_dependency_edges": 0,
-        "outbound_dependency_edges": 0,
-        "inbound_dependency_edges": 0
+        "outbound_dependency_edges": 3,
+        "inbound_dependency_edges": 2
       },
       {
         "folder": "scripts/feature_movement",
         "file_count": 1,
         "internal_dependency_edges": 0,
-        "outbound_dependency_edges": 0,
-        "inbound_dependency_edges": 0
+        "outbound_dependency_edges": 1,
+        "inbound_dependency_edges": 1
       },
       {
         "folder": "scripts/feature_turn",
         "file_count": 7,
-        "internal_dependency_edges": 0,
-        "outbound_dependency_edges": 0,
-        "inbound_dependency_edges": 0
+        "internal_dependency_edges": 11,
+        "outbound_dependency_edges": 1,
+        "inbound_dependency_edges": 1
       },
       {
         "folder": "styles",
         "file_count": 8,
-        "internal_dependency_edges": 5,
-        "outbound_dependency_edges": 8,
-        "inbound_dependency_edges": 5
+        "internal_dependency_edges": 6,
+        "outbound_dependency_edges": 7,
+        "inbound_dependency_edges": 2
       },
       {
         "folder": "styles/ui_application",
         "file_count": 17,
-        "internal_dependency_edges": 0,
-        "outbound_dependency_edges": 0,
-        "inbound_dependency_edges": 1
+        "internal_dependency_edges": 31,
+        "outbound_dependency_edges": 2,
+        "inbound_dependency_edges": 2
       },
       {
         "folder": "styles/ui_movement",
         "file_count": 2,
         "internal_dependency_edges": 0,
-        "outbound_dependency_edges": 0,
-        "inbound_dependency_edges": 1
+        "outbound_dependency_edges": 1,
+        "inbound_dependency_edges": 2
       },
       {
         "folder": "styles/ui_turn",
         "file_count": 8,
-        "internal_dependency_edges": 0,
-        "outbound_dependency_edges": 0,
-        "inbound_dependency_edges": 1
+        "internal_dependency_edges": 12,
+        "outbound_dependency_edges": 1,
+        "inbound_dependency_edges": 3
       }
     ],
     "folder_edges": [
       {
+        "from": "scripts",
+        "to": "scripts/feature_actions",
+        "count": 2
+      },
+      {
+        "from": "scripts",
+        "to": "scripts/feature_movement",
+        "count": 1
+      },
+      {
+        "from": "scripts",
+        "to": "scripts/feature_turn",
+        "count": 1
+      },
+      {
+        "from": "scripts",
+        "to": "styles",
+        "count": 2
+      },
+      {
+        "from": "scripts/feature_actions",
+        "to": "scripts",
+        "count": 3
+      },
+      {
+        "from": "scripts/feature_movement",
+        "to": "scripts",
+        "count": 1
+      },
+      {
+        "from": "scripts/feature_turn",
+        "to": "scripts",
+        "count": 1
+      },
+      {
+        "from": "styles",
+        "to": "scripts",
+        "count": 1
+      },
+      {
         "from": "styles",
         "to": "styles/ui_application",
-        "count": 1
+        "count": 2
       },
       {
         "from": "styles",
         "to": "styles/ui_movement",
-        "count": 1
+        "count": 2
       },
       {
         "from": "styles",
         "to": "styles/ui_turn",
+        "count": 2
+      },
+      {
+        "from": "styles/ui_application",
+        "to": "scripts",
+        "count": 1
+      },
+      {
+        "from": "styles/ui_application",
+        "to": "styles/ui_turn",
+        "count": 1
+      },
+      {
+        "from": "styles/ui_movement",
+        "to": "scripts",
+        "count": 1
+      },
+      {
+        "from": "styles/ui_turn",
+        "to": "scripts",
         "count": 1
       }
     ],
     "hubs": {
-      "high_fan_in": [],
+      "high_fan_in": [
+        {
+          "file": "scripts/feature-contract.js",
+          "reverse_dependency_count": 11,
+          "dependency_count": 0
+        },
+        {
+          "file": "styles/ui_application/components/application-runtime-bindings.js",
+          "reverse_dependency_count": 7,
+          "dependency_count": 0
+        },
+        {
+          "file": "scripts/feature_turn/turn-runtime-bindings.js",
+          "reverse_dependency_count": 4,
+          "dependency_count": 0
+        },
+        {
+          "file": "styles/ui_turn/components/turn-state-access.js",
+          "reverse_dependency_count": 4,
+          "dependency_count": 1
+        }
+      ],
       "high_fan_out": [
+        {
+          "file": "styles/ui_application/ui-application.js",
+          "dependency_count": 17,
+          "reverse_dependency_count": 1
+        },
+        {
+          "file": "scripts/feature-registry.js",
+          "dependency_count": 8,
+          "reverse_dependency_count": 1
+        },
+        {
+          "file": "styles/ui_application/components/application-action-surface.js",
+          "dependency_count": 7,
+          "reverse_dependency_count": 1
+        },
+        {
+          "file": "scripts/feature_turn/turn-feature.js",
+          "dependency_count": 6,
+          "reverse_dependency_count": 1
+        },
         {
           "file": "styles/ui-registry.css",
           "dependency_count": 6,
+          "reverse_dependency_count": 1
+        },
+        {
+          "file": "styles/ui_turn/ui-turn.js",
+          "dependency_count": 6,
+          "reverse_dependency_count": 2
+        },
+        {
+          "file": "styles/ui-registry.js",
+          "dependency_count": 5,
           "reverse_dependency_count": 1
         }
       ]
@@ -113,258 +224,23 @@
     "cycles": [],
     "suspicious_orphans": [
       {
-        "file": "scripts/dsl.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "scripts/feature-contract.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "scripts/feature-registry-core.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "scripts/feature-registry.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "scripts/feature_actions/action-execution-feature.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "scripts/feature_actions/actions-feature.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "scripts/feature_movement/movement-feature.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "scripts/feature_turn/turn-combat-sync.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "scripts/feature_turn/turn-commands.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "scripts/feature_turn/turn-feature.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "scripts/feature_turn/turn-runtime-bindings.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "scripts/feature_turn/turn-state-manager.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
         "file": "scripts/feature_turn/turn-state-movement.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "scripts/feature_turn/turn-state.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "scripts/foundry-integration-feature.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "scripts/sensors-feature.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui-registry.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui-sensors.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_application/components/application-action-surface.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_application/components/application-budget-panel.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_application/components/application-category-panel.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_application/components/application-combat-context.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_application/components/application-committed-plan.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_application/components/application-full-actions.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_application/components/application-lifecycle.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_application/components/application-listeners.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_application/components/application-movement.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_application/components/application-quick-actions.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_application/components/application-runtime-bindings.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_application/components/application-telemetry.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_application/components/application-turn-commands.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_application/components/application-unit-panel.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_application/components/application-view-model.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_application/ui-application.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_movement/ui-movement.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_turn/components/turn-committed-plan-presentation.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_turn/components/turn-presentation-utils.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_turn/components/turn-runtime-bindings.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_turn/components/turn-state-access.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_turn/components/turn-status-presentation.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_turn/components/turn-ui-semantics.js",
-        "dependency_count": 0,
-        "reason": "no scanned source file depends on this file",
-        "reachable_from_known_entrypoint": false
-      },
-      {
-        "file": "styles/ui_turn/ui-turn.js",
-        "dependency_count": 0,
+        "dependency_count": 1,
         "reason": "no scanned source file depends on this file",
         "reachable_from_known_entrypoint": false
       }
     ],
-    "unexpected_cross_layer_dependencies": []
+    "unexpected_cross_layer_dependencies": [
+      {
+        "from": "scripts/feature-registry.js",
+        "to": "styles/ui-registry.js",
+        "reason": "runtime/domain source depends directly on presentation source"
+      },
+      {
+        "from": "scripts/sensors-feature.js",
+        "to": "styles/ui-sensors.js",
+        "reason": "runtime/domain source depends directly on presentation source"
+      }
+    ]
   }
 }
