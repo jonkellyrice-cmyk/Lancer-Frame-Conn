@@ -1277,21 +1277,3 @@ export function getSemanticEventDispatchDiagnostics(
  * Higher runtime modules should converge on this public boundary rather
  * than creating parallel event systems.
  */
-
-/* ============================================================
-   PUBLIC SEMANTIC EVENT VOCABULARY RE-EXPORTS
-   ============================================================ */
-
-/**
- * Shared semantic event vocabulary is exposed through the public event-bus
- * facade so lifecycle, targeting, and future bridge consumers remain on the
- * package boundary.
- */
-export {
-  SEMANTIC_EVENT_KIND
-} from "./semantic-event-contract.js";
-
-export {
-  SEMANTIC_EVENT_LISTENER_PRIORITY,
-  SEMANTIC_EVENT_LISTENER_SOURCE_KIND
-} from "./semantic-event-registry.js";

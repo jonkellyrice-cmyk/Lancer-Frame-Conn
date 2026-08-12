@@ -1449,17 +1449,3 @@ export function getExecutionTransactionCapabilities() {
  * Existing Frame Helm architecture should converge on this public boundary
  * rather than creating parallel transaction models.
  */
-
-/* ============================================================
-   PUBLIC CONTRACT / HOOK VOCABULARY RE-EXPORTS
-   ============================================================ */
-
-/**
- * Shared execution hook vocabulary is exposed through the public
- * execution_transaction facade so downstream foundational services do not
- * need to bypass the package boundary.
- */
-export {
-  EXECUTION_HOOK_PRIORITY,
-  EXECUTION_HOOK_SOURCE_KIND
-} from "./execution-transaction-hooks.js";

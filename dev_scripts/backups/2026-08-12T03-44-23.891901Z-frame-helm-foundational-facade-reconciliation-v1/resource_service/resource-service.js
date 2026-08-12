@@ -1206,15 +1206,3 @@ export async function getResourceExecutionDiagnostics(
  * Higher runtime modules should converge on this public boundary rather
  * than inventing parallel resource models.
  */
-
-/* ============================================================
-   PUBLIC CONTRACT VOCABULARY RE-EXPORTS
-   ============================================================ */
-
-/**
- * Shared resource operation vocabulary is exposed through the public
- * resource_service facade for lifecycle and future bridge consumers.
- */
-export {
-  RESOURCE_OPERATION
-} from "./resource-contract.js";
