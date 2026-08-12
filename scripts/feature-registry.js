@@ -87,6 +87,8 @@
  *   movement-feature.js
  *   foundry-integration-feature.js
  *   action-execution-feature.js
+ *   lifecycle-feature.js
+ *   targeting-spatial-feature.js
  *   future *-feature.js
  *        │
  *        ▼
@@ -250,6 +252,16 @@ import {
 } from "./feature_actions/action-execution-feature.js";
 
 
+import {
+  frameHelmLifecycleFeature
+} from "./feature_lifecycle/lifecycle-feature.js";
+
+
+import {
+  frameHelmTargetingSpatialFeature
+} from "./feature_targeting_spatial/targeting-spatial-feature.js";
+
+
 /* ============================================================
    Imports -- Executable UI package
    ============================================================ */
@@ -295,7 +307,9 @@ export const FRAME_HELM_RUNTIME_FEATURES =
     frameHelmTurnFeature,
     frameHelmMovementFeature,
     frameHelmFoundryIntegrationFeature,
-    frameHelmActionExecutionFeature
+    frameHelmActionExecutionFeature,
+    frameHelmLifecycleFeature,
+    frameHelmTargetingSpatialFeature
   ]);
 
 
