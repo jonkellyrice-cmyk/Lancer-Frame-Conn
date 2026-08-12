@@ -1,34 +1,128 @@
 {
-  "schema_version": 2,
-  "scope": [
-    "scripts",
-    "styles"
-  ],
+  "schema_version": 3,
+  "scope": {
+    "mode": "repository-runtime",
+    "repository_root": ".",
+    "excluded_directories": [
+      ".git",
+      ".github",
+      ".next",
+      ".pytest_cache",
+      "__pycache__",
+      "backups",
+      "build",
+      "coverage",
+      "dev_scripts",
+      "dist",
+      "docs",
+      "documentation",
+      "node_modules",
+      "patch-history",
+      "test",
+      "tests"
+    ],
+    "excluded_files": [
+      "dependency-graph-report.json",
+      "npm-shrinkwrap.json",
+      "package-lock.json",
+      "package.json",
+      "pnpm-lock.yaml",
+      "yarn.lock"
+    ],
+    "runtime_file_extensions": [
+      ".cjs",
+      ".css",
+      ".cts",
+      ".handlebars",
+      ".hbs",
+      ".html",
+      ".js",
+      ".jsx",
+      ".mjs",
+      ".mts",
+      ".scss",
+      ".ts",
+      ".tsx"
+    ],
+    "runtime_manifests": [
+      "module.json",
+      "system.json"
+    ]
+  },
   "summary": {
-    "files_scanned": 52,
-    "dependency_edges": 90,
+    "files_scanned": 106,
+    "dependency_edges": 208,
     "broken_dependency_references": 0,
     "files_with_broken_dependencies": 0,
     "cycles": 0,
-    "suspicious_orphans": 0,
+    "suspicious_orphans": 2,
     "unexpected_cross_layer_dependencies": 2,
-    "high_fan_in_files": 4,
-    "high_fan_out_files": 7,
-    "problem_count": 2,
+    "runtime_flow_dead_ends": 2,
+    "files_reaching_runtime_terminal": 63,
+    "recognized_runtime_terminal_files": 12,
+    "major_runtime_streams": 7,
+    "high_fan_in_files": 15,
+    "high_fan_out_files": 10,
+    "problem_count": 6,
     "healthy": false
   },
   "architecture": {
-    "known_entrypoints": [
-      "scripts/runtime-orchestrator.js",
-      "styles/ui-orchestrator.css"
-    ],
     "folders": [
+      {
+        "folder": ".",
+        "file_count": 1,
+        "internal_dependency_edges": 0,
+        "outbound_dependency_edges": 2,
+        "inbound_dependency_edges": 0
+      },
+      {
+        "folder": "action_economy",
+        "file_count": 5,
+        "internal_dependency_edges": 9,
+        "outbound_dependency_edges": 1,
+        "inbound_dependency_edges": 1
+      },
+      {
+        "folder": "actor_owned_feature_registry",
+        "file_count": 5,
+        "internal_dependency_edges": 10,
+        "outbound_dependency_edges": 0,
+        "inbound_dependency_edges": 1
+      },
+      {
+        "folder": "execution_transaction",
+        "file_count": 4,
+        "internal_dependency_edges": 5,
+        "outbound_dependency_edges": 1,
+        "inbound_dependency_edges": 4
+      },
+      {
+        "folder": "lifecycle_service",
+        "file_count": 5,
+        "internal_dependency_edges": 9,
+        "outbound_dependency_edges": 3,
+        "inbound_dependency_edges": 0
+      },
+      {
+        "folder": "native_adapter",
+        "file_count": 10,
+        "internal_dependency_edges": 27,
+        "outbound_dependency_edges": 0,
+        "inbound_dependency_edges": 3
+      },
+      {
+        "folder": "resource_service",
+        "file_count": 5,
+        "internal_dependency_edges": 9,
+        "outbound_dependency_edges": 4,
+        "inbound_dependency_edges": 1
+      },
       {
         "folder": "scripts",
         "file_count": 7,
         "internal_dependency_edges": 7,
         "outbound_dependency_edges": 6,
-        "inbound_dependency_edges": 9
+        "inbound_dependency_edges": 10
       },
       {
         "folder": "scripts/feature_actions",
@@ -52,11 +146,25 @@
         "inbound_dependency_edges": 1
       },
       {
+        "folder": "semantic_event_bus",
+        "file_count": 5,
+        "internal_dependency_edges": 9,
+        "outbound_dependency_edges": 1,
+        "inbound_dependency_edges": 2
+      },
+      {
+        "folder": "semantic_execution_context",
+        "file_count": 3,
+        "internal_dependency_edges": 3,
+        "outbound_dependency_edges": 1,
+        "inbound_dependency_edges": 2
+      },
+      {
         "folder": "styles",
         "file_count": 8,
         "internal_dependency_edges": 6,
         "outbound_dependency_edges": 7,
-        "inbound_dependency_edges": 2
+        "inbound_dependency_edges": 3
       },
       {
         "folder": "styles/ui_application",
@@ -78,9 +186,73 @@
         "internal_dependency_edges": 12,
         "outbound_dependency_edges": 1,
         "inbound_dependency_edges": 3
+      },
+      {
+        "folder": "system_bridge",
+        "file_count": 5,
+        "internal_dependency_edges": 8,
+        "outbound_dependency_edges": 1,
+        "inbound_dependency_edges": 0
+      },
+      {
+        "folder": "targeting-spatial_service",
+        "file_count": 6,
+        "internal_dependency_edges": 13,
+        "outbound_dependency_edges": 2,
+        "inbound_dependency_edges": 0
       }
     ],
     "folder_edges": [
+      {
+        "from": ".",
+        "to": "scripts",
+        "count": 1
+      },
+      {
+        "from": ".",
+        "to": "styles",
+        "count": 1
+      },
+      {
+        "from": "action_economy",
+        "to": "execution_transaction",
+        "count": 1
+      },
+      {
+        "from": "execution_transaction",
+        "to": "semantic_execution_context",
+        "count": 1
+      },
+      {
+        "from": "lifecycle_service",
+        "to": "action_economy",
+        "count": 1
+      },
+      {
+        "from": "lifecycle_service",
+        "to": "resource_service",
+        "count": 1
+      },
+      {
+        "from": "lifecycle_service",
+        "to": "semantic_event_bus",
+        "count": 1
+      },
+      {
+        "from": "resource_service",
+        "to": "execution_transaction",
+        "count": 1
+      },
+      {
+        "from": "resource_service",
+        "to": "native_adapter",
+        "count": 2
+      },
+      {
+        "from": "resource_service",
+        "to": "semantic_execution_context",
+        "count": 1
+      },
       {
         "from": "scripts",
         "to": "scripts/feature_actions",
@@ -114,6 +286,16 @@
       {
         "from": "scripts/feature_turn",
         "to": "scripts",
+        "count": 1
+      },
+      {
+        "from": "semantic_event_bus",
+        "to": "execution_transaction",
+        "count": 1
+      },
+      {
+        "from": "semantic_execution_context",
+        "to": "native_adapter",
         "count": 1
       },
       {
@@ -155,6 +337,21 @@
         "from": "styles/ui_turn",
         "to": "scripts",
         "count": 1
+      },
+      {
+        "from": "system_bridge",
+        "to": "actor_owned_feature_registry",
+        "count": 1
+      },
+      {
+        "from": "targeting-spatial_service",
+        "to": "execution_transaction",
+        "count": 1
+      },
+      {
+        "from": "targeting-spatial_service",
+        "to": "semantic_event_bus",
+        "count": 1
       }
     ],
     "hubs": {
@@ -165,8 +362,53 @@
           "dependency_count": 0
         },
         {
+          "file": "native_adapter/native-contract.js",
+          "reverse_dependency_count": 8,
+          "dependency_count": 0
+        },
+        {
+          "file": "native_adapter/native-actors.js",
+          "reverse_dependency_count": 7,
+          "dependency_count": 1
+        },
+        {
           "file": "styles/ui_application/components/application-runtime-bindings.js",
           "reverse_dependency_count": 7,
+          "dependency_count": 0
+        },
+        {
+          "file": "native_adapter/native-items.js",
+          "reverse_dependency_count": 5,
+          "dependency_count": 1
+        },
+        {
+          "file": "targeting-spatial_service/targeting-spatial-contract.js",
+          "reverse_dependency_count": 5,
+          "dependency_count": 0
+        },
+        {
+          "file": "action_economy/action-economy-contract.js",
+          "reverse_dependency_count": 4,
+          "dependency_count": 0
+        },
+        {
+          "file": "actor_owned_feature_registry/actor-owned-feature-contract.js",
+          "reverse_dependency_count": 4,
+          "dependency_count": 0
+        },
+        {
+          "file": "execution_transaction/execution-transaction.js",
+          "reverse_dependency_count": 4,
+          "dependency_count": 3
+        },
+        {
+          "file": "lifecycle_service/lifecycle-contract.js",
+          "reverse_dependency_count": 4,
+          "dependency_count": 0
+        },
+        {
+          "file": "resource_service/resource-contract.js",
+          "reverse_dependency_count": 4,
           "dependency_count": 0
         },
         {
@@ -175,9 +417,19 @@
           "dependency_count": 0
         },
         {
+          "file": "semantic_event_bus/semantic-event-contract.js",
+          "reverse_dependency_count": 4,
+          "dependency_count": 0
+        },
+        {
           "file": "styles/ui_turn/components/turn-state-access.js",
           "reverse_dependency_count": 4,
           "dependency_count": 1
+        },
+        {
+          "file": "system_bridge/system-bridge-contract.js",
+          "reverse_dependency_count": 4,
+          "dependency_count": 0
         }
       ],
       "high_fan_out": [
@@ -185,6 +437,11 @@
           "file": "styles/ui_application/ui-application.js",
           "dependency_count": 17,
           "reverse_dependency_count": 1
+        },
+        {
+          "file": "native_adapter/native-adapter.js",
+          "dependency_count": 9,
+          "reverse_dependency_count": 3
         },
         {
           "file": "scripts/feature-registry.js",
@@ -215,14 +472,423 @@
           "file": "styles/ui-registry.js",
           "dependency_count": 5,
           "reverse_dependency_count": 1
+        },
+        {
+          "file": "targeting-spatial_service/targeting-spatial-hooks.js",
+          "dependency_count": 5,
+          "reverse_dependency_count": 1
+        },
+        {
+          "file": "targeting-spatial_service/targeting-spatial-service.js",
+          "dependency_count": 5,
+          "reverse_dependency_count": 0
         }
       ]
     }
   },
+  "runtime_flow": {
+    "direction": "low-level contributors -> consumers -> recognized runtime terminals",
+    "major_streams": [
+      {
+        "terminal_kind": "foundry-runtime-manifest",
+        "contributing_file_count": 53,
+        "terminal_count": 1,
+        "terminals": [
+          "module.json"
+        ],
+        "status": "complete"
+      },
+      {
+        "terminal_kind": "foundry-esmodule-entrypoint",
+        "contributing_file_count": 43,
+        "terminal_count": 1,
+        "terminals": [
+          "scripts/runtime-orchestrator.js"
+        ],
+        "status": "complete"
+      },
+      {
+        "terminal_kind": "foundry-hook-boundary",
+        "contributing_file_count": 43,
+        "terminal_count": 2,
+        "terminals": [
+          "scripts/feature-registry-core.js",
+          "scripts/runtime-orchestrator.js"
+        ],
+        "status": "complete"
+      },
+      {
+        "terminal_kind": "user-facing-application-boundary",
+        "contributing_file_count": 43,
+        "terminal_count": 4,
+        "terminals": [
+          "scripts/runtime-orchestrator.js",
+          "styles/ui_application/ui-application.js",
+          "styles/ui_movement/ui-movement.js",
+          "styles/ui_turn/ui-turn.js"
+        ],
+        "status": "complete"
+      },
+      {
+        "terminal_kind": "native-system-bridge-boundary",
+        "contributing_file_count": 10,
+        "terminal_count": 4,
+        "terminals": [
+          "system_bridge/system-bridge-composer.js",
+          "system_bridge/system-bridge-contract.js",
+          "system_bridge/system-bridge-resolver.js",
+          "system_bridge/system-bridge.js"
+        ],
+        "status": "complete"
+      },
+      {
+        "terminal_kind": "foundry-style-entrypoint",
+        "contributing_file_count": 9,
+        "terminal_count": 1,
+        "terminals": [
+          "styles/ui-orchestrator.css"
+        ],
+        "status": "complete"
+      },
+      {
+        "terminal_kind": "canvas-presentation-boundary",
+        "contributing_file_count": 1,
+        "terminal_count": 1,
+        "terminals": [
+          "styles/ui-sensors.js"
+        ],
+        "status": "complete"
+      }
+    ],
+    "folder_flow": [
+      {
+        "folder": ".",
+        "flow_file_count": 1,
+        "files_reaching_recognized_terminal": 1,
+        "terminal_kinds_reached": [
+          "foundry-runtime-manifest"
+        ],
+        "status": "complete"
+      },
+      {
+        "folder": "action_economy",
+        "flow_file_count": 5,
+        "files_reaching_recognized_terminal": 0,
+        "terminal_kinds_reached": [],
+        "status": "review"
+      },
+      {
+        "folder": "actor_owned_feature_registry",
+        "flow_file_count": 5,
+        "files_reaching_recognized_terminal": 5,
+        "terminal_kinds_reached": [
+          "native-system-bridge-boundary"
+        ],
+        "status": "complete"
+      },
+      {
+        "folder": "execution_transaction",
+        "flow_file_count": 4,
+        "files_reaching_recognized_terminal": 0,
+        "terminal_kinds_reached": [],
+        "status": "review"
+      },
+      {
+        "folder": "lifecycle_service",
+        "flow_file_count": 5,
+        "files_reaching_recognized_terminal": 0,
+        "terminal_kinds_reached": [],
+        "status": "review"
+      },
+      {
+        "folder": "native_adapter",
+        "flow_file_count": 10,
+        "files_reaching_recognized_terminal": 0,
+        "terminal_kinds_reached": [],
+        "status": "review"
+      },
+      {
+        "folder": "resource_service",
+        "flow_file_count": 5,
+        "files_reaching_recognized_terminal": 0,
+        "terminal_kinds_reached": [],
+        "status": "review"
+      },
+      {
+        "folder": "scripts",
+        "flow_file_count": 7,
+        "files_reaching_recognized_terminal": 7,
+        "terminal_kinds_reached": [
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "foundry-runtime-manifest",
+          "user-facing-application-boundary"
+        ],
+        "status": "complete"
+      },
+      {
+        "folder": "scripts/feature_actions",
+        "flow_file_count": 2,
+        "files_reaching_recognized_terminal": 2,
+        "terminal_kinds_reached": [
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "foundry-runtime-manifest",
+          "user-facing-application-boundary"
+        ],
+        "status": "complete"
+      },
+      {
+        "folder": "scripts/feature_movement",
+        "flow_file_count": 1,
+        "files_reaching_recognized_terminal": 1,
+        "terminal_kinds_reached": [
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "foundry-runtime-manifest",
+          "user-facing-application-boundary"
+        ],
+        "status": "complete"
+      },
+      {
+        "folder": "scripts/feature_turn",
+        "flow_file_count": 7,
+        "files_reaching_recognized_terminal": 7,
+        "terminal_kinds_reached": [
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "foundry-runtime-manifest",
+          "user-facing-application-boundary"
+        ],
+        "status": "complete"
+      },
+      {
+        "folder": "semantic_event_bus",
+        "flow_file_count": 5,
+        "files_reaching_recognized_terminal": 0,
+        "terminal_kinds_reached": [],
+        "status": "review"
+      },
+      {
+        "folder": "semantic_execution_context",
+        "flow_file_count": 3,
+        "files_reaching_recognized_terminal": 0,
+        "terminal_kinds_reached": [],
+        "status": "review"
+      },
+      {
+        "folder": "styles",
+        "flow_file_count": 8,
+        "files_reaching_recognized_terminal": 8,
+        "terminal_kinds_reached": [
+          "canvas-presentation-boundary",
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "foundry-runtime-manifest",
+          "foundry-style-entrypoint",
+          "user-facing-application-boundary"
+        ],
+        "status": "complete"
+      },
+      {
+        "folder": "styles/ui_application",
+        "flow_file_count": 17,
+        "files_reaching_recognized_terminal": 17,
+        "terminal_kinds_reached": [
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "foundry-runtime-manifest",
+          "foundry-style-entrypoint",
+          "user-facing-application-boundary"
+        ],
+        "status": "complete"
+      },
+      {
+        "folder": "styles/ui_movement",
+        "flow_file_count": 2,
+        "files_reaching_recognized_terminal": 2,
+        "terminal_kinds_reached": [
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "foundry-runtime-manifest",
+          "foundry-style-entrypoint",
+          "user-facing-application-boundary"
+        ],
+        "status": "complete"
+      },
+      {
+        "folder": "styles/ui_turn",
+        "flow_file_count": 8,
+        "files_reaching_recognized_terminal": 8,
+        "terminal_kinds_reached": [
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "foundry-runtime-manifest",
+          "foundry-style-entrypoint",
+          "user-facing-application-boundary"
+        ],
+        "status": "complete"
+      },
+      {
+        "folder": "system_bridge",
+        "flow_file_count": 5,
+        "files_reaching_recognized_terminal": 5,
+        "terminal_kinds_reached": [
+          "native-system-bridge-boundary"
+        ],
+        "status": "complete"
+      },
+      {
+        "folder": "targeting-spatial_service",
+        "flow_file_count": 6,
+        "files_reaching_recognized_terminal": 0,
+        "terminal_kinds_reached": [],
+        "status": "review"
+      }
+    ],
+    "terminal_files": [
+      {
+        "file": "module.json",
+        "kinds": [
+          "foundry-runtime-manifest"
+        ]
+      },
+      {
+        "file": "scripts/feature-registry-core.js",
+        "kinds": [
+          "foundry-hook-boundary"
+        ]
+      },
+      {
+        "file": "scripts/runtime-orchestrator.js",
+        "kinds": [
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "user-facing-application-boundary"
+        ]
+      },
+      {
+        "file": "styles/ui-orchestrator.css",
+        "kinds": [
+          "foundry-style-entrypoint"
+        ]
+      },
+      {
+        "file": "styles/ui-sensors.js",
+        "kinds": [
+          "canvas-presentation-boundary"
+        ]
+      },
+      {
+        "file": "styles/ui_application/ui-application.js",
+        "kinds": [
+          "user-facing-application-boundary"
+        ]
+      },
+      {
+        "file": "styles/ui_movement/ui-movement.js",
+        "kinds": [
+          "user-facing-application-boundary"
+        ]
+      },
+      {
+        "file": "styles/ui_turn/ui-turn.js",
+        "kinds": [
+          "user-facing-application-boundary"
+        ]
+      },
+      {
+        "file": "system_bridge/system-bridge-composer.js",
+        "kinds": [
+          "native-system-bridge-boundary"
+        ]
+      },
+      {
+        "file": "system_bridge/system-bridge-contract.js",
+        "kinds": [
+          "native-system-bridge-boundary"
+        ]
+      },
+      {
+        "file": "system_bridge/system-bridge-resolver.js",
+        "kinds": [
+          "native-system-bridge-boundary"
+        ]
+      },
+      {
+        "file": "system_bridge/system-bridge.js",
+        "kinds": [
+          "native-system-bridge-boundary"
+        ]
+      }
+    ],
+    "dead_end_candidates": [
+      {
+        "stopped_at": "lifecycle_service/lifecycle-service.js",
+        "role": "runtime-module",
+        "expected_flow": "feed another production runtime module or a legitimate endpoint",
+        "actual_outcome": "flow has no production consumer or recognized runtime endpoint",
+        "contributing_file_count": 36,
+        "contributor_examples": [
+          "action_economy/action-economy-contract.js",
+          "action_economy/action-economy-hooks.js",
+          "action_economy/action-economy-state.js",
+          "action_economy/action-economy-transaction.js",
+          "action_economy/action-economy.js",
+          "execution_transaction/execution-transaction-contract.js",
+          "execution_transaction/execution-transaction-hooks.js",
+          "execution_transaction/execution-transaction-runner.js"
+        ],
+        "direct_dependencies": [
+          "lifecycle_service/lifecycle-contract.js",
+          "lifecycle_service/lifecycle-dispatcher.js",
+          "lifecycle_service/lifecycle-hooks.js",
+          "lifecycle_service/lifecycle-state.js"
+        ]
+      },
+      {
+        "stopped_at": "targeting-spatial_service/targeting-spatial-service.js",
+        "role": "runtime-module",
+        "expected_flow": "feed another production runtime module or a legitimate endpoint",
+        "actual_outcome": "flow has no production consumer or recognized runtime endpoint",
+        "contributing_file_count": 27,
+        "contributor_examples": [
+          "execution_transaction/execution-transaction-contract.js",
+          "execution_transaction/execution-transaction-hooks.js",
+          "execution_transaction/execution-transaction-runner.js",
+          "execution_transaction/execution-transaction.js",
+          "native_adapter/native-actors.js",
+          "native_adapter/native-adapter.js",
+          "native_adapter/native-combat.js",
+          "native_adapter/native-contract.js"
+        ],
+        "direct_dependencies": [
+          "targeting-spatial_service/targeting-spatial-contract.js",
+          "targeting-spatial_service/targeting-spatial-hooks.js",
+          "targeting-spatial_service/targeting-spatial-query.js",
+          "targeting-spatial_service/targeting-spatial-resolver.js",
+          "targeting-spatial_service/targeting-spatial-validator.js"
+        ]
+      }
+    ]
+  },
   "problems": {
     "broken_dependencies": [],
     "cycles": [],
-    "suspicious_orphans": [],
+    "suspicious_orphans": [
+      {
+        "file": "lifecycle_service/lifecycle-service.js",
+        "role": "runtime-module",
+        "dependency_count": 4,
+        "reason": "no production runtime file consumes this file and it is not a recognized endpoint"
+      },
+      {
+        "file": "targeting-spatial_service/targeting-spatial-service.js",
+        "role": "runtime-module",
+        "dependency_count": 5,
+        "reason": "no production runtime file consumes this file and it is not a recognized endpoint"
+      }
+    ],
     "unexpected_cross_layer_dependencies": [
       {
         "from": "scripts/feature-registry.js",
@@ -233,6 +899,55 @@
         "from": "scripts/sensors-feature.js",
         "to": "styles/ui-sensors.js",
         "reason": "runtime/domain source depends directly on presentation source"
+      }
+    ],
+    "runtime_flow_dead_ends": [
+      {
+        "stopped_at": "lifecycle_service/lifecycle-service.js",
+        "role": "runtime-module",
+        "expected_flow": "feed another production runtime module or a legitimate endpoint",
+        "actual_outcome": "flow has no production consumer or recognized runtime endpoint",
+        "contributing_file_count": 36,
+        "contributor_examples": [
+          "action_economy/action-economy-contract.js",
+          "action_economy/action-economy-hooks.js",
+          "action_economy/action-economy-state.js",
+          "action_economy/action-economy-transaction.js",
+          "action_economy/action-economy.js",
+          "execution_transaction/execution-transaction-contract.js",
+          "execution_transaction/execution-transaction-hooks.js",
+          "execution_transaction/execution-transaction-runner.js"
+        ],
+        "direct_dependencies": [
+          "lifecycle_service/lifecycle-contract.js",
+          "lifecycle_service/lifecycle-dispatcher.js",
+          "lifecycle_service/lifecycle-hooks.js",
+          "lifecycle_service/lifecycle-state.js"
+        ]
+      },
+      {
+        "stopped_at": "targeting-spatial_service/targeting-spatial-service.js",
+        "role": "runtime-module",
+        "expected_flow": "feed another production runtime module or a legitimate endpoint",
+        "actual_outcome": "flow has no production consumer or recognized runtime endpoint",
+        "contributing_file_count": 27,
+        "contributor_examples": [
+          "execution_transaction/execution-transaction-contract.js",
+          "execution_transaction/execution-transaction-hooks.js",
+          "execution_transaction/execution-transaction-runner.js",
+          "execution_transaction/execution-transaction.js",
+          "native_adapter/native-actors.js",
+          "native_adapter/native-adapter.js",
+          "native_adapter/native-combat.js",
+          "native_adapter/native-contract.js"
+        ],
+        "direct_dependencies": [
+          "targeting-spatial_service/targeting-spatial-contract.js",
+          "targeting-spatial_service/targeting-spatial-hooks.js",
+          "targeting-spatial_service/targeting-spatial-query.js",
+          "targeting-spatial_service/targeting-spatial-resolver.js",
+          "targeting-spatial_service/targeting-spatial-validator.js"
+        ]
       }
     ]
   }
