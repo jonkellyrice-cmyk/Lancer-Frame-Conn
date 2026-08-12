@@ -1,154 +1,203 @@
 {
   "schema_version": 2,
-  "id": "extract-turn-commands-and-fix-turn-api-v1",
-  "name": "Extract Turn Commands and Fix Turn API",
-  "description": "Populate the Turn command module, route the Turn feature declaration through it, and expose explicit getCurrent/getManager accessors required by application composition.",
+  "id": "frame-helm-foundational-facade-reconciliation-v1",
+  "name": "Reconcile foundational public facade exports",
+  "description": "Fix the application-level import/export mismatches found during the pre-system-bridge repository audit by exposing shared execution hook, resource operation, and semantic event vocabulary through their intended public facade modules.",
   "backup": true,
   "allow_noop": false,
-
   "repository": {
     "require_git": true,
-    "require_clean_targets": false,
+    "require_clean_targets": true,
     "require_clean_repository": false
   },
-
   "risk_acceptance": {
-    "overwrite_files": true,
+    "overwrite_files": false,
     "delete_files": false,
     "move_files": false,
     "change_dependencies": false,
     "modify_package_manifest": false
   },
-
   "limits": {
-    "max_files_changed": 2,
-    "max_total_added_bytes": 30000,
-    "max_single_file_bytes": 100000,
+    "max_files_changed": 3,
+    "max_total_added_bytes": 5000,
+    "max_single_file_bytes": 250000,
     "allowed_roots": [
-      "scripts/feature_turn"
+      "execution_transaction",
+      "resource_service",
+      "semantic_event_bus"
     ]
   },
-
   "preconditions": [
     {
       "type": "file_exists",
-      "file": "scripts/feature_turn/turn-feature.js"
+      "file": "execution_transaction/execution-transaction.js"
     },
     {
       "type": "file_exists",
-      "file": "scripts/feature_turn/turn-commands.js"
+      "file": "execution_transaction/execution-transaction-hooks.js"
     },
     {
       "type": "contains",
-      "file": "scripts/feature_turn/turn-feature.js",
-      "text": "export const frameHelmTurnFeature ="
+      "file": "execution_transaction/execution-transaction-hooks.js",
+      "text": "export const EXECUTION_HOOK_PRIORITY"
     },
     {
       "type": "contains",
-      "file": "scripts/feature_turn/turn-feature.js",
-      "text": "defineFrameHelmFeature({"
+      "file": "execution_transaction/execution-transaction-hooks.js",
+      "text": "export const EXECUTION_HOOK_SOURCE_KIND"
+    },
+    {
+      "type": "not_contains",
+      "file": "execution_transaction/execution-transaction.js",
+      "text": "export {\n  EXECUTION_HOOK_PRIORITY,\n  EXECUTION_HOOK_SOURCE_KIND\n} from \"./execution-transaction-hooks.js\";"
+    },
+
+    {
+      "type": "file_exists",
+      "file": "resource_service/resource-service.js"
+    },
+    {
+      "type": "file_exists",
+      "file": "resource_service/resource-contract.js"
     },
     {
       "type": "contains",
-      "file": "scripts/feature_turn/turn-feature.js",
-      "text": "manager:\n        frameHelmTurnState,"
+      "file": "resource_service/resource-contract.js",
+      "text": "export const RESOURCE_OPERATION"
+    },
+    {
+      "type": "not_contains",
+      "file": "resource_service/resource-service.js",
+      "text": "export {\n  RESOURCE_OPERATION\n} from \"./resource-contract.js\";"
+    },
+
+    {
+      "type": "file_exists",
+      "file": "semantic_event_bus/semantic-event-bus.js"
+    },
+    {
+      "type": "file_exists",
+      "file": "semantic_event_bus/semantic-event-contract.js"
+    },
+    {
+      "type": "file_exists",
+      "file": "semantic_event_bus/semantic-event-registry.js"
+    },
+    {
+      "type": "contains",
+      "file": "semantic_event_bus/semantic-event-contract.js",
+      "text": "export const SEMANTIC_EVENT_KIND"
+    },
+    {
+      "type": "contains",
+      "file": "semantic_event_bus/semantic-event-registry.js",
+      "text": "export const SEMANTIC_EVENT_LISTENER_PRIORITY"
+    },
+    {
+      "type": "contains",
+      "file": "semantic_event_bus/semantic-event-registry.js",
+      "text": "export const SEMANTIC_EVENT_LISTENER_SOURCE_KIND"
+    },
+    {
+      "type": "not_contains",
+      "file": "semantic_event_bus/semantic-event-bus.js",
+      "text": "export {\n  SEMANTIC_EVENT_KIND\n} from \"./semantic-event-contract.js\";"
+    },
+    {
+      "type": "not_contains",
+      "file": "semantic_event_bus/semantic-event-bus.js",
+      "text": "export {\n  SEMANTIC_EVENT_LISTENER_PRIORITY,\n  SEMANTIC_EVENT_LISTENER_SOURCE_KIND\n} from \"./semantic-event-registry.js\";"
     }
   ],
-
-  "operations": [
-    {
-      "operation": "overwrite",
-      "file": "scripts/feature_turn/turn-commands.js",
-      "must_exist": true,
-      "content": "/**\n * ============================================================\n * FILE PATH / NAME\n * ============================================================\n *\n * scripts/feature_turn/turn-commands.js\n */\n\n/**\n * ============================================================\n * FRAME HELM TURN -- COMMAND SURFACE\n * ============================================================\n *\n * ROLE:\n *   Provides the public command/query surface for the canonical\n *   Frame Helm Turn state manager.\n *\n * PURPOSE:\n *   Keep mutation wrappers and canonical state accessors outside\n *   turn-feature.js so that turn-feature.js can remain the public\n *   feature-package declaration surface.\n *\n * OWNS:\n *   - Begin-turn command delegation.\n *   - Ensure-turn command delegation.\n *   - End-turn command delegation.\n *   - Clear-turn command delegation.\n *   - Action-legality command delegation.\n *   - Action-use command delegation.\n *   - Transitional movement command delegation.\n *   - Speed mutation command delegation.\n *   - Overcharge command delegation.\n *   - Canonical current-state lookup.\n *   - Canonical manager lookup.\n *   - Canonical state snapshot lookup.\n *\n * DOES NOT OWN:\n *   - FrameHelmTurnState implementation.\n *   - FrameHelmTurnStateManager implementation.\n *   - Combat synchronization.\n *   - Runtime dependency bindings.\n *   - Feature declaration.\n *   - UI rendering implementation.\n */\n\n\n/* ============================================================\n   Imports\n   ============================================================ */\n\nimport {\n  frameHelmTurnState\n} from \"./turn-state-manager.js\";\n\n\n/* ============================================================\n   Canonical Turn queries\n   ============================================================ */\n\n/**\n * Returns the currently-active Frame Helm turn state without\n * creating a turn when none exists.\n */\nexport function getCurrentFrameHelmTurn() {\n  return (\n    frameHelmTurnState.current ??\n    null\n  );\n}\n\n\n/**\n * Returns the canonical Frame Helm turn-state manager.\n *\n * This accessor is intentionally explicit. Consumers which need\n * manager operations must not mistake the current Turn state for\n * the manager which owns it.\n */\nexport function getFrameHelmTurnStateManager() {\n  return frameHelmTurnState;\n}\n\n\n/**\n * Returns a serializable snapshot of the active Turn state.\n */\nexport function getFrameHelmTurnSnapshot() {\n  return (\n    frameHelmTurnState.snapshot()\n  );\n}\n\n\n/* ============================================================\n   Turn lifecycle commands\n   ============================================================ */\n\nexport function beginFrameHelmTurn(\n  context = {}\n) {\n  return (\n    frameHelmTurnState.beginTurn(\n      context\n    )\n  );\n}\n\n\nexport function ensureFrameHelmTurn(\n  context = {}\n) {\n  return (\n    frameHelmTurnState.ensureTurn(\n      context\n    )\n  );\n}\n\n\nexport function endFrameHelmTurn() {\n  return (\n    frameHelmTurnState.endTurn()\n  );\n}\n\n\nexport function clearFrameHelmTurn() {\n  return (\n    frameHelmTurnState.clear()\n  );\n}\n\n\n/* ============================================================\n   Turn action commands\n   ============================================================ */\n\nexport function canUseFrameHelmTurnAction(\n  actionId,\n  options\n) {\n  return (\n    frameHelmTurnState\n      .ensureTurn()\n      .canUseAction(\n        actionId,\n        options\n      )\n  );\n}\n\n\nexport function useFrameHelmTurnAction(\n  actionId,\n  options\n) {\n  const result =\n    frameHelmTurnState\n      .ensureTurn()\n      .useAction(\n        actionId,\n        options\n      );\n\n\n  frameHelmTurnState\n    .renderApplication();\n\n\n  return result;\n}\n\n\n/* ============================================================\n   Transitional movement commands\n   ============================================================ */\n\n/**\n * Movement accounting currently remains available through the\n * Turn state while its second-stage extraction is completed.\n */\nexport function spendFrameHelmTurnMovement(\n  distance\n) {\n  const result =\n    frameHelmTurnState\n      .ensureTurn()\n      .spendMovement(\n        distance\n      );\n\n\n  frameHelmTurnState\n    .renderApplication();\n\n\n  return result;\n}\n\n\nexport function setFrameHelmTurnSpeed(\n  speed\n) {\n  const result =\n    frameHelmTurnState\n      .ensureTurn()\n      .setSpeed(\n        speed\n      );\n\n\n  frameHelmTurnState\n    .renderApplication();\n\n\n  return result;\n}\n\n\n/* ============================================================\n   Turn Overcharge commands\n   ============================================================ */\n\nexport function useFrameHelmTurnOvercharge(\n  options\n) {\n  const result =\n    frameHelmTurnState\n      .ensureTurn()\n      .useOvercharge(\n        options\n      );\n\n\n  frameHelmTurnState\n    .renderApplication();\n\n\n  return result;\n}\n"
-    },
-
-    {
-      "operation": "replace",
-      "file": "scripts/feature_turn/turn-feature.js",
-      "find": "import {\n  defineFrameHelmFeature\n} from \"../feature-contract.js\";",
-      "replace": "import {\n  defineFrameHelmFeature\n} from \"../feature-contract.js\";\n\n\nimport {\n  beginFrameHelmTurn as commandBeginFrameHelmTurn,\n  ensureFrameHelmTurn as commandEnsureFrameHelmTurn,\n  endFrameHelmTurn as commandEndFrameHelmTurn,\n  clearFrameHelmTurn as commandClearFrameHelmTurn,\n  canUseFrameHelmTurnAction as commandCanUseFrameHelmTurnAction,\n  useFrameHelmTurnAction as commandUseFrameHelmTurnAction,\n  spendFrameHelmTurnMovement as commandSpendFrameHelmTurnMovement,\n  setFrameHelmTurnSpeed as commandSetFrameHelmTurnSpeed,\n  useFrameHelmTurnOvercharge as commandUseFrameHelmTurnOvercharge,\n  getCurrentFrameHelmTurn,\n  getFrameHelmTurnStateManager,\n  getFrameHelmTurnSnapshot\n} from \"./turn-commands.js\";",
-      "expected_matches": 1
-    },
-
-    {
-      "operation": "replace",
-      "file": "scripts/feature_turn/turn-feature.js",
-      "find": "      begin:\n        beginFrameHelmTurn,\n\n      ensure:\n        ensureFrameHelmTurn,\n\n      end:\n        endFrameHelmTurn,\n\n      clear:\n        clearFrameHelmTurn,",
-      "replace": "      begin:\n        commandBeginFrameHelmTurn,\n\n      ensure:\n        commandEnsureFrameHelmTurn,\n\n      end:\n        commandEndFrameHelmTurn,\n\n      clear:\n        commandClearFrameHelmTurn,",
-      "expected_matches": 1
-    },
-
-    {
-      "operation": "replace",
-      "file": "scripts/feature_turn/turn-feature.js",
-      "find": "      canUseAction:\n        canUseFrameHelmTurnAction,\n\n      useAction:\n        useFrameHelmTurnAction,\n\n      spendMovement:\n        spendFrameHelmTurnMovement,\n\n      setSpeed:\n        setFrameHelmTurnSpeed,\n\n      overcharge:\n        useFrameHelmTurnOvercharge",
-      "replace": "      canUseAction:\n        commandCanUseFrameHelmTurnAction,\n\n      useAction:\n        commandUseFrameHelmTurnAction,\n\n      spendMovement:\n        commandSpendFrameHelmTurnMovement,\n\n      setSpeed:\n        commandSetFrameHelmTurnSpeed,\n\n      overcharge:\n        commandUseFrameHelmTurnOvercharge",
-      "expected_matches": 1
-    },
-
-    {
-      "operation": "replace",
-      "file": "scripts/feature_turn/turn-feature.js",
-      "find": "    queries: {\n      current:\n        () =>\n          frameHelmTurnState\n            .current,\n\n      snapshot:\n        () =>\n          frameHelmTurnState\n            .snapshot(),",
-      "replace": "    queries: {\n      current:\n        getCurrentFrameHelmTurn,\n\n      manager:\n        getFrameHelmTurnStateManager,\n\n      snapshot:\n        getFrameHelmTurnSnapshot,",
-      "expected_matches": 1
-    },
-
-    {
-      "operation": "replace",
-      "file": "scripts/feature_turn/turn-feature.js",
-      "find": "      begin:\n        beginFrameHelmTurn,\n\n      ensure:\n        ensureFrameHelmTurn,\n\n      end:\n        endFrameHelmTurn,\n\n      clear:\n        clearFrameHelmTurn,\n\n      sync:\n        syncTurnStateToCombat,\n\n      get current() {\n        return (\n          frameHelmTurnState\n            .current\n        );\n      },\n\n      get state() {\n        return (\n          frameHelmTurnState\n            .snapshot()\n        );\n      },",
-      "replace": "      begin:\n        commandBeginFrameHelmTurn,\n\n      ensure:\n        commandEnsureFrameHelmTurn,\n\n      end:\n        commandEndFrameHelmTurn,\n\n      clear:\n        commandClearFrameHelmTurn,\n\n      sync:\n        syncTurnStateToCombat,\n\n      getCurrent:\n        getCurrentFrameHelmTurn,\n\n      getManager:\n        getFrameHelmTurnStateManager,\n\n      snapshot:\n        getFrameHelmTurnSnapshot,\n\n      get current() {\n        return (\n          getCurrentFrameHelmTurn()\n        );\n      },\n\n      get state() {\n        return (\n          getFrameHelmTurnSnapshot()\n        );\n      },",
-      "expected_matches": 1
-    },
-
-    {
-      "operation": "replace",
-      "file": "scripts/feature_turn/turn-feature.js",
-      "find": "      canUse:\n        canUseFrameHelmTurnAction,\n\n      use:\n        useFrameHelmTurnAction,\n\n      move:\n        spendFrameHelmTurnMovement,\n\n      setSpeed:\n        setFrameHelmTurnSpeed,\n\n      overcharge:\n        useFrameHelmTurnOvercharge,",
-      "replace": "      canUse:\n        commandCanUseFrameHelmTurnAction,\n\n      use:\n        commandUseFrameHelmTurnAction,\n\n      move:\n        commandSpendFrameHelmTurnMovement,\n\n      setSpeed:\n        commandSetFrameHelmTurnSpeed,\n\n      overcharge:\n        commandUseFrameHelmTurnOvercharge,",
-      "expected_matches": 1
-    }
-  ],
-
   "postconditions": [
     {
       "type": "contains",
-      "file": "scripts/feature_turn/turn-commands.js",
-      "text": "export function getCurrentFrameHelmTurn()"
+      "file": "execution_transaction/execution-transaction.js",
+      "text": "export {\n  EXECUTION_HOOK_PRIORITY,\n  EXECUTION_HOOK_SOURCE_KIND\n} from \"./execution-transaction-hooks.js\";"
     },
     {
       "type": "contains",
-      "file": "scripts/feature_turn/turn-commands.js",
-      "text": "export function getFrameHelmTurnStateManager()"
+      "file": "resource_service/resource-service.js",
+      "text": "export {\n  RESOURCE_OPERATION\n} from \"./resource-contract.js\";"
     },
     {
       "type": "contains",
-      "file": "scripts/feature_turn/turn-feature.js",
-      "text": "} from \"./turn-commands.js\";"
+      "file": "semantic_event_bus/semantic-event-bus.js",
+      "text": "export {\n  SEMANTIC_EVENT_KIND\n} from \"./semantic-event-contract.js\";"
     },
     {
       "type": "contains",
-      "file": "scripts/feature_turn/turn-feature.js",
-      "text": "getCurrent:\n        getCurrentFrameHelmTurn,"
-    },
-    {
-      "type": "contains",
-      "file": "scripts/feature_turn/turn-feature.js",
-      "text": "getManager:\n        getFrameHelmTurnStateManager,"
-    },
-    {
-      "type": "contains",
-      "file": "scripts/feature_turn/turn-feature.js",
-      "text": "snapshot:\n        getFrameHelmTurnSnapshot,"
+      "file": "semantic_event_bus/semantic-event-bus.js",
+      "text": "export {\n  SEMANTIC_EVENT_LISTENER_PRIORITY,\n  SEMANTIC_EVENT_LISTENER_SOURCE_KIND\n} from \"./semantic-event-registry.js\";"
     }
   ],
-
   "validation": {
     "structural": true,
     "scan_dependencies": true,
-    "commands": [],
-    "timeout_seconds": 120
-  }
+    "commands": [
+      [
+        "node",
+        "--check",
+        "execution_transaction/execution-transaction.js"
+      ],
+      [
+        "node",
+        "--check",
+        "resource_service/resource-service.js"
+      ],
+      [
+        "node",
+        "--check",
+        "semantic_event_bus/semantic-event-bus.js"
+      ],
+      [
+        "node",
+        "--check",
+        "action_economy/action-economy-hooks.js"
+      ],
+      [
+        "node",
+        "--check",
+        "resource_service/resource-hooks.js"
+      ],
+      [
+        "node",
+        "--check",
+        "semantic_event_bus/semantic-event-hooks.js"
+      ],
+      [
+        "node",
+        "--check",
+        "lifecycle_service/lifecycle-hooks.js"
+      ],
+      [
+        "node",
+        "--check",
+        "lifecycle_service/lifecycle-dispatcher.js"
+      ],
+      [
+        "node",
+        "--check",
+        "targeting-spatial_service/targeting-spatial-hooks.js"
+      ]
+    ],
+    "timeout_seconds": 60
+  },
+  "operations": [
+    {
+      "operation": "append",
+      "file": "execution_transaction/execution-transaction.js",
+      "content": "\n/* ============================================================\n   PUBLIC CONTRACT / HOOK VOCABULARY RE-EXPORTS\n   ============================================================ */\n\n/**\n * Shared execution hook vocabulary is exposed through the public\n * execution_transaction facade so downstream foundational services do not\n * need to bypass the package boundary.\n */\nexport {\n  EXECUTION_HOOK_PRIORITY,\n  EXECUTION_HOOK_SOURCE_KIND\n} from \"./execution-transaction-hooks.js\";\n"
+    },
+    {
+      "operation": "append",
+      "file": "resource_service/resource-service.js",
+      "content": "\n/* ============================================================\n   PUBLIC CONTRACT VOCABULARY RE-EXPORTS\n   ============================================================ */\n\n/**\n * Shared resource operation vocabulary is exposed through the public\n * resource_service facade for lifecycle and future bridge consumers.\n */\nexport {\n  RESOURCE_OPERATION\n} from \"./resource-contract.js\";\n"
+    },
+    {
+      "operation": "append",
+      "file": "semantic_event_bus/semantic-event-bus.js",
+      "content": "\n/* ============================================================\n   PUBLIC SEMANTIC EVENT VOCABULARY RE-EXPORTS\n   ============================================================ */\n\n/**\n * Shared semantic event vocabulary is exposed through the public event-bus\n * facade so lifecycle, targeting, and future bridge consumers remain on the\n * package boundary.\n */\nexport {\n  SEMANTIC_EVENT_KIND\n} from \"./semantic-event-contract.js\";\n\nexport {\n  SEMANTIC_EVENT_LISTENER_PRIORITY,\n  SEMANTIC_EVENT_LISTENER_SOURCE_KIND\n} from \"./semantic-event-registry.js\";\n"
+    }
+  ]
 }
