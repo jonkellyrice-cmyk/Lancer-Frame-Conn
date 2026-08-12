@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "patch": "python ./dev_scripts/filepatcher.py",
-    "audit": "node ./dev_scripts/repo-audit.mjs"
+    "audit": "node ./dev_scripts/repo-audit.mjs",
+    "dependency-graph": "python ./dev_scripts/dependency_graph.py"
   }
 }
