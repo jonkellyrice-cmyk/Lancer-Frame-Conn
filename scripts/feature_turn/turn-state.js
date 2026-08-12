@@ -95,6 +95,27 @@ import {
 
 
 /* ============================================================
+   Imports -- Movement state behavior
+   ============================================================ */
+
+import {
+  setFrameHelmTurnStateSpeed,
+  spendFrameHelmTurnStateMovement,
+  completeFrameHelmTurnStateMovement,
+  reopenFrameHelmTurnStateMovement,
+  commitFrameHelmTurnStateMovement,
+  refreshFrameHelmTurnStateMovementFromBoost,
+  getFrameHelmTurnStateMovementBoostEntries,
+  getFrameHelmTurnStateMovementBoostCount,
+  hasFrameHelmTurnStateProcessedMovementId,
+  rememberFrameHelmTurnStateMovementId,
+  ensureFrameHelmTurnStateAutomaticMovementBoost,
+  recalculateFrameHelmTurnStateTrackedMovement,
+  trackFrameHelmTurnStateTokenMovement
+} from "./turn-state-movement.js";
+
+
+/* ============================================================
    Frame Helm Turn state
    ============================================================ */
 
@@ -292,71 +313,9 @@ export class FrameHelmTurnState {
   setSpeed(
     speed
   ) {
-    const numericSpeed =
-      Number(
-        speed
-      );
-
-
-    if (
-      !Number.isFinite(
-        numericSpeed
-      ) ||
-      numericSpeed < 0
-    ) {
-      throw new TypeError(
-        "Frame Helm speed must be a non-negative number."
-      );
-    }
-
-
-    const previousMaximum =
-      this.movement.maximum;
-
-
-    const previousSpent =
-      this.movement.spent;
-
-
-    this.speed =
-      numericSpeed;
-
-
-    this.movement.maximum =
-      numericSpeed;
-
-
-    this.movement.spent =
-      Math.min(
-        previousSpent,
-        numericSpeed
-      );
-
-
-    this.movement.remaining =
-      Math.max(
-        0,
-        numericSpeed -
-          this.movement.spent
-      );
-
-
-    if (
-      previousMaximum ===
-      null
-    ) {
-      this.recordHistory(
-        "set-speed",
-        {
-          speed:
-            numericSpeed
-        }
-      );
-    }
-
-
-    return (
-      this.movement.remaining
+    return setFrameHelmTurnStateSpeed(
+      this,
+      speed
     );
   }
 
@@ -365,139 +324,26 @@ export class FrameHelmTurnState {
      Turn state -- Movement
      ========================================================== */
 
-  /**
-   * TRANSITIONAL:
-   *
-   * Movement accounting remains here until the second-stage
-   * Movement extraction relocates this state.
-   */
-
   spendMovement(
     distance
   ) {
-    this.assertTurnActive();
-
-
-    const numericDistance =
-      Number(
-        distance
-      );
-
-
-    if (
-      !Number.isFinite(
-        numericDistance
-      ) ||
-      numericDistance < 0
-    ) {
-      throw new TypeError(
-        "Movement distance must be a non-negative number."
-      );
-    }
-
-
-    if (
-      this.movement.maximum ===
-      null
-    ) {
-      throw new Error(
-        "Movement speed has not been assigned to this turn."
-      );
-    }
-
-
-    if (
-      numericDistance >
-      this.movement.remaining
-    ) {
-      throw new Error(
-        `Only ${this.movement.remaining} movement remains.`
-      );
-    }
-
-
-    this.movement.spent +=
-      numericDistance;
-
-
-    this.movement.remaining -=
-      numericDistance;
-
-
-    if (
-      this.movement.remaining ===
-      0
-    ) {
-      this.movement.completed =
-        true;
-    }
-
-
-    this.closeProtocolWindow();
-
-
-    this.recordHistory(
-      "spend-movement",
-      {
-        distance:
-          numericDistance
-      }
-    );
-
-
-    return (
-      this.movement.remaining
+    return spendFrameHelmTurnStateMovement(
+      this,
+      distance
     );
   }
 
 
   completeMovement() {
-    this.assertTurnActive();
-
-
-    this.movement.completed =
-      true;
-
-
-    this.recordHistory(
-      "complete-movement",
-      {
-        remaining:
-          this.movement.remaining
-      }
+    return completeFrameHelmTurnStateMovement(
+      this
     );
   }
 
 
   reopenMovement() {
-    this.assertTurnActive();
-
-
-    if (
-      this.movement.maximum !==
-        null &&
-      this.movement.remaining <=
-        0
-    ) {
-      this.movement.spent =
-        0;
-
-
-      this.movement.remaining =
-        this.movement.maximum;
-    }
-
-
-    this.movement.completed =
-      false;
-
-
-    this.recordHistory(
-      "reopen-movement",
-      {
-        remaining:
-          this.movement.remaining
-      }
+    return reopenFrameHelmTurnStateMovement(
+      this
     );
   }
 
@@ -505,138 +351,30 @@ export class FrameHelmTurnState {
   commitMovement(
     actionId
   ) {
-    this.assertTurnActive();
-
-
-    if (
-      this.movement.maximum ===
-      null
-    ) {
-      throw new Error(
-        "Movement speed has not been assigned to this turn."
-      );
-    }
-
-
-    if (
-      this.movement.completed
-    ) {
-      throw new Error(
-        "Movement has already been committed."
-      );
-    }
-
-
-    if (
-      this.movement.remaining <=
-        0
-    ) {
-      throw new Error(
-        "No movement remains to commit."
-      );
-    }
-
-
-    const committedDistance =
-      this.movement.remaining;
-
-
-    this.movement.spent +=
-      committedDistance;
-
-
-    this.movement.remaining =
-      0;
-
-
-    this.movement.completed =
-      true;
-
-
-    this.closeProtocolWindow();
-
-
-    this.recordHistory(
-      "movement-commit",
-      {
-        actionId,
-
-        distance:
-          committedDistance
-      }
+    return commitFrameHelmTurnStateMovement(
+      this,
+      actionId
     );
-
-
-    return committedDistance;
   }
 
 
   refreshMovementFromBoost() {
-    this.assertTurnActive();
-
-
-    if (
-      this.movement.maximum ===
-      null
-    ) {
-      this.recordHistory(
-        "boost-movement-refill",
-        {
-          distance:
-            null
-        }
-      );
-
-
-      return null;
-    }
-
-
-    this.movement.spent =
-      0;
-
-
-    this.movement.remaining =
-      this.movement.maximum;
-
-
-    this.movement.completed =
-      false;
-
-
-    this.recordHistory(
-      "boost-movement-refill",
-      {
-        distance:
-          this.movement.maximum
-      }
-    );
-
-
-    return (
-      this.movement.remaining
+    return refreshFrameHelmTurnStateMovementFromBoost(
+      this
     );
   }
 
 
   movementBoostEntries() {
-    return (
-      this.usedActions.filter(
-        entry => {
-          return (
-            entry.actionId ===
-            "quick.boost"
-          );
-        }
-      )
+    return getFrameHelmTurnStateMovementBoostEntries(
+      this
     );
   }
 
 
   movementBoostCount() {
-    return (
-      this.movementBoostEntries()
-        .length
+    return getFrameHelmTurnStateMovementBoostCount(
+      this
     );
   }
 
@@ -644,21 +382,9 @@ export class FrameHelmTurnState {
   hasProcessedMovementId(
     movementId
   ) {
-    if (
-      !movementId
-    ) {
-      return false;
-    }
-
-
-    return (
-      this.movement
-        .processedMovementIds
-        .includes(
-          String(
-            movementId
-          )
-        )
+    return hasFrameHelmTurnStateProcessedMovementId(
+      this,
+      movementId
     );
   }
 
@@ -666,668 +392,39 @@ export class FrameHelmTurnState {
   rememberMovementId(
     movementId
   ) {
-    if (
-      !movementId
-    ) {
-      return;
-    }
-
-
-    const normalizedId =
-      String(
-        movementId
-      );
-
-
-    if (
-      !this.movement
-        .processedMovementIds
-        .includes(
-          normalizedId
-        )
-    ) {
-      this.movement
-        .processedMovementIds
-        .push(
-          normalizedId
-        );
-    }
-
-
-    if (
-      this.movement
-        .processedMovementIds
-        .length >
-      100
-    ) {
-      this.movement
-        .processedMovementIds
-        .splice(
-          0,
-          this.movement
-            .processedMovementIds
-            .length -
-            100
-        );
-    }
+    return rememberFrameHelmTurnStateMovementId(
+      this,
+      movementId
+    );
   }
 
 
-  ensureAutomaticMovementBoost({
-    forceOvercharge = false
-  } = {}) {
-    this.assertTurnActive();
-
-
-    const frameHelmActionRegistry =
-      getFrameHelmTurnActionRegistry();
-
-
-    const boostAction =
-      frameHelmActionRegistry.get(
-        "quick.boost"
-      );
-
-
-    if (
-      !boostAction
-    ) {
-      return {
-        committed:
-          false,
-
-        reason:
-          "Boost is not registered."
-      };
-    }
-
-
-    if (
-      !forceOvercharge
-    ) {
-      const normalPermission =
-        this.canUseAction(
-          boostAction
-        );
-
-
-      if (
-        normalPermission.allowed
-      ) {
-        this.useAction(
-          boostAction,
-          {
-            metadata: {
-              automatic:
-                true,
-
-              reason:
-                "token-movement"
-            }
-          }
-        );
-
-
-        this.recordHistory(
-          "automatic-movement-boost",
-          {
-            source:
-              "normal"
-          }
-        );
-
-
-        return {
-          committed:
-            true,
-
-          source:
-            "normal",
-
-          heatFormula:
-            null
-        };
-      }
-    }
-
-
-    let heatFormula =
-      null;
-
-
-    let triggeredOvercharge =
-      false;
-
-
-    if (
-      !this.overcharge.used
-    ) {
-      heatFormula =
-        this.useOvercharge();
-
-
-      triggeredOvercharge =
-        true;
-    }
-
-
-    const overchargePermission =
-      this.canUseAction(
-        boostAction,
-        {
-          useOvercharge:
-            true
-        }
-      );
-
-
-    if (
-      !overchargePermission
-        .allowed
-    ) {
-      return {
-        committed:
-          false,
-
-        triggeredOvercharge,
-
-        heatFormula,
-
-        reason:
-          overchargePermission
-            .reason
-      };
-    }
-
-
-    this.useAction(
-      boostAction,
-      {
-        useOvercharge:
-          true,
-
-        metadata: {
-          automatic:
-            true,
-
-          reason:
-            "token-movement"
-        }
-      }
+  ensureAutomaticMovementBoost(
+    options = {}
+  ) {
+    return ensureFrameHelmTurnStateAutomaticMovementBoost(
+      this,
+      options
     );
-
-
-    this.recordHistory(
-      "automatic-movement-boost",
-      {
-        source:
-          "overcharge",
-
-        heatFormula
-      }
-    );
-
-
-    return {
-      committed:
-        true,
-
-      source:
-        "overcharge",
-
-      triggeredOvercharge,
-
-      heatFormula
-    };
   }
 
 
   recalculateTrackedMovement() {
-    const speed =
-      Number(
-        this.movement.maximum
-      );
-
-
-    const total =
-      Number(
-        this.movement.totalTracked
-      ) || 0;
-
-
-    if (
-      !Number.isFinite(
-        speed
-      ) ||
-      speed <= 0
-    ) {
-      this.movement.standardUsed =
-        total;
-
-
-      this.movement.boostUsed =
-        0;
-
-
-      this.movement
-        .overchargeBoostUsed =
-        0;
-
-
-      this.movement.spent =
-        total;
-
-
-      this.movement.remaining =
-        0;
-
-
-      this.movement.excess =
-        0;
-
-
-      this.movement.completed =
-        total > 0;
-
-
-      return;
-    }
-
-
-    const boostEntries =
-      this.movementBoostEntries();
-
-
-    const normalBoostCount =
-      boostEntries.filter(
-        entry => {
-          return (
-            entry.source !==
-            "overcharge"
-          );
-        }
-      ).length;
-
-
-    const overchargeBoostCount =
-      boostEntries.filter(
-        entry => {
-          return (
-            entry.source ===
-            "overcharge"
-          );
-        }
-      ).length;
-
-
-    const standardUsed =
-      Math.min(
-        total,
-        speed
-      );
-
-
-    const boostUsed =
-      normalBoostCount > 0
-        ? Math.min(
-            Math.max(
-              total -
-                speed,
-              0
-            ),
-            speed
-          )
-        : 0;
-
-
-    const overchargeStart =
-      speed *
-      (
-        1 +
-        normalBoostCount
-      );
-
-
-    const overchargeBoostUsed =
-      overchargeBoostCount > 0
-        ? Math.min(
-            Math.max(
-              total -
-                overchargeStart,
-              0
-            ),
-            speed
-          )
-        : 0;
-
-
-    const legalAllowanceCount =
-      1 +
-      normalBoostCount +
-      overchargeBoostCount;
-
-
-    const legalMaximum =
-      speed *
-      legalAllowanceCount;
-
-
-    const excess =
-      Math.max(
-        total -
-          legalMaximum,
-        0
-      );
-
-
-    let currentPoolUsed =
-      standardUsed;
-
-
-    if (
-      normalBoostCount > 0 &&
-      total > speed
-    ) {
-      currentPoolUsed =
-        boostUsed;
-    }
-
-
-    if (
-      overchargeBoostCount > 0 &&
-      total >
-        overchargeStart
-    ) {
-      currentPoolUsed =
-        overchargeBoostUsed;
-    }
-
-
-    if (
-      excess > 0
-    ) {
-      currentPoolUsed =
-        speed;
-    }
-
-
-    this.movement.standardUsed =
-      standardUsed;
-
-
-    this.movement.boostUsed =
-      boostUsed;
-
-
-    this.movement
-      .overchargeBoostUsed =
-      overchargeBoostUsed;
-
-
-    this.movement.excess =
-      excess;
-
-
-    this.movement.spent =
-      currentPoolUsed;
-
-
-    this.movement.remaining =
-      excess > 0
-        ? 0
-        : Math.max(
-            speed -
-              currentPoolUsed,
-            0
-          );
-
-
-    this.movement.completed =
-      this.movement.remaining <=
-      0;
+    return recalculateFrameHelmTurnStateTrackedMovement(
+      this
+    );
   }
 
 
   trackTokenMovement(
     distance,
-    {
-      movementId = null,
-      method = null,
-      origin = null,
-      destination = null
-    } = {}
+    options = {}
   ) {
-    this.assertTurnActive();
-
-
-    const numericDistance =
-      Number(
-        distance
-      );
-
-
-    if (
-      !Number.isFinite(
-        numericDistance
-      ) ||
-      numericDistance <= 0
-    ) {
-      return {
-        tracked:
-          false,
-
-        distance:
-          0,
-
-        reason:
-          "Movement distance was zero."
-      };
-    }
-
-
-    if (
-      this.hasProcessedMovementId(
-        movementId
-      )
-    ) {
-      return {
-        tracked:
-          false,
-
-        distance:
-          0,
-
-        reason:
-          "Movement was already recorded."
-      };
-    }
-
-
-    const speed =
-      Number(
-        this.movement.maximum
-      );
-
-
-    if (
-      !Number.isFinite(
-        speed
-      ) ||
-      speed <= 0
-    ) {
-      throw new Error(
-        "Frame Helm cannot track movement until the unit has a positive Speed."
-      );
-    }
-
-
-    const previousTotal =
-      this.movement.totalTracked;
-
-
-    const newTotal =
-      previousTotal +
-      numericDistance;
-
-
-    const previousBoostCount =
-      this.movementBoostCount();
-
-
-    const automaticActions =
-      [];
-
-
-    if (
-      newTotal >
-        speed &&
-      this.movementBoostCount() <
-        1
-    ) {
-      const result =
-        this.ensureAutomaticMovementBoost({
-          forceOvercharge:
-            false
-        });
-
-
-      automaticActions.push({
-        threshold:
-          speed,
-
-        ...result
-      });
-    }
-
-
-    if (
-      newTotal >
-        speed * 2 &&
-      this.movementBoostCount() <
-        2
-    ) {
-      const result =
-        this.ensureAutomaticMovementBoost({
-          forceOvercharge:
-            true
-        });
-
-
-      automaticActions.push({
-        threshold:
-          speed * 2,
-
-        ...result
-      });
-    }
-
-
-    this.movement.totalTracked =
-      newTotal;
-
-
-    this.movement.segments.push({
-      distance:
-        numericDistance,
-
-      movementId:
-        movementId
-          ? String(
-              movementId
-            )
-          : null,
-
-      method:
-        method
-          ? String(
-              method
-            )
-          : null,
-
-      origin:
-        origin
-          ? {
-              ...origin
-            }
-          : null,
-
-      destination:
-        destination
-          ? {
-              ...destination
-            }
-          : null,
-
-      timestamp:
-        Date.now()
-    });
-
-
-    this.rememberMovementId(
-      movementId
+    return trackFrameHelmTurnStateTokenMovement(
+      this,
+      distance,
+      options
     );
-
-
-    this.closeProtocolWindow();
-
-
-    this.recalculateTrackedMovement();
-
-
-    this.recordHistory(
-      "token-movement",
-      {
-        distance:
-          numericDistance,
-
-        totalDistance:
-          newTotal,
-
-        movementId,
-
-        method,
-
-        automaticActions,
-
-        previousBoostCount,
-
-        boostCount:
-          this.movementBoostCount(),
-
-        excess:
-          this.movement.excess
-      }
-    );
-
-
-    return {
-      tracked:
-        true,
-
-      distance:
-        numericDistance,
-
-      totalDistance:
-        newTotal,
-
-      remaining:
-        this.movement.remaining,
-
-      standardUsed:
-        this.movement.standardUsed,
-
-      boostUsed:
-        this.movement.boostUsed,
-
-      overchargeBoostUsed:
-        this.movement
-          .overchargeBoostUsed,
-
-      excess:
-        this.movement.excess,
-
-      automaticActions
-    };
   }
 
 
