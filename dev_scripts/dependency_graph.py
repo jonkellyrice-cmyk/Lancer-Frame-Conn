@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import re
-from collections import defaultdict
+from collections import defaultdict, deque
 from pathlib import Path
 from typing import Iterable
 
@@ -54,8 +54,14 @@ MODULE_EXTENSIONS = (
 )
 
 JS_DEPENDENCY_PATTERNS = (
-    re.compile(r"(?:^|\n)\s*import\s+(?:[^\n;]*?\s+from\s+)?[\"']([^\"']+)[\"']", re.MULTILINE),
-    re.compile(r"(?:^|\n)\s*export\s+[^\n;]*?\s+from\s+[\"']([^\"']+)[\"']", re.MULTILINE),
+    re.compile(
+        r"(?:^|\n)\s*import\s+(?:[^\n;]*?\s+from\s+)?[\"']([^\"']+)[\"']",
+        re.MULTILINE,
+    ),
+    re.compile(
+        r"(?:^|\n)\s*export\s+[^\n;]*?\s+from\s+[\"']([^\"']+)[\"']",
+        re.MULTILINE,
+    ),
     re.compile(r"\bimport\s*\(\s*[\"']([^\"']+)[\"']\s*\)"),
     re.compile(r"\brequire\s*\(\s*[\"']([^\"']+)[\"']\s*\)"),
 )
@@ -64,6 +70,25 @@ CSS_IMPORT_PATTERN = re.compile(
     r"@import\s+(?:url\(\s*)?[\"']([^\"']+)[\"']\s*\)?",
     re.IGNORECASE,
 )
+
+# These are legitimate composition/startup roots that may have no incoming
+# dependency within scripts/styles. Add to this list only when a file is
+# intentionally loaded externally by Foundry/package metadata rather than by
+# another scanned source file.
+KNOWN_ENTRYPOINTS = {
+    "scripts/runtime-orchestrator.js",
+    "styles/ui-orchestrator.css",
+}
+
+# A small threshold is enough to surface architectural hubs without dumping
+# every ordinary dependency relationship into the report.
+HIGH_FAN_IN_THRESHOLD = 4
+HIGH_FAN_OUT_THRESHOLD = 5
+
+
+# ============================================================
+# Path helpers
+# ============================================================
 
 
 def repository_relative(path: Path) -> str:
@@ -83,6 +108,34 @@ def iter_source_files() -> Iterable[Path]:
                 continue
 
             yield path.resolve()
+
+
+def architectural_folder(path: Path) -> str:
+    """Return a useful coarse-grained architectural bucket for a source file."""
+    relative = Path(repository_relative(path))
+    parts = relative.parts
+
+    if not parts:
+        return "."
+
+    root = parts[0]
+
+    if root == "scripts":
+        if len(parts) >= 2 and parts[1].startswith("feature_"):
+            return f"scripts/{parts[1]}"
+        return "scripts"
+
+    if root == "styles":
+        if len(parts) >= 2 and parts[1].startswith("ui_"):
+            return f"styles/{parts[1]}"
+        return "styles"
+
+    return root
+
+
+# ============================================================
+# Dependency extraction and resolution
+# ============================================================
 
 
 def extract_dependency_specifiers(path: Path) -> list[str]:
@@ -144,12 +197,127 @@ def resolve_local_dependency(importer: Path, specifier: str) -> Path | None:
     return None
 
 
+# ============================================================
+# Graph analysis
+# ============================================================
+
+
+def find_cycles(
+    dependencies: dict[Path, set[Path]],
+) -> list[list[Path]]:
+    """Return unique directed cycles using a DFS recursion stack."""
+    state: dict[Path, int] = {path: 0 for path in dependencies}
+    stack: list[Path] = []
+    stack_index: dict[Path, int] = {}
+    canonical_cycles: dict[tuple[str, ...], list[Path]] = {}
+
+    def canonical_key(cycle: list[Path]) -> tuple[str, ...]:
+        # cycle includes the starting node again at the end. Normalize around
+        # the lexicographically-smallest rotation so the same cycle discovered
+        # from a different traversal point is emitted only once.
+        body = cycle[:-1]
+        names = [repository_relative(path) for path in body]
+
+        rotations = [
+            tuple(names[index:] + names[:index])
+            for index in range(len(names))
+        ]
+
+        return min(rotations)
+
+    def visit(path: Path) -> None:
+        state[path] = 1
+        stack_index[path] = len(stack)
+        stack.append(path)
+
+        for dependency in dependencies[path]:
+            if dependency not in state:
+                continue
+
+            if state[dependency] == 0:
+                visit(dependency)
+            elif state[dependency] == 1:
+                start = stack_index[dependency]
+                cycle = stack[start:] + [dependency]
+                key = canonical_key(cycle)
+                canonical_cycles.setdefault(key, cycle)
+
+        stack.pop()
+        stack_index.pop(path, None)
+        state[path] = 2
+
+    for path in dependencies:
+        if state[path] == 0:
+            visit(path)
+
+    return sorted(
+        canonical_cycles.values(),
+        key=lambda cycle: [repository_relative(path) for path in cycle],
+    )
+
+
+def reachable_from_entrypoints(
+    dependencies: dict[Path, set[Path]],
+    source_by_relative: dict[str, Path],
+) -> set[Path]:
+    roots = [
+        source_by_relative[path]
+        for path in KNOWN_ENTRYPOINTS
+        if path in source_by_relative
+    ]
+
+    visited: set[Path] = set()
+    queue: deque[Path] = deque(roots)
+
+    while queue:
+        path = queue.popleft()
+
+        if path in visited:
+            continue
+
+        visited.add(path)
+
+        for dependency in dependencies.get(path, set()):
+            if dependency not in visited:
+                queue.append(dependency)
+
+    return visited
+
+
+def cross_layer_reason(importer: Path, dependency: Path) -> str | None:
+    """
+    Identify only clearly suspicious broad dependency directions.
+
+    styles -> scripts is expected: UI consumes runtime/domain APIs.
+    scripts -> styles is generally suspicious because runtime/domain code
+    should normally not depend directly on presentation implementation.
+    """
+    importer_relative = repository_relative(importer)
+    dependency_relative = repository_relative(dependency)
+
+    if importer_relative.startswith("scripts/") and dependency_relative.startswith(
+        "styles/"
+    ):
+        return "runtime/domain source depends directly on presentation source"
+
+    return None
+
+
+# ============================================================
+# Report construction
+# ============================================================
+
+
 def main() -> int:
     source_files = sorted(
         set(iter_source_files()),
         key=repository_relative,
     )
     source_set = set(source_files)
+    source_by_relative = {
+        repository_relative(path): path
+        for path in source_files
+    }
 
     dependencies: dict[Path, set[Path]] = {
         path: set()
@@ -158,13 +326,11 @@ def main() -> int:
     reverse_dependencies: dict[Path, set[Path]] = defaultdict(set)
     broken_by_file: dict[Path, list[dict[str, str]]] = defaultdict(list)
 
-    broken_reference_count = 0
-
     for importer in source_files:
         seen_broken_specifiers: set[str] = set()
 
-        for specifier in extract_dependency_specifiers(importer):
-            specifier = specifier.strip()
+        for raw_specifier in extract_dependency_specifiers(importer):
+            specifier = raw_specifier.strip()
 
             if not specifier or not is_local_specifier(specifier):
                 continue
@@ -173,55 +339,202 @@ def main() -> int:
 
             if resolved is None:
                 if specifier not in seen_broken_specifiers:
-                    broken_by_file[importer].append({
-                        "specifier": specifier,
-                        "reason": "local dependency does not resolve to an existing repository file",
-                    })
+                    broken_by_file[importer].append(
+                        {
+                            "specifier": specifier,
+                            "reason": (
+                                "local dependency does not resolve to an "
+                                "existing repository file"
+                            ),
+                        }
+                    )
                     seen_broken_specifiers.add(specifier)
-                    broken_reference_count += 1
                 continue
 
-            # Existing local files outside scripts/styles are valid, but they
-            # are intentionally outside this compact graph and therefore do
-            # not affect dependency/reverse-dependency counts.
+            # Existing local files outside scripts/styles are valid, but are
+            # intentionally outside this architectural graph.
             if resolved not in source_set:
                 continue
 
             dependencies[importer].add(resolved)
             reverse_dependencies[resolved].add(importer)
 
-    file_records: list[dict[str, object]] = []
+    dependency_edge_count = sum(len(values) for values in dependencies.values())
+
+    cycles = find_cycles(dependencies)
+    reachable = reachable_from_entrypoints(dependencies, source_by_relative)
+
+    broken_dependencies = [
+        {
+            "file": repository_relative(path),
+            "dependencies": broken_by_file[path],
+        }
+        for path in source_files
+        if broken_by_file.get(path)
+    ]
+
+    suspicious_orphans = []
+    for path in source_files:
+        relative = repository_relative(path)
+
+        if relative in KNOWN_ENTRYPOINTS:
+            continue
+
+        if reverse_dependencies[path]:
+            continue
+
+        suspicious_orphans.append(
+            {
+                "file": relative,
+                "dependency_count": len(dependencies[path]),
+                "reason": "no scanned source file depends on this file",
+                "reachable_from_known_entrypoint": path in reachable,
+            }
+        )
+
+    unexpected_cross_layer_dependencies = []
+    for importer in source_files:
+        for dependency in sorted(
+            dependencies[importer],
+            key=repository_relative,
+        ):
+            reason = cross_layer_reason(importer, dependency)
+
+            if reason:
+                unexpected_cross_layer_dependencies.append(
+                    {
+                        "from": repository_relative(importer),
+                        "to": repository_relative(dependency),
+                        "reason": reason,
+                    }
+                )
+
+    folder_counts: dict[str, int] = defaultdict(int)
+    folder_internal_edges: dict[str, int] = defaultdict(int)
+    folder_edges: dict[tuple[str, str], int] = defaultdict(int)
 
     for path in source_files:
-        record: dict[str, object] = {
+        folder_counts[architectural_folder(path)] += 1
+
+    for importer in source_files:
+        source_folder = architectural_folder(importer)
+
+        for dependency in dependencies[importer]:
+            target_folder = architectural_folder(dependency)
+            folder_edges[(source_folder, target_folder)] += 1
+
+            if source_folder == target_folder:
+                folder_internal_edges[source_folder] += 1
+
+    architecture_folders = [
+        {
+            "folder": folder,
+            "file_count": folder_counts[folder],
+            "internal_dependency_edges": folder_internal_edges[folder],
+            "outbound_dependency_edges": sum(
+                count
+                for (source, _target), count in folder_edges.items()
+                if source == folder
+            ),
+            "inbound_dependency_edges": sum(
+                count
+                for (_source, target), count in folder_edges.items()
+                if target == folder
+            ),
+        }
+        for folder in sorted(folder_counts)
+    ]
+
+    architecture_folder_edges = [
+        {
+            "from": source,
+            "to": target,
+            "count": count,
+        }
+        for (source, target), count in sorted(folder_edges.items())
+        if source != target
+    ]
+
+    high_fan_in = [
+        {
+            "file": repository_relative(path),
+            "reverse_dependency_count": len(reverse_dependencies[path]),
+            "dependency_count": len(dependencies[path]),
+        }
+        for path in source_files
+        if len(reverse_dependencies[path]) >= HIGH_FAN_IN_THRESHOLD
+    ]
+    high_fan_in.sort(
+        key=lambda item: (-int(item["reverse_dependency_count"]), str(item["file"]))
+    )
+
+    high_fan_out = [
+        {
             "file": repository_relative(path),
             "dependency_count": len(dependencies[path]),
             "reverse_dependency_count": len(reverse_dependencies[path]),
         }
+        for path in source_files
+        if len(dependencies[path]) >= HIGH_FAN_OUT_THRESHOLD
+    ]
+    high_fan_out.sort(
+        key=lambda item: (-int(item["dependency_count"]), str(item["file"]))
+    )
 
-        broken = broken_by_file.get(path)
-        if broken:
-            record["broken_dependencies"] = broken
+    cycle_records = [
+        {
+            "cycle": [repository_relative(path) for path in cycle],
+        }
+        for cycle in cycles
+    ]
 
-        file_records.append(record)
+    broken_reference_count = sum(
+        len(record["dependencies"])
+        for record in broken_dependencies
+    )
 
-    files_with_broken_dependencies = sum(
-        1
-        for record in file_records
-        if "broken_dependencies" in record
+    problem_count = (
+        broken_reference_count
+        + len(cycle_records)
+        + len(suspicious_orphans)
+        + len(unexpected_cross_layer_dependencies)
     )
 
     report = {
-        "schema_version": 1,
+        "schema_version": 2,
         "scope": ["scripts", "styles"],
         "summary": {
             "files_scanned": len(source_files),
-            "dependency_edges": sum(len(values) for values in dependencies.values()),
-            "files_with_broken_dependencies": files_with_broken_dependencies,
+            "dependency_edges": dependency_edge_count,
             "broken_dependency_references": broken_reference_count,
-            "healthy": broken_reference_count == 0,
+            "files_with_broken_dependencies": len(broken_dependencies),
+            "cycles": len(cycle_records),
+            "suspicious_orphans": len(suspicious_orphans),
+            "unexpected_cross_layer_dependencies": len(
+                unexpected_cross_layer_dependencies
+            ),
+            "high_fan_in_files": len(high_fan_in),
+            "high_fan_out_files": len(high_fan_out),
+            "problem_count": problem_count,
+            "healthy": problem_count == 0,
         },
-        "files": file_records,
+        "architecture": {
+            "known_entrypoints": sorted(KNOWN_ENTRYPOINTS),
+            "folders": architecture_folders,
+            "folder_edges": architecture_folder_edges,
+            "hubs": {
+                "high_fan_in": high_fan_in,
+                "high_fan_out": high_fan_out,
+            },
+        },
+        "problems": {
+            "broken_dependencies": broken_dependencies,
+            "cycles": cycle_records,
+            "suspicious_orphans": suspicious_orphans,
+            "unexpected_cross_layer_dependencies": (
+                unexpected_cross_layer_dependencies
+            ),
+        },
     }
 
     OUTPUT_PATH.write_text(
@@ -229,11 +542,25 @@ def main() -> int:
         encoding="utf-8",
     )
 
-    print(f"Dependency graph report written to {repository_relative(OUTPUT_PATH)}")
+    print(
+        f"Dependency architecture report written to "
+        f"{repository_relative(OUTPUT_PATH)}"
+    )
     print(f"Files scanned: {len(source_files)}")
-    print(f"Dependency edges: {report['summary']['dependency_edges']}")
-    print(f"Broken dependency references: {broken_reference_count}")
+    print(f"Dependency edges: {dependency_edge_count}")
+    print(f"Broken references: {broken_reference_count}")
+    print(f"Cycles: {len(cycle_records)}")
+    print(f"Suspicious orphans: {len(suspicious_orphans)}")
+    print(
+        "Unexpected scripts -> styles edges: "
+        f"{len(unexpected_cross_layer_dependencies)}"
+    )
+    print(f"Overall health: {'PASS' if problem_count == 0 else 'REVIEW'}")
 
+    # Only unresolved imports are treated as a hard command failure. Cycles,
+    # orphans, and layer-direction findings are architectural review signals:
+    # they may be intentional and should not make routine report generation
+    # unusable.
     return 1 if broken_reference_count else 0
 
 
