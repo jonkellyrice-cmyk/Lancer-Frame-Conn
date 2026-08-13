@@ -48,6 +48,18 @@
  *   - Targeting / Spatial
  *       scripts/feature_targeting_spatial/targeting-spatial-feature.js
  *
+ *   - System Bridge
+ *       scripts/feature_system_bridge/system-bridge-feature.js
+ *
+ *   - Semantic Execution Context
+ *       scripts/feature_semantic_execution_context/semantic-execution-context-feature.js
+ *
+ *   - Execution Transaction
+ *       execution_transaction/execution-transaction-feature.js
+ *
+ *   - Native Adapter
+ *       native_adapter/native-adapter-feature.js
+ *
  *   - Application UI
  *       styles/ui-application.js
  *
@@ -320,6 +332,82 @@ if (
 
 
 /* ------------------------------------------------------------
+   System Bridge
+   ------------------------------------------------------------ */
+
+const frameHelmSystemBridgeApi =
+  frameHelmFeatureRegistry.getApi(
+    "system-bridge"
+  );
+
+
+if (
+  !frameHelmSystemBridgeApi
+) {
+  throw new Error(
+    "Frame Helm | The registered System Bridge feature API could not be resolved."
+  );
+}
+
+
+/* ------------------------------------------------------------
+   Semantic Execution Context
+   ------------------------------------------------------------ */
+
+const frameHelmSemanticExecutionContextApi =
+  frameHelmFeatureRegistry.getApi(
+    "semantic-execution-context"
+  );
+
+
+if (
+  !frameHelmSemanticExecutionContextApi
+) {
+  throw new Error(
+    "Frame Helm | The registered Semantic Execution Context feature API could not be resolved."
+  );
+}
+
+
+/* ------------------------------------------------------------
+   Execution Transaction
+   ------------------------------------------------------------ */
+
+const frameHelmExecutionTransactionApi =
+  frameHelmFeatureRegistry.getApi(
+    "execution-transaction"
+  );
+
+
+if (
+  !frameHelmExecutionTransactionApi
+) {
+  throw new Error(
+    "Frame Helm | The registered Execution Transaction feature API could not be resolved."
+  );
+}
+
+
+/* ------------------------------------------------------------
+   Native Adapter
+   ------------------------------------------------------------ */
+
+const frameHelmNativeAdapterApi =
+  frameHelmFeatureRegistry.getApi(
+    "native-adapter"
+  );
+
+
+if (
+  !frameHelmNativeAdapterApi
+) {
+  throw new Error(
+    "Frame Helm | The registered Native Adapter feature API could not be resolved."
+  );
+}
+
+
+/* ------------------------------------------------------------
    Application UI
    ------------------------------------------------------------ */
 
@@ -364,6 +452,176 @@ function renderFrameHelmApplication(
       ) ??
     null
   );
+}
+
+
+/* ============================================================
+   Canonical action execution composition
+   ============================================================ */
+
+/**
+ * Runtime-level convergence point for actions migrated to the canonical
+ * Frame Helm execution spine.
+ *
+ * Feature implementations provide semantic intent. This orchestrator only
+ * composes registered feature APIs and does not import their implementation
+ * modules directly.
+ */
+async function executeFrameHelmCanonicalAction({
+  actor = null,
+  action = null,
+  executionKind = null
+} = {}) {
+  if (!actor) {
+    throw new TypeError(
+      "Frame Helm canonical action execution requires an actor."
+    );
+  }
+
+  if (!action?.id) {
+    throw new TypeError(
+      "Frame Helm canonical action execution requires an action with an id."
+    );
+  }
+
+  const bridgeComposition =
+    await frameHelmSystemBridgeApi
+      .resolveAndCompose({
+        actorScopeId:
+          actor.uuid ??
+          actor.id ??
+          null,
+
+        actionId:
+          action.id,
+
+        registryId:
+          action.id,
+
+        name:
+          action.label ??
+          action.id,
+
+        existingRegistryEntry:
+          action,
+
+        metadata: {
+          executionKind
+        }
+      });
+
+  if (
+    !frameHelmSystemBridgeApi
+      .compositionSucceeded(
+        bridgeComposition
+      )
+  ) {
+    throw new Error(
+      `Frame Helm System Bridge could not compose action: ${action.id}`
+    );
+  }
+
+  if (
+    frameHelmSystemBridgeApi
+      .compositionHasBlockingConflict(
+        bridgeComposition
+      )
+  ) {
+    throw new Error(
+      `Frame Helm System Bridge found a blocking conflict for action: ${action.id}`
+    );
+  }
+
+  const executionContext =
+    await frameHelmSemanticExecutionContextApi
+      .buildExecutionContext({
+        actor,
+
+        semanticActionDefinition:
+          action,
+
+        semanticActionId:
+          action.id,
+
+        metadata: {
+          executionKind,
+
+          systemBridge: {
+            status:
+              bridgeComposition.status,
+
+            runtimeDescriptor:
+              frameHelmSystemBridgeApi
+                .getComposedRuntimeDescriptor(
+                  bridgeComposition
+                )
+          }
+        }
+      });
+
+  let transaction =
+    null;
+
+  switch (executionKind) {
+    case "basic-attack":
+      transaction =
+        await frameHelmExecutionTransactionApi
+          .runNativeExecutionTransactionWithGlobalHooks({
+            context:
+              executionContext,
+
+            execute:
+              ({
+                context
+              }) =>
+                frameHelmNativeAdapterApi
+                  .executeBasicAttack({
+                    actor:
+                      frameHelmSemanticExecutionContextApi
+                        .getExecutionActor(
+                          context
+                        ) ??
+                      actor,
+
+                    title:
+                      action.label ??
+                      null
+                  }),
+
+            metadata: {
+              actionId:
+                action.id,
+
+              executionKind,
+
+              source:
+                "action-execution"
+            }
+          });
+      break;
+
+    default:
+      throw new Error(
+        `Frame Helm canonical execution kind is not implemented: ${String(executionKind)}`
+      );
+  }
+
+  if (
+    transaction?.status !==
+    "succeeded"
+  ) {
+    const error =
+      new Error(
+        `Frame Helm canonical action execution did not succeed: ${transaction?.status ?? "unknown"}`
+      );
+
+    error.executionTransaction =
+      transaction;
+
+    throw error;
+  }
+
+  return transaction;
 }
 
 
@@ -454,6 +712,70 @@ function configureFrameHelmRuntimeBindings() {
 
 
   /* ----------------------------------------------------------
+     System Bridge bindings
+     ---------------------------------------------------------- */
+
+  /**
+   * System Bridge resolves the existing universal Actions catalog through
+   * an injected adapter so the bridge remains independent of the concrete
+   * registry implementation.
+   */
+  frameHelmSystemBridgeApi
+    .configureRuntime?.({
+      existingRegistryResolverAdapter:
+        Object.freeze({
+          getById:
+            registryId =>
+              frameHelmActionRegistry
+                .get(
+                  registryId
+                ),
+
+          findByActionId:
+            actionId =>
+              frameHelmActionRegistry
+                .get(
+                  actionId
+                ),
+
+          findByName:
+            name =>
+              frameHelmActionRegistry
+                .list({
+                  includeHidden:
+                    true
+                })
+                .find(
+                  action =>
+                    action.label ===
+                    name
+                ) ??
+              null
+        })
+    });
+
+
+  /* ----------------------------------------------------------
+     Action Execution bindings
+     ---------------------------------------------------------- */
+
+  /**
+   * Migrated actions enter the canonical execution spine through this one
+   * runtime-composed command. Action Execution itself remains unaware of
+   * System Bridge, Execution Context, Transaction, and Native Adapter
+   * implementation modules.
+   */
+  frameHelmActionExecutionApi
+    .configureRuntime?.({
+      executeCanonicalAction:
+        options =>
+          executeFrameHelmCanonicalAction(
+            options
+          )
+    });
+
+
+  /* ----------------------------------------------------------
      Application UI bindings
      ---------------------------------------------------------- */
 
@@ -483,7 +805,7 @@ function configureFrameHelmRuntimeBindings() {
         () =>
           getFrameHelmTurnStateManager(),
 
-      executeActionRoll:
+      executeAction:
         (
           actor,
           action
@@ -539,12 +861,14 @@ Hooks.once(
      *   - Foundry Integration
      *   - Application UI
      *
-     * Lifecycle and Targeting / Spatial are registry-resolved but
-     * await their authoritative external adapters before feature
-     * lifecycle activation.
+     * System Bridge now receives the existing Actions-registry resolver.
+     * Action Execution now receives the canonical execution command, and
+     * Application UI receives Action Execution through its canonical
+     * executeAction binding.
      *
-     * Action Execution currently requires no runtime binding from
-     * this orchestrator.
+     * Lifecycle and Targeting / Spatial remain registry-resolved but await
+     * their authoritative external adapters before feature lifecycle
+     * activation.
      */
     configureFrameHelmRuntimeBindings();
 
@@ -647,6 +971,23 @@ Hooks.once(
 
       actionExecution:
         frameHelmActionExecutionApi,
+
+
+      /* --------------------------------------------------------
+         Canonical execution spine
+         -------------------------------------------------------- */
+
+      systemBridge:
+        frameHelmSystemBridgeApi,
+
+      semanticExecutionContext:
+        frameHelmSemanticExecutionContextApi,
+
+      executionTransaction:
+        frameHelmExecutionTransactionApi,
+
+      nativeAdapter:
+        frameHelmNativeAdapterApi,
 
 
       /* --------------------------------------------------------
