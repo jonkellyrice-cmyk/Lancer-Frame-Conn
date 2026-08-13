@@ -5,7 +5,8 @@
 import {
   getFrameHelmApplicationActionRegistry,
   getFrameHelmApplicationTurnState,
-  getFrameHelmApplicationTurnStateManager
+  getFrameHelmApplicationTurnStateManager,
+  executeFrameHelmApplicationActionRoll
 } from "./application-runtime-bindings.js";
 
 import {
@@ -453,6 +454,186 @@ function executeQuickAction(
   ) {
     ui.notifications.warn(
       error.message
+    );
+  }
+}
+
+
+/* ============================================================
+   Application -- Committed-action execution
+   ============================================================ */
+
+/**
+ * Execute one exact committed Turn action through the configured
+ * application execution boundary.
+ *
+ * The committed entry is marked executed only after the configured
+ * execution boundary resolves successfully.
+ */
+async function executeCommittedAction(
+  application,
+  committedActionId,
+  actionId = null
+) {
+  const state =
+    getFrameHelmApplicationTurnState();
+
+
+  if (
+    !state
+  ) {
+    ui.notifications.warn(
+      "Begin a turn plan before executing committed actions."
+    );
+
+    return;
+  }
+
+
+  const committedEntry =
+    Array.isArray(
+      state.usedActions
+    )
+      ? state.usedActions.find(
+          entry =>
+            entry?.id ===
+            committedActionId
+        )
+      : null;
+
+
+  if (
+    !committedEntry
+  ) {
+    ui.notifications.error(
+      "The committed action could not be found."
+    );
+
+    application.render(
+      false
+    );
+
+    return;
+  }
+
+
+  if (
+    committedEntry.executed
+  ) {
+    ui.notifications.warn(
+      "That committed action has already been executed."
+    );
+
+    application.render(
+      false
+    );
+
+    return;
+  }
+
+
+  const committedActionIdValue =
+    committedEntry.actionId ??
+    null;
+
+
+  if (
+    actionId &&
+    committedActionIdValue !==
+      actionId
+  ) {
+    ui.notifications.error(
+      "The committed action no longer matches the selected execution control."
+    );
+
+    application.render(
+      false
+    );
+
+    return;
+  }
+
+
+  const registry =
+    getFrameHelmApplicationActionRegistry();
+
+  const action =
+    registry.get(
+      committedActionIdValue
+    );
+
+
+  if (
+    !action
+  ) {
+    ui.notifications.error(
+      `Unknown Frame Helm action: ${committedActionIdValue}`
+    );
+
+    application.render(
+      false
+    );
+
+    return;
+  }
+
+
+  const token =
+    application.getControlledToken();
+
+  const actor =
+    token?.actor ??
+    null;
+
+
+  if (
+    !actor
+  ) {
+    ui.notifications.warn(
+      "Select the mech or NPC token that should execute this committed action."
+    );
+
+    return;
+  }
+
+
+  try {
+    await executeFrameHelmApplicationActionRoll(
+      actor,
+      action
+    );
+
+
+    state.markCommittedActionExecuted(
+      committedEntry.id,
+      {
+        actionId:
+          action.id,
+
+        actorId:
+          actor.id ??
+          null,
+
+        tokenId:
+          token.id ??
+          token.document?.id ??
+          null,
+
+        source:
+          "committed-plan"
+      }
+    );
+
+
+    application.render(
+      false
+    );
+  } catch (
+    error
+  ) {
+    ui.notifications.warn(
+      error?.message ??
+      "Frame Helm could not execute the committed action."
     );
   }
 }
@@ -910,6 +1091,7 @@ export {
   commitMovementAction,
   executeFullAction,
   executeQuickAction,
+  executeCommittedAction,
   onCommand,
   onActionSelected
 };
