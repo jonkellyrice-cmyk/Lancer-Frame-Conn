@@ -50,28 +50,28 @@
     ]
   },
   "summary": {
-    "files_scanned": 108,
-    "dependency_edges": 214,
+    "files_scanned": 113,
+    "dependency_edges": 226,
     "broken_dependency_references": 0,
     "files_with_broken_dependencies": 0,
     "cycles": 0,
-    "suspicious_orphans": 0,
+    "suspicious_orphans": 1,
     "unexpected_cross_layer_dependencies": 2,
-    "runtime_flow_dead_ends": 0,
-    "files_reaching_runtime_terminal": 108,
-    "recognized_runtime_terminal_files": 12,
+    "runtime_flow_dead_ends": 1,
+    "files_reaching_runtime_terminal": 112,
+    "recognized_runtime_terminal_files": 13,
     "major_runtime_streams": 7,
-    "runtime_ready_features": 4,
+    "runtime_ready_features": 6,
     "runtime_waiting_features": 2,
-    "runtime_configuration_not_applicable_features": 4,
-    "high_fan_in_files": 15,
+    "runtime_configuration_not_applicable_features": 6,
+    "high_fan_in_files": 16,
     "high_fan_out_files": 10,
-    "problem_count": 2,
+    "problem_count": 4,
     "healthy": false,
     "runtime_ready": false,
     "health": {
       "structural": "review",
-      "runtime_flow": "healthy",
+      "runtime_flow": "review",
       "runtime_readiness": "incomplete"
     }
   },
@@ -99,11 +99,18 @@
         "inbound_dependency_edges": 1
       },
       {
+        "folder": "dev-scripts",
+        "file_count": 1,
+        "internal_dependency_edges": 0,
+        "outbound_dependency_edges": 0,
+        "inbound_dependency_edges": 0
+      },
+      {
         "folder": "execution_transaction",
-        "file_count": 4,
-        "internal_dependency_edges": 5,
-        "outbound_dependency_edges": 1,
-        "inbound_dependency_edges": 4
+        "file_count": 5,
+        "internal_dependency_edges": 6,
+        "outbound_dependency_edges": 2,
+        "inbound_dependency_edges": 5
       },
       {
         "folder": "lifecycle_service",
@@ -114,10 +121,10 @@
       },
       {
         "folder": "native_adapter",
-        "file_count": 10,
-        "internal_dependency_edges": 27,
-        "outbound_dependency_edges": 0,
-        "inbound_dependency_edges": 3
+        "file_count": 11,
+        "internal_dependency_edges": 28,
+        "outbound_dependency_edges": 1,
+        "inbound_dependency_edges": 4
       },
       {
         "folder": "resource_service",
@@ -130,8 +137,8 @@
         "folder": "scripts",
         "file_count": 7,
         "internal_dependency_edges": 7,
-        "outbound_dependency_edges": 8,
-        "inbound_dependency_edges": 12
+        "outbound_dependency_edges": 12,
+        "inbound_dependency_edges": 16
       },
       {
         "folder": "scripts/feature_actions",
@@ -152,6 +159,20 @@
         "file_count": 1,
         "internal_dependency_edges": 0,
         "outbound_dependency_edges": 1,
+        "inbound_dependency_edges": 1
+      },
+      {
+        "folder": "scripts/feature_semantic_execution_context",
+        "file_count": 1,
+        "internal_dependency_edges": 0,
+        "outbound_dependency_edges": 2,
+        "inbound_dependency_edges": 1
+      },
+      {
+        "folder": "scripts/feature_system_bridge",
+        "file_count": 1,
+        "internal_dependency_edges": 0,
+        "outbound_dependency_edges": 2,
         "inbound_dependency_edges": 1
       },
       {
@@ -180,7 +201,7 @@
         "file_count": 3,
         "internal_dependency_edges": 3,
         "outbound_dependency_edges": 1,
-        "inbound_dependency_edges": 2
+        "inbound_dependency_edges": 3
       },
       {
         "folder": "styles",
@@ -215,7 +236,7 @@
         "file_count": 5,
         "internal_dependency_edges": 8,
         "outbound_dependency_edges": 1,
-        "inbound_dependency_edges": 0
+        "inbound_dependency_edges": 1
       },
       {
         "folder": "targeting-spatial_service",
@@ -243,6 +264,11 @@
       },
       {
         "from": "execution_transaction",
+        "to": "scripts",
+        "count": 1
+      },
+      {
+        "from": "execution_transaction",
         "to": "semantic_execution_context",
         "count": 1
       },
@@ -262,6 +288,11 @@
         "count": 1
       },
       {
+        "from": "native_adapter",
+        "to": "scripts",
+        "count": 1
+      },
+      {
         "from": "resource_service",
         "to": "execution_transaction",
         "count": 1
@@ -278,6 +309,16 @@
       },
       {
         "from": "scripts",
+        "to": "execution_transaction",
+        "count": 1
+      },
+      {
+        "from": "scripts",
+        "to": "native_adapter",
+        "count": 1
+      },
+      {
+        "from": "scripts",
         "to": "scripts/feature_actions",
         "count": 2
       },
@@ -289,6 +330,16 @@
       {
         "from": "scripts",
         "to": "scripts/feature_movement",
+        "count": 1
+      },
+      {
+        "from": "scripts",
+        "to": "scripts/feature_semantic_execution_context",
+        "count": 1
+      },
+      {
+        "from": "scripts",
+        "to": "scripts/feature_system_bridge",
         "count": 1
       },
       {
@@ -324,6 +375,26 @@
       {
         "from": "scripts/feature_movement",
         "to": "scripts",
+        "count": 1
+      },
+      {
+        "from": "scripts/feature_semantic_execution_context",
+        "to": "scripts",
+        "count": 1
+      },
+      {
+        "from": "scripts/feature_semantic_execution_context",
+        "to": "semantic_execution_context",
+        "count": 1
+      },
+      {
+        "from": "scripts/feature_system_bridge",
+        "to": "scripts",
+        "count": 1
+      },
+      {
+        "from": "scripts/feature_system_bridge",
+        "to": "system_bridge",
         "count": 1
       },
       {
@@ -411,7 +482,7 @@
       "high_fan_in": [
         {
           "file": "scripts/feature-contract.js",
-          "reverse_dependency_count": 13,
+          "reverse_dependency_count": 17,
           "dependency_count": 0
         },
         {
@@ -428,6 +499,11 @@
           "file": "styles/ui_application/components/application-runtime-bindings.js",
           "reverse_dependency_count": 7,
           "dependency_count": 0
+        },
+        {
+          "file": "execution_transaction/execution-transaction.js",
+          "reverse_dependency_count": 5,
+          "dependency_count": 3
         },
         {
           "file": "native_adapter/native-items.js",
@@ -450,14 +526,14 @@
           "dependency_count": 0
         },
         {
-          "file": "execution_transaction/execution-transaction.js",
-          "reverse_dependency_count": 4,
-          "dependency_count": 3
-        },
-        {
           "file": "lifecycle_service/lifecycle-contract.js",
           "reverse_dependency_count": 4,
           "dependency_count": 0
+        },
+        {
+          "file": "native_adapter/native-adapter.js",
+          "reverse_dependency_count": 4,
+          "dependency_count": 9
         },
         {
           "file": "resource_service/resource-contract.js",
@@ -493,13 +569,13 @@
         },
         {
           "file": "scripts/feature-registry.js",
-          "dependency_count": 10,
+          "dependency_count": 14,
           "reverse_dependency_count": 1
         },
         {
           "file": "native_adapter/native-adapter.js",
           "dependency_count": 9,
-          "reverse_dependency_count": 3
+          "reverse_dependency_count": 4
         },
         {
           "file": "styles/ui_application/components/application-action-surface.js",
@@ -544,7 +620,7 @@
     "major_streams": [
       {
         "terminal_kind": "foundry-runtime-manifest",
-        "contributing_file_count": 98,
+        "contributing_file_count": 112,
         "terminal_count": 1,
         "terminals": [
           "module.json"
@@ -553,7 +629,7 @@
       },
       {
         "terminal_kind": "foundry-esmodule-entrypoint",
-        "contributing_file_count": 88,
+        "contributing_file_count": 102,
         "terminal_count": 1,
         "terminals": [
           "scripts/runtime-orchestrator.js"
@@ -562,7 +638,7 @@
       },
       {
         "terminal_kind": "foundry-hook-boundary",
-        "contributing_file_count": 88,
+        "contributing_file_count": 102,
         "terminal_count": 2,
         "terminals": [
           "scripts/feature-registry-core.js",
@@ -572,7 +648,7 @@
       },
       {
         "terminal_kind": "user-facing-application-boundary",
-        "contributing_file_count": 88,
+        "contributing_file_count": 102,
         "terminal_count": 4,
         "terminals": [
           "scripts/runtime-orchestrator.js",
@@ -584,9 +660,10 @@
       },
       {
         "terminal_kind": "native-system-bridge-boundary",
-        "contributing_file_count": 10,
-        "terminal_count": 4,
+        "contributing_file_count": 12,
+        "terminal_count": 5,
         "terminals": [
+          "scripts/feature_system_bridge/system-bridge-feature.js",
           "system_bridge/system-bridge-composer.js",
           "system_bridge/system-bridge-contract.js",
           "system_bridge/system-bridge-resolver.js",
@@ -640,14 +717,25 @@
         "flow_file_count": 5,
         "files_reaching_recognized_terminal": 5,
         "terminal_kinds_reached": [
-          "native-system-bridge-boundary"
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "foundry-runtime-manifest",
+          "native-system-bridge-boundary",
+          "user-facing-application-boundary"
         ],
         "status": "complete"
       },
       {
+        "folder": "dev-scripts",
+        "flow_file_count": 1,
+        "files_reaching_recognized_terminal": 0,
+        "terminal_kinds_reached": [],
+        "status": "review"
+      },
+      {
         "folder": "execution_transaction",
-        "flow_file_count": 4,
-        "files_reaching_recognized_terminal": 4,
+        "flow_file_count": 5,
+        "files_reaching_recognized_terminal": 5,
         "terminal_kinds_reached": [
           "foundry-esmodule-entrypoint",
           "foundry-hook-boundary",
@@ -670,8 +758,8 @@
       },
       {
         "folder": "native_adapter",
-        "flow_file_count": 10,
-        "files_reaching_recognized_terminal": 10,
+        "flow_file_count": 11,
+        "files_reaching_recognized_terminal": 11,
         "terminal_kinds_reached": [
           "foundry-esmodule-entrypoint",
           "foundry-hook-boundary",
@@ -700,6 +788,7 @@
           "foundry-esmodule-entrypoint",
           "foundry-hook-boundary",
           "foundry-runtime-manifest",
+          "native-system-bridge-boundary",
           "user-facing-application-boundary"
         ],
         "status": "complete"
@@ -736,6 +825,31 @@
           "foundry-esmodule-entrypoint",
           "foundry-hook-boundary",
           "foundry-runtime-manifest",
+          "user-facing-application-boundary"
+        ],
+        "status": "complete"
+      },
+      {
+        "folder": "scripts/feature_semantic_execution_context",
+        "flow_file_count": 1,
+        "files_reaching_recognized_terminal": 1,
+        "terminal_kinds_reached": [
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "foundry-runtime-manifest",
+          "user-facing-application-boundary"
+        ],
+        "status": "complete"
+      },
+      {
+        "folder": "scripts/feature_system_bridge",
+        "flow_file_count": 1,
+        "files_reaching_recognized_terminal": 1,
+        "terminal_kinds_reached": [
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "foundry-runtime-manifest",
+          "native-system-bridge-boundary",
           "user-facing-application-boundary"
         ],
         "status": "complete"
@@ -846,7 +960,11 @@
         "flow_file_count": 5,
         "files_reaching_recognized_terminal": 5,
         "terminal_kinds_reached": [
-          "native-system-bridge-boundary"
+          "foundry-esmodule-entrypoint",
+          "foundry-hook-boundary",
+          "foundry-runtime-manifest",
+          "native-system-bridge-boundary",
+          "user-facing-application-boundary"
         ],
         "status": "complete"
       },
@@ -874,6 +992,12 @@
         "file": "scripts/feature-registry-core.js",
         "kinds": [
           "foundry-hook-boundary"
+        ]
+      },
+      {
+        "file": "scripts/feature_system_bridge/system-bridge-feature.js",
+        "kinds": [
+          "native-system-bridge-boundary"
         ]
       },
       {
@@ -939,15 +1063,40 @@
         ]
       }
     ],
-    "dead_end_candidates": []
+    "dead_end_candidates": [
+      {
+        "stopped_at": "dev-scripts/github-filepatcher.mjs",
+        "role": "runtime-module",
+        "expected_flow": "feed another production runtime module or a legitimate endpoint",
+        "actual_outcome": "flow has no production consumer or recognized runtime endpoint",
+        "contributing_file_count": 0,
+        "contributor_examples": [],
+        "direct_dependencies": []
+      }
+    ]
   },
   "runtime_readiness": {
     "method": "static composition inference from canonical feature configureRuntime contracts and registry API configureRuntime calls",
     "interpretation": "waiting is an informational readiness state, not a broken dependency; declared bindings are treated as expected composition inputs when a feature explicitly enumerates allowed runtime binding keys",
-    "ready_feature_count": 4,
+    "ready_feature_count": 6,
     "waiting_feature_count": 2,
-    "not_applicable_feature_count": 4,
+    "not_applicable_feature_count": 6,
     "ready_features": [
+      {
+        "feature": "action-execution",
+        "feature_file": "scripts/feature_actions/action-execution-feature.js",
+        "status": "ready",
+        "runtime_terminal_reached": true,
+        "declared_bindings": [
+          "executeCanonicalAction"
+        ],
+        "configured_bindings": [
+          "executeCanonicalAction"
+        ],
+        "configuration_files": [
+          "scripts/runtime-orchestrator.js"
+        ]
+      },
       {
         "feature": "foundry-integration",
         "feature_file": "scripts/foundry-integration-feature.js",
@@ -969,6 +1118,21 @@
         "declared_bindings": [],
         "configured_bindings": [
           "getTurnState"
+        ],
+        "configuration_files": [
+          "scripts/runtime-orchestrator.js"
+        ]
+      },
+      {
+        "feature": "system-bridge",
+        "feature_file": "scripts/feature_system_bridge/system-bridge-feature.js",
+        "status": "ready",
+        "runtime_terminal_reached": true,
+        "declared_bindings": [
+          "existingRegistryResolverAdapter"
+        ],
+        "configured_bindings": [
+          "existingRegistryResolverAdapter"
         ],
         "configuration_files": [
           "scripts/runtime-orchestrator.js"
@@ -1041,14 +1205,26 @@
     ],
     "not_applicable_features": [
       {
-        "feature": "action-execution",
-        "feature_file": "scripts/feature_actions/action-execution-feature.js",
+        "feature": "actions",
+        "feature_file": "scripts/feature_actions/actions-feature.js",
         "status": "no-runtime-configuration-contract",
         "runtime_terminal_reached": true
       },
       {
-        "feature": "actions",
-        "feature_file": "scripts/feature_actions/actions-feature.js",
+        "feature": "execution-transaction",
+        "feature_file": "execution_transaction/execution-transaction-feature.js",
+        "status": "no-runtime-configuration-contract",
+        "runtime_terminal_reached": true
+      },
+      {
+        "feature": "native-adapter",
+        "feature_file": "native_adapter/native-adapter-feature.js",
+        "status": "no-runtime-configuration-contract",
+        "runtime_terminal_reached": true
+      },
+      {
+        "feature": "semantic-execution-context",
+        "feature_file": "scripts/feature_semantic_execution_context/semantic-execution-context-feature.js",
         "status": "no-runtime-configuration-contract",
         "runtime_terminal_reached": true
       },
@@ -1070,7 +1246,14 @@
   "problems": {
     "broken_dependencies": [],
     "cycles": [],
-    "suspicious_orphans": [],
+    "suspicious_orphans": [
+      {
+        "file": "dev-scripts/github-filepatcher.mjs",
+        "role": "runtime-module",
+        "dependency_count": 0,
+        "reason": "no production runtime file consumes this file and it is not a recognized endpoint"
+      }
+    ],
     "unexpected_cross_layer_dependencies": [
       {
         "from": "scripts/feature-registry.js",
@@ -1083,6 +1266,16 @@
         "reason": "runtime/domain source depends directly on presentation source"
       }
     ],
-    "runtime_flow_dead_ends": []
+    "runtime_flow_dead_ends": [
+      {
+        "stopped_at": "dev-scripts/github-filepatcher.mjs",
+        "role": "runtime-module",
+        "expected_flow": "feed another production runtime module or a legitimate endpoint",
+        "actual_outcome": "flow has no production consumer or recognized runtime endpoint",
+        "contributing_file_count": 0,
+        "contributor_examples": [],
+        "direct_dependencies": []
+      }
+    ]
   }
 }
