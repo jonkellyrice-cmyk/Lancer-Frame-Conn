@@ -81,19 +81,48 @@ function renderCommittedPlan(
               ""
             );
 
+          const committedActionId =
+            entry?.committedActionId ??
+            entry?.id ??
+            null;
+
+          const actionId =
+            entry?.actionId ??
+            null;
+
+          const control =
+            entry?.control ??
+            null;
+
+          const showExecuteControl =
+            Boolean(
+              entry?.showExecuteControl &&
+              control?.visible &&
+              committedActionId &&
+              actionId
+            );
+
+          const executeIcon =
+            control?.icon ??
+            "fas fa-dice-d20";
+
+          const executeLabel =
+            control?.label ??
+            "Execute";
+
 
           return `
             <div
               class="${foundry.utils.escapeHTML(classNames)}"
               data-frame-helm-plan-state="${foundry.utils.escapeHTML(state)}"
               ${
-                entry?.actionId
-                  ? `data-frame-helm-action-id="${foundry.utils.escapeHTML(entry.actionId)}"`
+                actionId
+                  ? `data-frame-helm-action-id="${foundry.utils.escapeHTML(actionId)}"`
                   : ""
               }
               ${
-                entry?.id
-                  ? `data-frame-helm-committed-action-id="${foundry.utils.escapeHTML(entry.id)}"`
+                committedActionId
+                  ? `data-frame-helm-committed-action-id="${foundry.utils.escapeHTML(committedActionId)}"`
                   : ""
               }
             >
@@ -120,6 +149,23 @@ function renderCommittedPlan(
                     : ""
                 }
               </span>
+
+              ${
+                showExecuteControl
+                  ? `
+                    <button
+                      type="button"
+                      class="frame-helm-plan-execute"
+                      data-frame-helm-committed-execute="${foundry.utils.escapeHTML(committedActionId)}"
+                      data-frame-helm-action-id="${foundry.utils.escapeHTML(actionId)}"
+                      title="${foundry.utils.escapeHTML(executeLabel)}"
+                      aria-label="${foundry.utils.escapeHTML(`${executeLabel} ${label}`)}"
+                    >
+                      <i class="${foundry.utils.escapeHTML(executeIcon)}"></i>
+                    </button>
+                  `
+                  : ""
+              }
 
               <span class="frame-helm-plan-state">
                 ${foundry.utils.escapeHTML(
