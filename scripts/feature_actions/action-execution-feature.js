@@ -13,17 +13,17 @@
  * ============================================================
  *
  * ROLE:
- *   Owns Frame Helm's delegation of executable universal actions
- *   into Lancer actor-sheet workflows.
+ *   Owns Frame Helm's universal-action execution classification
+ *   and the application-facing execution boundary.
  *
  * PURPOSE:
- *   Remove action execution classification, mech-skill selection,
- *   and actor workflow delegation from runtime-orchestrator.js
- *   while preserving the existing execution behavior exactly.
+ *   Keep action classification and legacy actor workflow support
+ *   behind one registered feature while progressively routing
+ *   actions into the canonical Frame Helm execution spine.
  *
  * RESPONSIBILITIES:
- *   - Identify actions which do not require a roll or actor-sheet
- *     execution workflow.
+ *   - Identify actions which do not require a roll or execution
+ *     workflow.
  *   - Resolve the execution kind for a universal action.
  *   - Resolve stat-driven action execution.
  *   - Resolve basic attack execution.
@@ -33,8 +33,10 @@
  *   - Resolve Overcharge execution.
  *   - Prompt for HULL / AGI / SYS / ENG when an action requires a
  *     chosen mech skill.
- *   - Delegate execution into the corresponding Lancer actor
- *     workflow.
+ *   - Route migrated actions into the canonical Frame Helm
+ *     execution boundary supplied by runtime composition.
+ *   - Preserve existing actor workflow delegation for actions not
+ *     yet migrated to the canonical execution spine.
  *   - Expose execution-kind inspection for presentation and
  *     diagnostics.
  *
@@ -46,6 +48,9 @@
  *   - Committed-action state.
  *   - Target selection.
  *   - Target validation.
+ *   - Execution transaction sequencing.
+ *   - System-bridge composition.
+ *   - Native Lancer adapter implementation.
  *   - Weapon selection.
  *   - Weapon attack implementation.
  *   - Lancer actor workflow implementation.
@@ -57,70 +62,26 @@
  *   - Module settings.
  *   - Scene-control integration.
  *
- * ARCHITECTURAL RELATIONSHIP:
+ * CANONICAL EXECUTION MIGRATION:
  *
- *   actions-feature.js
- *        │
- *        │ action declarations
- *        ▼
- *   turn-feature.js
- *        │
- *        │ committed/legal action state
- *        ▼
- *   action-execution-feature.js
- *        │
- *        ├── execution-kind resolution
- *        ├── mech-stat selection
- *        └── actor workflow delegation
- *        │
- *        ▼
- *   Lancer Actor
- *        │
- *        ├── beginStatFlow()
- *        ├── beginBasicAttackFlow()
- *        ├── beginBasicTechAttackFlow()
- *        ├── beginScanFlow()
- *        ├── beginStabilizeFlow()
- *        └── beginOverchargeFlow()
+ *   The Application UI calls this feature's execute(actor, action)
+ *   boundary. Actions migrated to the new execution architecture
+ *   are then forwarded through executeCanonicalAction, which is
+ *   supplied by runtime-orchestrator.js.
  *
+ *   The feature intentionally does not import system_bridge,
+ *   execution_transaction, targeting-spatial_service, or
+ *   native_adapter directly.
  *
- * CURRENT APPLICATION RELATIONSHIP:
+ *   First migrated action:
  *
- *   action-execution-feature.js
- *        │
- *        │ execute(actor, action)
- *        ▼
- *   runtime-orchestrator.js
- *        │
- *        │ runtime binding
- *        ▼
- *   ui-application.js
- *
- *   During the current migration, runtime-orchestrator.js remains
- *   responsible for supplying the registered Action Execution API
- *   to ui-application.js.
- *
- * FEATURE CONTRACT:
- *
- *   Provides:
- *     - action-execution
- *     - action-execution.classification
- *     - action-execution.mech-stat-selection
- *     - action-execution.actor-workflow
- *
- *   Required dependencies:
- *     - none
- *
- *   Optional dependencies:
- *     - actions.registry
- *     - turn.actions
+ *     full.improvised-attack
  *
  * STABILITY CONTRACT:
  *
- *   This extraction changes ownership and composition only.
- *
- *   Existing action classification, mech-stat selection, and actor
- *   workflow delegation are preserved.
+ *   Existing execution classification and non-migrated actor
+ *   workflow delegation remain available while the canonical
+ *   execution spine is introduced action-by-action.
  */
 
 
@@ -142,16 +103,123 @@ const MODULE_TITLE =
 
 
 /* ============================================================
+   Action Execution -- Runtime bindings
+   ============================================================ */
+
+const frameHelmActionExecutionRuntimeBindings = {
+  executeCanonicalAction:
+    null
+};
+
+
+function configureFrameHelmActionExecutionRuntime(
+  bindings = {}
+) {
+  if (
+    !bindings ||
+    typeof bindings !==
+      "object" ||
+    Array.isArray(
+      bindings
+    )
+  ) {
+    throw new TypeError(
+      "Frame Helm Action Execution runtime bindings must be supplied as an object."
+    );
+  }
+
+
+  const allowedKeys =
+    new Set([
+      "executeCanonicalAction"
+    ]);
+
+
+  for (
+    const [
+      key,
+      value
+    ]
+    of Object.entries(
+      bindings
+    )
+  ) {
+    if (
+      !allowedKeys.has(
+        key
+      )
+    ) {
+      throw new Error(
+        `Frame Helm Action Execution received unknown runtime binding: ${key}`
+      );
+    }
+
+
+    if (
+      value !== null &&
+      typeof value !==
+        "function"
+    ) {
+      throw new TypeError(
+        `Frame Helm Action Execution runtime binding "${key}" must be a function or null.`
+      );
+    }
+
+
+    frameHelmActionExecutionRuntimeBindings[
+      key
+    ] = value;
+  }
+
+
+  return (
+    getFrameHelmActionExecutionRuntimeBindings()
+  );
+}
+
+
+function getFrameHelmActionExecutionRuntimeBindings() {
+  return Object.freeze({
+    executeCanonicalAction:
+      typeof frameHelmActionExecutionRuntimeBindings
+        .executeCanonicalAction ===
+        "function"
+  });
+}
+
+
+async function executeFrameHelmCanonicalAction(
+  actor,
+  action,
+  executionKind
+) {
+  const executor =
+    frameHelmActionExecutionRuntimeBindings
+      .executeCanonicalAction;
+
+
+  if (
+    typeof executor !==
+    "function"
+  ) {
+    throw new Error(
+      "Frame Helm canonical action execution has not been configured."
+    );
+  }
+
+
+  return executor({
+    actor,
+    action,
+    executionKind
+  });
+}
+
+
+/* ============================================================
    Action Execution -- No-roll actions
    ============================================================ */
 
-/**
- * Actions which commit gameplay state but do not themselves
- * require a Lancer actor-sheet roll or execution workflow.
- *
- * These action ids preserve the exact classification previously
- * owned by runtime-orchestrator.js.
- */
 export const FRAME_HELM_NO_ROLL_ACTIONS =
   Object.freeze(
     new Set([
@@ -180,9 +248,6 @@ export const FRAME_HELM_NO_ROLL_ACTIONS =
    Action Execution -- Mech skill choices
    ============================================================ */
 
-/**
- * Canonical mech-skill choices exposed by the execution dialog.
- */
 export const FRAME_HELM_MECH_STAT_CHOICES =
   Object.freeze([
     Object.freeze({
@@ -223,10 +288,6 @@ export const FRAME_HELM_MECH_STAT_CHOICES =
    Action Execution -- Classification
    ============================================================ */
 
-/**
- * Returns whether an action requires no actor-sheet execution
- * workflow.
- */
 function frameHelmActionRequiresNoRoll(
   actionOrId
 ) {
@@ -253,37 +314,6 @@ function frameHelmActionRequiresNoRoll(
 }
 
 
-/**
- * Resolves the actor workflow required to execute one universal
- * action.
- *
- * Returns:
- *
- *   null
- *     No actor-sheet workflow is required.
- *
- *   "stat"
- *     Use action.metadata.statPath directly.
- *
- *   "basic-attack"
- *     Delegate to beginBasicAttackFlow().
- *
- *   "basic-tech-attack"
- *     Delegate to beginBasicTechAttackFlow().
- *
- *   "scan"
- *     Delegate to beginScanFlow().
- *
- *   "stabilize"
- *     Delegate to beginStabilizeFlow().
- *
- *   "overcharge"
- *     Delegate to beginOverchargeFlow().
- *
- *   "choose-stat"
- *     Prompt the user to choose HULL / AGI / SYS / ENG, then
- *     delegate to beginStatFlow().
- */
 function frameHelmActionExecutionKind(
   action
 ) {
@@ -361,10 +391,6 @@ function frameHelmActionExecutionKind(
 }
 
 
-/**
- * Returns whether the supplied action has an executable
- * actor-sheet workflow.
- */
 function canFrameHelmExecuteAction(
   action
 ) {
@@ -381,13 +407,6 @@ function canFrameHelmExecuteAction(
    Action Execution -- Actor validation
    ============================================================ */
 
-/**
- * Ensures execution received a usable actor object.
- *
- * Actor-specific method validation remains workflow-local so a
- * Lancer system error still identifies the missing integration
- * surface precisely.
- */
 function assertFrameHelmActionExecutionActor(
   actor
 ) {
@@ -406,9 +425,6 @@ function assertFrameHelmActionExecutionActor(
 }
 
 
-/**
- * Ensures execution received a usable action object.
- */
 function assertFrameHelmExecutableAction(
   action
 ) {
@@ -443,19 +459,6 @@ function assertFrameHelmExecutableAction(
    Action Execution -- Mech stat selection
    ============================================================ */
 
-/**
- * Opens the existing Foundry Dialog allowing the user to select
- * the mech skill used to resolve an action.
- *
- * Resolves:
- *
- *   {
- *     path: "hull" | "agi" | "sys" | "eng",
- *     label: "HULL" | "AGI" | "SYS" | "ENG"
- *   }
- *
- * or null when cancelled.
- */
 function frameHelmChooseMechStat(
   action
 ) {
@@ -524,12 +527,9 @@ function frameHelmChooseMechStat(
 
 
 /* ============================================================
-   Action Execution -- Stat workflow
+   Action Execution -- Legacy actor workflows
    ============================================================ */
 
-/**
- * Delegates directly to a known actor stat workflow.
- */
 function executeFrameHelmStatAction(
   actor,
   action
@@ -558,13 +558,6 @@ function executeFrameHelmStatAction(
 }
 
 
-/* ============================================================
-   Action Execution -- Basic attack workflow
-   ============================================================ */
-
-/**
- * Delegates to the Lancer basic attack workflow.
- */
 function executeFrameHelmBasicAttack(
   actor,
   action
@@ -588,13 +581,6 @@ function executeFrameHelmBasicAttack(
 }
 
 
-/* ============================================================
-   Action Execution -- Basic tech attack workflow
-   ============================================================ */
-
-/**
- * Delegates to the Lancer basic tech attack workflow.
- */
 function executeFrameHelmBasicTechAttack(
   actor,
   action
@@ -618,13 +604,6 @@ function executeFrameHelmBasicTechAttack(
 }
 
 
-/* ============================================================
-   Action Execution -- Scan workflow
-   ============================================================ */
-
-/**
- * Delegates to the Lancer Scan workflow.
- */
 function executeFrameHelmScan(
   actor
 ) {
@@ -645,13 +624,6 @@ function executeFrameHelmScan(
 }
 
 
-/* ============================================================
-   Action Execution -- Stabilize workflow
-   ============================================================ */
-
-/**
- * Delegates to the Lancer Stabilize workflow.
- */
 function executeFrameHelmStabilize(
   actor
 ) {
@@ -672,13 +644,6 @@ function executeFrameHelmStabilize(
 }
 
 
-/* ============================================================
-   Action Execution -- Overcharge workflow
-   ============================================================ */
-
-/**
- * Delegates to the Lancer Overcharge workflow.
- */
 function executeFrameHelmOvercharge(
   actor
 ) {
@@ -699,13 +664,6 @@ function executeFrameHelmOvercharge(
 }
 
 
-/* ============================================================
-   Action Execution -- Chosen-stat workflow
-   ============================================================ */
-
-/**
- * Prompts for a mech skill, then delegates to beginStatFlow().
- */
 async function executeFrameHelmChosenStatAction(
   actor,
   action
@@ -747,16 +705,9 @@ async function executeFrameHelmChosenStatAction(
 
 
 /* ============================================================
-   Action Execution -- Actor workflow delegation
+   Action Execution -- Execution routing
    ============================================================ */
 
-/**
- * Executes one action through the appropriate Lancer actor
- * workflow.
- *
- * This preserves the exact routing previously owned by
- * runtime-orchestrator.js.
- */
 async function frameHelmExecuteActionRoll(
   actor,
   action
@@ -782,6 +733,25 @@ async function frameHelmExecuteActionRoll(
   ) {
     throw new Error(
       "This action does not require a dice or sheet workflow."
+    );
+  }
+
+
+  /**
+   * Improvised Attack is the first universal action migrated to
+   * the canonical Frame Helm execution spine.
+   *
+   * All cross-cutting execution concerns remain outside this
+   * feature and are supplied through runtime composition.
+   */
+  if (
+    action.id ===
+    "full.improvised-attack"
+  ) {
+    return executeFrameHelmCanonicalAction(
+      actor,
+      action,
+      kind
     );
   }
 
@@ -874,10 +844,6 @@ async function frameHelmExecuteActionRoll(
    Action Execution -- Diagnostics
    ============================================================ */
 
-/**
- * Returns presentation-safe classification information for one
- * action.
- */
 function getFrameHelmActionExecutionDiagnostics(
   action
 ) {
@@ -911,6 +877,13 @@ function getFrameHelmActionExecutionDiagnostics(
     executionKind:
       kind,
 
+    canonicalExecution:
+      actionId ===
+      "full.improvised-attack",
+
+    runtimeBindings:
+      getFrameHelmActionExecutionRuntimeBindings(),
+
     statPath:
       action?.metadata
         ?.statPath ??
@@ -928,15 +901,6 @@ function getFrameHelmActionExecutionDiagnostics(
    Action Execution feature definition
    ============================================================ */
 
-/**
- * Canonical Action Execution feature declaration.
- *
- * This file defines the feature but does not register itself.
- *
- * Application-wide registration remains owned by:
- *
- *   scripts/feature-registry.js
- */
 export const frameHelmActionExecutionFeature =
   defineFrameHelmFeature({
     id:
@@ -949,7 +913,8 @@ export const frameHelmActionExecutionFeature =
       "action-execution",
       "action-execution.classification",
       "action-execution.mech-stat-selection",
-      "action-execution.actor-workflow"
+      "action-execution.actor-workflow",
+      "action-execution.canonical-routing"
     ],
 
     dependsOn: [],
@@ -962,6 +927,9 @@ export const frameHelmActionExecutionFeature =
     state: {},
 
     commands: {
+      configureRuntime:
+        configureFrameHelmActionExecutionRuntime,
+
       execute:
         frameHelmExecuteActionRoll,
 
@@ -979,6 +947,9 @@ export const frameHelmActionExecutionFeature =
       canExecute:
         canFrameHelmExecuteAction,
 
+      runtimeBindings:
+        getFrameHelmActionExecutionRuntimeBindings,
+
       diagnostics:
         getFrameHelmActionExecutionDiagnostics
     },
@@ -988,6 +959,9 @@ export const frameHelmActionExecutionFeature =
     lifecycle: {},
 
     api: {
+      configureRuntime:
+        configureFrameHelmActionExecutionRuntime,
+
       execute:
         frameHelmExecuteActionRoll,
 
@@ -1006,6 +980,9 @@ export const frameHelmActionExecutionFeature =
       canExecute:
         canFrameHelmExecuteAction,
 
+      runtimeBindings:
+        getFrameHelmActionExecutionRuntimeBindings,
+
       diagnostics:
         getFrameHelmActionExecutionDiagnostics,
 
@@ -1021,31 +998,25 @@ export const frameHelmActionExecutionFeature =
         "Action Execution",
 
       description:
-        "Owns Frame Helm universal-action execution classification, mech-skill selection, and delegation into Lancer actor-sheet workflows.",
-
-      extractedFrom:
-        "scripts/runtime-orchestrator.js",
-
-      actionDomain:
-        "scripts/actions-feature.js",
-
-      turnDomain:
-        "scripts/turn-feature.js",
+        "Owns Frame Helm universal-action execution classification and routes migrated actions into the canonical execution spine while preserving legacy actor workflows during migration.",
 
       applicationConsumer:
-        "styles/ui-application.js",
+        "styles/ui_application/ui-application.js",
 
       authoritativeRuntime:
         "scripts/runtime-orchestrator.js",
 
       extractionModel:
-        "actor-workflow-delegation",
+        "canonical-execution-routing-with-legacy-workflow-fallback",
+
+      firstCanonicalAction:
+        "full.improvised-attack",
 
       targetSelectionOwnership:
-        "future-or-separate-domain",
+        "targeting-spatial",
 
       mutationPolicy:
-        "delegates-to-lancer-actor-workflows"
+        "canonical-execution-spine-for-migrated-actions"
     }
   });
 
@@ -1054,12 +1025,13 @@ export const frameHelmActionExecutionFeature =
    Transitional named exports
    ============================================================ */
 
-/**
- * Named exports preserve a straightforward low-risk transition
- * while runtime-orchestrator.js and ui-application.js are moved
- * to registry-based Action Execution access.
- */
 export {
+  configureFrameHelmActionExecutionRuntime,
+
+  getFrameHelmActionExecutionRuntimeBindings,
+
+  executeFrameHelmCanonicalAction,
+
   frameHelmActionRequiresNoRoll,
 
   frameHelmActionExecutionKind,
