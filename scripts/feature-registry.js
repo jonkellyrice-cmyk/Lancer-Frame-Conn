@@ -262,6 +262,26 @@ import {
 } from "./feature_targeting_spatial/targeting-spatial-feature.js";
 
 
+import {
+  frameHelmSystemBridgeFeature
+} from "./feature_system_bridge/system-bridge-feature.js";
+
+
+import {
+  frameHelmSemanticExecutionContextFeature
+} from "./feature_semantic_execution_context/semantic-execution-context-feature.js";
+
+
+import {
+  frameHelmExecutionTransactionFeature
+} from "../execution_transaction/execution-transaction-feature.js";
+
+
+import {
+  frameHelmNativeAdapterFeature
+} from "../native_adapter/native-adapter-feature.js";
+
+
 /* ============================================================
    Imports -- Executable UI package
    ============================================================ */
@@ -309,7 +329,11 @@ export const FRAME_HELM_RUNTIME_FEATURES =
     frameHelmFoundryIntegrationFeature,
     frameHelmActionExecutionFeature,
     frameHelmLifecycleFeature,
-    frameHelmTargetingSpatialFeature
+    frameHelmTargetingSpatialFeature,
+    frameHelmSystemBridgeFeature,
+    frameHelmSemanticExecutionContextFeature,
+    frameHelmExecutionTransactionFeature,
+    frameHelmNativeAdapterFeature
   ]);
 
 
