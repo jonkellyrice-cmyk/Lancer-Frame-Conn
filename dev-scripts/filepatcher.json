@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "No-op placeholder. Replace operations with the next GitHub FilePatcher change.",
+  "id": "bootstrap-verification",
+  "description": "No-op verification that the GitHub FilePatcher workflow is wired correctly.",
   "policy": {
     "max_files_changed": 1
   },
