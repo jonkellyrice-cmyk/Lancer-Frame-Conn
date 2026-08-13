@@ -153,6 +153,33 @@ function activateFrameHelmApplicationListeners(
 
 
   html.find(
+    "[data-frame-helm-committed-execute]"
+  ).on(
+    "click",
+    event => {
+      const committedActionId =
+        event.currentTarget
+          .dataset
+          .frameHelmCommittedExecute ??
+        null;
+
+
+      const actionId =
+        event.currentTarget
+          .dataset
+          .frameHelmActionId ??
+        null;
+
+
+      application.executeCommittedAction(
+        committedActionId,
+        actionId
+      );
+    }
+  );
+
+
+  html.find(
     "[data-frame-helm-command]"
   ).on(
     "click",
