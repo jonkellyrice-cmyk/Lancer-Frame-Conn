@@ -1,0 +1,9 @@
+{
+  "schema_version": 2,
+  "id": "ready",
+  "description": "No-op placeholder. Replace operations with the next GitHub FilePatcher change.",
+  "policy": {
+    "max_files_changed": 1
+  },
+  "operations": []
+}
