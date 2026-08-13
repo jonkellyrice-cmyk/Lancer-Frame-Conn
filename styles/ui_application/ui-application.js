@@ -161,6 +161,7 @@ import {
   commitMovementAction,
   executeFullAction,
   executeQuickAction,
+  executeCommittedAction,
   onCommand,
   onActionSelected
 } from "./components/application-turn-commands.js";
@@ -693,6 +694,18 @@ export class FrameHelmApplication
       this,
       actionId,
       useOvercharge
+    );
+  }
+
+
+  executeCommittedAction(
+    committedActionId,
+    actionId = null
+  ) {
+    return executeCommittedAction(
+      this,
+      committedActionId,
+      actionId
     );
   }
 
