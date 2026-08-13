@@ -1,191 +1,68 @@
 {
-  "schema_version": 2,
-  "id": "use-canonical-turn-committed-plan-presentation-v1",
-  "name": "Use canonical Turn committed plan presentation",
-  "description": "Remove ui_application's duplicate committed-plan reconstruction and render the canonical committed plan presentation produced by ui_turn, wiring ui_turn through runtime orchestration.",
-  "backup": true,
-  "allow_noop": false,
-  "repository": {
-    "require_git": true,
-    "require_clean_targets": true,
-    "require_clean_repository": false
-  },
-  "risk_acceptance": {
-    "overwrite_files": false,
-    "delete_files": false,
-    "move_files": false,
-    "change_dependencies": false,
-    "modify_package_manifest": false
-  },
-  "preconditions": [
-    {
-      "type": "file_exists",
-      "file": "styles/ui_application/ui-application.js"
-    },
-    {
-      "type": "file_exists",
-      "file": "styles/ui_turn/ui-turn.js"
-    },
-    {
-      "type": "file_exists",
-      "file": "scripts/runtime-orchestrator.js"
-    },
-    {
-      "type": "contains",
-      "file": "styles/ui_application/ui-application.js",
-      "text": "  committedPlanEntries(\n    state\n  ) {"
-    },
-    {
-      "type": "contains",
-      "file": "styles/ui_turn/ui-turn.js",
-      "text": "function buildFrameHelmTurnCommittedPlanPresentation("
-    },
-    {
-      "type": "contains",
-      "file": "styles/ui_turn/ui-turn.js",
-      "text": "      getCommittedPlan:\n        buildFrameHelmTurnCommittedPlanPresentation,"
-    },
-    {
-      "type": "contains",
-      "file": "scripts/runtime-orchestrator.js",
-      "text": "const frameHelmApplicationApi =\n  frameHelmFeatureRegistry.getApi(\n    \"ui-application\"\n  );"
-    }
-  ],
-  "postconditions": [
-    {
-      "type": "not_contains",
-      "file": "styles/ui_application/ui-application.js",
-      "text": "  committedPlanEntries(\n    state\n  ) {"
-    },
-    {
-      "type": "contains",
-      "file": "styles/ui_application/ui-application.js",
-      "text": "function getFrameHelmApplicationCommittedPlan() {"
-    },
-    {
-      "type": "contains",
-      "file": "styles/ui_application/ui-application.js",
-      "text": "    const committedPlan =\n      getFrameHelmApplicationCommittedPlan();"
-    },
-    {
-      "type": "contains",
-      "file": "styles/ui_application/ui-application.js",
-      "text": "      \"ui.turn.committed-actions\""
-    },
-    {
-      "type": "contains",
-      "file": "styles/ui_turn/ui-turn.js",
-      "text": "    detail:\n      entry?.source ===\n        \"overcharge\""
-    },
-    {
-      "type": "contains",
-      "file": "scripts/runtime-orchestrator.js",
-      "text": "const frameHelmTurnUiApi =\n  frameHelmFeatureRegistry.getApi(\n    \"ui-turn\"\n  );"
-    },
-    {
-      "type": "contains",
-      "file": "scripts/runtime-orchestrator.js",
-      "text": "      getCommittedPlan:\n        () =>\n          frameHelmTurnUiApi\n            .getCommittedPlan(),"
-    }
-  ],
-  "validation": {
-    "structural": true,
-    "scan_dependencies": true,
-    "commands": [
-      [
-        "node",
-        "--check",
-        "styles/ui_turn/ui-turn.js"
-      ],
-      [
-        "node",
-        "--check",
-        "styles/ui_application/ui-application.js"
-      ],
-      [
-        "node",
-        "--check",
-        "scripts/runtime-orchestrator.js"
-      ]
-    ],
-    "timeout_seconds": 60
-  },
-  "operations": [
-    {
-      "operation": "replace",
-      "file": "styles/ui_turn/ui-turn.js",
-      "find": "    source:\n      entry?.source ??\n      \"normal\",\n\n    kind,\n\n    executed:",
-      "replace": "    source:\n      entry?.source ??\n      \"normal\",\n\n    kind,\n\n    detail:\n      entry?.source ===\n        \"overcharge\"\n        ? \"Overcharge quick action\"\n        : action?.cost ===\n            \"full\"\n          ? \"Full action\"\n          : action?.cost ===\n              \"quick\"\n            ? \"Quick action\"\n            : action?.cost ??\n              \"\",\n\n    executed:",
-      "expected_matches": 1
-    },
-    {
-      "operation": "replace",
-      "file": "styles/ui_application/ui-application.js",
-      "find": "  getTurnStateManager:\n    null,\n\n  executeActionRoll:",
-      "replace": "  getTurnStateManager:\n    null,\n\n  getCommittedPlan:\n    null,\n\n  executeActionRoll:",
-      "expected_matches": 1
-    },
-    {
-      "operation": "replace",
-      "file": "styles/ui_application/ui-application.js",
-      "find": "    turnStateManager:\n      typeof frameHelmApplicationRuntimeBindings\n        .getTurnStateManager ===\n        \"function\",\n\n    actionExecution:",
-      "replace": "    turnStateManager:\n      typeof frameHelmApplicationRuntimeBindings\n        .getTurnStateManager ===\n        \"function\",\n\n    committedPlan:\n      typeof frameHelmApplicationRuntimeBindings\n        .getCommittedPlan ===\n        \"function\",\n\n    actionExecution:",
-      "expected_matches": 1
-    },
-    {
-      "operation": "replace",
-      "file": "styles/ui_application/ui-application.js",
-      "find": "function getFrameHelmApplicationTurnStateManager() {\n  return (\n    frameHelmApplicationRuntimeBindings\n      .getTurnStateManager?.() ??\n    null\n  );\n}\n\n\nasync function executeFrameHelmApplicationActionRoll(",
-      "replace": "function getFrameHelmApplicationTurnStateManager() {\n  return (\n    frameHelmApplicationRuntimeBindings\n      .getTurnStateManager?.() ??\n    null\n  );\n}\n\n\nfunction getFrameHelmApplicationCommittedPlan() {\n  return (\n    frameHelmApplicationRuntimeBindings\n      .getCommittedPlan?.() ??\n    Object.freeze({\n      empty:\n        true,\n\n      count:\n        0,\n\n      pendingCount:\n        0,\n\n      executedCount:\n        0,\n\n      entries:\n        Object.freeze([])\n    })\n  );\n}\n\n\nasync function executeFrameHelmApplicationActionRoll(",
-      "expected_matches": 1
-    },
-    {
-      "operation": "delete",
-      "file": "styles/ui_application/ui-application.js",
-      "find": "  committedPlanEntries(\n    state\n  ) {\n    if (\n      !state\n    ) {\n      return [];\n    }\n\n\n    const registry =\n      getFrameHelmApplicationActionRegistry();\n\n    const entries =\n      [];\n\n\n    for (\n      const event\n      of state.history ??\n        []\n    ) {\n      if (\n        event.type ===\n          \"movement-segment\" ||\n        event.type ===\n          \"movement-commit\"\n      ) {\n        const action =\n          registry.get(\n            event.data?.actionId\n          );\n\n\n        entries.push({\n          type:\n            \"movement\",\n\n          icon:\n            action?.icon ??\n            \"fas fa-shoe-prints\",\n\n          label:\n            action?.label ??\n            \"Movement\",\n\n          detail:\n            `${event.data?.distance ?? 0} space(s) committed`,\n\n          timestamp:\n            event.timestamp\n        });\n      }\n\n\n      if (\n        event.type ===\n          \"overcharge\"\n      ) {\n        entries.push({\n          type:\n            \"overcharge\",\n\n          icon:\n            \"fas fa-temperature-high\",\n\n          label:\n            \"Overcharge\",\n\n          detail:\n            `Heat ${event.data?.heatFormula ?? \"?\"}`,\n\n          timestamp:\n            event.timestamp\n        });\n      }\n\n\n      if (\n        event.type ===\n          \"use-protocol\"\n      ) {\n        const action =\n          registry.get(\n            event.data?.actionId\n          );\n\n\n        entries.push({\n          type:\n            \"protocol\",\n\n          icon:\n            action?.icon ??\n            \"fas fa-microchip\",\n\n          label:\n            action?.label ??\n            \"Protocol\",\n\n          detail:\n            \"Start-of-turn protocol\",\n\n          timestamp:\n            event.timestamp\n        });\n      }\n    }\n\n\n    for (\n      const usedAction\n      of state.usedActions ??\n        []\n    ) {\n      const action =\n        registry.get(\n          usedAction.actionId\n        );\n\n\n      if (\n        !action\n      ) {\n        continue;\n      }\n\n\n      entries.push({\n        type:\n          action.category,\n\n        icon:\n          action.icon ||\n          \"fas fa-bolt\",\n\n        label:\n          action.label,\n\n        detail:\n          usedAction.source ===\n          \"overcharge\"\n            ? \"Overcharge quick action\"\n            : action.cost ===\n                \"full\"\n              ? \"Full action\"\n              : action.cost ===\n                  \"quick\"\n                ? \"Quick action\"\n                : action.cost,\n\n        timestamp:\n          usedAction.timestamp\n      });\n    }\n\n\n    return (\n      entries.sort(\n        (\n          left,\n          right\n        ) => {\n          return (\n            left.timestamp -\n            right.timestamp\n          );\n        }\n      )\n    );\n  }\n",
-      "expected_matches": 1
-    },
-    {
-      "operation": "replace",
-      "file": "styles/ui_application/ui-application.js",
-      "find": "  renderCommittedPlan(\n    state\n  ) {\n    const entries =\n      this.committedPlanEntries(\n        state\n      );\n\n\n    const entryMarkup =\n      entries.length\n        ? entries\n            .map(\n              (\n                entry,\n                index\n              ) => {\n                return `\n                  <li class=\"frame-helm-plan-entry frame-helm-plan-${foundry.utils.escapeHTML(entry.type)}\">\n                    <span class=\"frame-helm-plan-index\">\n                      ${String(index + 1).padStart(2, \"0\")}\n                    </span>\n\n                    <i class=\"${foundry.utils.escapeHTML(entry.icon)}\"></i>\n\n                    <span class=\"frame-helm-plan-copy\">\n                      <strong>\n                        ${foundry.utils.escapeHTML(entry.label)}\n                      </strong>\n\n                      <small>\n                        ${foundry.utils.escapeHTML(entry.detail)}\n                      </small>\n                    </span>\n                  </li>\n                `;\n              }\n            )\n            .join(\n              \"\"\n            )\n        : `\n          <li class=\"frame-helm-plan-empty\">\n            <i class=\"fas fa-wave-square\"></i>\n            <span>No actions committed yet.</span>\n          </li>\n        `;\n\n\n    return `\n      <section class=\"frame-helm-plan-panel\">\n        <header class=\"frame-helm-plan-header\">\n          <div>\n            <span>\n              Committed Plan\n            </span>\n\n            <small>\n              ${\n                entries.length\n                  ? `${entries.length} declared step${entries.length === 1 ? \"\" : \"s\"}`\n                  : \"No declared steps\"\n              }\n            </small>\n          </div>\n\n          <i\n            class=\"fas fa-list-check frame-helm-plan-header-icon\"\n            aria-hidden=\"true\"\n          ></i>\n        </header>\n\n        <ol class=\"frame-helm-plan-list\">\n          ${entryMarkup}\n        </ol>\n      </section>\n    `;\n  }",
-      "replace": "  renderCommittedPlan() {\n    const committedPlan =\n      getFrameHelmApplicationCommittedPlan();\n\n\n    const entries =\n      committedPlan?.entries ??\n      [];\n\n\n    const entryMarkup =\n      entries.length\n        ? entries\n            .map(\n              entry => {\n                return `\n                  <li class=\"${foundry.utils.escapeHTML(entry.classNames)}\">\n                    <span class=\"frame-helm-plan-index\">\n                      ${foundry.utils.escapeHTML(entry.indexLabel)}\n                    </span>\n\n                    <i class=\"${foundry.utils.escapeHTML(entry.icon)}\"></i>\n\n                    <span class=\"frame-helm-plan-copy\">\n                      <strong>\n                        ${foundry.utils.escapeHTML(entry.label)}\n                      </strong>\n\n                      <small>\n                        ${foundry.utils.escapeHTML(entry.detail)}\n                      </small>\n                    </span>\n                  </li>\n                `;\n              }\n            )\n            .join(\n              \"\"\n            )\n        : `\n          <li class=\"frame-helm-plan-empty\">\n            <i class=\"fas fa-wave-square\"></i>\n            <span>No actions committed yet.</span>\n          </li>\n        `;\n\n\n    return `\n      <section class=\"frame-helm-plan-panel\">\n        <header class=\"frame-helm-plan-header\">\n          <div>\n            <span>\n              Committed Plan\n            </span>\n\n            <small>\n              ${\n                entries.length\n                  ? `${entries.length} declared step${entries.length === 1 ? \"\" : \"s\"}`\n                  : \"No declared steps\"\n              }\n            </small>\n          </div>\n\n          <i\n            class=\"fas fa-list-check frame-helm-plan-header-icon\"\n            aria-hidden=\"true\"\n          ></i>\n        </header>\n\n        <ol class=\"frame-helm-plan-list\">\n          ${entryMarkup}\n        </ol>\n      </section>\n    `;\n  }",
-      "expected_matches": 1
-    },
-    {
-      "operation": "replace",
-      "file": "styles/ui_application/ui-application.js",
-      "find": "      ${this.renderCommittedPlan(state)}\n    `;",
-      "replace": "      ${this.renderCommittedPlan()}\n    `;",
-      "expected_matches": 1
-    },
-    {
-      "operation": "replace",
-      "file": "styles/ui_application/ui-application.js",
-      "find": "    dependsOn: [\n      \"actions.registry\"\n    ],",
-      "replace": "    dependsOn: [\n      \"actions.registry\",\n      \"ui.turn.committed-actions\"\n    ],",
-      "expected_matches": 1
-    },
-    {
-      "operation": "replace",
-      "file": "scripts/runtime-orchestrator.js",
-      "find": "/* ------------------------------------------------------------\n   Application UI\n   ------------------------------------------------------------ */\n\nconst frameHelmApplicationApi =\n  frameHelmFeatureRegistry.getApi(\n    \"ui-application\"\n  );",
-      "replace": "/* ------------------------------------------------------------\n   Turn UI\n   ------------------------------------------------------------ */\n\nconst frameHelmTurnUiApi =\n  frameHelmFeatureRegistry.getApi(\n    \"ui-turn\"\n  );\n\n\nif (\n  !frameHelmTurnUiApi\n) {\n  throw new Error(\n    \"Frame Helm | The registered Turn UI feature API could not be resolved.\"\n  );\n}\n\n\n/* ------------------------------------------------------------\n   Application UI\n   ------------------------------------------------------------ */\n\nconst frameHelmApplicationApi =\n  frameHelmFeatureRegistry.getApi(\n    \"ui-application\"\n  );",
-      "expected_matches": 1
-    },
-    {
-      "operation": "replace",
-      "file": "scripts/runtime-orchestrator.js",
-      "find": "  frameHelmTurnApi\n    .configureRuntime?.({\n      getActionRegistry:\n        () =>\n          frameHelmActionRegistry,\n\n      renderApplication:\n        force =>\n          renderFrameHelmApplication(\n            force\n          )\n    });\n\n\n  /* ----------------------------------------------------------\n     Movement bindings\n     ---------------------------------------------------------- */",
-      "replace": "  frameHelmTurnApi\n    .configureRuntime?.({\n      getActionRegistry:\n        () =>\n          frameHelmActionRegistry,\n\n      renderApplication:\n        force =>\n          renderFrameHelmApplication(\n            force\n          )\n    });\n\n\n  /* ----------------------------------------------------------\n     Turn UI bindings\n     ---------------------------------------------------------- */\n\n  /**\n   * Turn UI converts authoritative Turn state into the canonical\n   * presentation model consumed by Application UI.\n   */\n  frameHelmTurnUiApi\n    .configureRuntime?.({\n      getTurnApi:\n        () =>\n          frameHelmTurnApi,\n\n      getActionRegistry:\n        () =>\n          frameHelmActionRegistry,\n\n      renderApplication:\n        force =>\n          renderFrameHelmApplication(\n            force\n          )\n    });\n\n\n  /* ----------------------------------------------------------\n     Movement bindings\n     ---------------------------------------------------------- */",
-      "expected_matches": 1
-    },
-    {
-      "operation": "replace",
-      "file": "scripts/runtime-orchestrator.js",
-      "find": "      getTurnStateManager:\n        () =>\n          getFrameHelmTurnStateManager(),\n\n      executeActionRoll:",
-      "replace": "      getTurnStateManager:\n        () =>\n          getFrameHelmTurnStateManager(),\n\n      getCommittedPlan:\n        () =>\n          frameHelmTurnUiApi\n            .getCommittedPlan(),\n\n      executeActionRoll:",
-      "expected_matches": 1
-    }
-  ]
+"schema_version": 2,
+"id": "write-semantic-execution-context-feature",
+"name": "Write Semantic Execution Context Feature",
+"description": "Replace the existing placeholder semantic-execution-context-feature.js with a thin canonical Frame Helm feature wrapper over semantic_execution_context/execution-context.js.",
+"backup": true,
+"allow_noop": false,
+"repository": {
+"require_git": true,
+"require_clean_targets": true,
+"require_clean_repository": false
+},
+"risk_acceptance": {
+"overwrite_files": true,
+"delete_files": false,
+"move_files": false,
+"change_dependencies": false,
+"modify_package_manifest": false
+},
+"preconditions": [
+{
+"type": "file_exists",
+"file": "scripts/feature_semantic_execution_context/semantic-execution-context-feature.js"
+},
+{
+"type": "file_exists",
+"file": "semantic_execution_context/execution-context.js"
+},
+{
+"type": "file_exists",
+"file": "scripts/feature-contract.js"
+}
+],
+"postconditions": [
+{
+"type": "contains",
+"file": "scripts/feature_semantic_execution_context/semantic-execution-context-feature.js",
+"text": "export const frameHelmSemanticExecutionContextFeature"
+},
+{
+"type": "contains",
+"file": "scripts/feature_semantic_execution_context/semantic-execution-context-feature.js",
+"text": "../../semantic_execution_context/execution-context.js"
+},
+{
+"type": "contains",
+"file": "scripts/feature_semantic_execution_context/semantic-execution-context-feature.js",
+"text": "buildExecutionContext"
+},
+{
+"type": "contains",
+"file": "scripts/feature_semantic_execution_context/semantic-execution-context-feature.js",
+"text": "buildNativeActionExecutionContext"
+}
+],
+"validation": {
+"structural": true,
+"scan_dependencies": true,
+"commands": []
+},
+"operations": [
+{
+"operation": "overwrite",
+"file": "scripts/feature_semantic_execution_context/semantic-execution-context-feature.js",
+"content": "/* ============================================================\n   FILE PATH / NAME\n   ============================================================ */\n/\n * scripts/feature_semantic_execution_context/semantic-execution-context-feature.js\n */\n\n/\n * @file\n * @path scripts/feature_semantic_execution_context/semantic-execution-context-feature.js\n * @module semantic-execution-context-feature\n * @layer frame-helm-runtime-feature\n * @responsibility expose-semantic-execution-context-through-the-canonical-frame-helm-feature-contract\n * @public-boundary true\n * @side-effects delegated-native-resolution-during-context-building\n *\n * ARCHITECTURAL ROLE:\n \n * semantic_execution_context/\n *      ↓\n * execution-context.js\n *      ↓\n * semantic-execution-context-feature.js\n *      ↓\n * feature-registry.js\n *      ↓\n * runtime-orchestrator.js\n *\n * THIS FILE OWNS:\n * - canonical Frame Helm Semantic Execution Context feature definition\n * - execution-context capability declaration\n * - registry-facing context-builder API\n * - registry-facing immutable context access and patch helpers\n * - feature-level diagnostics\n *\n * THIS FILE DOES NOT OWN:\n * - execution-context contracts\n * - execution-context construction implementation\n * - native Actor or Item resolution implementation\n * - System Bridge resolution/composition\n * - execution transaction sequencing\n * - action economy\n * - resource orchestration\n * - targeting legality\n * - lifecycle progression\n * - native Flow execution\n * - application startup orchestration\n *\n * EDIT CONTRACT:\n * - keep this file a thin feature wrapper\n * - do not duplicate semantic_execution_context behavior here\n * - do not import sibling runtime features directly\n * - feature-registry.js remains the registration boundary\n /\n\n/ ============================================================\n   IMPORTS\n   ============================================================ /\n\nimport {\n  defineFrameHelmFeature\n} from "../feature-contract.js";\n\nimport * as executionContextRuntime from\n  "../../semantic_execution_context/execution-context.js";\n\n/ ============================================================\n   FEATURE DIAGNOSTICS\n   ============================================================ /\n\nfunction getFrameHelmSemanticExecutionContextDiagnostics() {\n  return Object.freeze({\n    serviceId:\n      executionContextRuntime\n        .EXECUTION_CONTEXT_MODULE_ID ??\n      null,\n\n    serviceVersion:\n      executionContextRuntime\n        .EXECUTION_CONTEXT_MODULE_VERSION ??\n      null,\n\n    module:\n      executionContextRuntime\n        .getExecutionContextModuleDiagnostics()\n  });\n}\n\n/ ============================================================\n   FEATURE DEFINITION\n   ============================================================ */\n\n/**\n * Canonical Semantic Execution Context runtime feature declaration.\n *\n * This file defines the feature but does not register itself.\n * scripts/feature-registry.js remains the application-wide registration\n * boundary.\n /\nexport const frameHelmSemanticExecutionContextFeature =\n  defineFrameHelmFeature({\n    id:\n      "semantic-execution-context",\n\n    domain:\n      "semantic-execution-context",\n\n    provides: [\n      "semantic-execution-context",\n      "semantic-execution-context.builder",\n      "semantic-execution-context.identity",\n      "semantic-execution-context.targets",\n      "semantic-execution-context.access"\n    ],\n\n    dependsOn: [\n      "native-adapter"\n    ],\n\n    optionalDependsOn: [\n      "system-bridge",\n      "actions.registry",\n      "turn.state"\n    ],\n\n    state: {\n      service:\n        executionContextRuntime.executionContext\n    },\n\n    commands: {\n      build:\n        executionContextRuntime.buildExecutionContext,\n\n      buildChild:\n        executionContextRuntime.buildChildExecutionContext,\n\n      buildWeapon:\n        executionContextRuntime.buildWeaponExecutionContext,\n\n      buildNativeAction:\n        executionContextRuntime.buildNativeActionExecutionContext,\n\n      buildGrantedAction:\n        executionContextRuntime.buildGrantedActionExecutionContext,\n\n      buildPreparedAction:\n        executionContextRuntime.buildPreparedActionExecutionContext,\n\n      buildSecondaryAttack:\n        executionContextRuntime.buildSecondaryAttackExecutionContext,\n\n      buildReaction:\n        executionContextRuntime.buildReactionExecutionContext,\n\n      buildMovement:\n        executionContextRuntime.buildMovementExecutionContext,\n\n      rebuild:\n        executionContextRuntime.rebuildExecutionContext\n    },\n\n    queries: {\n      assertContext:\n        executionContextRuntime.assertExecutionContext,\n\n      executionId:\n        executionContextRuntime.getExecutionId,\n\n      semanticActionId:\n        executionContextRuntime.getSemanticActionId,\n\n      actor:\n        executionContextRuntime.getExecutionActor,\n\n      targets:\n        executionContextRuntime.getExecutionTargets,\n\n      hasTargets:\n        executionContextRuntime.hasExecutionTargets,\n\n      diagnostics:\n        getFrameHelmSemanticExecutionContextDiagnostics\n    },\n\n    hooks: {},\n\n    lifecycle: {},\n\n    api: {\n      service:\n        executionContextRuntime.executionContext,\n\n      diagnostics:\n        getFrameHelmSemanticExecutionContextDiagnostics,\n\n      buildExecutionContext:\n        executionContextRuntime.buildExecutionContext,\n\n      buildChildExecutionContext:\n        executionContextRuntime.buildChildExecutionContext,\n\n      buildWeaponExecutionContext:\n        executionContextRuntime.buildWeaponExecutionContext,\n\n      buildNativeActionExecutionContext:\n        executionContextRuntime.buildNativeActionExecutionContext,\n\n      buildGrantedActionExecutionContext:\n        executionContextRuntime.buildGrantedActionExecutionContext,\n\n      buildPreparedActionExecutionContext:\n        executionContextRuntime.buildPreparedActionExecutionContext,\n\n      buildSecondaryAttackExecutionContext:\n        executionContextRuntime.buildSecondaryAttackExecutionContext,\n\n      buildReactionExecutionContext:\n        executionContextRuntime.buildReactionExecutionContext,\n\n      buildMovementExecutionContext:\n        executionContextRuntime.buildMovementExecutionContext,\n\n      rebuildExecutionContext:\n        executionContextRuntime.rebuildExecutionContext,\n\n      assertExecutionContext:\n        executionContextRuntime.assertExecutionContext,\n\n      setExecutionContextPhase:\n        executionContextRuntime.setExecutionContextPhase,\n\n      patchExecutionContext:\n        executionContextRuntime.patchExecutionContext,\n\n      setExecutionTargets:\n        executionContextRuntime.setExecutionTargets,\n\n      addExecutionTarget:\n        executionContextRuntime.addExecutionTarget,\n\n      patchExecutionFlags:\n        executionContextRuntime.patchExecutionFlags,\n\n      getExecutionId:\n        executionContextRuntime.getExecutionId,\n\n      getParentExecutionId:\n        executionContextRuntime.getParentExecutionId,\n\n      getRootExecutionId:\n        executionContextRuntime.getRootExecutionId,\n\n      getExecutionDepth:\n        executionContextRuntime.getExecutionDepth,\n\n      getExecutionActor:\n        executionContextRuntime.getExecutionActor,\n\n      getExecutionPilot:\n        executionContextRuntime.getExecutionPilot,\n\n      getExecutionMech:\n        executionContextRuntime.getExecutionMech,\n\n      getExecutionControllerMode:\n        executionContextRuntime.getExecutionControllerMode,\n\n      getSemanticActionId:\n        executionContextRuntime.getSemanticActionId,\n\n      getSemanticActionDefinition:\n        executionContextRuntime.getSemanticActionDefinition,\n\n      getExecutionActivationType:\n        executionContextRuntime.getExecutionActivationType,\n\n      getExecutionSourceKind:\n        executionContextRuntime.getExecutionSourceKind,\n\n      getExecutionSourceItemUuid:\n        executionContextRuntime.getExecutionSourceItemUuid,\n\n      getExecutionSourceItemLid:\n        executionContextRuntime.getExecutionSourceItemLid,\n\n      getExecutionSourceActionPath:\n        executionContextRuntime.getExecutionSourceActionPath,\n\n      getExecutionSourceFeatureId:\n        executionContextRuntime.getExecutionSourceFeatureId,\n\n      getExecutionSourceIdentity:\n        executionContextRuntime.getExecutionSourceIdentity,\n\n      getExecutionWeapon:\n        executionContextRuntime.getExecutionWeapon,\n\n      getExecutionWeaponUuid:\n        executionContextRuntime.getExecutionWeaponUuid,\n\n      getExecutionWeaponProfileIndex:\n        executionContextRuntime.getExecutionWeaponProfileIndex,\n\n      getExecutionWeaponProfileName:\n        executionContextRuntime.getExecutionWeaponProfileName,\n\n      getExecutionMount:\n        executionContextRuntime.getExecutionMount,\n\n      getExecutionMountIndex:\n        executionContextRuntime.getExecutionMountIndex,\n\n      getExecutionMountSlot:\n        executionContextRuntime.getExecutionMountSlot,\n\n      getExecutionWeaponMod:\n        executionContextRuntime.getExecutionWeaponMod,\n\n      getExecutionTargets:\n        executionContextRuntime.getExecutionTargets,\n\n      getExecutionTargetCount:\n        executionContextRuntime.getExecutionTargetCount,\n\n      getExecutionTargetActorUuids:\n        executionContextRuntime.getExecutionTargetActorUuids,\n\n      getExecutionTargetTokenUuids:\n        executionContextRuntime.getExecutionTargetTokenUuids,\n\n      hasExecutionTargets:\n        executionContextRuntime.hasExecutionTargets,\n\n      getExecutionTemplate:\n        executionContextRuntime.getExecutionTemplate,\n\n      hasExecutionTemplate:\n        executionContextRuntime.hasExecutionTemplate,\n\n      getExecutionMovement:\n        executionContextRuntime.getExecutionMovement,\n\n      getExecutionMovementMode:\n        executionContextRuntime.getExecutionMovementMode,\n\n      getExecutionResourceContext:\n        executionContextRuntime.getExecutionResourceContext,\n\n      getExecutionEconomyContext:\n        executionContextRuntime.getExecutionEconomyContext,\n\n      isChildExecution:\n        executionContextRuntime.isChildExecution,\n\n      isSecondaryAttackExecution:\n        executionContextRuntime.isSecondaryAttackExecution,\n\n      isGrantedActionExecution:\n        executionContextRuntime.isGrantedActionExecution,\n\n      isPreparedActionExecution:\n        executionContextRuntime.isPreparedActionExecution,\n\n      isReactionExecution:\n        executionContextRuntime.isReactionExecution,\n\n      isMovementExecution:\n        executionContextRuntime.isMovementExecution,\n\n      isWeaponExecution:\n        executionContextRuntime.isWeaponExecution,\n\n      hasExecutionFlag:\n        executionContextRuntime.hasExecutionFlag,\n\n      createExecutionStrategyIdentity:\n        executionContextRuntime.createExecutionStrategyIdentity,\n\n      getExecutionContextDiagnostics:\n        executionContextRuntime.getExecutionContextDiagnostics\n    },\n\n    metadata: {\n      label:\n        "Semantic Execution Context",\n\n      description:\n        "Exposes canonical immutable Frame Helm execution-context construction and access through the feature registry.",\n\n      serviceBoundary:\n        "semantic_execution_context/execution-context.js",\n\n      authoritativeRegistry:\n        "scripts/feature-registry.js",\n\n      authoritativeRuntime:\n        "scripts/runtime-orchestrator.js",\n\n      nativeDependency:\n        "native-adapter",\n\n      upstreamRuntimeDescriptor:\n        "system-bridge",\n\n      downstreamExecutionAuthority:\n        "execution-transaction"\n    }\n  });\n\n/ ============================================================\n   TRANSITIONAL NAMED EXPORTS\n   ============================================================ */\n\nexport {\n  getFrameHelmSemanticExecutionContextDiagnostics\n};\n"
+}
+]
 }
