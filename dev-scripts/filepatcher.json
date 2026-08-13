@@ -1,9 +1,24 @@
 {
   "schema_version": 2,
-  "id": "bootstrap-verification",
-  "description": "No-op verification that the GitHub FilePatcher workflow is wired correctly.",
+  "id": "register-execution-spine-features",
+  "description": "Register System Bridge, Semantic Execution Context, Execution Transaction, and Native Adapter in the canonical Frame Helm runtime feature registry.",
   "policy": {
     "max_files_changed": 1
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "scripts/feature-registry.js",
+      "search": "import {\n  frameHelmTargetingSpatialFeature\n} from \"./feature_targeting_spatial/targeting-spatial-feature.js\";\n\n\n/* ============================================================\n   Imports -- Executable UI package",
+      "replace": "import {\n  frameHelmTargetingSpatialFeature\n} from \"./feature_targeting_spatial/targeting-spatial-feature.js\";\n\n\nimport {\n  frameHelmSystemBridgeFeature\n} from \"./feature_system_bridge/system-bridge-feature.js\";\n\n\nimport {\n  frameHelmSemanticExecutionContextFeature\n} from \"./feature_semantic_execution_context/semantic-execution-context-feature.js\";\n\n\nimport {\n  frameHelmExecutionTransactionFeature\n} from \"../execution_transaction/execution-transaction-feature.js\";\n\n\nimport {\n  frameHelmNativeAdapterFeature\n} from \"../native_adapter/native-adapter-feature.js\";\n\n\n/* ============================================================\n   Imports -- Executable UI package",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/feature-registry.js",
+      "search": "    frameHelmActionExecutionFeature,\n    frameHelmLifecycleFeature,\n    frameHelmTargetingSpatialFeature\n  ]);",
+      "replace": "    frameHelmActionExecutionFeature,\n    frameHelmLifecycleFeature,\n    frameHelmTargetingSpatialFeature,\n    frameHelmSystemBridgeFeature,\n    frameHelmSemanticExecutionContextFeature,\n    frameHelmExecutionTransactionFeature,\n    frameHelmNativeAdapterFeature\n  ]);",
+      "expected_occurrences": 1
+    }
+  ]
 }
