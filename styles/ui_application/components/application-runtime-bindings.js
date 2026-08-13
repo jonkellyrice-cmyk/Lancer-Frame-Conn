@@ -12,6 +12,20 @@ const frameHelmApplicationRuntimeBindings = {
   getTurnStateManager:
     null,
 
+  /**
+   * Canonical Application execution boundary.
+   *
+   * The Application UI supplies actor/action intent only. Runtime
+   * composition owns whatever execution architecture sits behind
+   * this function.
+   */
+  executeAction:
+    null,
+
+  /**
+   * Transitional compatibility binding retained while existing
+   * runtime composition migrates from executeActionRoll.
+   */
   executeActionRoll:
     null,
 
@@ -94,6 +108,17 @@ function configureFrameHelmApplicationRuntime(
    ============================================================ */
 
 function getFrameHelmApplicationRuntimeBindings() {
+  const canonicalActionExecution =
+    typeof frameHelmApplicationRuntimeBindings
+      .executeAction ===
+      "function";
+
+  const legacyActionExecution =
+    typeof frameHelmApplicationRuntimeBindings
+      .executeActionRoll ===
+      "function";
+
+
   return Object.freeze({
     actionRegistry:
       typeof frameHelmApplicationRuntimeBindings
@@ -111,9 +136,12 @@ function getFrameHelmApplicationRuntimeBindings() {
         "function",
 
     actionExecution:
-      typeof frameHelmApplicationRuntimeBindings
-        .executeActionRoll ===
-        "function",
+      canonicalActionExecution ||
+      legacyActionExecution,
+
+    canonicalActionExecution,
+
+    legacyActionExecution,
 
     telemetryRefresh:
       typeof frameHelmApplicationRuntimeBindings
@@ -164,11 +192,21 @@ function getFrameHelmApplicationTurnStateManager() {
 }
 
 
-async function executeFrameHelmApplicationActionRoll(
+/**
+ * Canonical UI-facing execution command.
+ *
+ * This component deliberately knows nothing about System Bridge,
+ * execution transactions, targeting, native adapters, or Foundry
+ * Lancer workflow internals. Those remain behind runtime
+ * composition.
+ */
+async function executeFrameHelmApplicationAction(
   actor,
   action
 ) {
   const executor =
+    frameHelmApplicationRuntimeBindings
+      .executeAction ??
     frameHelmApplicationRuntimeBindings
       .executeActionRoll;
 
@@ -190,6 +228,24 @@ async function executeFrameHelmApplicationActionRoll(
 }
 
 
+/**
+ * Transitional compatibility alias.
+ *
+ * Existing Application components may continue calling the old
+ * roll-named boundary until their next scoped migration. Both paths
+ * terminate at the same canonical runtime execution command.
+ */
+async function executeFrameHelmApplicationActionRoll(
+  actor,
+  action
+) {
+  return executeFrameHelmApplicationAction(
+    actor,
+    action
+  );
+}
+
+
 /* ============================================================
    Exports
    ============================================================ */
@@ -200,5 +256,6 @@ export {
   getFrameHelmApplicationActionRegistry,
   getFrameHelmApplicationTurnState,
   getFrameHelmApplicationTurnStateManager,
+  executeFrameHelmApplicationAction,
   executeFrameHelmApplicationActionRoll
 };
