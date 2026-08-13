@@ -42,6 +42,154 @@ function getFrameHelmTurnUiAction(
 
 
 /* ============================================================
+   Turn UI committed-action execution presentation
+   ============================================================ */
+
+/**
+ * Universal actions which currently commit Turn state without an
+ * actor-sheet roll/workflow.
+ *
+ * This presentation-only mirror exists so the canonical committed
+ * plan can decide whether to expose a d20 execution control without
+ * importing the Action Execution feature directly across feature
+ * boundaries.
+ */
+const FRAME_HELM_TURN_UI_NO_ROLL_ACTION_IDS =
+  Object.freeze(
+    new Set([
+      "movement.standard",
+      "movement.jump",
+      "movement.climb",
+      "movement.fly",
+      "movement.teleport",
+
+      "quick.boost",
+      "quick.hide",
+      "quick.prepare",
+      "quick.shut-down",
+      "quick.self-destruct",
+
+      "full.disengage",
+      "full.boot-up",
+      "full.mount-dismount",
+
+      "special.end-turn"
+    ])
+  );
+
+
+/**
+ * Determine whether a committed action has an actor-sheet roll or
+ * execution workflow available through the current universal-action
+ * execution surface.
+ */
+function frameHelmTurnUiCommittedActionCanRoll(
+  action
+) {
+  if (
+    !action?.id
+  ) {
+    return false;
+  }
+
+
+  return (
+    !FRAME_HELM_TURN_UI_NO_ROLL_ACTION_IDS
+      .has(
+        action.id
+      )
+  );
+}
+
+
+/**
+ * Build the presentation-only execution control contract consumed
+ * by the Application UI.
+ *
+ * The control carries both the committed-entry id and action id so
+ * execution can address the exact committed action rather than only
+ * the underlying universal-action definition.
+ */
+function buildFrameHelmTurnCommittedActionExecutionPresentation(
+  action,
+  entry
+) {
+  const committedActionId =
+    entry?.id ??
+    null;
+
+  const actionId =
+    entry?.actionId ??
+    action?.id ??
+    null;
+
+  const executed =
+    Boolean(
+      entry?.executed
+    );
+
+  const executable =
+    Boolean(
+      committedActionId &&
+      actionId
+    );
+
+  const canRoll =
+    frameHelmTurnUiCommittedActionCanRoll(
+      action
+    );
+
+  const showExecuteControl =
+    Boolean(
+      executable &&
+      canRoll &&
+      !executed
+    );
+
+
+  return Object.freeze({
+    committedActionId,
+
+    actionId,
+
+    executable,
+
+    canRoll,
+
+    showExecuteControl,
+
+    requiresTarget:
+      Boolean(
+        action?.requiresTarget
+      ),
+
+    targetType:
+      action?.targetType ??
+      null,
+
+    control:
+      Object.freeze({
+        visible:
+          showExecuteControl,
+
+        kind:
+          "roll",
+
+        icon:
+          "fas fa-dice-d20",
+
+        label:
+          "Execute",
+
+        committedActionId,
+
+        actionId
+      })
+  });
+}
+
+
+/* ============================================================
    Turn UI committed-action presentation
    ============================================================ */
 
@@ -163,11 +311,20 @@ function buildFrameHelmTurnCommittedActionPresentation(
       entry
     );
 
+  const execution =
+    buildFrameHelmTurnCommittedActionExecutionPresentation(
+      action,
+      entry
+    );
+
 
   return Object.freeze({
     id:
       entry?.id ??
       null,
+
+    committedActionId:
+      execution.committedActionId,
 
     index:
       index + 1,
@@ -222,10 +379,22 @@ function buildFrameHelmTurnCommittedActionPresentation(
       null,
 
     executable:
-      Boolean(
-        entry?.id &&
-        entry?.actionId
-      ),
+      execution.executable,
+
+    canRoll:
+      execution.canRoll,
+
+    showExecuteControl:
+      execution.showExecuteControl,
+
+    requiresTarget:
+      execution.requiresTarget,
+
+    targetType:
+      execution.targetType,
+
+    executeControl:
+      execution.control,
 
     executed:
       Boolean(
@@ -408,6 +577,9 @@ function buildFrameHelmTurnCommittedHistoryPresentation(
     id:
       null,
 
+    committedActionId:
+      null,
+
     index:
       index + 1,
 
@@ -445,6 +617,38 @@ function buildFrameHelmTurnCommittedHistoryPresentation(
 
     executable:
       false,
+
+    canRoll:
+      false,
+
+    showExecuteControl:
+      false,
+
+    requiresTarget:
+      false,
+
+    targetType:
+      null,
+
+    executeControl:
+      Object.freeze({
+        visible:
+          false,
+
+        kind:
+          "roll",
+
+        icon:
+          "fas fa-dice-d20",
+
+        label:
+          "Execute",
+
+        committedActionId:
+          null,
+
+        actionId
+      }),
 
     executed:
       false,
@@ -679,7 +883,10 @@ function buildFrameHelmTurnCommittedPlanPresentation(
    ============================================================ */
 
 export {
+  FRAME_HELM_TURN_UI_NO_ROLL_ACTION_IDS,
   getFrameHelmTurnUiAction,
+  frameHelmTurnUiCommittedActionCanRoll,
+  buildFrameHelmTurnCommittedActionExecutionPresentation,
   frameHelmTurnUiCommittedActionKind,
   frameHelmTurnUiCommittedActionDetail,
   buildFrameHelmTurnCommittedActionPresentation,
