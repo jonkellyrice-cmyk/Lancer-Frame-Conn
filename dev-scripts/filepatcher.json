@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
-  "id": "harden-repo-audit-and-reset-local-patcher-spec",
-  "description": "Make the repository integrity auditor inspect only the live tree and distinguish executable imports/feature declarations from documentation examples, while resetting the stale malformed local Python FilePatcher spec to a valid neutral no-op.",
+  "id": "harden-repo-audit-and-reset-local-patcher-spec-v2",
+  "description": "Make the repository integrity auditor inspect only the live tree, distinguish executable imports/features from documentation examples, exclude the feature-contract factory and auditor itself from feature declaration enumeration, and reset the stale malformed local Python FilePatcher spec to a valid neutral no-op.",
   "policy": {
     "max_files_changed": 2
   },
@@ -25,6 +25,13 @@
       "path": "dev_scripts/repo-audit.mjs",
       "search": "  const needle =\n    \"defineFrameConnFeature\";\n\n\n  let searchIndex =\n    0;\n\n\n  while (\n    true\n  ) {\n    const callIndex =\n      text.indexOf(\n        needle,\n        searchIndex\n      );\n\n\n    if (\n      callIndex <\n      0\n    ) {\n      break;\n    }\n\n\n    const openParenthesis =\n      text.indexOf(\n        \"(\",\n        callIndex +\n        needle.length\n      );\n\n\n    if (\n      openParenthesis <\n      0\n    ) {\n      break;\n    }",
       "replace": "  const callPattern =\n    /\\bdefineFrameConnFeature\\s*\\(/g;\n\n\n  let searchIndex =\n    0;\n\n\n  while (\n    true\n  ) {\n    callPattern.lastIndex =\n      searchIndex;\n\n\n    const callMatch =\n      callPattern.exec(\n        text\n      );\n\n\n    if (\n      !callMatch\n    ) {\n      break;\n    }\n\n\n    const callIndex =\n      callMatch.index;\n\n\n    const openParenthesis =\n      text.indexOf(\n        \"(\",\n        callIndex\n      );\n\n\n    if (\n      openParenthesis <\n      0\n    ) {\n      break;\n    }",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/repo-audit.mjs",
+      "search": "  const features =\n    javascriptFiles.flatMap(\n      file =>\n        extractFeatureDeclarations(\n          file,\n          textByFile.get(\n            file\n          ) ??\n          \"\"\n        )\n    );",
+      "replace": "  const featureDeclarationExcludedFiles =\n    new Set([\n      \"scripts/feature-contract.js\",\n      \"dev_scripts/repo-audit.mjs\"\n    ]);\n\n\n  const features =\n    javascriptFiles\n      .filter(\n        file =>\n          !featureDeclarationExcludedFiles.has(\n            relativePath(\n              file\n            )\n          )\n      )\n      .flatMap(\n        file =>\n          extractFeatureDeclarations(\n            file,\n            textByFile.get(\n              file\n            ) ??\n            \"\"\n          )\n      );",
       "expected_occurrences": 1
     },
     {
