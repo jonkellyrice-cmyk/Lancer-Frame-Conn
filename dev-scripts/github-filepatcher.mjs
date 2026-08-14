@@ -1,6 +1,8 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 
 const ROOT = process.cwd();
 const PATCH_FILE = path.join(ROOT, "dev-scripts", "filepatcher.json");
@@ -319,6 +321,61 @@ function applyMutationPlan(plan) {
   }
 }
 
+function rollbackMutationPlan(plan) {
+  const rollbackErrors = [];
+
+  for (const relativePath of [...plan.changedFiles].reverse()) {
+    const original = plan.originalFiles.get(relativePath);
+    const absolutePath = resolveRepoPath(relativePath);
+
+    try {
+      if (original?.exists) {
+        fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+        fs.writeFileSync(absolutePath, original.content, "utf8");
+      } else if (fs.existsSync(absolutePath)) {
+        fs.unlinkSync(absolutePath);
+      }
+    } catch (error) {
+      rollbackErrors.push(`${relativePath}: ${error}`);
+    }
+  }
+
+  if (rollbackErrors.length > 0) {
+    fail(`Repository-audit rollback encountered error(s): ${rollbackErrors.join(" | ")}`);
+  }
+}
+
+function runRepositoryAudit() {
+  const auditScript = path.join(ROOT, "dev_scripts", "repo-audit.mjs");
+  if (!fs.existsSync(auditScript)) fail(`Repository audit script not found: ${auditScript}`);
+
+  const outputFile = path.join(os.tmpdir(), `frame-conn-repo-audit-${process.pid}.json`);
+  const result = spawnSync(
+    process.execPath,
+    [auditScript, "--output", outputFile],
+    { cwd: ROOT, encoding: "utf8" }
+  );
+
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+
+  if (result.error) {
+    fail(`Repository audit could not start: ${result.error}`);
+  }
+
+  if (result.status !== 0) {
+    let report = "";
+    try {
+      if (fs.existsSync(outputFile)) report = fs.readFileSync(outputFile, "utf8");
+    } catch {}
+
+    if (report) console.error(`[github-filepatcher] Repository audit findings:\n${report}`);
+    fail(`Repository audit failed with exit code ${result.status}.`);
+  }
+
+  console.log("[github-filepatcher] Repository audit passed.");
+}
+
 function main() {
   try {
     const patch = readPatchFile();
@@ -335,6 +392,15 @@ function main() {
     }
 
     applyMutationPlan(plan);
+
+    try {
+      runRepositoryAudit();
+    } catch (auditError) {
+      console.error("[github-filepatcher] Repository audit failed; rolling back applied patch.");
+      rollbackMutationPlan(plan);
+      throw auditError;
+    }
+
     console.log("[github-filepatcher] Patch completed successfully.");
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
