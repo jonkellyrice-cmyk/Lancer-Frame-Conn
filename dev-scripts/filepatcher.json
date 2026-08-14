@@ -1,31 +1,9 @@
 {
   "schema_version": 2,
-  "id": "finish-safe-pattern-aware-dsl-v3",
-  "description": "Finish conservative pattern-aware DSL activation with quote-free structural self-tests, single-line UI-control support, and safe exemplar-driven documentation.",
+  "id": "validate-pattern-aware-dsl-gate",
+  "description": "No-op validation that the committed pattern-aware Patch DSL self-test independently proves UI-control, object-entry, and switch-case exemplar cloning before repository diagnostics.",
   "policy": {
-    "max_files_changed": 2
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/patch-dsl-compiler.mjs",
-      "search": "    const pattern = /(^[ \\t]*<button\\b[\\s\\S]*?^[ \\t]*<\\/button>)/gm;",
-      "replace": "    const pattern = /(^[ \\t]*<button\\b[\\s\\S]*?<\\/button>)/gm;",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/patch-dsl-compiler.mjs",
-      "search": "function runSelfTest() {\n  const fixture = `patch self-test\\nmax-files 1\\nfile scripts/self-test.js\\nwithin demo\\nreplace once\\n<<<\\noldThing()\\n>>>\\nwith\\n<<<\\nnewThing()\\n>>>\\nglobal\\nafter once\\n<<<\\nexport const y = 1;\\n>>>\\nadd\\n<<<\\n\\nexport const z = 2;\\n>>>`;\n  const seeded = new Map([[\"scripts/self-test.js\", \"export function demo() {\\n  return oldThing();\\n}\\n\\nexport const y = 1;\\n\"]]);\n  const { patch } = parseDsl(fixture, seeded);\n  if (patch.operations.length !== 2) fail(`Self-test expected 2 operations, found ${patch.operations.length}.`);\n  if (!patch.operations[0].replace.includes(\"newThing()\")) fail(\"Self-test symbol-scoped replacement failed.\");\n  if (!patch.operations[1].replace.includes(\"export const z = 2;\")) fail(\"Self-test global insertion failed.\");\n  console.log(\"[patch-dsl] Self-test passed.\");\n}",
-      "replace": "function runSelfTest() {\n  const fixture = `patch self-test\nmax-files 1\nfile scripts/self-test.js\nwithin demo\nreplace once\n<<<\noldThing()\n>>>\nwith\n<<<\nnewThing()\n>>>\nclone-pattern ui-control after\nmap\n<<<\n{\n  \"do-old\": \"do-new\",\n  \"Old\": \"New\"\n}\n>>>\nglobal\nafter once\n<<<\nexport const y = 1;\n>>>\nadd\n<<<\n\nexport const z = 2;\n>>>\nfile scripts/self-test.js\nwithin bindings\nclone-pattern object-entry after containing executeOld\nmap\n<<<\n{\n  \"executeOld\": \"executeNew\"\n}\n>>>\nfile scripts/self-test.js\nwithin route\nclone-pattern switch-case after containing oldRoute\nmap\n<<<\n{\n  \"OLD_ROUTE\": \"NEW_ROUTE\",\n  \"oldRoute\": \"newRoute\"\n}\n>>>`;\n  const seeded = new Map([[\n    \"scripts/self-test.js\",\n    `export function demo() {\n  const view = \\`\n    <button class=\"do-old\">Old</button>\n  \\`;\n  return oldThing();\n}\n\nexport const bindings = {\n  executeOld:\n    null\n};\n\nexport function route(kind) {\n  switch (kind) {\n    case OLD_ROUTE:\n      return oldRoute();\n    default:\n      return fallbackRoute();\n  }\n}\n\nexport const y = 1;\n`\n  ]]);\n  const { patch } = parseDsl(fixture, seeded);\n  if (patch.operations.length !== 5) fail(`Self-test expected 5 operations, found ${patch.operations.length}.`);\n  if (!patch.operations[0].replace.includes(\"newThing()\")) fail(\"Self-test symbol-scoped replacement failed.\");\n  if (!patch.operations[1].replace.includes('class=\"do-new\">New</button>')) fail(\"Self-test UI-control pattern cloning failed.\");\n  if (!patch.operations[2].replace.includes(\"export const z = 2;\")) fail(\"Self-test global insertion failed.\");\n  if (!patch.operations[3].replace.includes(\"executeNew\")) fail(\"Self-test object-entry pattern cloning failed.\");\n  if (!patch.operations[4].replace.includes(\"case NEW_ROUTE:\") || !patch.operations[4].replace.includes(\"newRoute()\")) {\n    fail(\"Self-test switch-case pattern cloning failed.\");\n  }\n  console.log(\"[patch-dsl] Self-test passed.\");\n}",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/PATCH_DSL.md",
-      "search": "The DSL intentionally has no loops, variables, functions, conditions, or hidden architectural macros. It compresses repetitive FilePatcher authoring; it does not replace FilePatcher semantics.",
-      "replace": "The DSL intentionally has no loops, variables, functions, conditions, or hidden architectural macros. It compresses repetitive FilePatcher authoring; it does not replace FilePatcher semantics.\n\n## Pattern-aware shorthand\n\nFor repetitive code shapes, prefer `clone-pattern` over reproducing local boilerplate. Pattern expansion is deliberately conservative:\n\n- it only works inside `within <symbol>`;\n- it copies an existing exemplar from that exact symbol;\n- if more than one exemplar matches, compilation fails unless `containing <needle>` identifies exactly one;\n- every token in the `map` block must exist in the exemplar;\n- the compiler never invents a React/HTML/runtime/registry shape when it cannot prove one locally.\n\nSupported initial shapes are:\n\n- `ui-control` — clones one local `<button>...</button>` block, preserving the file's existing markup/JSX/template-string formatting;\n- `object-entry` — clones one top-level property of an object-valued symbol and handles comma placement;\n- `switch-case` — clones one local `case`/`default` block.\n\nExample:\n\n```text\nfile styles/ui_application/components/application-committed-plan.js\nwithin renderCommittedPlan\n\nclone-pattern ui-control after containing frame-conn-plan-execute\nmap\n<<<\n{\n  \"frame-conn-plan-execute\": \"frame-conn-plan-scan\",\n  \"executeLabel\": \"scanLabel\",\n  \"executeIcon\": \"scanIcon\"\n}\n>>>\n```\n\nThe generated edit reuses the exact existing button structure and formatting. If the target symbol has exactly one button, `containing ...` may be omitted.\n\nObject/runtime patterns use the same mechanism:\n\n```text\nfile scripts/feature_actions/action-execution-feature.js\nwithin frameConnActionExecutionRuntimeBindings\n\nclone-pattern object-entry after containing executeCanonicalAction\nmap\n<<<\n{\n  \"executeCanonicalAction\": \"executeNativeScan\"\n}\n>>>\n```\n\nThis is intentionally exemplar-driven rather than a generic code generator. If local structure is ambiguous or unsupported, use explicit `replace`/`before`/`after` or `raw`.",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
