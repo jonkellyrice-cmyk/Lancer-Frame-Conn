@@ -1,23 +1,16 @@
 {
   "schema_version": 2,
-  "id": "restore-proven-foundry-startup-order",
-  "description": "Restore the known-good Frame Helm startup ordering by installing feature hooks during Foundry init only after runtime bindings, settings registration, action initialization, and dependency validation.",
+  "id": "fix-native-adapter-module-namespace-freeze",
+  "description": "Prevent Frame Helm import-time failure by removing Object.freeze calls around ES module namespace objects in the Native Adapter while preserving the frozen outer adapter namespace.",
   "policy": {
     "max_files_changed": 1
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "/* ============================================================\n   Foundry hook installation\n   ============================================================ */\n\n/**\n * Feature-owned Foundry hooks must be installed as soon as the module is\n * evaluated. In particular, getSceneControlButtons may fire before the\n * module's init callback has completed, so deferring hook installation to\n * init can cause Frame Helm to miss the Token Controls construction event.\n *\n * Feature registration and dependency validation have already completed in\n * feature-registry.js before this orchestrator is evaluated.\n */\nframeHelmFeatureRegistry\n  .installHooks();\n\n\n/* ============================================================\n   Foundry lifecycle\n   ============================================================ */",
-      "replace": "/* ============================================================\n   Foundry lifecycle\n   ============================================================ */",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "    frameHelmFeatureRegistry\n      .validateDependencies();\n\n  }\n);",
-      "replace": "    frameHelmFeatureRegistry\n      .validateDependencies();\n\n\n    /**\n     * Install feature-owned Foundry hooks only after runtime bindings,\n     * settings registration, Actions initialization, and dependency\n     * validation have completed.\n     *\n     * This restores the known-good startup ordering used by the working\n     * d0cd008 runtime and prevents Foundry Integration hooks from reading\n     * module settings before those settings exist.\n     */\n    frameHelmFeatureRegistry\n      .installHooks();\n\n  }\n);",
+      "path": "native_adapter/native-adapter.js",
+      "search": "    contract:\n      Object.freeze(contract),\n\n    actors:\n      Object.freeze(actors),\n\n    items:\n      Object.freeze(items),\n\n    loadout:\n      Object.freeze(loadout),\n\n    resources:\n      Object.freeze(resources),\n\n    status:\n      Object.freeze(status),\n\n    rolls:\n      Object.freeze(rolls),\n\n    combat:\n      Object.freeze(combat),\n\n    execution:\n      Object.freeze(execution)",
+      "replace": "    contract,\n    actors,\n    items,\n    loadout,\n    resources,\n    status,\n    rolls,\n    combat,\n    execution",
       "expected_occurrences": 1
     }
   ]
