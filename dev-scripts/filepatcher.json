@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "id": "add-dependency-watershed-reporting-to-repo-audit",
+  "id": "add-dependency-watershed-reporting-to-repo-audit-v2",
   "description": "Upgrade repo-audit.mjs into a dependency-flow watershed auditor: preserve existing validation, restore feature capability parsing, summarize runtime/UI rivers with file/symbol/join statistics, and expand only unhealthy streams with topology diagnostics.",
   "policy": {
     "max_files_changed": 1
@@ -16,8 +16,8 @@
     {
       "type": "replace_text",
       "path": "dev_scripts/repo-audit.mjs",
-      "search": "function extractStringArrayProperty(\n  objectText,\n  property\n) {\n  const regex =\n    new RegExp(\n      `\\\\b${property}\\\\s*:\\\\s*\\$begin:math:display$\\(\\[\\\\\\\\s\\\\\\\\S\\]\\*\\?\\)\\$end:math:display$`\n    );\n\n\n  const match =\n    objectText.match(\n      regex\n    );\n\n\n  if (\n    !match\n  ) {\n    return [];\n  }\n\n\n  const values =\n    [];\n\n\n  const stringRegex =\n    /[\"'`]([^\"'`]+)[\"'`]/g;\n\n\n  let stringMatch;\n\n\n  while (\n    (\n      stringMatch =\n        stringRegex.exec(\n          match[1]\n        )\n    )\n  ) {\n    values.push(\n      stringMatch[1]\n    );\n  }\n\n\n  return values;\n}",
-      "replace": "function extractStringArrayProperty(\n  objectText,\n  property\n) {\n  const regex =\n    new RegExp(\n      `\\\\b${property}\\\\s*:\\\\s*\\\\[([\\\\s\\\\S]*?)\\\\]`\n    );\n\n\n  const match =\n    objectText.match(\n      regex\n    );\n\n\n  if (\n    !match\n  ) {\n    return [];\n  }\n\n\n  const values =\n    [];\n\n\n  const stringRegex =\n    /[\"'`]([^\"'`]+)[\"'`]/g;\n\n\n  let stringMatch;\n\n\n  while (\n    (\n      stringMatch =\n        stringRegex.exec(\n          match[1]\n        )\n    )\n  ) {\n    values.push(\n      stringMatch[1]\n    );\n  }\n\n\n  return values;\n}",
+      "search": "      `\\\\b${property}\\\\s*:\\\\s*\\$begin:math:display$\\(\\[\\\\\\\\s\\\\\\\\S\\]\\*\\?\\)\\\\$end:math:display$`",
+      "replace": "      `\\\\b${property}\\\\s*:\\\\s*\\\\[([\\\\s\\\\S]*?)\\\\]`",
       "expected_occurrences": 1
     },
     {
