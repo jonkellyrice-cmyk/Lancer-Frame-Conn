@@ -1,37 +1,16 @@
 {
   "schema_version": 2,
-  "id": "correct-ui-branding-to-frame-conn",
-  "description": "Correct user-facing branding from Pilot Conn to Frame Conn while preserving internal module ids, feature ids, CSS classes, public APIs, and repository URLs.",
+  "id": "update-repository-urls-for-frame-conn",
+  "description": "Update canonical repository URLs in module.json after renaming the GitHub repository to Lancer-Frame-Conn while preserving the existing Foundry module id lancer-frame-helm.",
   "policy": {
-    "max_files_changed": 3
+    "max_files_changed": 1
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "styles/ui_application/ui-application.js",
-      "search": "const MODULE_TITLE =\n  \"Pilot Conn\";",
-      "replace": "const MODULE_TITLE =\n  \"Frame Conn\";",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/foundry-integration-feature.js",
-      "search": "const MODULE_TITLE =\n  \"Pilot Conn\";",
-      "replace": "const MODULE_TITLE =\n  \"Frame Conn\";",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/foundry-integration-feature.js",
-      "search": "      name:\n        \"Enable Pilot Conn\",\n\n      hint:\n        \"Enables the Pilot Conn action-selection interface.\",",
-      "replace": "      name:\n        \"Enable Frame Conn\",\n\n      hint:\n        \"Enables the Frame Conn action-selection interface.\",",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
       "path": "module.json",
-      "search": "  \"title\": \"Pilot Conn\",",
-      "replace": "  \"title\": \"Frame Conn\",",
+      "search": "  \"manifest\": \"https://raw.githubusercontent.com/jonkellyrice-cmyk/lancer-frame-helm/main/module.json\",\n\n  \"download\": \"https://github.com/jonkellyrice-cmyk/lancer-frame-helm/archive/refs/heads/main.zip\"",
+      "replace": "  \"manifest\": \"https://raw.githubusercontent.com/jonkellyrice-cmyk/Lancer-Frame-Conn/main/module.json\",\n\n  \"download\": \"https://github.com/jonkellyrice-cmyk/Lancer-Frame-Conn/archive/refs/heads/main.zip\"",
       "expected_occurrences": 1
     }
   ]
