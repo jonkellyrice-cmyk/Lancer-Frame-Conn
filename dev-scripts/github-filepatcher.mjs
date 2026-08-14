@@ -57,6 +57,9 @@ function readPatchFile() {
   if (!Array.isArray(parsed.operations)) fail("filepatcher.json must contain an operations array.");
   if (parsed.id !== undefined && (typeof parsed.id !== "string" || !parsed.id.trim())) fail("Patch id must be a non-empty string when provided.");
   if (parsed.description !== undefined && typeof parsed.description !== "string") fail("Patch description must be a string when provided.");
+  if (parsed.planning_goal !== undefined && (typeof parsed.planning_goal !== "string" || !parsed.planning_goal.trim())) {
+    fail("planning_goal must be a non-empty string when provided.");
+  }
 
   const policy = parsed.policy ?? {};
   if (!policy || typeof policy !== "object" || Array.isArray(policy)) fail("policy must be an object when provided.");
@@ -70,6 +73,7 @@ function readPatchFile() {
   return {
     id: parsed.id,
     description: parsed.description,
+    planningGoal: parsed.planning_goal?.trim() ?? null,
     operations: parsed.operations,
     policy: {
       maxFilesChanged,
@@ -438,15 +442,59 @@ function runEffectAtlasAudit() {
   console.log("[github-filepatcher] Effect atlas passed.");
 }
 
+function runPatchCorridorPlanner(goal) {
+  const plannerScript = path.join(ROOT, "dev_scripts", "patch-corridor-planner.mjs");
+  if (!fs.existsSync(plannerScript)) fail(`Patch corridor planner not found: ${plannerScript}`);
+
+  const outputFile = path.join(os.tmpdir(), `frame-conn-patch-corridor-${process.pid}.json`);
+  const result = spawnSync(
+    process.execPath,
+    [plannerScript, "--goal", goal, "--output", outputFile],
+    { cwd: ROOT, encoding: "utf8" }
+  );
+
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+  if (result.error) fail(`Patch corridor planner could not start: ${result.error}`);
+  if (result.status !== 0) fail(`Patch corridor planner failed with exit code ${result.status}.`);
+
+  try {
+    return JSON.parse(fs.readFileSync(outputFile, "utf8"));
+  } catch (error) {
+    fail(`Patch corridor report could not be read: ${error}`);
+  }
+}
+
+function reportCorridorScope(plan, corridorReport) {
+  if (!corridorReport) return;
+  const predicted = new Set((corridorReport.files ?? []).map(entry => entry.file));
+  const outside = plan.changedFiles.filter(file => !predicted.has(file));
+
+  console.log(`[github-filepatcher] corridor_predicted_files=${predicted.size}`);
+  console.log(`[github-filepatcher] corridor_changed_inside=${plan.changedFiles.length - outside.length}`);
+  console.log(`[github-filepatcher] corridor_changed_outside=${outside.length}`);
+  outside.forEach(file => console.warn(`[github-filepatcher] corridor_outside=${file}`));
+}
+
 function main() {
   try {
     const patch = readPatchFile();
     const plan = buildMutationPlan(patch);
+    const corridorReport = patch.planningGoal
+      ? runPatchCorridorPlanner(patch.planningGoal)
+      : null;
+
     console.log(`[github-filepatcher] patch=${patch.id ?? "unnamed"}`);
     if (patch.description) console.log(`[github-filepatcher] description=${patch.description}`);
     console.log(`[github-filepatcher] operations=${patch.operations.length}`);
     console.log(`[github-filepatcher] changed_files=${plan.changedFiles.length}`);
     plan.changedFiles.forEach((file) => console.log(`[github-filepatcher] change=${file}`));
+    if (corridorReport) reportCorridorScope(plan, corridorReport);
+
+    if (patch.planningGoal && patch.operations.length === 0) {
+      console.log("[github-filepatcher] Planning-only corridor run completed successfully.");
+      return;
+    }
 
     if (DRY_RUN) {
       console.log("[github-filepatcher] Dry run completed successfully. No files were written.");
