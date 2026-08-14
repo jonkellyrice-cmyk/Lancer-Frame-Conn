@@ -1,58 +1,23 @@
 {
   "schema_version": 2,
-  "id": "fix-runtime-facade-module-namespace-freezes",
-  "description": "Remove Object.freeze calls around ES module namespace imports across the remaining runtime facade family while preserving each frozen outer facade object.",
+  "id": "wire-ui-turn-runtime-composition",
+  "description": "Restore Frame Helm Application rendering by resolving the registered ui-turn feature and configuring its Turn, Actions, and Application-render runtime bindings before the Application consumes canonical committed-plan presentation.",
   "policy": {
-    "max_files_changed": 7
+    "max_files_changed": 1
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "system_bridge/system-bridge.js",
-      "search": "    contract:\n      Object.freeze(contract),\n    augmentationRegistry:\n      Object.freeze(\n        augmentationRegistry\n      ),\n    resolver:\n      Object.freeze(\n        resolver\n      ),\n    composer:\n      Object.freeze(\n        composer\n      )",
-      "replace": "    contract,\n    augmentationRegistry,\n    resolver,\n    composer",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "/* ------------------------------------------------------------\n   Application UI\n   ------------------------------------------------------------ */\n\nconst frameHelmApplicationApi =\n  frameHelmFeatureRegistry.getApi(\n    \"ui-application\"\n  );",
+      "replace": "/* ------------------------------------------------------------\n   Turn UI\n   ------------------------------------------------------------ */\n\nconst frameHelmTurnUiApi =\n  frameHelmFeatureRegistry.getApi(\n    \"ui-turn\"\n  );\n\n\nif (\n  !frameHelmTurnUiApi\n) {\n  throw new Error(\n    \"Frame Helm | The registered Turn UI feature API could not be resolved.\"\n  );\n}\n\n\n/* ------------------------------------------------------------\n   Application UI\n   ------------------------------------------------------------ */\n\nconst frameHelmApplicationApi =\n  frameHelmFeatureRegistry.getApi(\n    \"ui-application\"\n  );",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "resource_service/resource-service.js",
-      "search": "    contract:\n      Object.freeze(contract),\n    resolver:\n      Object.freeze(resolver),\n    transaction:\n      Object.freeze(transaction),\n    hooks:\n      Object.freeze(hooks)",
-      "replace": "    contract,\n    resolver,\n    transaction,\n    hooks",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "semantic_event_bus/semantic-event-bus.js",
-      "search": "    contract:\n      Object.freeze(contract),\n    registry:\n      Object.freeze(registry),\n    dispatcher:\n      Object.freeze(dispatcher),\n    hooks:\n      Object.freeze(hooks)",
-      "replace": "    contract,\n    registry,\n    dispatcher,\n    hooks",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "action_economy/action-economy.js",
-      "search": "    contract:\n      Object.freeze(contract),\n    state:\n      Object.freeze(state),\n    transaction:\n      Object.freeze(transaction),\n    hooks:\n      Object.freeze(hooks)",
-      "replace": "    contract,\n    state,\n    transaction,\n    hooks",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "lifecycle_service/lifecycle-service.js",
-      "search": "    contract:\n      Object.freeze(contract),\n\n    state:\n      Object.freeze(state),\n\n    dispatcher:\n      Object.freeze(dispatcher),\n\n    hooks:\n      Object.freeze(hooks)",
-      "replace": "    contract,\n\n    state,\n\n    dispatcher,\n\n    hooks",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "targeting-spatial_service/targeting-spatial-service.js",
-      "search": "    contract:\n      Object.freeze(contract),\n\n    query:\n      Object.freeze(query),\n\n    resolver:\n      Object.freeze(resolver),\n\n    validator:\n      Object.freeze(validator),\n\n    hooks:\n      Object.freeze(hooks)",
-      "replace": "    contract,\n\n    query,\n\n    resolver,\n\n    validator,\n\n    hooks",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "actor_owned_feature_registry/actor-owned-feature-service.js",
-      "search": "    contract:\n      Object.freeze(contract),\n\n    discovery:\n      Object.freeze(discovery),\n\n    normalizer:\n      Object.freeze(normalizer),\n\n    registry:\n      Object.freeze(registry)",
-      "replace": "    contract,\n\n    discovery,\n\n    normalizer,\n\n    registry",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "  /* ----------------------------------------------------------\n     Application UI bindings\n     ---------------------------------------------------------- */\n\n  /**\n   * Application UI consumes:",
+      "replace": "  /* ----------------------------------------------------------\n     Turn UI bindings\n     ---------------------------------------------------------- */\n\n  /**\n   * Turn UI consumes authoritative Turn state, canonical Actions\n   * metadata, and Application rendering through explicit runtime\n   * composition. The Application's canonical committed-plan\n   * presentation depends on these bindings during getData().\n   */\n  frameHelmTurnUiApi\n    .configureRuntime?.({\n      getTurnApi:\n        () =>\n          frameHelmTurnApi,\n\n      getActionRegistry:\n        () =>\n          frameHelmActionRegistry,\n\n      renderApplication:\n        force =>\n          renderFrameHelmApplication(\n            force\n          )\n    });\n\n\n  /* ----------------------------------------------------------\n     Application UI bindings\n     ---------------------------------------------------------- */\n\n  /**\n   * Application UI consumes:",
       "expected_occurrences": 1
     }
   ]
