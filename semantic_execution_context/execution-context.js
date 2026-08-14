@@ -111,11 +111,8 @@ export const executionContext =
     version:
       EXECUTION_CONTEXT_MODULE_VERSION,
 
-    contract:
-      Object.freeze(contract),
-
-    builder:
-      Object.freeze(builder)
+    contract,
+    builder
   });
 
 /* ============================================================
