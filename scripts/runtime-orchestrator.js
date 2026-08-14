@@ -832,6 +832,23 @@ function configureFrameHelmRuntimeBindings() {
 
 
 /* ============================================================
+   Foundry hook installation
+   ============================================================ */
+
+/**
+ * Feature-owned Foundry hooks must be installed as soon as the module is
+ * evaluated. In particular, getSceneControlButtons may fire before the
+ * module's init callback has completed, so deferring hook installation to
+ * init can cause Frame Helm to miss the Token Controls construction event.
+ *
+ * Feature registration and dependency validation have already completed in
+ * feature-registry.js before this orchestrator is evaluated.
+ */
+frameHelmFeatureRegistry
+  .installHooks();
+
+
+/* ============================================================
    Foundry lifecycle
    ============================================================ */
 
@@ -897,27 +914,6 @@ Hooks.once(
     frameHelmFeatureRegistry
       .validateDependencies();
 
-
-    /**
-     * Install all feature-owned Foundry hooks.
-     *
-     * This includes:
-     *
-     *   - Sensors hooks
-     *   - Application UI hooks
-     *   - Turn/combat synchronization hooks
-     *   - Movement hooks
-     *   - Elevation movement hooks
-     *   - Foundry Integration scene-control hooks
-     *
-     * Lifecycle and Targeting / Spatial use feature lifecycle
-     * registration for their semantic/transaction hooks rather
-     * than declaring Foundry hooks in the feature contract.
-     *
-     * Action Execution currently declares no Foundry hooks.
-     */
-    frameHelmFeatureRegistry
-      .installHooks();
   }
 );
 
