@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
-  "id": "validate-patch-dsl-self-test-gate",
-  "description": "No-op validation that the committed FilePatcher now syntax-checks and self-tests the Patch DSL compiler before repository diagnostics.",
+  "id": "validate-patch-dsl-after-source-repair",
+  "description": "No-op validation after repairing the Patch DSL compiler source; the committed FilePatcher must syntax-check and self-test the compiler before repository diagnostics.",
   "policy": {
     "max_files_changed": 1
   },
