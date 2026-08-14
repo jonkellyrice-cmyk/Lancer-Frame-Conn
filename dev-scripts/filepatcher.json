@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
-  "id": "wire-ui-turn-runtime-composition",
-  "description": "Restore Frame Helm Application rendering by resolving the registered ui-turn feature and configuring its Turn, Actions, and Application-render runtime bindings before the Application consumes canonical committed-plan presentation.",
+  "id": "wire-ui-movement-and-validate-runtime-composition",
+  "description": "Proactively complete the active UI runtime composition by wiring ui-movement and fail fast during init when required active runtime bindings are missing.",
   "policy": {
     "max_files_changed": 1
   },
@@ -10,14 +10,28 @@
       "type": "replace_text",
       "path": "scripts/runtime-orchestrator.js",
       "search": "/* ------------------------------------------------------------\n   Application UI\n   ------------------------------------------------------------ */\n\nconst frameHelmApplicationApi =\n  frameHelmFeatureRegistry.getApi(\n    \"ui-application\"\n  );",
-      "replace": "/* ------------------------------------------------------------\n   Turn UI\n   ------------------------------------------------------------ */\n\nconst frameHelmTurnUiApi =\n  frameHelmFeatureRegistry.getApi(\n    \"ui-turn\"\n  );\n\n\nif (\n  !frameHelmTurnUiApi\n) {\n  throw new Error(\n    \"Frame Helm | The registered Turn UI feature API could not be resolved.\"\n  );\n}\n\n\n/* ------------------------------------------------------------\n   Application UI\n   ------------------------------------------------------------ */\n\nconst frameHelmApplicationApi =\n  frameHelmFeatureRegistry.getApi(\n    \"ui-application\"\n  );",
+      "replace": "/* ------------------------------------------------------------\n   Movement UI\n   ------------------------------------------------------------ */\n\nconst frameHelmMovementUiApi =\n  frameHelmFeatureRegistry.getApi(\n    \"ui-movement\"\n  );\n\n\nif (\n  !frameHelmMovementUiApi\n) {\n  throw new Error(\n    \"Frame Helm | The registered Movement UI feature API could not be resolved.\"\n  );\n}\n\n\n/* ------------------------------------------------------------\n   Application UI\n   ------------------------------------------------------------ */\n\nconst frameHelmApplicationApi =\n  frameHelmFeatureRegistry.getApi(\n    \"ui-application\"\n  );",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
       "path": "scripts/runtime-orchestrator.js",
       "search": "  /* ----------------------------------------------------------\n     Application UI bindings\n     ---------------------------------------------------------- */\n\n  /**\n   * Application UI consumes:",
-      "replace": "  /* ----------------------------------------------------------\n     Turn UI bindings\n     ---------------------------------------------------------- */\n\n  /**\n   * Turn UI consumes authoritative Turn state, canonical Actions\n   * metadata, and Application rendering through explicit runtime\n   * composition. The Application's canonical committed-plan\n   * presentation depends on these bindings during getData().\n   */\n  frameHelmTurnUiApi\n    .configureRuntime?.({\n      getTurnApi:\n        () =>\n          frameHelmTurnApi,\n\n      getActionRegistry:\n        () =>\n          frameHelmActionRegistry,\n\n      renderApplication:\n        force =>\n          renderFrameHelmApplication(\n            force\n          )\n    });\n\n\n  /* ----------------------------------------------------------\n     Application UI bindings\n     ---------------------------------------------------------- */\n\n  /**\n   * Application UI consumes:",
+      "replace": "  /* ----------------------------------------------------------\n     Movement UI bindings\n     ---------------------------------------------------------- */\n\n  /**\n   * Movement UI consumes the registered Movement feature,\n   * authoritative Turn state, and Application rendering through\n   * explicit runtime composition.\n   */\n  frameHelmMovementUiApi\n    .configureRuntime?.({\n      getMovementApi:\n        () =>\n          frameHelmMovementApi,\n\n      getTurnApi:\n        () =>\n          frameHelmTurnApi,\n\n      renderApplication:\n        force =>\n          renderFrameHelmApplication(\n            force\n          )\n    });\n\n\n  /* ----------------------------------------------------------\n     Application UI bindings\n     ---------------------------------------------------------- */\n\n  /**\n   * Application UI consumes:",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "}\n\n\n/* ============================================================\n   Foundry lifecycle\n   ============================================================ */",
+      "replace": "}\n\n\n/* ============================================================\n   Runtime composition validation\n   ============================================================ */\n\nfunction assertFrameHelmRuntimeBindings(\n  label,\n  runtimeBindings,\n  requiredKeys\n) {\n  const state =\n    typeof runtimeBindings ===\n      \"function\"\n      ? runtimeBindings()\n      : null;\n\n\n  for (\n    const key\n    of requiredKeys\n  ) {\n    if (\n      !state?.[\n        key\n      ]\n    ) {\n      throw new Error(\n        `Frame Helm | Runtime composition incomplete: ${label}.${key}`\n      );\n    }\n  }\n\n\n  return state;\n}\n\n\nfunction validateFrameHelmRuntimeComposition() {\n  assertFrameHelmRuntimeBindings(\n    \"Turn\",\n    frameHelmTurnApi.runtimeBindings,\n    [\n      \"actionRegistry\",\n      \"applicationRendering\"\n    ]\n  );\n\n  assertFrameHelmRuntimeBindings(\n    \"Movement\",\n    frameHelmMovementApi.runtimeBindings,\n    [\n      \"turnState\",\n      \"applicationRendering\"\n    ]\n  );\n\n  assertFrameHelmRuntimeBindings(\n    \"Foundry Integration\",\n    frameHelmFoundryIntegrationApi.runtimeBindings,\n    [\n      \"applicationOpening\",\n      \"applicationClosing\"\n    ]\n  );\n\n  assertFrameHelmRuntimeBindings(\n    \"Action Execution\",\n    frameHelmActionExecutionApi.runtimeBindings,\n    [\n      \"executeCanonicalAction\"\n    ]\n  );\n\n  assertFrameHelmRuntimeBindings(\n    \"Turn UI\",\n    frameHelmTurnUiApi.runtimeBindings,\n    [\n      \"turn\",\n      \"actions\",\n      \"applicationRendering\"\n    ]\n  );\n\n  assertFrameHelmRuntimeBindings(\n    \"Movement UI\",\n    frameHelmMovementUiApi.runtimeBindings,\n    [\n      \"movement\",\n      \"turn\",\n      \"applicationRendering\"\n    ]\n  );\n\n  assertFrameHelmRuntimeBindings(\n    \"Application UI\",\n    frameHelmApplicationApi.runtimeBindings,\n    [\n      \"actionRegistry\",\n      \"turnState\",\n      \"turnStateManager\",\n      \"canonicalActionExecution\"\n    ]\n  );\n\n  return true;\n}\n\n\n/* ============================================================\n   Foundry lifecycle\n   ============================================================ */",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "    configureFrameHelmRuntimeBindings();\n\n\n    /**\n     * Foundry Integration owns module-setting definitions.",
+      "replace": "    configureFrameHelmRuntimeBindings();\n\n    validateFrameHelmRuntimeComposition();\n\n\n    /**\n     * Foundry Integration owns module-setting definitions.",
       "expected_occurrences": 1
     }
   ]
