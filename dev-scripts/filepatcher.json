@@ -1,43 +1,9 @@
 {
   "schema_version": 2,
-  "id": "harden-repo-audit-and-reset-local-patcher-spec-v2",
-  "description": "Make the repository integrity auditor inspect only the live tree, distinguish executable imports/features from documentation examples, exclude the feature-contract factory and auditor itself from feature declaration enumeration, and reset the stale malformed local Python FilePatcher spec to a valid neutral no-op.",
+  "id": "validate-committed-frame-conn-migration",
+  "description": "No-op validation of the committed Frame Conn internal identity migration using the hardened repository integrity audit.",
   "policy": {
-    "max_files_changed": 2
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/repo-audit.mjs",
-      "search": "    \"coverage\",\n    \".next\"\n  ]);",
-      "replace": "    \"coverage\",\n    \".next\",\n    \"backups\",\n    \"patch-history\"\n  ]);",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/repo-audit.mjs",
-      "search": "      regex:\n        /import\\s+(?:[\\s\\S]*?\\s+from\\s+)?[\"']([^\"']+)[\"']/g",
-      "replace": "      regex:\n        /^[ \\t]*import\\s+(?:[\\s\\S]*?\\s+from\\s+)?[\"']([^\"']+)[\"']/gm",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/repo-audit.mjs",
-      "search": "  const needle =\n    \"defineFrameConnFeature\";\n\n\n  let searchIndex =\n    0;\n\n\n  while (\n    true\n  ) {\n    const callIndex =\n      text.indexOf(\n        needle,\n        searchIndex\n      );\n\n\n    if (\n      callIndex <\n      0\n    ) {\n      break;\n    }\n\n\n    const openParenthesis =\n      text.indexOf(\n        \"(\",\n        callIndex +\n        needle.length\n      );\n\n\n    if (\n      openParenthesis <\n      0\n    ) {\n      break;\n    }",
-      "replace": "  const callPattern =\n    /\\bdefineFrameConnFeature\\s*\\(/g;\n\n\n  let searchIndex =\n    0;\n\n\n  while (\n    true\n  ) {\n    callPattern.lastIndex =\n      searchIndex;\n\n\n    const callMatch =\n      callPattern.exec(\n        text\n      );\n\n\n    if (\n      !callMatch\n    ) {\n      break;\n    }\n\n\n    const callIndex =\n      callMatch.index;\n\n\n    const openParenthesis =\n      text.indexOf(\n        \"(\",\n        callIndex\n      );\n\n\n    if (\n      openParenthesis <\n      0\n    ) {\n      break;\n    }",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/repo-audit.mjs",
-      "search": "  const features =\n    javascriptFiles.flatMap(\n      file =>\n        extractFeatureDeclarations(\n          file,\n          textByFile.get(\n            file\n          ) ??\n          \"\"\n        )\n    );",
-      "replace": "  const featureDeclarationExcludedFiles =\n    new Set([\n      \"scripts/feature-contract.js\",\n      \"dev_scripts/repo-audit.mjs\"\n    ]);\n\n\n  const features =\n    javascriptFiles\n      .filter(\n        file =>\n          !featureDeclarationExcludedFiles.has(\n            relativePath(\n              file\n            )\n          )\n      )\n      .flatMap(\n        file =>\n          extractFeatureDeclarations(\n            file,\n            textByFile.get(\n              file\n            ) ??\n            \"\"\n          )\n      );",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_file",
-      "path": "dev_scripts/filepatcher.json",
-      "content": "{\n  \"schema_version\": 2,\n  \"id\": \"ready\",\n  \"name\": \"Ready\",\n  \"description\": \"Neutral no-op placeholder for the local Python FilePatcher. Replace this document with the next local patch specification when needed.\",\n  \"backup\": true,\n  \"allow_noop\": true,\n  \"operations\": []\n}\n"
-    }
-  ]
+  "operations": []
 }
