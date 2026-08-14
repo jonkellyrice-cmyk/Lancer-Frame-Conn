@@ -232,13 +232,20 @@ function discoverCallables(sourceName, root, file, text) {
     const classClose = classOpen >= 0 ? findMatching(text, classOpen) : -1;
     if (classClose < 0) continue;
     const body = text.slice(classOpen + 1, classClose);
-    const methodRegex = /(?:^|\n)\s{2,6}(?:public\s+|private\s+|protected\s+|static\s+|override\s+|async\s+)*([A-Za-z_$][\w$]*)\s*\([^;\n{}]*\)\s*(?::[^\n{]+)?\s*\{/g;
+    const methodRegex = /(?:^|\n)\s{2,6}(?:public\s+|private\s+|protected\s+|static\s+|override\s+|abstract\s+|async\s+)*([A-Za-z_$][\w$]*)\s*\(/g;
     for (const methodMatch of body.matchAll(methodRegex)) {
       const name = methodMatch[1];
       if (KEYWORDS.has(name)) continue;
       const absolute = classOpen + 1 + methodMatch.index;
-      const open = text.indexOf("{", absolute + methodMatch[0].length - 1);
-      const close = open >= 0 ? findMatching(text, open) : -1;
+      const parenOpen = text.indexOf("(", absolute + methodMatch[0].length - 1);
+      const parenClose = parenOpen >= 0 ? findMatching(text, parenOpen, "(", ")") : -1;
+      if (parenClose < 0 || parenClose > classClose) continue;
+      const headerTail = text.slice(parenClose + 1, Math.min(classClose, parenClose + 500));
+      const braceOffset = headerTail.search(/\{/);
+      const semicolonOffset = headerTail.search(/;/);
+      if (braceOffset < 0 || (semicolonOffset >= 0 && semicolonOffset < braceOffset)) continue;
+      const open = parenClose + 1 + braceOffset;
+      const close = findMatching(text, open);
       if (close < 0 || close > classClose) continue;
       const record = sourceRecord(root, file, text, absolute);
       results.push({
@@ -292,7 +299,7 @@ function effectNode(graph, source, kind, name) {
 function scanEffectsInRange(graph, root, file, text, source, ownerId, start, end) {
   const segment = text.slice(start, end);
   const patterns = [
-    ["chat-create", /\bChatMessage\.create\s*\(/g, "ChatMessage.create"],
+    ["chat-create", /\bChatMessage(?:\.implementation)?\.create\s*\(/g, "ChatMessage.create"],
     ["damage", /\bdamageCalc\s*\(/g, "damageCalc"],
     ["document-update", /\b(?:this|actor|item|token|document|target)\s*\.\s*update\s*\(/g, "Document.update"],
     ["embedded-create", /\bcreateEmbeddedDocuments\s*\(/g, "createEmbeddedDocuments"],
@@ -319,14 +326,23 @@ function scanDirectCalls(graph, root, file, text, source, callables, nameIndex) 
     const receiver = match[1] ?? null;
     const method = match[2];
     if (KEYWORDS.has(method)) continue;
-    const names = receiver === "this" && owner.className ? [`${owner.className}.${method}`, method] : [method];
     let target = null;
-    for (const name of names) {
-      target = resolveTarget(name, owner, nameIndex);
-      if (target) break;
+    let confidence = "high";
+    let basis = "unique-static-name";
+    if (!receiver) {
+      target = resolveTarget(method, owner, nameIndex);
+    } else if (receiver === "this" && owner.className) {
+      target = resolveTarget(`${owner.className}.${method}`, owner, nameIndex);
+    } else if (/^begin[A-Za-z0-9_$]*Flow$/.test(method) || method === "damageCalc") {
+      const candidates = nameIndex.get(method) ?? [];
+      if (candidates.length === 1) {
+        target = candidates[0];
+        confidence = "medium";
+        basis = "unique-integration-method-name";
+      }
     }
     if (!target || target.id === owner.id) continue;
-    addEdge(graph, { from: owner.id, to: target.id, type: "static-call", source, ...sourceRecord(root, file, text, match.index) });
+    addEdge(graph, { from: owner.id, to: target.id, type: "static-call", confidence, basis, source, ...sourceRecord(root, file, text, match.index) });
   }
 }
 
@@ -399,6 +415,33 @@ function scanEvents(graph, root, file, text, source, callables, nameIndex) {
     if (target) addEdge(graph, { from: eventId, to: target.id, type: "event-handler", source, ...record });
   }
 
+  for (const match of text.matchAll(/\.on\s*\(\s*["']([^"']+)["']\s*,\s*(?:async\s*)?(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>\s*\{/g)) {
+    const open = text.indexOf("{", match.index + match[0].length - 1);
+    const close = open >= 0 ? findMatching(text, open) : -1;
+    if (close < 0) continue;
+    const record = sourceRecord(root, file, text, match.index);
+    const eventId = `event:${source}:${record.file}:${match[1]}:${record.line}`;
+    const handlerId = `handler:${source}:${record.file}:${match[1]}:${record.line}`;
+    addNode(graph, { id: eventId, kind: "event", source, name: match[1], ...record, tags: ["event", match[1]] });
+    addNode(graph, { id: handlerId, kind: "event-handler", source, name: `${match[1]} inline handler`, ...record, tags: ["event-handler", "anonymous"] });
+    addEdge(graph, { from: eventId, to: handlerId, type: "event-handler", source, ...record });
+    const body = text.slice(open + 1, close);
+    for (const call of body.matchAll(/\b([A-Za-z_$][\w$]*)\s*\.\s*(begin[A-Za-z0-9_$]*Flow)\s*\(/g)) {
+      const candidates = nameIndex.get(call[2]) ?? [];
+      if (candidates.length !== 1) continue;
+      addEdge(graph, {
+        from: handlerId,
+        to: candidates[0].id,
+        type: "static-call",
+        confidence: "medium",
+        basis: "unique-integration-method-name",
+        source,
+        ...sourceRecord(root, file, text, open + 1 + call.index)
+      });
+    }
+    scanEffectsInRange(graph, root, file, text, source, handlerId, open + 1, close);
+  }
+
   const generic = [
     /addEventListener\s*\(\s*["']([^"']+)["']\s*,\s*([A-Za-z_$][\w$]*)/g,
     /\.on\s*\(\s*["']([^"']+)["']\s*,\s*([A-Za-z_$][\w$]*)/g
@@ -438,12 +481,35 @@ function scanSource(source, root, graph) {
     for (const callable of local) scanEffectsInRange(graph, root, file, text, source, callable.id, callable.bodyStart, callable.end);
   }
 
+  const hasGenericFlowLifecycle = records.some(({ text }) =>
+    text.includes("lancer.preFlow.${this.constructor.name}") &&
+    text.includes("lancer.postFlow.${this.constructor.name}")
+  );
+  deriveFlowLifecycleHooks(graph, source, hasGenericFlowLifecycle);
+
   return {
     root: slash(root),
     version: extractVersion(root),
     files: files.length,
-    fingerprint: fingerprintFiles(root, files)
+    fingerprint: fingerprintFiles(root, files),
+    genericFlowLifecycle: hasGenericFlowLifecycle
   };
+}
+
+function deriveFlowLifecycleHooks(graph, source, hasGenericLifecycle) {
+  if (!hasGenericLifecycle) return;
+  const flows = [...graph.nodes.values()].filter(node => node.kind === "flow" && node.source === source && Array.isArray(node.steps) && node.steps.length);
+  for (const flow of flows) {
+    const preId = `hook:${source}:lancer.preFlow.${flow.name}`;
+    const postId = `hook:${source}:lancer.postFlow.${flow.name}`;
+    addNode(graph, { id: preId, kind: "hook", source, name: `lancer.preFlow.${flow.name}`, tags: ["hook", "flow-lifecycle", "derived"] });
+    addNode(graph, { id: postId, kind: "hook", source, name: `lancer.postFlow.${flow.name}`, tags: ["hook", "flow-lifecycle", "derived"] });
+    const firstStep = `flow-step:${source}:${flow.steps[0]}`;
+    const lastStep = `flow-step:${source}:${flow.steps.at(-1)}`;
+    addEdge(graph, { from: flow.id, to: preId, type: "flow-pre-hook", confidence: "medium", basis: "generic-Flow.begin constructor-name hook template" });
+    if (graph.nodes.has(firstStep)) addEdge(graph, { from: preId, to: firstStep, type: "flow-after-pre-hook", confidence: "medium", basis: "generic-Flow.begin execution order" });
+    if (graph.nodes.has(lastStep)) addEdge(graph, { from: lastStep, to: postId, type: "flow-post-hook", confidence: "medium", basis: "generic-Flow.begin execution order" });
+  }
 }
 
 function bridgeCrossSourceHooks(graph) {
