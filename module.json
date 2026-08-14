@@ -2,7 +2,7 @@
   "id": "lancer-frame-helm",
   "title": "Lancer Frame Helm",
   "description": "A tactical action-selection HUD for Lancer mech and NPC turns.",
-  "version": "2.1.3",
+  "version": "2.1.4",
 
   "authors": [
     {
