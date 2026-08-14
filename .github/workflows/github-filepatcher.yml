@@ -48,6 +48,9 @@ jobs:
       - name: Apply FilePatcher
         run: npm run github:patch
 
+      - name: Audit repository integrity
+        run: npm run audit -- --output /tmp/frame-conn-repo-audit.json
+
       - name: Check for changes
         id: changes
         shell: bash
