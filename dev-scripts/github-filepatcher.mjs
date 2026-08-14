@@ -451,7 +451,8 @@ function validateDeveloperToolSyntax() {
     path.join(ROOT, "dev_scripts", "patch-corridor-planner.mjs"),
     path.join(ROOT, "dev_scripts", "patch-dsl-compiler.mjs"),
     path.join(ROOT, "dev_scripts", "integration-surface-atlas.mjs"),
-    path.join(ROOT, "dev_scripts", "runtime-signal-map.mjs")
+    path.join(ROOT, "dev_scripts", "runtime-signal-map.mjs"),
+    path.join(ROOT, "dev_scripts", "corridor-context-pack.mjs")
   ];
 
   for (const tool of tools) {
@@ -490,6 +491,13 @@ function validateDeveloperToolSyntax() {
   if (patchCorridorSelfTest.stderr) process.stderr.write(patchCorridorSelfTest.stderr);
   if (patchCorridorSelfTest.error) fail(`Patch Corridor self-test could not start: ${patchCorridorSelfTest.error}`);
   if (patchCorridorSelfTest.status !== 0) fail("Patch Corridor self-test failed.");
+
+  const corridorContextPack = path.join(ROOT, "dev_scripts", "corridor-context-pack.mjs");
+  const corridorContextPackSelfTest = spawnSync(process.execPath, [corridorContextPack, "--self-test"], { cwd: ROOT, encoding: "utf8" });
+  if (corridorContextPackSelfTest.stdout) process.stdout.write(corridorContextPackSelfTest.stdout);
+  if (corridorContextPackSelfTest.stderr) process.stderr.write(corridorContextPackSelfTest.stderr);
+  if (corridorContextPackSelfTest.error) fail(`Corridor Context Pack self-test could not start: ${corridorContextPackSelfTest.error}`);
+  if (corridorContextPackSelfTest.status !== 0) fail("Corridor Context Pack self-test failed.");
 
   console.log("[github-filepatcher] Developer tool syntax checks passed.");
 }

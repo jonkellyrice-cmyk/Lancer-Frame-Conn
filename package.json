@@ -14,6 +14,8 @@
     "runtime-signal-map:self-test": "node ./dev_scripts/runtime-signal-map.mjs --self-test",
     "patch-corridor": "node ./dev_scripts/patch-corridor-planner.mjs",
     "patch-corridor:self-test": "node ./dev_scripts/patch-corridor-planner.mjs --self-test",
+    "corridor-context": "node ./dev_scripts/corridor-context-pack.mjs",
+    "corridor-context:self-test": "node ./dev_scripts/corridor-context-pack.mjs --self-test",
     "patch:dsl": "node ./dev_scripts/patch-dsl-compiler.mjs",
     "patch:dsl:check": "node ./dev_scripts/patch-dsl-compiler.mjs --check",
     "patch:dsl:self-test": "node ./dev_scripts/patch-dsl-compiler.mjs --self-test",

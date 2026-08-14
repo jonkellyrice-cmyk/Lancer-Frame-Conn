@@ -256,6 +256,30 @@ Run the deterministic clause-decomposition self-test with `npm run patch-corrido
 
 ---
 
+## Corridor Context Pack — `corridor-context-pack.mjs`
+
+Generate a compact authoring packet directly from a certified behavioral goal with:
+
+```bash
+npm run corridor-context -- --goal "show Brace after damage, spend the reaction, apply native Resistance, and restrict the next turn"
+```
+
+Or consume an existing Patch Corridor report with:
+
+```bash
+npm run corridor-context -- --corridor patch-corridor-report.json
+```
+
+The Context Pack is downstream of the clause-aware planner and cannot broaden its scope. For each planner-selected symbol it returns the exact source slice and line range, only imports actually referenced by that slice, lexical callers/consumers with source evidence, the clause/concern ownership reason that selected the family, and a nearby structural exemplar only when one candidate wins unambiguously. Missing or ambiguous symbol boundaries and exemplar ties are reported as omissions rather than guessed.
+
+It answers:
+
+> What exact source context do I need to author this certified patch without reopening whole files?
+
+Run its deterministic self-test with `npm run corridor-context:self-test`. See `dev_scripts/CORRIDOR_CONTEXT_PACK.md` for the full contract.
+
+---
+
 ## 8. DSL Level 1 — Structural Patch DSL
 
 Compiler:
