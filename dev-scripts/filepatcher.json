@@ -1,65 +1,121 @@
 {
   "schema_version": 2,
-  "id": "fix-sensor-range-and-reticle-presentation",
-  "description": "Correct sensor-range normalization, refresh contacts when controlled-token selection changes, remove broken PIXI contact labels, and replace the thick token-border circle with a thin size-aware targeting reticle outside each hostile token.",
+  "id": "auto-begin-turn-plan-on-action-selection",
+  "description": "Remove the manual Begin Turn Plan gate and lazily ensure canonical Turn state when the player enters movement or selects/commits an action, while preserving explicit Reset Plan and End Turn behavior.",
   "policy": {
-    "max_files_changed": 3
+    "max_files_changed": 6
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "scripts/sensors-feature.js",
-      "search": "function frameHelmSensorDistance(\n  sourceToken,\n  targetToken\n) {\n  const source =\n    sourceToken?.center;\n\n  const target =\n    targetToken?.center;\n\n  if (\n    !source ||\n    !target\n  ) {\n    return Infinity;\n  }\n\n  try {\n    const measured =\n      canvas?.grid?.measurePath?.(\n        [\n          source,\n          target\n        ],\n        {\n          cost: true\n        }\n      );\n\n    const sceneDistance =\n      Number(\n        canvas?.scene?.grid?.distance ??\n        canvas?.dimensions?.distance ??\n        1\n      );\n\n    const measuredDistance =\n      Number(\n        measured?.cost ??\n        measured?.distance\n      );\n\n    if (\n      Number.isFinite(\n        measuredDistance\n      )\n    ) {\n      return (\n        Number.isFinite(\n          sceneDistance\n        ) &&\n        sceneDistance > 0\n      )\n        ? measuredDistance /\n          sceneDistance\n        : measuredDistance;\n    }\n  } catch (error) {\n    console.warn(\n      `${MODULE_TITLE} | Sensor range measurement fell back to geometry.`,\n      error\n    );\n  }\n\n  const gridSize =\n    Number(\n      canvas?.dimensions?.size ??\n      100\n    );\n\n  if (\n    !Number.isFinite(gridSize) ||\n    gridSize <= 0\n  ) {\n    return Infinity;\n  }\n\n  return Math.hypot(\n    target.x - source.x,\n    target.y - source.y\n  ) / gridSize;\n}",
-      "replace": "function frameHelmSensorDistance(\n  sourceToken,\n  targetToken\n) {\n  const source =\n    sourceToken?.center;\n\n  const target =\n    targetToken?.center;\n\n  if (\n    !source ||\n    !target\n  ) {\n    return Infinity;\n  }\n\n  try {\n    const measured =\n      canvas?.grid?.measurePath?.(\n        [\n          source,\n          target\n        ],\n        {\n          cost: true\n        }\n      );\n\n    /**\n     * Foundry path cost is already expressed as grid traversal\n     * cost/spaces. Do not divide it by the scene distance again.\n     * Doing so previously shrank contact distances and allowed\n     * enemies far outside a mech's Sensors to qualify.\n     */\n    const measuredCost =\n      Number(\n        measured?.cost\n      );\n\n    if (\n      Number.isFinite(\n        measuredCost\n      )\n    ) {\n      return measuredCost;\n    }\n\n    /**\n     * Some Foundry measurement paths expose physical scene\n     * distance instead of traversal cost. Normalize that value\n     * exactly once into Lancer grid spaces.\n     */\n    const measuredDistance =\n      Number(\n        measured?.distance\n      );\n\n    const sceneDistance =\n      Number(\n        canvas?.scene?.grid?.distance ??\n        canvas?.dimensions?.distance ??\n        1\n      );\n\n    if (\n      Number.isFinite(\n        measuredDistance\n      )\n    ) {\n      return (\n        Number.isFinite(\n          sceneDistance\n        ) &&\n        sceneDistance > 0\n      )\n        ? measuredDistance /\n          sceneDistance\n        : measuredDistance;\n    }\n  } catch (error) {\n    console.warn(\n      `${MODULE_TITLE} | Sensor range measurement fell back to geometry.`,\n      error\n    );\n  }\n\n  const gridSize =\n    Number(\n      canvas?.dimensions?.size ??\n      100\n    );\n\n  if (\n    !Number.isFinite(gridSize) ||\n    gridSize <= 0\n  ) {\n    return Infinity;\n  }\n\n  return Math.hypot(\n    target.x - source.x,\n    target.y - source.y\n  ) / gridSize;\n}",
+      "path": "styles/ui_application/components/application-turn-commands.js",
+      "search": "function beginTurnPlan(\n  application\n) {\n  const token =\n    application.getControlledToken();\n\n\n  if (\n    !token\n  ) {\n    ui.notifications.warn(\n      \"Select a mech or NPC token first.\"\n    );\n\n    return;\n  }\n\n\n  const turnManager =\n    getFrameHelmApplicationTurnStateManager();\n\n\n  if (\n    !turnManager\n  ) {\n    ui.notifications.error(\n      \"Frame Helm could not resolve the Turn state manager.\"\n    );\n\n    return;\n  }\n\n\n  const combat =\n    game.combat;\n\n  const combatContext =\n    combat?.started\n      ? getFrameHelmApplicationCombatContext(\n          combat\n        )\n      : {};\n\n\n  turnManager.beginTurn({\n    ...combatContext,\n\n    tokenId:\n      token.id ??\n      token.document?.id ??\n      combatContext.tokenId ??\n      null,\n\n    actorId:\n      token.actor?.id ??\n      combatContext.actorId ??\n      null,\n\n    sceneId:\n      canvas?.scene?.id ??\n      combatContext.sceneId ??\n      null,\n\n    speed:\n      (() => {\n        const numericSpeed =\n          Number(\n            token.actor?.system?.speed\n          );\n\n        return (\n          Number.isFinite(\n            numericSpeed\n          ) &&\n          numericSpeed >= 0\n            ? numericSpeed\n            : null\n        );\n      })()\n  });\n\n\n  application.selectedCategory =\n    null;\n\n  application.selectedMovementMode =\n    null;\n\n  application.selectedQuickActionId =\n    null;\n\n  application.selectedFullActionId =\n    null;\n\n  application.render(\n    false\n  );\n}",
+      "replace": "function ensureTurnPlan(\n  application\n) {\n  const existingState =\n    getFrameHelmApplicationTurnState();\n\n\n  if (\n    existingState &&\n    !existingState.ended\n  ) {\n    return existingState;\n  }\n\n\n  const token =\n    application.getControlledToken();\n\n\n  if (\n    !token\n  ) {\n    ui.notifications.warn(\n      \"Select a mech or NPC token first.\"\n    );\n\n    return null;\n  }\n\n\n  const turnManager =\n    getFrameHelmApplicationTurnStateManager();\n\n\n  if (\n    !turnManager\n  ) {\n    ui.notifications.error(\n      \"Frame Helm could not resolve the Turn state manager.\"\n    );\n\n    return null;\n  }\n\n\n  const combat =\n    game.combat;\n\n  const combatContext =\n    combat?.started\n      ? getFrameHelmApplicationCombatContext(\n          combat\n        )\n      : {};\n\n\n  return turnManager.ensureTurn({\n    ...combatContext,\n\n    tokenId:\n      token.id ??\n      token.document?.id ??\n      combatContext.tokenId ??\n      null,\n\n    actorId:\n      token.actor?.id ??\n      combatContext.actorId ??\n      null,\n\n    sceneId:\n      canvas?.scene?.id ??\n      combatContext.sceneId ??\n      null,\n\n    speed:\n      (() => {\n        const numericSpeed =\n          Number(\n            token.actor?.system?.speed\n          );\n\n        return (\n          Number.isFinite(\n            numericSpeed\n          ) &&\n          numericSpeed >= 0\n            ? numericSpeed\n            : null\n        );\n      })()\n  });\n}\n\n\nfunction beginTurnPlan(\n  application\n) {\n  const state =\n    ensureTurnPlan(\n      application\n    );\n\n\n  if (\n    !state\n  ) {\n    return null;\n  }\n\n\n  application.selectedCategory =\n    null;\n\n  application.selectedMovementMode =\n    null;\n\n  application.selectedQuickActionId =\n    null;\n\n  application.selectedFullActionId =\n    null;\n\n  application.render(\n    false\n  );\n\n\n  return state;\n}",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/sensors-feature.js",
-      "search": "function handleFrameHelmSightRefresh() {\n  refreshFrameHelmSensorContacts();\n}\n",
-      "replace": "function handleFrameHelmSightRefresh() {\n  refreshFrameHelmSensorContacts();\n}\n\n\nfunction handleFrameHelmControlToken() {\n  refreshFrameHelmSensorContacts();\n}\n",
+      "path": "styles/ui_application/components/application-turn-commands.js",
+      "search": "  const state =\n    getFrameHelmApplicationTurnState();\n\n\n  if (\n    !action ||\n    action.category !==\n      \"movement\" ||",
+      "replace": "  let state =\n    getFrameHelmApplicationTurnState();\n\n\n  if (\n    !action ||\n    action.category !==\n      \"movement\" ||",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/sensors-feature.js",
-      "search": "      refreshToken:\n        handleFrameHelmRefreshToken,\n\n      sightRefresh:\n        handleFrameHelmSightRefresh",
-      "replace": "      refreshToken:\n        handleFrameHelmRefreshToken,\n\n      sightRefresh:\n        handleFrameHelmSightRefresh,\n\n      controlToken:\n        handleFrameHelmControlToken",
+      "path": "styles/ui_application/components/application-turn-commands.js",
+      "search": "  if (\n    !state\n  ) {\n    ui.notifications.warn(\n      \"Begin a turn plan before committing movement.\"\n    );\n\n    return;\n  }",
+      "replace": "  if (\n    !state ||\n    state.ended\n  ) {\n    state =\n      ensureTurnPlan(\n        application\n      );\n  }\n\n\n  if (\n    !state\n  ) {\n    return;\n  }",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "styles/ui-sensors.js",
-      "search": "function getFrameHelmSensorVisualConfiguration() {\n  return {\n    contactColor:\n      frameHelmCssColorToNumber(\n        frameHelmSensorCssValue(\n          \"--fh-sensor-contact-color\",\n          \"#ff3030\"\n        ),\n        0xff3030\n      ),\n\n    labelColor:\n      frameHelmCssColorToNumber(\n        frameHelmSensorCssValue(\n          \"--fh-sensor-label-color\",\n          \"#ff5a5a\"\n        ),\n        0xff5a5a\n      ),\n\n    labelStrokeColor:\n      frameHelmCssColorToNumber(\n        frameHelmSensorCssValue(\n          \"--fh-sensor-label-stroke-color\",\n          \"#160000\"\n        ),\n        0x160000\n      ),\n\n    circleStrokeWidth:\n      frameHelmSensorCssNumber(\n        \"--fh-sensor-contact-stroke-width\",\n        3\n      ),\n\n    circleAlpha:\n      frameHelmSensorCssNumber(\n        \"--fh-sensor-contact-alpha\",\n        0.95\n      ),\n\n    radiusMinimum:\n      frameHelmSensorCssNumber(\n        \"--fh-sensor-contact-radius-minimum\",\n        10\n      ),\n\n    radiusScale:\n      frameHelmSensorCssNumber(\n        \"--fh-sensor-contact-radius-scale\",\n        0.22\n      ),\n\n    labelFontSize:\n      frameHelmSensorCssNumber(\n        \"--fh-sensor-label-font-size\",\n        14\n      ),\n\n    labelStrokeWidth:\n      frameHelmSensorCssNumber(\n        \"--fh-sensor-label-stroke-width\",\n        4\n      ),\n\n    labelOffset:\n      frameHelmSensorCssNumber(\n        \"--fh-sensor-label-offset\",\n        6\n      ),\n\n    layerZIndex:\n      frameHelmSensorCssNumber(\n        \"--fh-sensor-layer-z-index\",\n        100000\n      ),\n\n    fontFamily:\n      frameHelmSensorCssValue(\n        \"--fh-sensor-label-font-family\",\n        \"Arial, sans-serif\"\n      )\n  };\n}",
-      "replace": "function getFrameHelmSensorVisualConfiguration() {\n  return {\n    contactColor:\n      frameHelmCssColorToNumber(\n        frameHelmSensorCssValue(\n          \"--fh-sensor-contact-color\",\n          \"#ff3030\"\n        ),\n        0xff3030\n      ),\n\n    reticleStrokeWidth:\n      frameHelmSensorCssNumber(\n        \"--fh-sensor-reticle-stroke-width\",\n        1.5\n      ),\n\n    reticleAlpha:\n      frameHelmSensorCssNumber(\n        \"--fh-sensor-reticle-alpha\",\n        0.9\n      ),\n\n    reticleClearance:\n      frameHelmSensorCssNumber(\n        \"--fh-sensor-reticle-clearance\",\n        5\n      ),\n\n    reticleBracketMinimum:\n      frameHelmSensorCssNumber(\n        \"--fh-sensor-reticle-bracket-minimum\",\n        8\n      ),\n\n    reticleBracketScale:\n      frameHelmSensorCssNumber(\n        \"--fh-sensor-reticle-bracket-scale\",\n        0.28\n      ),\n\n    layerZIndex:\n      frameHelmSensorCssNumber(\n        \"--fh-sensor-layer-z-index\",\n        100000\n      )\n  };\n}",
+      "path": "styles/ui_application/components/application-turn-commands.js",
+      "search": "function executeFullAction(\n  application,\n  actionId\n) {\n  const registry =\n    getFrameHelmApplicationActionRegistry();\n\n  const action =\n    registry.get(\n      actionId\n    );\n\n  const state =\n    getFrameHelmApplicationTurnState();",
+      "replace": "function executeFullAction(\n  application,\n  actionId\n) {\n  const registry =\n    getFrameHelmApplicationActionRegistry();\n\n  const action =\n    registry.get(\n      actionId\n    );\n\n  let state =\n    getFrameHelmApplicationTurnState();",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "styles/ui-sensors.js",
-      "search": "function createFrameHelmSensorCircle(\n  radius,\n  visual\n) {\n  const graphics =\n    new PIXI.Graphics();\n\n  if (\n    typeof graphics.circle === \"function\" &&\n    typeof graphics.stroke === \"function\"\n  ) {\n    graphics\n      .circle(\n        0,\n        0,\n        radius\n      )\n      .stroke({\n        color:\n          visual.contactColor,\n\n        width:\n          visual.circleStrokeWidth,\n\n        alpha:\n          visual.circleAlpha\n      });\n  } else {\n    graphics.lineStyle(\n      visual.circleStrokeWidth,\n      visual.contactColor,\n      visual.circleAlpha\n    );\n\n    graphics.drawCircle(\n      0,\n      0,\n      radius\n    );\n  }\n\n  return graphics;\n}\n\n\nfunction createFrameHelmSensorLabel(\n  name,\n  visual\n) {\n  const style = {\n    fontFamily:\n      visual.fontFamily,\n\n    fontSize:\n      visual.labelFontSize,\n\n    fontWeight:\n      \"bold\",\n\n    fill:\n      visual.labelColor,\n\n    stroke: {\n      color:\n        visual.labelStrokeColor,\n\n      width:\n        visual.labelStrokeWidth\n    },\n\n    align:\n      \"center\"\n  };\n\n  let label;\n\n  try {\n    label =\n      new PIXI.Text({\n        text:\n          name,\n\n        style\n      });\n  } catch (_error) {\n    const strokeHex =\n      `#${visual.labelStrokeColor\n        .toString(16)\n        .padStart(6, \"0\")}`;\n\n    label =\n      new PIXI.Text(\n        name,\n\n        new PIXI.TextStyle({\n          fontFamily:\n            style.fontFamily,\n\n          fontSize:\n            style.fontSize,\n\n          fontWeight:\n            style.fontWeight,\n\n          fill:\n            style.fill,\n\n          stroke:\n            strokeHex,\n\n          strokeThickness:\n            visual.labelStrokeWidth,\n\n          align:\n            style.align\n        })\n      );\n  }\n\n  label.anchor?.set?.(\n    0.5,\n    1\n  );\n\n  return label;\n}\n\n\n/* ============================================================\n   Sensor contact composition\n   ============================================================ */\n\nfunction createFrameHelmSensorContact(\n  contact,\n  visual\n) {\n  const container =\n    new PIXI.Container();\n\n  container.position.set(\n    contact.x,\n    contact.y\n  );\n\n  const radius =\n    Math.max(\n      visual.radiusMinimum,\n\n      Math.min(\n        Number(contact.width) || 30,\n        Number(contact.height) || 30\n      ) * visual.radiusScale\n    );\n\n  const circle =\n    createFrameHelmSensorCircle(\n      radius,\n      visual\n    );\n\n  const label =\n    createFrameHelmSensorLabel(\n      contact.name ??\n      \"CONTACT\",\n\n      visual\n    );\n\n  label.position.set(\n    0,\n    -radius -\n      visual.labelOffset\n  );\n\n  container.addChild(\n    circle\n  );\n\n  container.addChild(\n    label\n  );\n\n  return container;\n}",
-      "replace": "function createFrameHelmSensorReticle(\n  contact,\n  visual\n) {\n  const graphics =\n    new PIXI.Graphics();\n\n  const tokenWidth =\n    Math.max(\n      1,\n      Number(contact.width) ||\n        30\n    );\n\n  const tokenHeight =\n    Math.max(\n      1,\n      Number(contact.height) ||\n        30\n    );\n\n  const halfWidth =\n    tokenWidth / 2 +\n    visual.reticleClearance;\n\n  const halfHeight =\n    tokenHeight / 2 +\n    visual.reticleClearance;\n\n  const bracketLength =\n    Math.min(\n      halfWidth,\n      halfHeight,\n      Math.max(\n        visual.reticleBracketMinimum,\n        Math.min(\n          halfWidth,\n          halfHeight\n        ) * visual.reticleBracketScale\n      )\n    );\n\n  const drawBracketGeometry =\n    () => {\n      graphics\n        .moveTo(\n          -halfWidth + bracketLength,\n          -halfHeight\n        )\n        .lineTo(\n          -halfWidth,\n          -halfHeight\n        )\n        .lineTo(\n          -halfWidth,\n          -halfHeight + bracketLength\n        );\n\n      graphics\n        .moveTo(\n          halfWidth - bracketLength,\n          -halfHeight\n        )\n        .lineTo(\n          halfWidth,\n          -halfHeight\n        )\n        .lineTo(\n          halfWidth,\n          -halfHeight + bracketLength\n        );\n\n      graphics\n        .moveTo(\n          -halfWidth,\n          halfHeight - bracketLength\n        )\n        .lineTo(\n          -halfWidth,\n          halfHeight\n        )\n        .lineTo(\n          -halfWidth + bracketLength,\n          halfHeight\n        );\n\n      graphics\n        .moveTo(\n          halfWidth - bracketLength,\n          halfHeight\n        )\n        .lineTo(\n          halfWidth,\n          halfHeight\n        )\n        .lineTo(\n          halfWidth,\n          halfHeight - bracketLength\n        );\n    };\n\n  if (\n    typeof graphics.stroke ===\n      \"function\"\n  ) {\n    drawBracketGeometry();\n\n    graphics.stroke({\n      color:\n        visual.contactColor,\n\n      width:\n        visual.reticleStrokeWidth,\n\n      alpha:\n        visual.reticleAlpha\n    });\n  } else {\n    graphics.lineStyle(\n      visual.reticleStrokeWidth,\n      visual.contactColor,\n      visual.reticleAlpha\n    );\n\n    drawBracketGeometry();\n  }\n\n  return graphics;\n}\n\n\n/* ============================================================\n   Sensor contact composition\n   ============================================================ */\n\nfunction createFrameHelmSensorContact(\n  contact,\n  visual\n) {\n  const container =\n    new PIXI.Container();\n\n  container.position.set(\n    contact.x,\n    contact.y\n  );\n\n  container.addChild(\n    createFrameHelmSensorReticle(\n      contact,\n      visual\n    )\n  );\n\n  return container;\n}",
+      "path": "styles/ui_application/components/application-turn-commands.js",
+      "search": "  if (\n    !state\n  ) {\n    ui.notifications.warn(\n      \"Begin a turn plan before selecting actions.\"\n    );\n\n    return;\n  }",
+      "replace": "  if (\n    !state ||\n    state.ended\n  ) {\n    state =\n      ensureTurnPlan(\n        application\n      );\n  }\n\n\n  if (\n    !state\n  ) {\n    return;\n  }",
+      "expected_occurrences": 2
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-turn-commands.js",
+      "search": "function executeQuickAction(\n  application,\n  actionId,\n  useOvercharge = false\n) {\n  const registry =\n    getFrameHelmApplicationActionRegistry();\n\n  const action =\n    registry.get(\n      actionId\n    );\n\n  const state =\n    getFrameHelmApplicationTurnState();",
+      "replace": "function executeQuickAction(\n  application,\n  actionId,\n  useOvercharge = false\n) {\n  const registry =\n    getFrameHelmApplicationActionRegistry();\n\n  const action =\n    registry.get(\n      actionId\n    );\n\n  let state =\n    getFrameHelmApplicationTurnState();",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "styles/ui-sensors.css",
-      "search": " * OWNS:\n *   - Sensor contact color.\n *   - Sensor contact opacity.\n *   - Sensor contact stroke width.\n *   - Sensor marker sizing.\n *   - Sensor label color.\n *   - Sensor label outline.\n *   - Sensor label typography.\n *   - Sensor label spacing.\n *   - Sensor overlay stacking priority.",
-      "replace": " * OWNS:\n *   - Sensor reticle color.\n *   - Sensor reticle opacity.\n *   - Sensor reticle stroke width.\n *   - Sensor reticle token clearance.\n *   - Sensor reticle bracket sizing.\n *   - Sensor overlay stacking priority.",
+      "path": "styles/ui_application/components/application-turn-commands.js",
+      "search": "  if (\n    action.id ===\n    \"special.overcharge\"\n  ) {\n    const state =\n      getFrameHelmApplicationTurnState();\n\n    if (\n      !state\n    ) {\n      ui.notifications.warn(\n        \"Begin a turn plan before using Overcharge.\"\n      );\n\n      return;\n    }",
+      "replace": "  if (\n    action.id ===\n    \"special.overcharge\"\n  ) {\n    const state =\n      ensureTurnPlan(\n        application\n      );\n\n    if (\n      !state\n    ) {\n      return;\n    }",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "styles/ui-sensors.css",
-      "search": " * STABILITY CONTRACT:\n *\n *   The default values below reproduce the previous Sensors\n *   presentation:\n *\n *   - red circle: #ff3030\n *   - circle width: 3\n *   - circle alpha: 0.95\n *   - minimum radius: 10\n *   - radius scale: 0.22\n *   - label red: #ff5a5a\n *   - label outline: #160000\n *   - label size: 14\n *   - label outline width: 4\n *   - label offset: 6\n *   - canvas z-index: 100000",
-      "replace": " * VISUAL CONTRACT:\n *\n *   Sensor contacts are rendered as thin red targeting brackets\n *   outside the hostile token footprint. The reticle follows the\n *   token's actual canvas dimensions, so larger and smaller tokens\n *   receive proportionally sized indicators. Contact text is not\n *   rendered on the canvas.",
+      "path": "styles/ui_application/components/application-turn-commands.js",
+      "search": "export {\n  beginTurnPlan,",
+      "replace": "export {\n  ensureTurnPlan,\n  beginTurnPlan,",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "styles/ui-sensors.css",
-      "search": ":root {\n  --fh-sensor-contact-color:\n    #ff3030;\n\n  --fh-sensor-contact-stroke-width:\n    3;\n\n  --fh-sensor-contact-alpha:\n    0.95;\n\n  --fh-sensor-contact-radius-minimum:\n    10;\n\n  --fh-sensor-contact-radius-scale:\n    0.22;\n\n  --fh-sensor-label-color:\n    #ff5a5a;\n\n  --fh-sensor-label-stroke-color:\n    #160000;\n\n  --fh-sensor-label-font-family:\n    Arial, sans-serif;\n\n  --fh-sensor-label-font-size:\n    14;\n\n  --fh-sensor-label-stroke-width:\n    4;\n\n  --fh-sensor-label-offset:\n    6;\n\n  --fh-sensor-layer-z-index:\n    100000;\n}",
-      "replace": ":root {\n  --fh-sensor-contact-color:\n    #ff3030;\n\n  --fh-sensor-reticle-stroke-width:\n    1.5;\n\n  --fh-sensor-reticle-alpha:\n    0.9;\n\n  --fh-sensor-reticle-clearance:\n    5;\n\n  --fh-sensor-reticle-bracket-minimum:\n    8;\n\n  --fh-sensor-reticle-bracket-scale:\n    0.28;\n\n  --fh-sensor-layer-z-index:\n    100000;\n}",
+      "path": "styles/ui_application/components/application-budget-panel.js",
+      "search": "    return `\n      <section class=\"frame-helm-budget frame-helm-budget-empty\">\n        <div class=\"frame-helm-budget-message\">\n          <i class=\"fas fa-circle-play\"></i>\n\n          <div>\n            <strong>\n              No turn plan is active.\n            </strong>\n\n            <p>\n              Begin a plan to track movement, actions, and Overcharge.\n            </p>\n          </div>\n        </div>\n\n        <button\n          type=\"button\"\n          class=\"frame-helm-primary-button\"\n          data-frame-helm-command=\"begin-turn\"\n          ${data.hasSelectedToken ? \"\" : \"disabled\"}\n        >\n          <i class=\"fas fa-play\"></i>\n          Begin Turn Plan\n        </button>\n      </section>\n    `;",
+      "replace": "    return `\n      <section class=\"frame-helm-budget frame-helm-budget-empty\">\n        <div class=\"frame-helm-budget-message\">\n          <i class=\"fas fa-bolt\"></i>\n\n          <div>\n            <strong>\n              Turn plan ready.\n            </strong>\n\n            <p>\n              Select an action to begin tracking movement, actions, and Overcharge automatically.\n            </p>\n          </div>\n        </div>\n      </section>\n    `;",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-quick-actions.js",
+      "search": "  } else {\n    availability = {\n      allowed:\n        false,\n\n      reason:\n        \"Begin a turn plan first.\"\n    };\n  }",
+      "replace": "  } else {\n    availability = {\n      allowed:\n        true,\n\n      reason:\n        null\n    };\n  }",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-full-actions.js",
+      "search": "      : {\n          allowed:\n            false,\n\n          reason:\n            \"Begin a turn plan first.\"\n        };",
+      "replace": "      : {\n          allowed:\n            true,\n\n          reason:\n            null\n        };",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/ui-application.js",
+      "search": "import {\n  beginTurnPlan,",
+      "replace": "import {\n  ensureTurnPlan,\n  beginTurnPlan,",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/ui-application.js",
+      "search": "  beginTurnPlan() {\n    return beginTurnPlan(\n      this\n    );\n  }",
+      "replace": "  ensureTurnPlan() {\n    return ensureTurnPlan(\n      this\n    );\n  }\n\n\n  beginTurnPlan() {\n    return beginTurnPlan(\n      this\n    );\n  }",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-listeners.js",
+      "search": "      application.selectedCategory =\n        event.currentTarget\n          .dataset\n          .frameHelmCategory ??\n        null;\n\n\n      application.render(\n        false\n      );",
+      "replace": "      const categoryId =\n        event.currentTarget\n          .dataset\n          .frameHelmCategory ??\n        null;\n\n\n      if (\n        categoryId ===\n        \"movement\" &&\n        !application.ensureTurnPlan()\n      ) {\n        return;\n      }\n\n\n      application.selectedCategory =\n        categoryId;\n\n\n      application.render(\n        false\n      );",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-listeners.js",
+      "search": "  html.find(\n    \"[data-frame-helm-quick-action]\"\n  ).on(\n    \"click\",\n    event => {\n      application.selectedQuickActionId =",
+      "replace": "  html.find(\n    \"[data-frame-helm-quick-action]\"\n  ).on(\n    \"click\",\n    event => {\n      if (\n        !application.ensureTurnPlan()\n      ) {\n        return;\n      }\n\n\n      application.selectedQuickActionId =",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-listeners.js",
+      "search": "  html.find(\n    \"[data-frame-helm-full-action]\"\n  ).on(\n    \"click\",\n    event => {\n      application.selectedFullActionId =",
+      "replace": "  html.find(\n    \"[data-frame-helm-full-action]\"\n  ).on(\n    \"click\",\n    event => {\n      if (\n        !application.ensureTurnPlan()\n      ) {\n        return;\n      }\n\n\n      application.selectedFullActionId =",
       "expected_occurrences": 1
     }
   ]
