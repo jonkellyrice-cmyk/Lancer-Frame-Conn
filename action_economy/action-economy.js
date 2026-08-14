@@ -102,14 +102,10 @@ export const actionEconomy =
       ACTION_ECONOMY_MODULE_ID,
     version:
       ACTION_ECONOMY_MODULE_VERSION,
-    contract:
-      Object.freeze(contract),
-    state:
-      Object.freeze(state),
-    transaction:
-      Object.freeze(transaction),
-    hooks:
-      Object.freeze(hooks)
+    contract,
+    state,
+    transaction,
+    hooks
   });
 /* ============================================================
    REQUEST CONSTRUCTION

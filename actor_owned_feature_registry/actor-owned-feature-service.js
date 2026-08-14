@@ -92,17 +92,13 @@ export const actorOwnedFeatureService =
     version:
       ACTOR_OWNED_FEATURE_SERVICE_MODULE_VERSION,
 
-    contract:
-      Object.freeze(contract),
+    contract,
 
-    discovery:
-      Object.freeze(discovery),
+    discovery,
 
-    normalizer:
-      Object.freeze(normalizer),
+    normalizer,
 
-    registry:
-      Object.freeze(registry)
+    registry
   });
 
 /* ============================================================

@@ -102,14 +102,10 @@ export const resourceService =
       RESOURCE_SERVICE_MODULE_ID,
     version:
       RESOURCE_SERVICE_MODULE_VERSION,
-    contract:
-      Object.freeze(contract),
-    resolver:
-      Object.freeze(resolver),
-    transaction:
-      Object.freeze(transaction),
-    hooks:
-      Object.freeze(hooks)
+    contract,
+    resolver,
+    transaction,
+    hooks
   });
 /* ============================================================
    RESOURCE DESCRIPTOR RESOLUTION

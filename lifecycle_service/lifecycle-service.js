@@ -95,17 +95,13 @@ export const lifecycleService =
     version:
       LIFECYCLE_SERVICE_MODULE_VERSION,
 
-    contract:
-      Object.freeze(contract),
+    contract,
 
-    state:
-      Object.freeze(state),
+    state,
 
-    dispatcher:
-      Object.freeze(dispatcher),
+    dispatcher,
 
-    hooks:
-      Object.freeze(hooks)
+    hooks
   });
 
 /* ============================================================

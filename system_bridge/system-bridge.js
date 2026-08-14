@@ -101,20 +101,10 @@ export const systemBridge =
       SYSTEM_BRIDGE_MODULE_ID,
     version:
       SYSTEM_BRIDGE_MODULE_VERSION,
-    contract:
-      Object.freeze(contract),
-    augmentationRegistry:
-      Object.freeze(
-        augmentationRegistry
-      ),
-    resolver:
-      Object.freeze(
-        resolver
-      ),
-    composer:
-      Object.freeze(
-        composer
-      )
+    contract,
+    augmentationRegistry,
+    resolver,
+    composer
   });
 /* ============================================================
    PUBLIC CONTRACT VOCABULARY RE-EXPORTS

@@ -97,14 +97,10 @@ export const semanticEventBus =
       SEMANTIC_EVENT_BUS_MODULE_ID,
     version:
       SEMANTIC_EVENT_BUS_MODULE_VERSION,
-    contract:
-      Object.freeze(contract),
-    registry:
-      Object.freeze(registry),
-    dispatcher:
-      Object.freeze(dispatcher),
-    hooks:
-      Object.freeze(hooks)
+    contract,
+    registry,
+    dispatcher,
+    hooks
   });
 /* ============================================================
    EVENT CREATION

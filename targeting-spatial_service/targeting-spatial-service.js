@@ -110,20 +110,15 @@ export const targetingSpatialService =
     version:
       TARGETING_SPATIAL_SERVICE_MODULE_VERSION,
 
-    contract:
-      Object.freeze(contract),
+    contract,
 
-    query:
-      Object.freeze(query),
+    query,
 
-    resolver:
-      Object.freeze(resolver),
+    resolver,
 
-    validator:
-      Object.freeze(validator),
+    validator,
 
-    hooks:
-      Object.freeze(hooks)
+    hooks
   });
 
 /* ============================================================
