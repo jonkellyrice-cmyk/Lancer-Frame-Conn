@@ -525,6 +525,32 @@ function runPatchCorridorPlanner(goal) {
   }
 }
 
+function runCorridorContextPack(corridorReport) {
+  const contextScript = path.join(ROOT, "dev_scripts", "corridor-context-pack.mjs");
+  if (!fs.existsSync(contextScript)) fail(`Corridor Context Pack not found: ${contextScript}`);
+
+  const corridorFile = path.join(os.tmpdir(), `frame-conn-certified-corridor-${process.pid}.json`);
+  const outputFile = path.join(os.tmpdir(), `frame-conn-corridor-context-${process.pid}.json`);
+  fs.writeFileSync(corridorFile, `${JSON.stringify(corridorReport, null, 2)}\n`, "utf8");
+
+  const result = spawnSync(
+    process.execPath,
+    [contextScript, "--corridor", corridorFile, "--output", outputFile, "--max-slices", "12", "--print-source"],
+    { cwd: ROOT, encoding: "utf8", maxBuffer: 8 * 1024 * 1024 }
+  );
+
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+  if (result.error) fail(`Corridor Context Pack could not start: ${result.error}`);
+  if (result.status !== 0) fail(`Corridor Context Pack failed with exit code ${result.status}.`);
+
+  try {
+    return JSON.parse(fs.readFileSync(outputFile, "utf8"));
+  } catch (error) {
+    fail(`Corridor Context Pack report could not be read: ${error}`);
+  }
+}
+
 function reportCorridorScope(plan, corridorReport) {
   if (!corridorReport) return;
   const predicted = new Set((corridorReport.files ?? []).map(entry => entry.file));
@@ -543,6 +569,7 @@ function main() {
     const corridorReport = patch.planningGoal
       ? runPatchCorridorPlanner(patch.planningGoal)
       : null;
+    if (corridorReport) runCorridorContextPack(corridorReport);
 
     console.log(`[github-filepatcher] patch=${patch.id ?? "unnamed"}`);
     if (patch.description) console.log(`[github-filepatcher] description=${patch.description}`);

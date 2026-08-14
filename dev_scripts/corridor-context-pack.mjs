@@ -21,7 +21,7 @@ const CODE_EXTENSIONS = new Set([".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx"]);
 const IGNORE_DIRS = new Set([".git", "node_modules", "dist", "build", "coverage", "dev_scripts/backups", "dev_scripts/patch-history"]);
 
 function args(argv) {
-  const out = { goal:null, corridor:null, output:path.join(ROOT,"corridor-context-pack.json"), maxSlices:24, selfTest:false };
+  const out = { goal:null, corridor:null, output:path.join(ROOT,"corridor-context-pack.json"), maxSlices:24, selfTest:false, printSource:false };
   for (let i=2;i<argv.length;i++) {
     const a=argv[i];
     if (a==="--goal") out.goal=argv[++i]??null;
@@ -29,6 +29,7 @@ function args(argv) {
     else if (a==="--output") out.output=path.resolve(ROOT,argv[++i]??"corridor-context-pack.json");
     else if (a==="--max-slices") out.maxSlices=Math.max(1,Number(argv[++i]??24)||24);
     else if (a==="--self-test") out.selfTest=true;
+    else if (a==="--print-source") out.printSource=true;
     else if (a==="--help"||a==="-h") {
       console.log('Usage: npm run corridor-context -- --goal "behavioral goal" [--output file]\n       npm run corridor-context -- --corridor patch-corridor-report.json\n       npm run corridor-context -- --self-test');
       process.exit(0);
@@ -257,6 +258,11 @@ for(const slice of pack.slices) {
   console.log(`    imports=${slice.imports.length} callers=${slice.callers.length} exemplar=${slice.exemplar.status}`);
   const clauseIds=[...new Set(slice.ownership.map(x=>x.clauseId))];
   if(clauseIds.length)console.log(`    ownership=${slice.family}; clauses=${clauseIds.join(",")}`);
+  if(options.printSource) {
+    console.log(`----- CONTEXT SLICE ${slice.file}:${slice.symbol.lineStart}-${slice.symbol.lineEnd} ${slice.symbol.name} -----`);
+    console.log(slice.source);
+    console.log(`----- END CONTEXT SLICE ${slice.symbol.name} -----`);
+  }
 }
 if(pack.omissions.length){console.log("  omissions:");for(const o of pack.omissions)console.log(`    ${o.file}${o.symbol?`:${o.symbol}`:""} — ${o.reason}`);}
 console.log(`Report: ${options.output}`);
