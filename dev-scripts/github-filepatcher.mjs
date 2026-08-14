@@ -407,6 +407,37 @@ function runSymbolFamilyAudit() {
   console.log("[github-filepatcher] Symbol family audit passed.");
 }
 
+function runEffectAtlasAudit() {
+  const auditScript = path.join(ROOT, "dev_scripts", "effect-atlas.mjs");
+  if (!fs.existsSync(auditScript)) fail(`Effect atlas script not found: ${auditScript}`);
+
+  const outputFile = path.join(os.tmpdir(), `frame-conn-effect-atlas-${process.pid}.json`);
+  const result = spawnSync(
+    process.execPath,
+    [auditScript, "--output", outputFile],
+    { cwd: ROOT, encoding: "utf8" }
+  );
+
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+
+  if (result.error) {
+    fail(`Effect atlas could not start: ${result.error}`);
+  }
+
+  if (result.status !== 0) {
+    let report = "";
+    try {
+      if (fs.existsSync(outputFile)) report = fs.readFileSync(outputFile, "utf8");
+    } catch {}
+
+    if (report) console.error(`[github-filepatcher] Effect atlas findings:\n${report}`);
+    fail(`Effect atlas failed with exit code ${result.status}.`);
+  }
+
+  console.log("[github-filepatcher] Effect atlas passed.");
+}
+
 function main() {
   try {
     const patch = readPatchFile();
@@ -427,6 +458,7 @@ function main() {
     try {
       runRepositoryAudit();
       runSymbolFamilyAudit();
+      runEffectAtlasAudit();
     } catch (auditError) {
       console.error("[github-filepatcher] Post-apply audit failed; rolling back applied patch.");
       rollbackMutationPlan(plan);

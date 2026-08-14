@@ -7,6 +7,7 @@
     "github:patch": "node ./dev-scripts/github-filepatcher.mjs",
     "audit": "node ./dev_scripts/repo-audit.mjs",
     "symbol-family-audit": "node ./dev_scripts/symbol-family-audit.mjs",
+    "effect-atlas": "node ./dev_scripts/effect-atlas.mjs",
     "dependency-graph": "python ./dev_scripts/dependency_graph.py"
   }
 }
