@@ -61,6 +61,7 @@ function getFrameHelmTurnUiCurrentState() {
 
 
   return (
+    turnApi.getCurrent?.() ??
     turnApi.current ??
     null
   );
@@ -70,12 +71,28 @@ function getFrameHelmTurnUiCurrentState() {
 /**
  * Resolve a presentation-safe Turn snapshot.
  *
- * Prefer the Turn feature's snapshot surface so callers never
- * depend directly on mutable domain state.
+ * Prefer the Turn feature's live snapshot method. Compatibility
+ * properties are only fallbacks because feature-record
+ * normalization may materialize getters into static values.
  */
 function getFrameHelmTurnUiSnapshot() {
   const turnApi =
     getFrameHelmTurnUiTurnApi();
+
+
+  const liveSnapshot =
+    turnApi.snapshot?.();
+
+
+  if (
+    liveSnapshot !==
+    undefined
+  ) {
+    return (
+      liveSnapshot ??
+      null
+    );
+  }
 
 
   if (
@@ -90,6 +107,8 @@ function getFrameHelmTurnUiSnapshot() {
 
 
   return (
+    turnApi.getCurrent?.()
+      ?.snapshot?.() ??
     turnApi.current
       ?.snapshot?.() ??
     null

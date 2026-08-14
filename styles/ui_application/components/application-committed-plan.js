@@ -91,6 +91,7 @@ function renderCommittedPlan(
             null;
 
           const control =
+            entry?.executeControl ??
             entry?.control ??
             null;
 
