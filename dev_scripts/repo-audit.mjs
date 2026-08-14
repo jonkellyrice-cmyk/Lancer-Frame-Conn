@@ -110,7 +110,9 @@ const IGNORED_DIRECTORIES =
     "dist",
     "build",
     "coverage",
-    ".next"
+    ".next",
+    "backups",
+    "patch-history"
   ]);
 
 
@@ -412,7 +414,7 @@ function extractJavaScriptImports(
         "static",
 
       regex:
-        /import\s+(?:[\s\S]*?\s+from\s+)?["']([^"']+)["']/g
+        /^[ \t]*import\s+(?:[\s\S]*?\s+from\s+)?["']([^"']+)["']/gm
     },
 
     {
@@ -1056,8 +1058,8 @@ function extractFeatureDeclarations(
     [];
 
 
-  const needle =
-    "defineFrameConnFeature";
+  const callPattern =
+    /\bdefineFrameConnFeature\s*\(/g;
 
 
   let searchIndex =
@@ -1067,26 +1069,31 @@ function extractFeatureDeclarations(
   while (
     true
   ) {
-    const callIndex =
-      text.indexOf(
-        needle,
-        searchIndex
+    callPattern.lastIndex =
+      searchIndex;
+
+
+    const callMatch =
+      callPattern.exec(
+        text
       );
 
 
     if (
-      callIndex <
-      0
+      !callMatch
     ) {
       break;
     }
 
 
+    const callIndex =
+      callMatch.index;
+
+
     const openParenthesis =
       text.indexOf(
         "(",
-        callIndex +
-        needle.length
+        callIndex
       );
 
 
@@ -2900,17 +2907,33 @@ function runAudit() {
   );
 
 
+  const featureDeclarationExcludedFiles =
+    new Set([
+      "scripts/feature-contract.js",
+      "dev_scripts/repo-audit.mjs"
+    ]);
+
+
   const features =
-    javascriptFiles.flatMap(
-      file =>
-        extractFeatureDeclarations(
-          file,
-          textByFile.get(
-            file
-          ) ??
-          ""
-        )
-    );
+    javascriptFiles
+      .filter(
+        file =>
+          !featureDeclarationExcludedFiles.has(
+            relativePath(
+              file
+            )
+          )
+      )
+      .flatMap(
+        file =>
+          extractFeatureDeclarations(
+            file,
+            textByFile.get(
+              file
+            ) ??
+            ""
+          )
+      );
 
 
   const featureGraph =
