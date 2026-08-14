@@ -427,6 +427,25 @@ if (
 
 
 /* ------------------------------------------------------------
+   Movement UI
+   ------------------------------------------------------------ */
+
+const frameHelmMovementUiApi =
+  frameHelmFeatureRegistry.getApi(
+    "ui-movement"
+  );
+
+
+if (
+  !frameHelmMovementUiApi
+) {
+  throw new Error(
+    "Frame Helm | The registered Movement UI feature API could not be resolved."
+  );
+}
+
+
+/* ------------------------------------------------------------
    Application UI
    ------------------------------------------------------------ */
 
@@ -823,6 +842,33 @@ function configureFrameHelmRuntimeBindings() {
 
 
   /* ----------------------------------------------------------
+     Movement UI bindings
+     ---------------------------------------------------------- */
+
+  /**
+   * Movement UI consumes the registered Movement feature,
+   * authoritative Turn state, and Application rendering through
+   * explicit runtime composition.
+   */
+  frameHelmMovementUiApi
+    .configureRuntime?.({
+      getMovementApi:
+        () =>
+          frameHelmMovementApi,
+
+      getTurnApi:
+        () =>
+          frameHelmTurnApi,
+
+      renderApplication:
+        force =>
+          renderFrameHelmApplication(
+            force
+          )
+    });
+
+
+  /* ----------------------------------------------------------
      Application UI bindings
      ---------------------------------------------------------- */
 
@@ -879,6 +925,113 @@ function configureFrameHelmRuntimeBindings() {
 
 
 /* ============================================================
+   Runtime composition validation
+   ============================================================ */
+
+function assertFrameHelmRuntimeBindings(
+  label,
+  runtimeBindings,
+  requiredKeys
+) {
+  const state =
+    typeof runtimeBindings ===
+      "function"
+      ? runtimeBindings()
+      : null;
+
+
+  for (
+    const key
+    of requiredKeys
+  ) {
+    if (
+      !state?.[
+        key
+      ]
+    ) {
+      throw new Error(
+        `Frame Helm | Runtime composition incomplete: ${label}.${key}`
+      );
+    }
+  }
+
+
+  return state;
+}
+
+
+function validateFrameHelmRuntimeComposition() {
+  assertFrameHelmRuntimeBindings(
+    "Turn",
+    frameHelmTurnApi.runtimeBindings,
+    [
+      "actionRegistry",
+      "applicationRendering"
+    ]
+  );
+
+  assertFrameHelmRuntimeBindings(
+    "Movement",
+    frameHelmMovementApi.runtimeBindings,
+    [
+      "turnState",
+      "applicationRendering"
+    ]
+  );
+
+  assertFrameHelmRuntimeBindings(
+    "Foundry Integration",
+    frameHelmFoundryIntegrationApi.runtimeBindings,
+    [
+      "applicationOpening",
+      "applicationClosing"
+    ]
+  );
+
+  assertFrameHelmRuntimeBindings(
+    "Action Execution",
+    frameHelmActionExecutionApi.runtimeBindings,
+    [
+      "executeCanonicalAction"
+    ]
+  );
+
+  assertFrameHelmRuntimeBindings(
+    "Turn UI",
+    frameHelmTurnUiApi.runtimeBindings,
+    [
+      "turn",
+      "actions",
+      "applicationRendering"
+    ]
+  );
+
+  assertFrameHelmRuntimeBindings(
+    "Movement UI",
+    frameHelmMovementUiApi.runtimeBindings,
+    [
+      "movement",
+      "turn",
+      "applicationRendering"
+    ]
+  );
+
+  assertFrameHelmRuntimeBindings(
+    "Application UI",
+    frameHelmApplicationApi.runtimeBindings,
+    [
+      "actionRegistry",
+      "turnState",
+      "turnStateManager",
+      "canonicalActionExecution"
+    ]
+  );
+
+  return true;
+}
+
+
+/* ============================================================
    Foundry lifecycle
    ============================================================ */
 
@@ -918,6 +1071,8 @@ Hooks.once(
      * activation.
      */
     configureFrameHelmRuntimeBindings();
+
+    validateFrameHelmRuntimeComposition();
 
 
     /**
