@@ -1,9 +1,38 @@
 {
   "schema_version": 2,
-  "id": "validate-integration-surface-atlas-gate",
-  "description": "No-op validation that the committed GitHub FilePatcher syntax-checks and self-tests the Integration Surface Atlas before the architectural audits.",
+  "id": "integrate-runtime-signal-map",
+  "description": "Add Runtime Signal Map npm commands, syntax/self-test gate coverage, and suite-guide documentation.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 3
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "package.json",
+      "search": "    \"integration-atlas:self-test\": \"node ./dev_scripts/integration-surface-atlas.mjs --self-test\",\n    \"patch-corridor\":",
+      "replace": "    \"integration-atlas:self-test\": \"node ./dev_scripts/integration-surface-atlas.mjs --self-test\",\n    \"runtime-signal-map\": \"node ./dev_scripts/runtime-signal-map.mjs\",\n    \"runtime-signal-map:self-test\": \"node ./dev_scripts/runtime-signal-map.mjs --self-test\",\n    \"patch-corridor\":",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev-scripts/github-filepatcher.mjs",
+      "search": "    path.join(ROOT, \"dev_scripts\", \"patch-dsl-compiler.mjs\"),\n    path.join(ROOT, \"dev_scripts\", \"integration-surface-atlas.mjs\")\n  ];",
+      "replace": "    path.join(ROOT, \"dev_scripts\", \"patch-dsl-compiler.mjs\"),\n    path.join(ROOT, \"dev_scripts\", \"integration-surface-atlas.mjs\"),\n    path.join(ROOT, \"dev_scripts\", \"runtime-signal-map.mjs\")\n  ];",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev-scripts/github-filepatcher.mjs",
+      "search": "  if (integrationAtlasSelfTest.status !== 0) fail(\"Integration Surface Atlas self-test failed.\");\n\n  console.log(\"[github-filepatcher] Developer tool syntax checks passed.\");",
+      "replace": "  if (integrationAtlasSelfTest.status !== 0) fail(\"Integration Surface Atlas self-test failed.\");\n\n  const runtimeSignalMap = path.join(ROOT, \"dev_scripts\", \"runtime-signal-map.mjs\");\n  const runtimeSignalMapSelfTest = spawnSync(process.execPath, [runtimeSignalMap, \"--self-test\"], { cwd: ROOT, encoding: \"utf8\" });\n  if (runtimeSignalMapSelfTest.stdout) process.stdout.write(runtimeSignalMapSelfTest.stdout);\n  if (runtimeSignalMapSelfTest.stderr) process.stderr.write(runtimeSignalMapSelfTest.stderr);\n  if (runtimeSignalMapSelfTest.error) fail(`Runtime Signal Map self-test could not start: ${runtimeSignalMapSelfTest.error}`);\n  if (runtimeSignalMapSelfTest.status !== 0) fail(\"Runtime Signal Map self-test failed.\");\n\n  console.log(\"[github-filepatcher] Developer tool syntax checks passed.\");",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
+      "search": "See `dev_scripts/INTEGRATION_SURFACE_ATLAS.md` for the full contract.\n\n---\n\n## 8. Patch Corridor Planner — `patch-corridor-planner.mjs`",
+      "replace": "See `dev_scripts/INTEGRATION_SURFACE_ATLAS.md` for the full contract.\n\n---\n\n## Runtime Signal Map — `runtime-signal-map.mjs`\n\nRun against Frame Conn plus an authoritative native Lancer checkout with:\n\n```bash\nnpm run runtime-signal-map -- --native-root /path/to/foundryvtt-lancer --query \"attack damage chat\"\n```\n\nAsk for an explicit causal path with:\n\n```bash\nnpm run runtime-signal-map -- --report dev_scripts/runtime-signal-map-report.json --from \"click .lancer-damage-apply\" --to damageCalc\n```\n\nThe Runtime Signal Map complements the Integration Surface Atlas. The Atlas answers **what native surfaces exist**; the signal map answers **how statically evidenced runtime signals travel between them**. It maps UI events, named handlers, direct calls, Flow construction, ordered Flow steps, Flow-step implementations, hooks, chat creation, damage application, and document mutation boundaries.\n\nThe mapper fails conservative: ambiguous call targets are omitted instead of guessed. Generated reports record source version/fingerprints and must be regenerated when authoritative native source changes. It is a planning/diagnostic tool, not live Foundry runtime proof.\n\nSee `dev_scripts/RUNTIME_SIGNAL_MAP.md` for the full contract.\n\n---\n\n## 8. Patch Corridor Planner — `patch-corridor-planner.mjs`",
+      "expected_occurrences": 1
+    }
+  ]
 }
