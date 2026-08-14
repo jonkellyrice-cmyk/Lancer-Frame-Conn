@@ -376,6 +376,37 @@ function runRepositoryAudit() {
   console.log("[github-filepatcher] Repository audit passed.");
 }
 
+function runSymbolFamilyAudit() {
+  const auditScript = path.join(ROOT, "dev_scripts", "symbol-family-audit.mjs");
+  if (!fs.existsSync(auditScript)) fail(`Symbol family audit script not found: ${auditScript}`);
+
+  const outputFile = path.join(os.tmpdir(), `frame-conn-symbol-family-audit-${process.pid}.json`);
+  const result = spawnSync(
+    process.execPath,
+    [auditScript, "--output", outputFile],
+    { cwd: ROOT, encoding: "utf8" }
+  );
+
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+
+  if (result.error) {
+    fail(`Symbol family audit could not start: ${result.error}`);
+  }
+
+  if (result.status !== 0) {
+    let report = "";
+    try {
+      if (fs.existsSync(outputFile)) report = fs.readFileSync(outputFile, "utf8");
+    } catch {}
+
+    if (report) console.error(`[github-filepatcher] Symbol family audit findings:\n${report}`);
+    fail(`Symbol family audit failed with exit code ${result.status}.`);
+  }
+
+  console.log("[github-filepatcher] Symbol family audit passed.");
+}
+
 function main() {
   try {
     const patch = readPatchFile();
@@ -395,8 +426,9 @@ function main() {
 
     try {
       runRepositoryAudit();
+      runSymbolFamilyAudit();
     } catch (auditError) {
-      console.error("[github-filepatcher] Repository audit failed; rolling back applied patch.");
+      console.error("[github-filepatcher] Post-apply audit failed; rolling back applied patch.");
       rollbackMutationPlan(plan);
       throw auditError;
     }
