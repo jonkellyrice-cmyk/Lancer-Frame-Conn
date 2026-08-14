@@ -119,17 +119,40 @@ function frameHelmSensorDistance(
         }
       );
 
+    /**
+     * Foundry path cost is already expressed as grid traversal
+     * cost/spaces. Do not divide it by the scene distance again.
+     * Doing so previously shrank contact distances and allowed
+     * enemies far outside a mech's Sensors to qualify.
+     */
+    const measuredCost =
+      Number(
+        measured?.cost
+      );
+
+    if (
+      Number.isFinite(
+        measuredCost
+      )
+    ) {
+      return measuredCost;
+    }
+
+    /**
+     * Some Foundry measurement paths expose physical scene
+     * distance instead of traversal cost. Normalize that value
+     * exactly once into Lancer grid spaces.
+     */
+    const measuredDistance =
+      Number(
+        measured?.distance
+      );
+
     const sceneDistance =
       Number(
         canvas?.scene?.grid?.distance ??
         canvas?.dimensions?.distance ??
         1
-      );
-
-    const measuredDistance =
-      Number(
-        measured?.cost ??
-        measured?.distance
       );
 
     if (
@@ -360,6 +383,11 @@ function handleFrameHelmSightRefresh() {
 }
 
 
+function handleFrameHelmControlToken() {
+  refreshFrameHelmSensorContacts();
+}
+
+
 /* ============================================================
    Sensor feature definition
    ============================================================ */
@@ -423,7 +451,10 @@ export const frameHelmSensorsFeature =
         handleFrameHelmRefreshToken,
 
       sightRefresh:
-        handleFrameHelmSightRefresh
+        handleFrameHelmSightRefresh,
+
+      controlToken:
+        handleFrameHelmControlToken
     },
 
     lifecycle: {},

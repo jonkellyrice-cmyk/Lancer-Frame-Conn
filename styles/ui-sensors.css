@@ -30,14 +30,11 @@
  *   layer to remain in JavaScript.
  *
  * OWNS:
- *   - Sensor contact color.
- *   - Sensor contact opacity.
- *   - Sensor contact stroke width.
- *   - Sensor marker sizing.
- *   - Sensor label color.
- *   - Sensor label outline.
- *   - Sensor label typography.
- *   - Sensor label spacing.
+ *   - Sensor reticle color.
+ *   - Sensor reticle opacity.
+ *   - Sensor reticle stroke width.
+ *   - Sensor reticle token clearance.
+ *   - Sensor reticle bracket sizing.
  *   - Sensor overlay stacking priority.
  *
  * DOES NOT OWN:
@@ -81,22 +78,13 @@
  *       ↓ PIXI composition
  *   Foundry canvas.interface
  *
- * STABILITY CONTRACT:
+ * VISUAL CONTRACT:
  *
- *   The default values below reproduce the previous Sensors
- *   presentation:
- *
- *   - red circle: #ff3030
- *   - circle width: 3
- *   - circle alpha: 0.95
- *   - minimum radius: 10
- *   - radius scale: 0.22
- *   - label red: #ff5a5a
- *   - label outline: #160000
- *   - label size: 14
- *   - label outline width: 4
- *   - label offset: 6
- *   - canvas z-index: 100000
+ *   Sensor contacts are rendered as thin red targeting brackets
+ *   outside the hostile token footprint. The reticle follows the
+ *   token's actual canvas dimensions, so larger and smaller tokens
+ *   receive proportionally sized indicators. Contact text is not
+ *   rendered on the canvas.
  * ============================================================
  */
 
@@ -109,35 +97,20 @@
   --fh-sensor-contact-color:
     #ff3030;
 
-  --fh-sensor-contact-stroke-width:
-    3;
+  --fh-sensor-reticle-stroke-width:
+    1.5;
 
-  --fh-sensor-contact-alpha:
-    0.95;
+  --fh-sensor-reticle-alpha:
+    0.9;
 
-  --fh-sensor-contact-radius-minimum:
-    10;
+  --fh-sensor-reticle-clearance:
+    5;
 
-  --fh-sensor-contact-radius-scale:
-    0.22;
+  --fh-sensor-reticle-bracket-minimum:
+    8;
 
-  --fh-sensor-label-color:
-    #ff5a5a;
-
-  --fh-sensor-label-stroke-color:
-    #160000;
-
-  --fh-sensor-label-font-family:
-    Arial, sans-serif;
-
-  --fh-sensor-label-font-size:
-    14;
-
-  --fh-sensor-label-stroke-width:
-    4;
-
-  --fh-sensor-label-offset:
-    6;
+  --fh-sensor-reticle-bracket-scale:
+    0.28;
 
   --fh-sensor-layer-z-index:
     100000;

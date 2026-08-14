@@ -150,76 +150,40 @@ function getFrameHelmSensorVisualConfiguration() {
         0xff3030
       ),
 
-    labelColor:
-      frameHelmCssColorToNumber(
-        frameHelmSensorCssValue(
-          "--fh-sensor-label-color",
-          "#ff5a5a"
-        ),
-        0xff5a5a
-      ),
-
-    labelStrokeColor:
-      frameHelmCssColorToNumber(
-        frameHelmSensorCssValue(
-          "--fh-sensor-label-stroke-color",
-          "#160000"
-        ),
-        0x160000
-      ),
-
-    circleStrokeWidth:
+    reticleStrokeWidth:
       frameHelmSensorCssNumber(
-        "--fh-sensor-contact-stroke-width",
-        3
+        "--fh-sensor-reticle-stroke-width",
+        1.5
       ),
 
-    circleAlpha:
+    reticleAlpha:
       frameHelmSensorCssNumber(
-        "--fh-sensor-contact-alpha",
-        0.95
+        "--fh-sensor-reticle-alpha",
+        0.9
       ),
 
-    radiusMinimum:
+    reticleClearance:
       frameHelmSensorCssNumber(
-        "--fh-sensor-contact-radius-minimum",
-        10
+        "--fh-sensor-reticle-clearance",
+        5
       ),
 
-    radiusScale:
+    reticleBracketMinimum:
       frameHelmSensorCssNumber(
-        "--fh-sensor-contact-radius-scale",
-        0.22
+        "--fh-sensor-reticle-bracket-minimum",
+        8
       ),
 
-    labelFontSize:
+    reticleBracketScale:
       frameHelmSensorCssNumber(
-        "--fh-sensor-label-font-size",
-        14
-      ),
-
-    labelStrokeWidth:
-      frameHelmSensorCssNumber(
-        "--fh-sensor-label-stroke-width",
-        4
-      ),
-
-    labelOffset:
-      frameHelmSensorCssNumber(
-        "--fh-sensor-label-offset",
-        6
+        "--fh-sensor-reticle-bracket-scale",
+        0.28
       ),
 
     layerZIndex:
       frameHelmSensorCssNumber(
         "--fh-sensor-layer-z-index",
         100000
-      ),
-
-    fontFamily:
-      frameHelmSensorCssValue(
-        "--fh-sensor-label-font-family",
-        "Arial, sans-serif"
       )
   };
 }
@@ -259,131 +223,134 @@ function destroyFrameHelmSensorContacts() {
    Sensor presentation primitives
    ============================================================ */
 
-function createFrameHelmSensorCircle(
-  radius,
+function createFrameHelmSensorReticle(
+  contact,
   visual
 ) {
   const graphics =
     new PIXI.Graphics();
 
-  if (
-    typeof graphics.circle === "function" &&
-    typeof graphics.stroke === "function"
-  ) {
-    graphics
-      .circle(
-        0,
-        0,
-        radius
+  const tokenWidth =
+    Math.max(
+      1,
+      Number(contact.width) ||
+        30
+    );
+
+  const tokenHeight =
+    Math.max(
+      1,
+      Number(contact.height) ||
+        30
+    );
+
+  const halfWidth =
+    tokenWidth / 2 +
+    visual.reticleClearance;
+
+  const halfHeight =
+    tokenHeight / 2 +
+    visual.reticleClearance;
+
+  const bracketLength =
+    Math.min(
+      halfWidth,
+      halfHeight,
+      Math.max(
+        visual.reticleBracketMinimum,
+        Math.min(
+          halfWidth,
+          halfHeight
+        ) * visual.reticleBracketScale
       )
-      .stroke({
-        color:
-          visual.contactColor,
+    );
 
-        width:
-          visual.circleStrokeWidth,
+  const drawBracketGeometry =
+    () => {
+      graphics
+        .moveTo(
+          -halfWidth + bracketLength,
+          -halfHeight
+        )
+        .lineTo(
+          -halfWidth,
+          -halfHeight
+        )
+        .lineTo(
+          -halfWidth,
+          -halfHeight + bracketLength
+        );
 
-        alpha:
-          visual.circleAlpha
-      });
+      graphics
+        .moveTo(
+          halfWidth - bracketLength,
+          -halfHeight
+        )
+        .lineTo(
+          halfWidth,
+          -halfHeight
+        )
+        .lineTo(
+          halfWidth,
+          -halfHeight + bracketLength
+        );
+
+      graphics
+        .moveTo(
+          -halfWidth,
+          halfHeight - bracketLength
+        )
+        .lineTo(
+          -halfWidth,
+          halfHeight
+        )
+        .lineTo(
+          -halfWidth + bracketLength,
+          halfHeight
+        );
+
+      graphics
+        .moveTo(
+          halfWidth - bracketLength,
+          halfHeight
+        )
+        .lineTo(
+          halfWidth,
+          halfHeight
+        )
+        .lineTo(
+          halfWidth,
+          halfHeight - bracketLength
+        );
+    };
+
+  if (
+    typeof graphics.stroke ===
+      "function"
+  ) {
+    drawBracketGeometry();
+
+    graphics.stroke({
+      color:
+        visual.contactColor,
+
+      width:
+        visual.reticleStrokeWidth,
+
+      alpha:
+        visual.reticleAlpha
+    });
   } else {
     graphics.lineStyle(
-      visual.circleStrokeWidth,
+      visual.reticleStrokeWidth,
       visual.contactColor,
-      visual.circleAlpha
+      visual.reticleAlpha
     );
 
-    graphics.drawCircle(
-      0,
-      0,
-      radius
-    );
+    drawBracketGeometry();
   }
 
   return graphics;
-}
-
-
-function createFrameHelmSensorLabel(
-  name,
-  visual
-) {
-  const style = {
-    fontFamily:
-      visual.fontFamily,
-
-    fontSize:
-      visual.labelFontSize,
-
-    fontWeight:
-      "bold",
-
-    fill:
-      visual.labelColor,
-
-    stroke: {
-      color:
-        visual.labelStrokeColor,
-
-      width:
-        visual.labelStrokeWidth
-    },
-
-    align:
-      "center"
-  };
-
-  let label;
-
-  try {
-    label =
-      new PIXI.Text({
-        text:
-          name,
-
-        style
-      });
-  } catch (_error) {
-    const strokeHex =
-      `#${visual.labelStrokeColor
-        .toString(16)
-        .padStart(6, "0")}`;
-
-    label =
-      new PIXI.Text(
-        name,
-
-        new PIXI.TextStyle({
-          fontFamily:
-            style.fontFamily,
-
-          fontSize:
-            style.fontSize,
-
-          fontWeight:
-            style.fontWeight,
-
-          fill:
-            style.fill,
-
-          stroke:
-            strokeHex,
-
-          strokeThickness:
-            visual.labelStrokeWidth,
-
-          align:
-            style.align
-        })
-      );
-  }
-
-  label.anchor?.set?.(
-    0.5,
-    1
-  );
-
-  return label;
 }
 
 
@@ -403,42 +370,11 @@ function createFrameHelmSensorContact(
     contact.y
   );
 
-  const radius =
-    Math.max(
-      visual.radiusMinimum,
-
-      Math.min(
-        Number(contact.width) || 30,
-        Number(contact.height) || 30
-      ) * visual.radiusScale
-    );
-
-  const circle =
-    createFrameHelmSensorCircle(
-      radius,
-      visual
-    );
-
-  const label =
-    createFrameHelmSensorLabel(
-      contact.name ??
-      "CONTACT",
-
-      visual
-    );
-
-  label.position.set(
-    0,
-    -radius -
-      visual.labelOffset
-  );
-
   container.addChild(
-    circle
-  );
-
-  container.addChild(
-    label
+    createFrameHelmSensorReticle(
+      contact,
+      visual
+    )
   );
 
   return container;
