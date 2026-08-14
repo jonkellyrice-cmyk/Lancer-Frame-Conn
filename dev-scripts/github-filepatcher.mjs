@@ -484,6 +484,13 @@ function validateDeveloperToolSyntax() {
   if (runtimeSignalMapSelfTest.error) fail(`Runtime Signal Map self-test could not start: ${runtimeSignalMapSelfTest.error}`);
   if (runtimeSignalMapSelfTest.status !== 0) fail("Runtime Signal Map self-test failed.");
 
+  const patchCorridor = path.join(ROOT, "dev_scripts", "patch-corridor-planner.mjs");
+  const patchCorridorSelfTest = spawnSync(process.execPath, [patchCorridor, "--self-test"], { cwd: ROOT, encoding: "utf8" });
+  if (patchCorridorSelfTest.stdout) process.stdout.write(patchCorridorSelfTest.stdout);
+  if (patchCorridorSelfTest.stderr) process.stderr.write(patchCorridorSelfTest.stderr);
+  if (patchCorridorSelfTest.error) fail(`Patch Corridor self-test could not start: ${patchCorridorSelfTest.error}`);
+  if (patchCorridorSelfTest.status !== 0) fail("Patch Corridor self-test failed.");
+
   console.log("[github-filepatcher] Developer tool syntax checks passed.");
 }
 

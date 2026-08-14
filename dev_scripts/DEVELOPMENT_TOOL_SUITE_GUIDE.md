@@ -236,15 +236,23 @@ npm run patch-corridor -- --goal "wire committed Scan through native execution"
 
 The planner takes a behavioral goal and uses the current repository diagnostics to identify a likely **patch corridor**: the feature families, files, and symbols most likely to participate in the change.
 
-It is a planning tool, not a source editor. It helps answer:
+It is now **clause-aware**. Before certifying a corridor it splits a behavioral goal into independently checkable clauses, detects the architectural concerns in each clause, resolves candidate owner families, and requires a statically known family path for every required obligation. The JSON report records each clause, its concern obligations, candidate owners, selected owner, path, and coverage status.
+
+It helps answer both:
 
 > Where should this change probably travel through the architecture?
+
+and:
+
+> Did the proposed corridor account for every distinct behavior the request actually requires?
+
+A corridor cannot receive high confidence unless clause coverage is complete. If any clause has no deterministic owner/path, the planner writes the incomplete report and exits nonzero rather than silently certifying a partial implementation.
 
 The planner consumes the repository audit, symbol-family audit, and effect atlas. It refuses to plan against unhealthy diagnostics. It also intentionally keeps dormant architecture out of the corridor unless the goal explicitly calls for it.
 
 A corridor is guidance, not magical proof. If implementation discovers a real dependency outside the predicted corridor, expand the scope deliberately and explain why.
 
-When `planning_goal` is present in `dev-scripts/filepatcher.json`, the GitHub FilePatcher can run the planner and report how many changed files are inside or outside the predicted corridor.
+Run the deterministic clause-decomposition self-test with `npm run patch-corridor:self-test`. When `planning_goal` is present in `dev-scripts/filepatcher.json`, the GitHub FilePatcher runs this clause-aware planner before mutation and reports how many changed files are inside or outside the certified corridor.
 
 ---
 
