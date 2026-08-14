@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
-  "id": "rename-ui-branding-to-pilot-conn",
-  "description": "Rename user-facing Frame Helm branding to Pilot Conn while preserving internal module ids, feature ids, CSS classes, public APIs, and repository URLs.",
+  "id": "correct-ui-branding-to-frame-conn",
+  "description": "Correct user-facing branding from Pilot Conn to Frame Conn while preserving internal module ids, feature ids, CSS classes, public APIs, and repository URLs.",
   "policy": {
     "max_files_changed": 3
   },
@@ -9,29 +9,29 @@
     {
       "type": "replace_text",
       "path": "styles/ui_application/ui-application.js",
-      "search": "const MODULE_TITLE =\n  \"Lancer: Frame Helm\";",
-      "replace": "const MODULE_TITLE =\n  \"Pilot Conn\";",
+      "search": "const MODULE_TITLE =\n  \"Pilot Conn\";",
+      "replace": "const MODULE_TITLE =\n  \"Frame Conn\";",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
       "path": "scripts/foundry-integration-feature.js",
-      "search": "const MODULE_TITLE =\n  \"Lancer: Frame Helm\";",
-      "replace": "const MODULE_TITLE =\n  \"Pilot Conn\";",
+      "search": "const MODULE_TITLE =\n  \"Pilot Conn\";",
+      "replace": "const MODULE_TITLE =\n  \"Frame Conn\";",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
       "path": "scripts/foundry-integration-feature.js",
-      "search": "      name:\n        \"Enable Frame Helm\",\n\n      hint:\n        \"Enables the Frame Helm action-selection interface.\",",
-      "replace": "      name:\n        \"Enable Pilot Conn\",\n\n      hint:\n        \"Enables the Pilot Conn action-selection interface.\",",
+      "search": "      name:\n        \"Enable Pilot Conn\",\n\n      hint:\n        \"Enables the Pilot Conn action-selection interface.\",",
+      "replace": "      name:\n        \"Enable Frame Conn\",\n\n      hint:\n        \"Enables the Frame Conn action-selection interface.\",",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
       "path": "module.json",
-      "search": "  \"title\": \"Lancer Frame Helm\",",
-      "replace": "  \"title\": \"Pilot Conn\",",
+      "search": "  \"title\": \"Pilot Conn\",",
+      "replace": "  \"title\": \"Frame Conn\",",
       "expected_occurrences": 1
     }
   ]
