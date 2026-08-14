@@ -1,16 +1,16 @@
 {
   "schema_version": 2,
-  "id": "fix-native-adapter-module-namespace-freeze",
-  "description": "Prevent Frame Helm import-time failure by removing Object.freeze calls around ES module namespace objects in the Native Adapter while preserving the frozen outer adapter namespace.",
+  "id": "fix-execution-context-module-namespace-freeze",
+  "description": "Prevent the Semantic Execution Context facade from freezing ES module namespace objects during import while preserving the frozen outer executionContext namespace.",
   "policy": {
     "max_files_changed": 1
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "native_adapter/native-adapter.js",
-      "search": "    contract:\n      Object.freeze(contract),\n\n    actors:\n      Object.freeze(actors),\n\n    items:\n      Object.freeze(items),\n\n    loadout:\n      Object.freeze(loadout),\n\n    resources:\n      Object.freeze(resources),\n\n    status:\n      Object.freeze(status),\n\n    rolls:\n      Object.freeze(rolls),\n\n    combat:\n      Object.freeze(combat),\n\n    execution:\n      Object.freeze(execution)",
-      "replace": "    contract,\n    actors,\n    items,\n    loadout,\n    resources,\n    status,\n    rolls,\n    combat,\n    execution",
+      "path": "semantic_execution_context/execution-context.js",
+      "search": "    contract:\n      Object.freeze(contract),\n\n    builder:\n      Object.freeze(builder)",
+      "replace": "    contract,\n    builder",
       "expected_occurrences": 1
     }
   ]
