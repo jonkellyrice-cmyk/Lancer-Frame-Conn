@@ -1,65 +1,30 @@
 {
   "schema_version": 2,
-  "id": "add-lazy-turn-plan-ensure-command",
-  "description": "Add an idempotent Application-level Turn ensure command and make movement, quick, full, and Overcharge mutations create the canonical Turn state automatically when needed.",
+  "id": "wire-auto-turn-plan-selection-flow",
+  "description": "Expose lazy Turn ensure on FrameHelmApplication and invoke it when the player enters Movement, Quick, Full, Special, or Protocol action branches, while leaving Reactions independent.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 2
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "styles/ui_application/components/application-turn-commands.js",
-      "search": "function beginTurnPlan(\n  application\n) {\n  const token =\n    application.getControlledToken();\n\n\n  if (\n    !token\n  ) {\n    ui.notifications.warn(\n      \"Select a mech or NPC token first.\"\n    );\n\n    return;\n  }\n\n\n  const turnManager =\n    getFrameHelmApplicationTurnStateManager();\n\n\n  if (\n    !turnManager\n  ) {\n    ui.notifications.error(\n      \"Frame Helm could not resolve the Turn state manager.\"\n    );\n\n    return;\n  }\n\n\n  const combat =\n    game.combat;\n\n  const combatContext =\n    combat?.started\n      ? getFrameHelmApplicationCombatContext(\n          combat\n        )\n      : {};\n\n\n  turnManager.beginTurn({\n    ...combatContext,\n\n    tokenId:\n      token.id ??\n      token.document?.id ??\n      combatContext.tokenId ??\n      null,\n\n    actorId:\n      token.actor?.id ??\n      combatContext.actorId ??\n      null,\n\n    sceneId:\n      canvas?.scene?.id ??\n      combatContext.sceneId ??\n      null,\n\n    speed:\n      (() => {\n        const numericSpeed =\n          Number(\n            token.actor?.system?.speed\n          );\n\n        return (\n          Number.isFinite(\n            numericSpeed\n          ) &&\n          numericSpeed >= 0\n            ? numericSpeed\n            : null\n        );\n      })()\n  });\n\n\n  application.selectedCategory =\n    null;\n\n  application.selectedMovementMode =\n    null;\n\n  application.selectedQuickActionId =\n    null;\n\n  application.selectedFullActionId =\n    null;\n\n  application.render(\n    false\n  );\n}",
-      "replace": "function ensureTurnPlan(\n  application\n) {\n  const existingState =\n    getFrameHelmApplicationTurnState();\n\n  if (\n    existingState &&\n    !existingState.ended\n  ) {\n    return existingState;\n  }\n\n  const token =\n    application.getControlledToken();\n\n  if (\n    !token\n  ) {\n    ui.notifications.warn(\n      \"Select a mech or NPC token first.\"\n    );\n    return null;\n  }\n\n  const turnManager =\n    getFrameHelmApplicationTurnStateManager();\n\n  if (\n    !turnManager\n  ) {\n    ui.notifications.error(\n      \"Frame Helm could not resolve the Turn state manager.\"\n    );\n    return null;\n  }\n\n  const combat =\n    game.combat;\n\n  const combatContext =\n    combat?.started\n      ? getFrameHelmApplicationCombatContext(\n          combat\n        )\n      : {};\n\n  return turnManager.ensureTurn({\n    ...combatContext,\n    tokenId:\n      token.id ??\n      token.document?.id ??\n      combatContext.tokenId ??\n      null,\n    actorId:\n      token.actor?.id ??\n      combatContext.actorId ??\n      null,\n    sceneId:\n      canvas?.scene?.id ??\n      combatContext.sceneId ??\n      null,\n    speed:\n      (() => {\n        const numericSpeed =\n          Number(\n            token.actor?.system?.speed\n          );\n        return (\n          Number.isFinite(numericSpeed) &&\n          numericSpeed >= 0\n            ? numericSpeed\n            : null\n        );\n      })()\n  });\n}\n\n\nfunction beginTurnPlan(\n  application\n) {\n  const state =\n    ensureTurnPlan(\n      application\n    );\n\n  if (\n    !state\n  ) {\n    return null;\n  }\n\n  application.selectedCategory = null;\n  application.selectedMovementMode = null;\n  application.selectedQuickActionId = null;\n  application.selectedFullActionId = null;\n  application.render(false);\n  return state;\n}",
+      "path": "styles/ui_application/ui-application.js",
+      "search": "import {\n  beginTurnPlan,",
+      "replace": "import {\n  ensureTurnPlan,\n  beginTurnPlan,",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "styles/ui_application/components/application-turn-commands.js",
-      "search": "  const state =\n    getFrameHelmApplicationTurnState();\n\n\n  if (\n    !action ||\n    action.category !==\n      \"movement\" ||",
-      "replace": "  let state =\n    getFrameHelmApplicationTurnState();\n\n\n  if (\n    !action ||\n    action.category !==\n      \"movement\" ||",
+      "path": "styles/ui_application/ui-application.js",
+      "search": "  beginTurnPlan() {\n    return beginTurnPlan(\n      this\n    );\n  }",
+      "replace": "  ensureTurnPlan() {\n    return ensureTurnPlan(\n      this\n    );\n  }\n\n\n  beginTurnPlan() {\n    return beginTurnPlan(\n      this\n    );\n  }",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "styles/ui_application/components/application-turn-commands.js",
-      "search": "  if (\n    !state\n  ) {\n    ui.notifications.warn(\n      \"Begin a turn plan before committing movement.\"\n    );\n\n    return;\n  }",
-      "replace": "  if (\n    !state ||\n    state.ended\n  ) {\n    state = ensureTurnPlan(application);\n  }\n\n  if (\n    !state\n  ) {\n    return;\n  }",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/components/application-turn-commands.js",
-      "search": "function executeFullAction(\n  application,\n  actionId\n) {\n  const registry =\n    getFrameHelmApplicationActionRegistry();\n\n  const action =\n    registry.get(\n      actionId\n    );\n\n  const state =\n    getFrameHelmApplicationTurnState();",
-      "replace": "function executeFullAction(\n  application,\n  actionId\n) {\n  const registry =\n    getFrameHelmApplicationActionRegistry();\n\n  const action =\n    registry.get(\n      actionId\n    );\n\n  let state =\n    getFrameHelmApplicationTurnState();",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/components/application-turn-commands.js",
-      "search": "function executeQuickAction(\n  application,\n  actionId,\n  useOvercharge = false\n) {\n  const registry =\n    getFrameHelmApplicationActionRegistry();\n\n  const action =\n    registry.get(\n      actionId\n    );\n\n  const state =\n    getFrameHelmApplicationTurnState();",
-      "replace": "function executeQuickAction(\n  application,\n  actionId,\n  useOvercharge = false\n) {\n  const registry =\n    getFrameHelmApplicationActionRegistry();\n\n  const action =\n    registry.get(\n      actionId\n    );\n\n  let state =\n    getFrameHelmApplicationTurnState();",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/components/application-turn-commands.js",
-      "search": "  if (\n    !state\n  ) {\n    ui.notifications.warn(\n      \"Begin a turn plan before selecting actions.\"\n    );\n\n    return;\n  }",
-      "replace": "  if (\n    !state ||\n    state.ended\n  ) {\n    state = ensureTurnPlan(application);\n  }\n\n  if (\n    !state\n  ) {\n    return;\n  }",
-      "expected_occurrences": 2
-    },
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/components/application-turn-commands.js",
-      "search": "  if (\n    action.id ===\n    \"special.overcharge\"\n  ) {\n    const state =\n      getFrameHelmApplicationTurnState();\n\n    if (\n      !state\n    ) {\n      ui.notifications.warn(\n        \"Begin a turn plan before using Overcharge.\"\n      );\n\n      return;\n    }",
-      "replace": "  if (\n    action.id ===\n    \"special.overcharge\"\n  ) {\n    const state =\n      ensureTurnPlan(\n        application\n      );\n\n    if (\n      !state\n    ) {\n      return;\n    }",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/components/application-turn-commands.js",
-      "search": "export {\n  beginTurnPlan,",
-      "replace": "export {\n  ensureTurnPlan,\n  beginTurnPlan,",
+      "path": "styles/ui_application/components/application-listeners.js",
+      "search": "      application.selectedCategory =\n        event.currentTarget\n          .dataset\n          .frameHelmCategory ??\n        null;\n\n\n      application.render(\n        false\n      );",
+      "replace": "      const categoryId =\n        event.currentTarget\n          .dataset\n          .frameHelmCategory ??\n        null;\n\n\n      const beginsTurnPlan =\n        categoryId ===\n          \"movement\" ||\n        categoryId ===\n          \"quick\" ||\n        categoryId ===\n          \"full\" ||\n        categoryId ===\n          \"special\" ||\n        categoryId ===\n          \"protocol\";\n\n\n      if (\n        beginsTurnPlan &&\n        !application.ensureTurnPlan()\n      ) {\n        return;\n      }\n\n\n      application.selectedCategory =\n        categoryId;\n\n\n      application.render(\n        false\n      );",
       "expected_occurrences": 1
     }
   ]
