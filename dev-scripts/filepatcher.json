@@ -1,16 +1,58 @@
 {
   "schema_version": 2,
-  "id": "fix-execution-transaction-module-namespace-freeze",
-  "description": "Prevent the Execution Transaction facade from freezing ES module namespace objects during import while preserving the frozen outer executionTransaction namespace.",
+  "id": "fix-runtime-facade-module-namespace-freezes",
+  "description": "Remove Object.freeze calls around ES module namespace imports across the remaining runtime facade family while preserving each frozen outer facade object.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 7
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "execution_transaction/execution-transaction.js",
-      "search": "    contract:\n      Object.freeze(contract),\n\n    runner:\n      Object.freeze(runner),\n\n    hooks:\n      Object.freeze(hooks)",
-      "replace": "    contract,\n    runner,\n    hooks",
+      "path": "system_bridge/system-bridge.js",
+      "search": "    contract:\n      Object.freeze(contract),\n    augmentationRegistry:\n      Object.freeze(\n        augmentationRegistry\n      ),\n    resolver:\n      Object.freeze(\n        resolver\n      ),\n    composer:\n      Object.freeze(\n        composer\n      )",
+      "replace": "    contract,\n    augmentationRegistry,\n    resolver,\n    composer",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "resource_service/resource-service.js",
+      "search": "    contract:\n      Object.freeze(contract),\n    resolver:\n      Object.freeze(resolver),\n    transaction:\n      Object.freeze(transaction),\n    hooks:\n      Object.freeze(hooks)",
+      "replace": "    contract,\n    resolver,\n    transaction,\n    hooks",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "semantic_event_bus/semantic-event-bus.js",
+      "search": "    contract:\n      Object.freeze(contract),\n    registry:\n      Object.freeze(registry),\n    dispatcher:\n      Object.freeze(dispatcher),\n    hooks:\n      Object.freeze(hooks)",
+      "replace": "    contract,\n    registry,\n    dispatcher,\n    hooks",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "action_economy/action-economy.js",
+      "search": "    contract:\n      Object.freeze(contract),\n    state:\n      Object.freeze(state),\n    transaction:\n      Object.freeze(transaction),\n    hooks:\n      Object.freeze(hooks)",
+      "replace": "    contract,\n    state,\n    transaction,\n    hooks",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "lifecycle_service/lifecycle-service.js",
+      "search": "    contract:\n      Object.freeze(contract),\n\n    state:\n      Object.freeze(state),\n\n    dispatcher:\n      Object.freeze(dispatcher),\n\n    hooks:\n      Object.freeze(hooks)",
+      "replace": "    contract,\n\n    state,\n\n    dispatcher,\n\n    hooks",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "targeting-spatial_service/targeting-spatial-service.js",
+      "search": "    contract:\n      Object.freeze(contract),\n\n    query:\n      Object.freeze(query),\n\n    resolver:\n      Object.freeze(resolver),\n\n    validator:\n      Object.freeze(validator),\n\n    hooks:\n      Object.freeze(hooks)",
+      "replace": "    contract,\n\n    query,\n\n    resolver,\n\n    validator,\n\n    hooks",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "actor_owned_feature_registry/actor-owned-feature-service.js",
+      "search": "    contract:\n      Object.freeze(contract),\n\n    discovery:\n      Object.freeze(discovery),\n\n    normalizer:\n      Object.freeze(normalizer),\n\n    registry:\n      Object.freeze(registry)",
+      "replace": "    contract,\n\n    discovery,\n\n    normalizer,\n\n    registry",
       "expected_occurrences": 1
     }
   ]
