@@ -1571,7 +1571,15 @@ function registerUniversalActions() {
           10,
 
         icon:
-          "fas fa-shield-halved"
+          "fas fa-shield-halved",
+
+        metadata: {
+          contextualReaction:
+            true,
+
+          trigger:
+            "hit-after-damage-roll"
+        }
       }),
 
       defineFrameConnReaction({

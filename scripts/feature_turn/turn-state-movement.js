@@ -644,6 +644,20 @@ function ensureFrameConnTurnStateAutomaticMovementBoost(
   state.assertTurnActive();
 
 
+  if (
+    forceOvercharge &&
+    state.restrictions?.brace
+  ) {
+    return {
+      committed:
+        false,
+
+      reason:
+        "Brace prevents Overcharge until the end of this turn."
+    };
+  }
+
+
   const frameConnActionRegistry =
     getFrameConnTurnActionRegistry();
 
@@ -931,10 +945,16 @@ function recalculateFrameConnTurnStateTrackedMovement(
      Standard movement consumption
      ---------------------------------------------------------- */
 
+  const standardAllowance =
+    state.restrictions?.brace
+      ? 0
+      : speed;
+
+
   const standardUsed =
     Math.min(
       total,
-      speed
+      standardAllowance
     );
 
 
@@ -947,7 +967,7 @@ function recalculateFrameConnTurnStateTrackedMovement(
       ? Math.min(
           Math.max(
             total -
-              speed,
+              standardAllowance,
             0
           ),
           speed
@@ -960,11 +980,9 @@ function recalculateFrameConnTurnStateTrackedMovement(
      ---------------------------------------------------------- */
 
   const overchargeStart =
+    standardAllowance +
     speed *
-    (
-      1 +
-      normalBoostCount
-    );
+      normalBoostCount;
 
 
   const overchargeBoostUsed =
@@ -984,15 +1002,13 @@ function recalculateFrameConnTurnStateTrackedMovement(
      Legal movement ceiling
      ---------------------------------------------------------- */
 
-  const legalAllowanceCount =
-    1 +
-    normalBoostCount +
-    overchargeBoostCount;
-
-
   const legalMaximum =
+    standardAllowance +
     speed *
-    legalAllowanceCount;
+      (
+        normalBoostCount +
+        overchargeBoostCount
+      );
 
 
   const excess =
@@ -1013,7 +1029,7 @@ function recalculateFrameConnTurnStateTrackedMovement(
 
   if (
     normalBoostCount > 0 &&
-    total > speed
+    total > standardAllowance
   ) {
     currentPoolUsed =
       boostUsed;
@@ -1199,6 +1215,12 @@ function trackFrameConnTurnStateTokenMovement(
     );
 
 
+  const standardAllowance =
+    state.restrictions?.brace
+      ? 0
+      : speed;
+
+
   const automaticActions =
     [];
 
@@ -1208,7 +1230,7 @@ function trackFrameConnTurnStateTokenMovement(
      ---------------------------------------------------------- */
 
   if (
-    newTotal > speed &&
+    newTotal > standardAllowance &&
     getFrameConnTurnStateMovementBoostCount(
       state
     ) < 1
@@ -1225,7 +1247,7 @@ function trackFrameConnTurnStateTokenMovement(
 
     automaticActions.push({
       threshold:
-        speed,
+        standardAllowance,
 
       ...result
     });
@@ -1238,7 +1260,8 @@ function trackFrameConnTurnStateTokenMovement(
 
   if (
     newTotal >
-      speed * 2 &&
+      standardAllowance +
+        speed &&
     getFrameConnTurnStateMovementBoostCount(
       state
     ) < 2
@@ -1255,7 +1278,8 @@ function trackFrameConnTurnStateTokenMovement(
 
     automaticActions.push({
       threshold:
-        speed * 2,
+        standardAllowance +
+          speed,
 
       ...result
     });

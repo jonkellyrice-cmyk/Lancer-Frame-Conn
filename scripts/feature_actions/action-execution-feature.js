@@ -239,6 +239,8 @@ export const FRAME_CONN_NO_ROLL_ACTIONS =
       "full.boot-up",
       "full.mount-dismount",
 
+      "reaction.brace",
+
       "special.end-turn"
     ])
   );
