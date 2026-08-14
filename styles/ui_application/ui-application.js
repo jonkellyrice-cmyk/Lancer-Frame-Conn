@@ -156,6 +156,7 @@ import {
 } from "./components/application-listeners.js";
 
 import {
+  ensureTurnPlan,
   beginTurnPlan,
   resetTurnPlan,
   commitMovementAction,
@@ -651,6 +652,13 @@ export class FrameHelmApplication
   /* ==========================================================
      Application -- Turn command delegation
      ========================================================== */
+
+  ensureTurnPlan() {
+    return ensureTurnPlan(
+      this
+    );
+  }
+
 
   beginTurnPlan() {
     return beginTurnPlan(

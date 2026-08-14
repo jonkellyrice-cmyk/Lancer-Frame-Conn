@@ -19,11 +19,36 @@ function activateFrameHelmApplicationListeners(
   ).on(
     "click",
     event => {
-      application.selectedCategory =
+      const categoryId =
         event.currentTarget
           .dataset
           .frameHelmCategory ??
         null;
+
+
+      const beginsTurnPlan =
+        categoryId ===
+          "movement" ||
+        categoryId ===
+          "quick" ||
+        categoryId ===
+          "full" ||
+        categoryId ===
+          "special" ||
+        categoryId ===
+          "protocol";
+
+
+      if (
+        beginsTurnPlan &&
+        !application.ensureTurnPlan()
+      ) {
+        return;
+      }
+
+
+      application.selectedCategory =
+        categoryId;
 
 
       application.render(
