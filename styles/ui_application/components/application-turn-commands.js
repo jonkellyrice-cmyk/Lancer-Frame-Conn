@@ -18,12 +18,21 @@ import {
    Application -- Turn-plan commands
    ============================================================ */
 
-function beginTurnPlan(
+function ensureTurnPlan(
   application
 ) {
+  const existingState =
+    getFrameHelmApplicationTurnState();
+
+  if (
+    existingState &&
+    !existingState.ended
+  ) {
+    return existingState;
+  }
+
   const token =
     application.getControlledToken();
-
 
   if (
     !token
@@ -31,14 +40,11 @@ function beginTurnPlan(
     ui.notifications.warn(
       "Select a mech or NPC token first."
     );
-
-    return;
+    return null;
   }
-
 
   const turnManager =
     getFrameHelmApplicationTurnStateManager();
-
 
   if (
     !turnManager
@@ -46,10 +52,8 @@ function beginTurnPlan(
     ui.notifications.error(
       "Frame Helm could not resolve the Turn state manager."
     );
-
-    return;
+    return null;
   }
-
 
   const combat =
     game.combat;
@@ -61,60 +65,58 @@ function beginTurnPlan(
         )
       : {};
 
-
-  turnManager.beginTurn({
+  return turnManager.ensureTurn({
     ...combatContext,
-
     tokenId:
       token.id ??
       token.document?.id ??
       combatContext.tokenId ??
       null,
-
     actorId:
       token.actor?.id ??
       combatContext.actorId ??
       null,
-
     sceneId:
       canvas?.scene?.id ??
       combatContext.sceneId ??
       null,
-
     speed:
       (() => {
         const numericSpeed =
           Number(
             token.actor?.system?.speed
           );
-
         return (
-          Number.isFinite(
-            numericSpeed
-          ) &&
+          Number.isFinite(numericSpeed) &&
           numericSpeed >= 0
             ? numericSpeed
             : null
         );
       })()
   });
+}
 
 
-  application.selectedCategory =
-    null;
+function beginTurnPlan(
+  application
+) {
+  const state =
+    ensureTurnPlan(
+      application
+    );
 
-  application.selectedMovementMode =
-    null;
+  if (
+    !state
+  ) {
+    return null;
+  }
 
-  application.selectedQuickActionId =
-    null;
-
-  application.selectedFullActionId =
-    null;
-
-  application.render(
-    false
-  );
+  application.selectedCategory = null;
+  application.selectedMovementMode = null;
+  application.selectedQuickActionId = null;
+  application.selectedFullActionId = null;
+  application.render(false);
+  return state;
 }
 
 
@@ -208,7 +210,7 @@ function commitMovementAction(
       actionId
     );
 
-  const state =
+  let state =
     getFrameHelmApplicationTurnState();
 
 
@@ -228,12 +230,15 @@ function commitMovementAction(
 
 
   if (
+    !state ||
+    state.ended
+  ) {
+    state = ensureTurnPlan(application);
+  }
+
+  if (
     !state
   ) {
-    ui.notifications.warn(
-      "Begin a turn plan before committing movement."
-    );
-
     return;
   }
 
@@ -280,7 +285,7 @@ function executeFullAction(
       actionId
     );
 
-  const state =
+  let state =
     getFrameHelmApplicationTurnState();
 
 
@@ -298,12 +303,15 @@ function executeFullAction(
 
 
   if (
+    !state ||
+    state.ended
+  ) {
+    state = ensureTurnPlan(application);
+  }
+
+  if (
     !state
   ) {
-    ui.notifications.warn(
-      "Begin a turn plan before selecting actions."
-    );
-
     return;
   }
 
@@ -350,7 +358,7 @@ function executeQuickAction(
       actionId
     );
 
-  const state =
+  let state =
     getFrameHelmApplicationTurnState();
 
 
@@ -368,12 +376,15 @@ function executeQuickAction(
 
 
   if (
+    !state ||
+    state.ended
+  ) {
+    state = ensureTurnPlan(application);
+  }
+
+  if (
     !state
   ) {
-    ui.notifications.warn(
-      "Begin a turn plan before selecting actions."
-    );
-
     return;
   }
 
@@ -1040,15 +1051,13 @@ function onActionSelected(
     "special.overcharge"
   ) {
     const state =
-      getFrameHelmApplicationTurnState();
+      ensureTurnPlan(
+        application
+      );
 
     if (
       !state
     ) {
-      ui.notifications.warn(
-        "Begin a turn plan before using Overcharge."
-      );
-
       return;
     }
 
@@ -1086,6 +1095,7 @@ function onActionSelected(
    ============================================================ */
 
 export {
+  ensureTurnPlan,
   beginTurnPlan,
   resetTurnPlan,
   commitMovementAction,
