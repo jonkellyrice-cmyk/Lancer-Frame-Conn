@@ -178,7 +178,33 @@ This tool is intentionally **not** part of the automatic GitHub FilePatcher bloc
 
 # PART II — PATCH PLANNING AND AUTHORING
 
-## 7. Patch Corridor Planner — `patch-corridor-planner.mjs`
+## 7. Integration Surface Atlas — `integration-surface-atlas.mjs`
+
+Run against an authoritative native Lancer checkout with:
+
+```bash
+npm run integration-atlas -- --native-root /path/to/foundryvtt-lancer --query "damage attack flow"
+```
+
+Run its synthetic extraction test with:
+
+```bash
+npm run integration-atlas:self-test
+```
+
+The Integration Surface Atlas is the native-system discovery layer. It indexes the places where Frame Conn can legitimately meet Foundry Lancer: registered Flows and their ordered steps, Flow-step registries, native/Foundry hooks, `game.lancer.*` surfaces, chat-message controls, LancerActor/LancerItem/LancerToken entry points, document mutation boundaries, damage application boundaries, and explicit registries.
+
+It answers:
+
+> Where does native Lancer already expose the integration surface needed for this behavior?
+
+This tool is not another Frame Conn topology audit. It scans authoritative native source and emits source/line evidence plus a version and SHA-256 source fingerprint. A generated report may be queried repeatedly without rescanning, but it must be regenerated when the authoritative native Lancer version changes. Search hits are candidates, not permission to invent or bypass native ownership.
+
+See `dev_scripts/INTEGRATION_SURFACE_ATLAS.md` for the full contract.
+
+---
+
+## 8. Patch Corridor Planner — `patch-corridor-planner.mjs`
 
 Run with:
 
