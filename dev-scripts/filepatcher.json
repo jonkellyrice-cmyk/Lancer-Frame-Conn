@@ -1,8 +1,7 @@
 {
   "schema_version": 2,
-  "id": "validate-refined-action-corridor",
-  "description": "Planning-only validation of the refined source-to-endpoint Patch Corridor Planner.",
-  "planning_goal": "wire a committed action from the committed-plan presentation through Frame Conn action execution to the authoritative native Lancer execution endpoint",
+  "id": "validate-developer-tool-syntax-gate",
+  "description": "No-op validation that the committed GitHub FilePatcher now syntax-checks its developer diagnostics and Patch Corridor Planner on every real apply.",
   "policy": {
     "max_files_changed": 1
   },
