@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
-  "id": "validate-frame-conn-internal-migration",
-  "description": "No-op validation run after the Frame Conn internal identity migration. The GitHub FilePatcher workflow now executes the repository integrity auditor, which validates relative JavaScript/CSS imports, named exports, feature graph integrity, and module entrypoints.",
+  "id": "validate-frame-conn-internal-migration-2",
+  "description": "No-op validation rerun with repository audit findings printed on failure.",
   "policy": {
     "max_files_changed": 1
   },
