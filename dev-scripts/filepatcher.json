@@ -1,30 +1,23 @@
 {
   "schema_version": 2,
-  "id": "wire-auto-turn-plan-selection-flow",
-  "description": "Expose lazy Turn ensure on FrameHelmApplication and invoke it when the player enters Movement, Quick, Full, Special, or Protocol action branches, while leaving Reactions independent.",
+  "id": "fix-live-turn-ui-state-and-committed-execute-control",
+  "description": "Make ui-turn read live Turn state through canonical methods instead of flattened compatibility getters, and align the Application committed-plan renderer with the canonical executeControl field.",
   "policy": {
     "max_files_changed": 2
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "styles/ui_application/ui-application.js",
-      "search": "import {\n  beginTurnPlan,",
-      "replace": "import {\n  ensureTurnPlan,\n  beginTurnPlan,",
+      "path": "styles/ui_turn/components/turn-state-access.js",
+      "search": "function getFrameHelmTurnUiCurrentState() {\n  const turnApi =\n    getFrameHelmTurnUiTurnApi();\n\n\n  return (\n    turnApi.current ??\n    null\n  );\n}\n\n\n/**\n * Resolve a presentation-safe Turn snapshot.\n *\n * Prefer the Turn feature's snapshot surface so callers never\n * depend directly on mutable domain state.\n */\nfunction getFrameHelmTurnUiSnapshot() {\n  const turnApi =\n    getFrameHelmTurnUiTurnApi();\n\n\n  if (\n    turnApi.state !==\n    undefined\n  ) {\n    return (\n      turnApi.state ??\n      null\n    );\n  }\n\n\n  return (\n    turnApi.current\n      ?.snapshot?.() ??\n    null\n  );\n}",
+      "replace": "function getFrameHelmTurnUiCurrentState() {\n  const turnApi =\n    getFrameHelmTurnUiTurnApi();\n\n\n  return (\n    turnApi.getCurrent?.() ??\n    turnApi.current ??\n    null\n  );\n}\n\n\n/**\n * Resolve a presentation-safe Turn snapshot.\n *\n * Prefer the Turn feature's live snapshot method. Compatibility\n * properties are only fallbacks because feature-record\n * normalization may materialize getters into static values.\n */\nfunction getFrameHelmTurnUiSnapshot() {\n  const turnApi =\n    getFrameHelmTurnUiTurnApi();\n\n\n  const liveSnapshot =\n    turnApi.snapshot?.();\n\n\n  if (\n    liveSnapshot !==\n    undefined\n  ) {\n    return (\n      liveSnapshot ??\n      null\n    );\n  }\n\n\n  if (\n    turnApi.state !==\n    undefined\n  ) {\n    return (\n      turnApi.state ??\n      null\n    );\n  }\n\n\n  return (\n    turnApi.getCurrent?.()\n      ?.snapshot?.() ??\n    turnApi.current\n      ?.snapshot?.() ??\n    null\n  );\n}",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "styles/ui_application/ui-application.js",
-      "search": "  beginTurnPlan() {\n    return beginTurnPlan(\n      this\n    );\n  }",
-      "replace": "  ensureTurnPlan() {\n    return ensureTurnPlan(\n      this\n    );\n  }\n\n\n  beginTurnPlan() {\n    return beginTurnPlan(\n      this\n    );\n  }",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/components/application-listeners.js",
-      "search": "      application.selectedCategory =\n        event.currentTarget\n          .dataset\n          .frameHelmCategory ??\n        null;\n\n\n      application.render(\n        false\n      );",
-      "replace": "      const categoryId =\n        event.currentTarget\n          .dataset\n          .frameHelmCategory ??\n        null;\n\n\n      const beginsTurnPlan =\n        categoryId ===\n          \"movement\" ||\n        categoryId ===\n          \"quick\" ||\n        categoryId ===\n          \"full\" ||\n        categoryId ===\n          \"special\" ||\n        categoryId ===\n          \"protocol\";\n\n\n      if (\n        beginsTurnPlan &&\n        !application.ensureTurnPlan()\n      ) {\n        return;\n      }\n\n\n      application.selectedCategory =\n        categoryId;\n\n\n      application.render(\n        false\n      );",
+      "path": "styles/ui_application/components/application-committed-plan.js",
+      "search": "          const control =\n            entry?.control ??\n            null;",
+      "replace": "          const control =\n            entry?.executeControl ??\n            entry?.control ??\n            null;",
       "expected_occurrences": 1
     }
   ]
