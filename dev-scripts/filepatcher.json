@@ -1,9 +1,52 @@
 {
   "schema_version": 2,
-  "id": "validate-runtime-signal-map-gate",
-  "description": "No-op validation that the committed FilePatcher syntax-checks and self-tests the Runtime Signal Map before architectural audits.",
+  "id": "harden-runtime-signal-map-native-causality",
+  "description": "Harden Runtime Signal Map against real Lancer TypeScript shapes, anonymous UI handlers, native ChatMessage implementation creation, damageCalc resolution, and derived Flow lifecycle hooks.",
   "policy": {
     "max_files_changed": 1
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/runtime-signal-map.mjs",
+      "search": "    const methodRegex = /(?:^|\\n)\\s{2,6}(?:public\\s+|private\\s+|protected\\s+|static\\s+|override\\s+|async\\s+)*([A-Za-z_$][\\w$]*)\\s*\\([^;\\n{}]*\\)\\s*(?::[^\\n{]+)?\\s*\\{/g;\n    for (const methodMatch of body.matchAll(methodRegex)) {\n      const name = methodMatch[1];\n      if (KEYWORDS.has(name)) continue;\n      const absolute = classOpen + 1 + methodMatch.index;\n      const open = text.indexOf(\"{\", absolute + methodMatch[0].length - 1);\n      const close = open >= 0 ? findMatching(text, open) : -1;\n      if (close < 0 || close > classClose) continue;\n      const record = sourceRecord(root, file, text, absolute);",
+      "replace": "    const methodRegex = /(?:^|\\n)\\s{2,6}(?:public\\s+|private\\s+|protected\\s+|static\\s+|override\\s+|abstract\\s+|async\\s+)*([A-Za-z_$][\\w$]*)\\s*\\(/g;\n    for (const methodMatch of body.matchAll(methodRegex)) {\n      const name = methodMatch[1];\n      if (KEYWORDS.has(name)) continue;\n      const absolute = classOpen + 1 + methodMatch.index;\n      const parenOpen = text.indexOf(\"(\", absolute + methodMatch[0].length - 1);\n      const parenClose = parenOpen >= 0 ? findMatching(text, parenOpen, \"(\", \")\") : -1;\n      if (parenClose < 0 || parenClose > classClose) continue;\n      const headerTail = text.slice(parenClose + 1, Math.min(classClose, parenClose + 500));\n      const braceOffset = headerTail.search(/\\{/);\n      const semicolonOffset = headerTail.search(/;/);\n      if (braceOffset < 0 || (semicolonOffset >= 0 && semicolonOffset < braceOffset)) continue;\n      const open = parenClose + 1 + braceOffset;\n      const close = findMatching(text, open);\n      if (close < 0 || close > classClose) continue;\n      const record = sourceRecord(root, file, text, absolute);",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/runtime-signal-map.mjs",
+      "search": "    [\"chat-create\", /\\bChatMessage\\.create\\s*\\(/g, \"ChatMessage.create\"],",
+      "replace": "    [\"chat-create\", /\\bChatMessage(?:\\.implementation)?\\.create\\s*\\(/g, \"ChatMessage.create\"],",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/runtime-signal-map.mjs",
+      "search": "    const names = receiver === \"this\" && owner.className ? [`${owner.className}.${method}`, method] : [method];\n    let target = null;\n    for (const name of names) {\n      target = resolveTarget(name, owner, nameIndex);\n      if (target) break;\n    }\n    if (!target || target.id === owner.id) continue;\n    addEdge(graph, { from: owner.id, to: target.id, type: \"static-call\", source, ...sourceRecord(root, file, text, match.index) });",
+      "replace": "    let target = null;\n    let confidence = \"high\";\n    let basis = \"unique-static-name\";\n    if (!receiver) {\n      target = resolveTarget(method, owner, nameIndex);\n    } else if (receiver === \"this\" && owner.className) {\n      target = resolveTarget(`${owner.className}.${method}`, owner, nameIndex);\n    } else if (/^begin[A-Za-z0-9_$]*Flow$/.test(method) || method === \"damageCalc\") {\n      const candidates = nameIndex.get(method) ?? [];\n      if (candidates.length === 1) {\n        target = candidates[0];\n        confidence = \"medium\";\n        basis = \"unique-integration-method-name\";\n      }\n    }\n    if (!target || target.id === owner.id) continue;\n    addEdge(graph, { from: owner.id, to: target.id, type: \"static-call\", confidence, basis, source, ...sourceRecord(root, file, text, match.index) });",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/runtime-signal-map.mjs",
+      "search": "  const generic = [\n    /addEventListener\\s*\\(\\s*[\"']([^\"']+)[\"']\\s*,\\s*([A-Za-z_$][\\w$]*)/g,\n    /\\.on\\s*\\(\\s*[\"']([^\"']+)[\"']\\s*,\\s*([A-Za-z_$][\\w$]*)/g\n  ];",
+      "replace": "  for (const match of text.matchAll(/\\.on\\s*\\(\\s*[\"']([^\"']+)[\"']\\s*,\\s*(?:async\\s*)?(?:\\([^)]*\\)|[A-Za-z_$][\\w$]*)\\s*=>\\s*\\{/g)) {\n    const open = text.indexOf(\"{\", match.index + match[0].length - 1);\n    const close = open >= 0 ? findMatching(text, open) : -1;\n    if (close < 0) continue;\n    const record = sourceRecord(root, file, text, match.index);\n    const eventId = `event:${source}:${record.file}:${match[1]}:${record.line}`;\n    const handlerId = `handler:${source}:${record.file}:${match[1]}:${record.line}`;\n    addNode(graph, { id: eventId, kind: \"event\", source, name: match[1], ...record, tags: [\"event\", match[1]] });\n    addNode(graph, { id: handlerId, kind: \"event-handler\", source, name: `${match[1]} inline handler`, ...record, tags: [\"event-handler\", \"anonymous\"] });\n    addEdge(graph, { from: eventId, to: handlerId, type: \"event-handler\", source, ...record });\n    const body = text.slice(open + 1, close);\n    for (const call of body.matchAll(/\\b([A-Za-z_$][\\w$]*)\\s*\\.\\s*(begin[A-Za-z0-9_$]*Flow)\\s*\\(/g)) {\n      const candidates = nameIndex.get(call[2]) ?? [];\n      if (candidates.length !== 1) continue;\n      addEdge(graph, {\n        from: handlerId,\n        to: candidates[0].id,\n        type: \"static-call\",\n        confidence: \"medium\",\n        basis: \"unique-integration-method-name\",\n        source,\n        ...sourceRecord(root, file, text, open + 1 + call.index)\n      });\n    }\n    scanEffectsInRange(graph, root, file, text, source, handlerId, open + 1, close);\n  }\n\n  const generic = [\n    /addEventListener\\s*\\(\\s*[\"']([^\"']+)[\"']\\s*,\\s*([A-Za-z_$][\\w$]*)/g,\n    /\\.on\\s*\\(\\s*[\"']([^\"']+)[\"']\\s*,\\s*([A-Za-z_$][\\w$]*)/g\n  ];",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/runtime-signal-map.mjs",
+      "search": "function bridgeCrossSourceHooks(graph) {",
+      "replace": "function deriveFlowLifecycleHooks(graph, source, hasGenericLifecycle) {\n  if (!hasGenericLifecycle) return;\n  const flows = [...graph.nodes.values()].filter(node => node.kind === \"flow\" && node.source === source && Array.isArray(node.steps) && node.steps.length);\n  for (const flow of flows) {\n    const preId = `hook:${source}:lancer.preFlow.${flow.name}`;\n    const postId = `hook:${source}:lancer.postFlow.${flow.name}`;\n    addNode(graph, { id: preId, kind: \"hook\", source, name: `lancer.preFlow.${flow.name}`, tags: [\"hook\", \"flow-lifecycle\", \"derived\"] });\n    addNode(graph, { id: postId, kind: \"hook\", source, name: `lancer.postFlow.${flow.name}`, tags: [\"hook\", \"flow-lifecycle\", \"derived\"] });\n    const firstStep = `flow-step:${source}:${flow.steps[0]}`;\n    const lastStep = `flow-step:${source}:${flow.steps.at(-1)}`;\n    addEdge(graph, { from: flow.id, to: preId, type: \"flow-pre-hook\", confidence: \"medium\", basis: \"generic-Flow.begin constructor-name hook template\" });\n    if (graph.nodes.has(firstStep)) addEdge(graph, { from: preId, to: firstStep, type: \"flow-after-pre-hook\", confidence: \"medium\", basis: \"generic-Flow.begin execution order\" });\n    if (graph.nodes.has(lastStep)) addEdge(graph, { from: lastStep, to: postId, type: \"flow-post-hook\", confidence: \"medium\", basis: \"generic-Flow.begin execution order\" });\n  }\n}\n\nfunction bridgeCrossSourceHooks(graph) {",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/runtime-signal-map.mjs",
+      "search": "  return {\n    root: slash(root),\n    version: extractVersion(root),\n    files: files.length,\n    fingerprint: fingerprintFiles(root, files)\n  };",
+      "replace": "  const hasGenericFlowLifecycle = records.some(({ text }) =>\n    text.includes(\"lancer.preFlow.${this.constructor.name}\") &&\n    text.includes(\"lancer.postFlow.${this.constructor.name}\")\n  );\n  deriveFlowLifecycleHooks(graph, source, hasGenericFlowLifecycle);\n\n  return {\n    root: slash(root),\n    version: extractVersion(root),\n    files: files.length,\n    fingerprint: fingerprintFiles(root, files),\n    genericFlowLifecycle: hasGenericFlowLifecycle\n  };",
+      "expected_occurrences": 1
+    }
+  ]
 }
