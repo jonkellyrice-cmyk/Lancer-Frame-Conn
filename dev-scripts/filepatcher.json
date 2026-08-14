@@ -1,31 +1,9 @@
 {
   "schema_version": 2,
-  "id": "integrate-native-integration-surface-atlas",
-  "description": "Add the Integration Surface Atlas to the developer-tool syntax/self-test gate and document it in the full suite guide.",
+  "id": "validate-integration-surface-atlas-gate",
+  "description": "No-op validation that the committed GitHub FilePatcher syntax-checks and self-tests the Integration Surface Atlas before the architectural audits.",
   "policy": {
-    "max_files_changed": 2
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "dev-scripts/github-filepatcher.mjs",
-      "search": "    path.join(ROOT, \"dev_scripts\", \"patch-corridor-planner.mjs\"),\n    path.join(ROOT, \"dev_scripts\", \"patch-dsl-compiler.mjs\")\n  ];",
-      "replace": "    path.join(ROOT, \"dev_scripts\", \"patch-corridor-planner.mjs\"),\n    path.join(ROOT, \"dev_scripts\", \"patch-dsl-compiler.mjs\"),\n    path.join(ROOT, \"dev_scripts\", \"integration-surface-atlas.mjs\")\n  ];",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev-scripts/github-filepatcher.mjs",
-      "search": "  if (dslSelfTest.status !== 0) fail(\"Patch DSL self-test failed.\");\n\n  console.log(\"[github-filepatcher] Developer tool syntax checks passed.\");",
-      "replace": "  if (dslSelfTest.status !== 0) fail(\"Patch DSL self-test failed.\");\n\n  const integrationAtlas = path.join(ROOT, \"dev_scripts\", \"integration-surface-atlas.mjs\");\n  const integrationAtlasSelfTest = spawnSync(process.execPath, [integrationAtlas, \"--self-test\"], { cwd: ROOT, encoding: \"utf8\" });\n  if (integrationAtlasSelfTest.stdout) process.stdout.write(integrationAtlasSelfTest.stdout);\n  if (integrationAtlasSelfTest.stderr) process.stderr.write(integrationAtlasSelfTest.stderr);\n  if (integrationAtlasSelfTest.error) fail(`Integration Surface Atlas self-test could not start: ${integrationAtlasSelfTest.error}`);\n  if (integrationAtlasSelfTest.status !== 0) fail(\"Integration Surface Atlas self-test failed.\");\n\n  console.log(\"[github-filepatcher] Developer tool syntax checks passed.\");",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "search": "## 7. Patch Corridor Planner — `patch-corridor-planner.mjs`",
-      "replace": "## 7. Integration Surface Atlas — `integration-surface-atlas.mjs`\n\nRun against an authoritative native Lancer checkout with:\n\n```bash\nnpm run integration-atlas -- --native-root /path/to/foundryvtt-lancer --query \"damage attack flow\"\n```\n\nRun its synthetic extraction test with:\n\n```bash\nnpm run integration-atlas:self-test\n```\n\nThe Integration Surface Atlas is the native-system discovery layer. It indexes the places where Frame Conn can legitimately meet Foundry Lancer: registered Flows and their ordered steps, Flow-step registries, native/Foundry hooks, `game.lancer.*` surfaces, chat-message controls, LancerActor/LancerItem/LancerToken entry points, document mutation boundaries, damage application boundaries, and explicit registries.\n\nIt answers:\n\n> Where does native Lancer already expose the integration surface needed for this behavior?\n\nThis tool is not another Frame Conn topology audit. It scans authoritative native source and emits source/line evidence plus a version and SHA-256 source fingerprint. A generated report may be queried repeatedly without rescanning, but it must be regenerated when the authoritative native Lancer version changes. Search hits are candidates, not permission to invent or bypass native ownership.\n\nSee `dev_scripts/INTEGRATION_SURFACE_ATLAS.md` for the full contract.\n\n---\n\n## 8. Patch Corridor Planner — `patch-corridor-planner.mjs`",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
