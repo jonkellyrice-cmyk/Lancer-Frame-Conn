@@ -8,28 +8,34 @@ It does **not** execute native code, infer undocumented APIs, or decide that a s
 
 ## Commands
 
-Query the checked-in native snapshot:
+Generate/query from an authoritative native Lancer checkout:
 
 ```bash
-npm run integration-atlas -- --query "damage attack flow"
+npm run integration-atlas -- --native-root /path/to/foundryvtt-lancer --query "damage attack flow"
 ```
 
 Limit results:
 
 ```bash
-npm run integration-atlas -- --query "target hook" --limit 20
+npm run integration-atlas -- --native-root /path/to/foundryvtt-lancer --query "target hook" --limit 20
 ```
 
-Regenerate from an authoritative native Lancer checkout:
+By default, regeneration writes a portable report to:
 
-```bash
-npm run integration-atlas -- --native-root /path/to/foundryvtt-lancer
+```text
+dev_scripts/native-integration-surface-atlas.json
 ```
 
-Regenerate to a different report:
+Once that report exists, query it without rescanning the native source:
 
 ```bash
-npm run integration-atlas -- --native-root /path/to/foundryvtt-lancer --output dev_scripts/native-integration-surface-atlas.json
+npm run integration-atlas -- --query "damage attack flow"
+```
+
+Or query another saved report:
+
+```bash
+npm run integration-atlas -- --report /path/to/atlas.json --query "scan flow"
 ```
 
 Run the synthetic extraction test:
@@ -58,18 +64,18 @@ The current atlas recognizes these integration-surface families:
 
 Each surface records its kind, name, source file, source line, tags, and a short structural description. Flow definitions additionally record their ordered native steps when those steps can be statically resolved.
 
-## Checked-in snapshot
+## Portable report and freshness
 
-`dev_scripts/native-integration-surface-atlas.json` is a portable snapshot generated from the native Lancer source used during development. Its header records:
+A generated atlas report records:
 
 - native version;
 - number of scanned source files;
 - a SHA-256 fingerprint of the scanned source set;
 - atlas tool version.
 
-The snapshot exists so Patch planning and source investigation can query known native surfaces without requiring the native repository to be present in every environment.
+This allows a generated report to be reused as a fast local/native integration index without keeping the complete native repository open during every patch-planning session.
 
-**The snapshot is evidence, not eternal truth.** If the installed/native Lancer version changes, regenerate it from that authoritative source before relying on it for a new integration.
+**A saved atlas is evidence, not eternal truth.** If the installed/native Lancer version changes, regenerate it from that authoritative source before relying on it for a new integration. A report may be checked into the repository deliberately when we want a shared version-pinned native catalog, but regeneration from authoritative source remains the source of truth.
 
 ## Safety posture
 
