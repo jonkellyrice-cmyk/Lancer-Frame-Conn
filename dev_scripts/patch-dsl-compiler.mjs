@@ -174,6 +174,179 @@ function applyTextEdit(text, kind, search, replacement, cardinality, line) {
   };
 }
 
+function scanStructuralRegions(text, kind, line) {
+  if (kind === "ui-control") {
+    const candidates = [];
+    const pattern = /(^[ \t]*<button\b[\s\S]*?^[ \t]*<\/button>)/gm;
+    let match;
+    while ((match = pattern.exec(text))) {
+      candidates.push({
+        start: match.index,
+        end: match.index + match[0].length,
+        source: match[0],
+        kind
+      });
+    }
+    return candidates;
+  }
+
+  if (kind === "switch-case") {
+    const candidates = [];
+    const pattern = /(^[ \t]*(?:case\s+[^:\n]+|default)\s*:[\s\S]*?)(?=^[ \t]*(?:case\s+[^:\n]+|default)\s*:|^[ \t]*\})/gm;
+    let match;
+    while ((match = pattern.exec(text))) {
+      const source = match[1].replace(/\s+$/, "");
+      candidates.push({
+        start: match.index,
+        end: match.index + source.length,
+        source,
+        kind
+      });
+    }
+    return candidates;
+  }
+
+  if (kind === "object-entry") {
+    const open = text.indexOf("{");
+    if (open < 0) fail("object-entry pattern requires a symbol containing an object literal.", line);
+    const close = findMatchingBrace(text, open);
+    if (close < 0) fail("object-entry pattern could not resolve the object literal boundary.", line);
+
+    const bodyStart = open + 1;
+    const bodyEnd = close;
+    const candidates = [];
+    let entryStart = bodyStart;
+    let brace = 0;
+    let bracket = 0;
+    let paren = 0;
+    let quote = null;
+    let escaped = false;
+    let lineComment = false;
+    let blockComment = false;
+
+    const pushEntry = (end, hasComma) => {
+      let start = entryStart;
+      while (start < end && /\s/.test(text[start])) start += 1;
+      let trimmedEnd = end;
+      while (trimmedEnd > start && /\s/.test(text[trimmedEnd - 1])) trimmedEnd -= 1;
+      if (trimmedEnd <= start) return;
+      const source = text.slice(start, trimmedEnd) + (hasComma ? "," : "");
+      const firstLine = source.split("\n", 1)[0];
+      if (!/^(?:[A-Za-z_$][\w$]*|["'][^"']+["'])\s*:/.test(firstLine.trim())) return;
+      candidates.push({
+        start,
+        end: trimmedEnd + (hasComma ? 1 : 0),
+        source,
+        kind,
+        hasComma
+      });
+    };
+
+    for (let i = bodyStart; i < bodyEnd; i += 1) {
+      const c = text[i];
+      const n = text[i + 1];
+
+      if (lineComment) {
+        if (c === "\n") lineComment = false;
+        continue;
+      }
+      if (blockComment) {
+        if (c === "*" && n === "/") { blockComment = false; i += 1; }
+        continue;
+      }
+      if (quote) {
+        if (escaped) { escaped = false; continue; }
+        if (c === "\\") { escaped = true; continue; }
+        if (c === quote) quote = null;
+        continue;
+      }
+      if (c === "/" && n === "/") { lineComment = true; i += 1; continue; }
+      if (c === "/" && n === "*") { blockComment = true; i += 1; continue; }
+      if (c === '"' || c === "'" || c === "`") { quote = c; continue; }
+      if (c === "{") brace += 1;
+      else if (c === "}") brace -= 1;
+      else if (c === "[") bracket += 1;
+      else if (c === "]") bracket -= 1;
+      else if (c === "(") paren += 1;
+      else if (c === ")") paren -= 1;
+      else if (c === "," && brace === 0 && bracket === 0 && paren === 0) {
+        pushEntry(i, true);
+        entryStart = i + 1;
+      }
+    }
+    pushEntry(bodyEnd, false);
+    return candidates;
+  }
+
+  fail(`Unsupported pattern kind: ${kind}. Supported: ui-control, object-entry, switch-case.`, line);
+}
+
+function parseClonePatternStatement(trimmed, line) {
+  const match = /^clone-pattern\s+(ui-control|object-entry|switch-case)(?:\s+(before|after))?(?:\s+containing\s+(.+))?$/.exec(trimmed.replace(/:$/, ""));
+  if (!match) return null;
+  return {
+    kind: match[1],
+    placement: match[2] ?? "after",
+    containing: match[3] ? parseQuotedOrBare(match[3], line) : null
+  };
+}
+
+function applyPatternMappings(source, mappings, line) {
+  if (!mappings || typeof mappings !== "object" || Array.isArray(mappings)) {
+    fail("pattern map must be a JSON object of exact source-to-replacement strings.", line);
+  }
+  const entries = Object.entries(mappings);
+  if (entries.length === 0) fail("pattern map must contain at least one replacement.", line);
+
+  let next = source;
+  for (const [search, replacement] of entries) {
+    if (!search) fail("pattern map keys must be non-empty strings.", line);
+    if (typeof replacement !== "string") fail(`pattern map replacement for ${search} must be a string.`, line);
+    const occurrences = countOccurrences(next, search);
+    if (occurrences === 0) fail(`pattern exemplar does not contain mapped token: ${search}`, line);
+    next = next.split(search).join(replacement);
+  }
+  if (next === source) fail("pattern map produced no change.", line);
+  return next;
+}
+
+function clonePatternInRegion(regionSource, statement, mappings, line) {
+  let candidates = scanStructuralRegions(regionSource, statement.kind, line);
+  if (statement.containing) {
+    candidates = candidates.filter(candidate => candidate.source.includes(statement.containing));
+  }
+  if (candidates.length !== 1) {
+    const qualifier = statement.containing ? ` containing ${JSON.stringify(statement.containing)}` : "";
+    fail(`clone-pattern ${statement.kind}${qualifier} expected exactly one exemplar, found ${candidates.length}.`, line);
+  }
+
+  const exemplar = candidates[0];
+  let clone = applyPatternMappings(exemplar.source, mappings, line);
+  let replacement;
+
+  if (statement.kind === "object-entry") {
+    const exemplarBare = exemplar.hasComma ? exemplar.source.slice(0, -1) : exemplar.source;
+    const cloneBare = clone.endsWith(",") ? clone.slice(0, -1) : clone;
+    if (statement.placement === "before") {
+      replacement = `${cloneBare},\n${exemplar.source}`;
+    } else if (exemplar.hasComma) {
+      replacement = `${exemplar.source}\n${cloneBare},`;
+    } else {
+      replacement = `${exemplarBare},\n${cloneBare}`;
+    }
+  } else {
+    replacement = statement.placement === "before"
+      ? `${clone}\n${exemplar.source}`
+      : `${exemplar.source}\n${clone}`;
+  }
+
+  return {
+    text: regionSource.slice(0, exemplar.start) + replacement + regionSource.slice(exemplar.end),
+    exemplar: exemplar.source,
+    clone
+  };
+}
+
 function parseDsl(source, seededFiles = new Map()) {
   const lines = source.replaceAll("\r\n", "\n").split("\n");
   const state = { index: 0 };
@@ -245,6 +418,42 @@ function parseDsl(source, seededFiles = new Map()) {
       continue;
     }
 
+
+    const patternStatement = parseClonePatternStatement(trimmed, line);
+    if (patternStatement) {
+      if (!currentFile) fail("clone-pattern requires a preceding file directive.", line);
+      if (!currentSymbol) fail("clone-pattern requires within <symbol>; pattern inference is intentionally local-only.", line);
+
+      const marker = nextMeaningful(lines, state);
+      if (!marker || marker.trimmed.replace(/:$/, "") !== "map") {
+        fail("Expected map after clone-pattern.", marker?.line ?? line);
+      }
+      const rawMappings = readBlock(lines, state, marker.line);
+      let mappings;
+      try { mappings = JSON.parse(rawMappings); }
+      catch { fail("pattern map block must contain valid JSON.", marker.line); }
+
+      const fileContent = readRepoFile(currentFile, virtualFiles, line);
+      const region = locateSymbol(fileContent, currentSymbol, line);
+      const cloned = clonePatternInRegion(region.source, patternStatement, mappings, line);
+      patch.operations.push({
+        type: "replace_text",
+        path: currentFile,
+        search: region.source,
+        replace: cloned.text,
+        expected_occurrences: 1
+      });
+      virtualFiles.set(
+        currentFile,
+        fileContent.slice(0, region.start) + cloned.text + fileContent.slice(region.end)
+      );
+      console.log(
+        `[patch-dsl] pattern=${patternStatement.kind} symbol=${currentSymbol} placement=${patternStatement.placement}` +
+        `${patternStatement.containing ? ` exemplar=${JSON.stringify(patternStatement.containing)}` : ""}`
+      );
+      bump(`pattern-${patternStatement.kind}`);
+      continue;
+    }
     const editMatch = /^(replace|before|after|delete)(?:\s+(once|all|optional))?$/.exec(trimmed.replace(/:$/, ""));
     if (editMatch) {
       if (!currentFile) fail(`${editMatch[1]} requires a preceding file directive.`, line);
