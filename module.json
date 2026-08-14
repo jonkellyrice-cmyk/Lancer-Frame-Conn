@@ -34,7 +34,7 @@
     ]
   },
 
-  "manifest": "https://raw.githubusercontent.com/jonkellyrice-cmyk/lancer-frame-helm/main/module.json",
+  "manifest": "https://raw.githubusercontent.com/jonkellyrice-cmyk/Lancer-Frame-Conn/main/module.json",
 
-  "download": "https://github.com/jonkellyrice-cmyk/lancer-frame-helm/archive/refs/heads/main.zip"
+  "download": "https://github.com/jonkellyrice-cmyk/Lancer-Frame-Conn/archive/refs/heads/main.zip"
 }
