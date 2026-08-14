@@ -450,7 +450,8 @@ function validateDeveloperToolSyntax() {
     path.join(ROOT, "dev_scripts", "effect-atlas.mjs"),
     path.join(ROOT, "dev_scripts", "patch-corridor-planner.mjs"),
     path.join(ROOT, "dev_scripts", "patch-dsl-compiler.mjs"),
-    path.join(ROOT, "dev_scripts", "integration-surface-atlas.mjs")
+    path.join(ROOT, "dev_scripts", "integration-surface-atlas.mjs"),
+    path.join(ROOT, "dev_scripts", "runtime-signal-map.mjs")
   ];
 
   for (const tool of tools) {
@@ -475,6 +476,13 @@ function validateDeveloperToolSyntax() {
   if (integrationAtlasSelfTest.stderr) process.stderr.write(integrationAtlasSelfTest.stderr);
   if (integrationAtlasSelfTest.error) fail(`Integration Surface Atlas self-test could not start: ${integrationAtlasSelfTest.error}`);
   if (integrationAtlasSelfTest.status !== 0) fail("Integration Surface Atlas self-test failed.");
+
+  const runtimeSignalMap = path.join(ROOT, "dev_scripts", "runtime-signal-map.mjs");
+  const runtimeSignalMapSelfTest = spawnSync(process.execPath, [runtimeSignalMap, "--self-test"], { cwd: ROOT, encoding: "utf8" });
+  if (runtimeSignalMapSelfTest.stdout) process.stdout.write(runtimeSignalMapSelfTest.stdout);
+  if (runtimeSignalMapSelfTest.stderr) process.stderr.write(runtimeSignalMapSelfTest.stderr);
+  if (runtimeSignalMapSelfTest.error) fail(`Runtime Signal Map self-test could not start: ${runtimeSignalMapSelfTest.error}`);
+  if (runtimeSignalMapSelfTest.status !== 0) fail("Runtime Signal Map self-test failed.");
 
   console.log("[github-filepatcher] Developer tool syntax checks passed.");
 }

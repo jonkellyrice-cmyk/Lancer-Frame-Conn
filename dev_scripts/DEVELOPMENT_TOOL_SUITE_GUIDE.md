@@ -204,6 +204,28 @@ See `dev_scripts/INTEGRATION_SURFACE_ATLAS.md` for the full contract.
 
 ---
 
+## Runtime Signal Map — `runtime-signal-map.mjs`
+
+Run against Frame Conn plus an authoritative native Lancer checkout with:
+
+```bash
+npm run runtime-signal-map -- --native-root /path/to/foundryvtt-lancer --query "attack damage chat"
+```
+
+Ask for an explicit causal path with:
+
+```bash
+npm run runtime-signal-map -- --report dev_scripts/runtime-signal-map-report.json --from "click .lancer-damage-apply" --to damageCalc
+```
+
+The Runtime Signal Map complements the Integration Surface Atlas. The Atlas answers **what native surfaces exist**; the signal map answers **how statically evidenced runtime signals travel between them**. It maps UI events, named handlers, direct calls, Flow construction, ordered Flow steps, Flow-step implementations, hooks, chat creation, damage application, and document mutation boundaries.
+
+The mapper fails conservative: ambiguous call targets are omitted instead of guessed. Generated reports record source version/fingerprints and must be regenerated when authoritative native source changes. It is a planning/diagnostic tool, not live Foundry runtime proof.
+
+See `dev_scripts/RUNTIME_SIGNAL_MAP.md` for the full contract.
+
+---
+
 ## 8. Patch Corridor Planner — `patch-corridor-planner.mjs`
 
 Run with:
