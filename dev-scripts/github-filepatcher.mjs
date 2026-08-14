@@ -448,7 +448,8 @@ function validateDeveloperToolSyntax() {
     path.join(ROOT, "dev_scripts", "repo-audit.mjs"),
     path.join(ROOT, "dev_scripts", "symbol-family-audit.mjs"),
     path.join(ROOT, "dev_scripts", "effect-atlas.mjs"),
-    path.join(ROOT, "dev_scripts", "patch-corridor-planner.mjs")
+    path.join(ROOT, "dev_scripts", "patch-corridor-planner.mjs"),
+    path.join(ROOT, "dev_scripts", "patch-dsl-compiler.mjs")
   ];
 
   for (const tool of tools) {
@@ -459,6 +460,13 @@ function validateDeveloperToolSyntax() {
     if (result.error) fail(`Developer tool syntax check could not start for ${tool}: ${result.error}`);
     if (result.status !== 0) fail(`Developer tool syntax check failed for ${path.relative(ROOT, tool)}.`);
   }
+
+  const dslCompiler = path.join(ROOT, "dev_scripts", "patch-dsl-compiler.mjs");
+  const dslSelfTest = spawnSync(process.execPath, [dslCompiler, "--self-test"], { cwd: ROOT, encoding: "utf8" });
+  if (dslSelfTest.stdout) process.stdout.write(dslSelfTest.stdout);
+  if (dslSelfTest.stderr) process.stderr.write(dslSelfTest.stderr);
+  if (dslSelfTest.error) fail(`Patch DSL self-test could not start: ${dslSelfTest.error}`);
+  if (dslSelfTest.status !== 0) fail("Patch DSL self-test failed.");
 
   console.log("[github-filepatcher] Developer tool syntax checks passed.");
 }
