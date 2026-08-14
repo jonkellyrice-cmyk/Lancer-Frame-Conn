@@ -89,7 +89,7 @@ const EFFECT_PATTERNS = [
   {
     id: "native-execution",
     label: "Native execution",
-    regex: /\b(?:executeNative[A-Za-z0-9_$]*|runNative[A-Za-z0-9_$]*|rollNative[A-Za-z0-9_$]*)\s*\(/g
+    regex: /\b(?:(?:execute|run|roll)Native(?![A-Za-z0-9_$]*(?:Verification|Verifier|Probe|Check)\b)[A-Za-z0-9_$]*)\s*\(/g
   }
 ];
 
