@@ -1,23 +1,23 @@
 {
   "schema_version": 2,
-  "id": "fix-foundry-v13-scene-control-tool",
-  "description": "Update the Frame Helm Token scene-control launcher to the Foundry v13 SceneControlTool shape by supplying order and onChange, while preserving the existing integration boundary.",
+  "id": "restore-proven-foundry-startup-order",
+  "description": "Restore the known-good Frame Helm startup ordering by installing feature hooks during Foundry init only after runtime bindings, settings registration, action initialization, and dependency validation.",
   "policy": {
     "max_files_changed": 1
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "scripts/foundry-integration-feature.js",
-      "search": "function createFrameHelmSceneControlTool() {\n  return {\n    name:\n      FRAME_HELM_SCENE_CONTROL_NAME,\n\n    title:\n      MODULE_TITLE,\n\n    icon:\n      \"fas fa-robot\",\n\n    button:\n      true,\n\n    visible:\n      true,\n\n    onClick:\n      openFrameHelmFromFoundryIntegration\n  };\n}",
-      "replace": "function createFrameHelmSceneControlTool(\n  tokenControls =\n    null\n) {\n  const tools =\n    tokenControls?.tools;\n\n\n  const order =\n    Array.isArray(\n      tools\n    )\n      ? tools.length\n      : Object.keys(\n          tools ??\n          {}\n        ).length;\n\n\n  return {\n    name:\n      FRAME_HELM_SCENE_CONTROL_NAME,\n\n    title:\n      MODULE_TITLE,\n\n    icon:\n      \"fa-solid fa-robot\",\n\n    order,\n\n    button:\n      true,\n\n    visible:\n      true,\n\n    onChange:\n      () =>\n        openFrameHelmFromFoundryIntegration()\n  };\n}",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "/* ============================================================\n   Foundry hook installation\n   ============================================================ */\n\n/**\n * Feature-owned Foundry hooks must be installed as soon as the module is\n * evaluated. In particular, getSceneControlButtons may fire before the\n * module's init callback has completed, so deferring hook installation to\n * init can cause Frame Helm to miss the Token Controls construction event.\n *\n * Feature registration and dependency validation have already completed in\n * feature-registry.js before this orchestrator is evaluated.\n */\nframeHelmFeatureRegistry\n  .installHooks();\n\n\n/* ============================================================\n   Foundry lifecycle\n   ============================================================ */",
+      "replace": "/* ============================================================\n   Foundry lifecycle\n   ============================================================ */",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/foundry-integration-feature.js",
-      "search": "function insertFrameHelmSceneControlTool(\n  tokenControls,\n  tool =\n    createFrameHelmSceneControlTool()\n) {",
-      "replace": "function insertFrameHelmSceneControlTool(\n  tokenControls,\n  tool =\n    createFrameHelmSceneControlTool(\n      tokenControls\n    )\n) {",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "    frameHelmFeatureRegistry\n      .validateDependencies();\n\n  }\n);",
+      "replace": "    frameHelmFeatureRegistry\n      .validateDependencies();\n\n\n    /**\n     * Install feature-owned Foundry hooks only after runtime bindings,\n     * settings registration, Actions initialization, and dependency\n     * validation have completed.\n     *\n     * This restores the known-good startup ordering used by the working\n     * d0cd008 runtime and prevents Foundry Integration hooks from reading\n     * module settings before those settings exist.\n     */\n    frameHelmFeatureRegistry\n      .installHooks();\n\n  }\n);",
       "expected_occurrences": 1
     }
   ]
