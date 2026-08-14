@@ -1,23 +1,23 @@
 {
   "schema_version": 2,
-  "id": "install-feature-hooks-before-foundry-init",
-  "description": "Install registered feature-owned Foundry hooks at module evaluation time so getSceneControlButtons is subscribed before Foundry builds scene controls, while leaving runtime binding and settings registration in init.",
+  "id": "fix-foundry-v13-scene-control-tool",
+  "description": "Update the Frame Helm Token scene-control launcher to the Foundry v13 SceneControlTool shape by supplying order and onChange, while preserving the existing integration boundary.",
   "policy": {
     "max_files_changed": 1
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "/* ============================================================\n   Foundry lifecycle\n   ============================================================ */\n\n/**\n * Startup boundaries remain orchestration concerns.\n *\n * Feature-owned implementation is invoked through registered\n * feature APIs rather than being implemented here.\n */\n\nHooks.once(\n  \"init\",",
-      "replace": "/* ============================================================\n   Foundry hook installation\n   ============================================================ */\n\n/**\n * Feature-owned Foundry hooks must be installed as soon as the module is\n * evaluated. In particular, getSceneControlButtons may fire before the\n * module's init callback has completed, so deferring hook installation to\n * init can cause Frame Helm to miss the Token Controls construction event.\n *\n * Feature registration and dependency validation have already completed in\n * feature-registry.js before this orchestrator is evaluated.\n */\nframeHelmFeatureRegistry\n  .installHooks();\n\n\n/* ============================================================\n   Foundry lifecycle\n   ============================================================ */\n\n/**\n * Startup boundaries remain orchestration concerns.\n *\n * Feature-owned implementation is invoked through registered\n * feature APIs rather than being implemented here.\n */\n\nHooks.once(\n  \"init\",",
+      "path": "scripts/foundry-integration-feature.js",
+      "search": "function createFrameHelmSceneControlTool() {\n  return {\n    name:\n      FRAME_HELM_SCENE_CONTROL_NAME,\n\n    title:\n      MODULE_TITLE,\n\n    icon:\n      \"fas fa-robot\",\n\n    button:\n      true,\n\n    visible:\n      true,\n\n    onClick:\n      openFrameHelmFromFoundryIntegration\n  };\n}",
+      "replace": "function createFrameHelmSceneControlTool(\n  tokenControls =\n    null\n) {\n  const tools =\n    tokenControls?.tools;\n\n\n  const order =\n    Array.isArray(\n      tools\n    )\n      ? tools.length\n      : Object.keys(\n          tools ??\n          {}\n        ).length;\n\n\n  return {\n    name:\n      FRAME_HELM_SCENE_CONTROL_NAME,\n\n    title:\n      MODULE_TITLE,\n\n    icon:\n      \"fa-solid fa-robot\",\n\n    order,\n\n    button:\n      true,\n\n    visible:\n      true,\n\n    onChange:\n      () =>\n        openFrameHelmFromFoundryIntegration()\n  };\n}",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "\n\n    /**\n     * Install all feature-owned Foundry hooks.\n     *\n     * This includes:\n     *\n     *   - Sensors hooks\n     *   - Application UI hooks\n     *   - Turn/combat synchronization hooks\n     *   - Movement hooks\n     *   - Elevation movement hooks\n     *   - Foundry Integration scene-control hooks\n     *\n     * Lifecycle and Targeting / Spatial use feature lifecycle\n     * registration for their semantic/transaction hooks rather\n     * than declaring Foundry hooks in the feature contract.\n     *\n     * Action Execution currently declares no Foundry hooks.\n     */\n    frameHelmFeatureRegistry\n      .installHooks();",
-      "replace": "",
+      "path": "scripts/foundry-integration-feature.js",
+      "search": "function insertFrameHelmSceneControlTool(\n  tokenControls,\n  tool =\n    createFrameHelmSceneControlTool()\n) {",
+      "replace": "function insertFrameHelmSceneControlTool(\n  tokenControls,\n  tool =\n    createFrameHelmSceneControlTool(\n      tokenControls\n    )\n) {",
       "expected_occurrences": 1
     }
   ]
