@@ -18,7 +18,7 @@
  * - targeting-spatial-contract
  * - targeting-spatial-query
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumes TargetResolutionResult from targeting-spatial-resolver.js
  * - consumed by targeting-spatial-hooks.js
  * - consumed by targeting-spatial-service.js
@@ -102,7 +102,7 @@ import {
    ============================================================ */
 
 export const TARGETING_SPATIAL_VALIDATOR_MODULE_ID =
-  "lancer-frame-helm.targeting-spatial-validator";
+  "lancer-frame-conn.targeting-spatial-validator";
 
 export const TARGETING_SPATIAL_VALIDATOR_MODULE_VERSION =
   1;
@@ -1885,11 +1885,11 @@ export function getTargetingSpatialValidatorDiagnostics() {
 }
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * targeting-spatial-resolver.js
  * -----------------------------

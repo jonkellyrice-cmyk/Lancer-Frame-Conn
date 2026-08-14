@@ -3,20 +3,20 @@
  * FILE PATH / NAME
  * ============================================================
  *
- * scripts/frame-helm/feature-contract.js
+ * scripts/frame-conn/feature-contract.js
  */
 
 /**
  * ============================================================
- * FRAME HELM FEATURE CONTRACT
+ * FRAME CONN FEATURE CONTRACT
  * ============================================================
  *
  * ROLE:
- *   Defines the stable construction contract used by Frame Helm
+ *   Defines the stable construction contract used by Frame Conn
  *   feature domains.
  *
  * PURPOSE:
- *   Give independently-owned Frame Helm domains a common schema
+ *   Give independently-owned Frame Conn domains a common schema
  *   for declaring:
  *
  *     - identity
@@ -55,7 +55,7 @@
  *        │
  *        │ defines / normalizes
  *        ▼
- *   FrameHelmFeatureDefinition
+ *   FrameConnFeatureDefinition
  *        │
  *        ▼
  *   feature-registry.js
@@ -74,13 +74,13 @@
    ============================================================ */
 
 /**
- * Version of the current Frame Helm feature contract.
+ * Version of the current Frame Conn feature contract.
  *
  * This is intentionally independent of the Foundry module
  * version. It describes the shape expected by the construction
  * spine itself.
  */
-export const FRAME_HELM_FEATURE_CONTRACT_VERSION = 1;
+export const FRAME_CONN_FEATURE_CONTRACT_VERSION = 1;
 
 
 /**
@@ -90,7 +90,7 @@ export const FRAME_HELM_FEATURE_CONTRACT_VERSION = 1;
  * remain ordinary functions, objects, classes, or values owned
  * by the feature domain.
  */
-export const FRAME_HELM_FEATURE_COLLECTION_KEYS =
+export const FRAME_CONN_FEATURE_COLLECTION_KEYS =
   Object.freeze([
     "state",
     "commands",
@@ -107,7 +107,7 @@ export const FRAME_HELM_FEATURE_COLLECTION_KEYS =
  * The registry may eventually invoke these automatically, but the
  * contract itself only standardizes their names.
  */
-export const FRAME_HELM_FEATURE_LIFECYCLE_PHASES =
+export const FRAME_CONN_FEATURE_LIFECYCLE_PHASES =
   Object.freeze([
     "initialize",
     "ready",
@@ -122,7 +122,7 @@ export const FRAME_HELM_FEATURE_LIFECYCLE_PHASES =
 /**
  * Converts a value into a trimmed non-empty identifier.
  */
-function normalizeRequiredFrameHelmIdentifier(
+function normalizeRequiredFrameConnIdentifier(
   value,
   description
 ) {
@@ -141,7 +141,7 @@ function normalizeRequiredFrameHelmIdentifier(
 /**
  * Normalizes a possibly-empty identifier.
  */
-function normalizeOptionalFrameHelmIdentifier(
+function normalizeOptionalFrameConnIdentifier(
   value
 ) {
   if (
@@ -166,7 +166,7 @@ function normalizeOptionalFrameHelmIdentifier(
  * while allowing explicitly-owned mutable state objects to remain
  * mutable where required.
  */
-function normalizeFrameHelmFeatureRecord(
+function normalizeFrameConnFeatureRecord(
   value,
   fieldName
 ) {
@@ -179,7 +179,7 @@ function normalizeFrameHelmFeatureRecord(
     Array.isArray(value)
   ) {
     throw new TypeError(
-      `Frame Helm feature "${fieldName}" must be an object.`
+      `Frame Conn feature "${fieldName}" must be an object.`
     );
   }
 
@@ -195,7 +195,7 @@ function normalizeFrameHelmFeatureRecord(
  * Duplicate capability names are removed while preserving the
  * author's declaration order.
  */
-function normalizeFrameHelmCapabilityList(
+function normalizeFrameConnCapabilityList(
   value,
   fieldName
 ) {
@@ -205,7 +205,7 @@ function normalizeFrameHelmCapabilityList(
 
   if (!Array.isArray(value)) {
     throw new TypeError(
-      `Frame Helm feature "${fieldName}" must be an array.`
+      `Frame Conn feature "${fieldName}" must be an array.`
     );
   }
 
@@ -213,9 +213,9 @@ function normalizeFrameHelmCapabilityList(
 
   for (const capability of value) {
     const capabilityId =
-      normalizeRequiredFrameHelmIdentifier(
+      normalizeRequiredFrameConnIdentifier(
         capability,
-        `Frame Helm feature ${fieldName} entry`
+        `Frame Conn feature ${fieldName} entry`
       );
 
     if (!normalized.includes(capabilityId)) {
@@ -230,7 +230,7 @@ function normalizeFrameHelmCapabilityList(
 /**
  * Normalizes optional descriptive metadata.
  */
-function normalizeFrameHelmFeatureMetadata(
+function normalizeFrameConnFeatureMetadata(
   metadata
 ) {
   if (metadata === null || metadata === undefined) {
@@ -242,7 +242,7 @@ function normalizeFrameHelmFeatureMetadata(
     Array.isArray(metadata)
   ) {
     throw new TypeError(
-      'Frame Helm feature "metadata" must be an object.'
+      'Frame Conn feature "metadata" must be an object.'
     );
   }
 
@@ -262,7 +262,7 @@ function normalizeFrameHelmFeatureMetadata(
  * Lifecycle handlers are optional, but when supplied they must
  * be functions.
  */
-function validateFrameHelmLifecycleHandlers(
+function validateFrameConnLifecycleHandlers(
   lifecycle,
   featureId
 ) {
@@ -271,18 +271,18 @@ function validateFrameHelmLifecycleHandlers(
     of Object.entries(lifecycle)
   ) {
     if (
-      !FRAME_HELM_FEATURE_LIFECYCLE_PHASES.includes(
+      !FRAME_CONN_FEATURE_LIFECYCLE_PHASES.includes(
         phase
       )
     ) {
       throw new Error(
-        `Frame Helm feature "${featureId}" declares unknown lifecycle phase "${phase}".`
+        `Frame Conn feature "${featureId}" declares unknown lifecycle phase "${phase}".`
       );
     }
 
     if (typeof handler !== "function") {
       throw new TypeError(
-        `Frame Helm feature "${featureId}" lifecycle handler "${phase}" must be a function.`
+        `Frame Conn feature "${featureId}" lifecycle handler "${phase}" must be a function.`
       );
     }
   }
@@ -300,7 +300,7 @@ function validateFrameHelmLifecycleHandlers(
  * Multiple handlers are useful when one domain needs several
  * independent reactions to the same Foundry hook.
  */
-function validateFrameHelmHookHandlers(
+function validateFrameConnHookHandlers(
   hooks,
   featureId
 ) {
@@ -309,13 +309,13 @@ function validateFrameHelmHookHandlers(
     of Object.entries(hooks)
   ) {
     const normalizedHookName =
-      normalizeOptionalFrameHelmIdentifier(
+      normalizeOptionalFrameConnIdentifier(
         hookName
       );
 
     if (!normalizedHookName) {
       throw new Error(
-        `Frame Helm feature "${featureId}" contains an empty hook name.`
+        `Frame Conn feature "${featureId}" contains an empty hook name.`
       );
     }
 
@@ -335,7 +335,7 @@ function validateFrameHelmHookHandlers(
     }
 
     throw new TypeError(
-      `Frame Helm feature "${featureId}" hook "${hookName}" must be a function or a non-empty array of functions.`
+      `Frame Conn feature "${featureId}" hook "${hookName}" must be a function or a non-empty array of functions.`
     );
   }
 }
@@ -347,7 +347,7 @@ function validateFrameHelmHookHandlers(
  * These collections represent callable feature operations, so all
  * declared members must be functions.
  */
-function validateFrameHelmCallableRecord(
+function validateFrameConnCallableRecord(
   record,
   fieldName,
   featureId
@@ -358,7 +358,7 @@ function validateFrameHelmCallableRecord(
   ) {
     if (typeof callable !== "function") {
       throw new TypeError(
-        `Frame Helm feature "${featureId}" ${fieldName} member "${name}" must be a function.`
+        `Frame Conn feature "${featureId}" ${fieldName} member "${name}" must be a function.`
       );
     }
   }
@@ -385,15 +385,15 @@ function validateFrameHelmCallableRecord(
    ============================================================ */
 
 /**
- * Defines and normalizes one Frame Helm feature.
+ * Defines and normalizes one Frame Conn feature.
  *
  * This is the canonical construction entry point for all future
  * domain modules.
  *
  * Example:
  *
- *   export const frameHelmMovementFeature =
- *     defineFrameHelmFeature({
+ *   export const frameConnMovementFeature =
+ *     defineFrameConnFeature({
  *       id: "movement",
  *       domain: "movement",
  *
@@ -408,7 +408,7 @@ function validateFrameHelmCallableRecord(
  *       ],
  *
  *       state: {
- *         manager: frameHelmMovementState
+ *         manager: frameConnMovementState
  *       },
  *
  *       commands: {
@@ -417,7 +417,7 @@ function validateFrameHelmCallableRecord(
  *       },
  *
  *       queries: {
- *         tokenMatches: frameHelmMovementTokenMatches
+ *         tokenMatches: frameConnMovementTokenMatches
  *       },
  *
  *       hooks: {
@@ -433,7 +433,7 @@ function validateFrameHelmCallableRecord(
  *       }
  *     });
  */
-export function defineFrameHelmFeature(
+export function defineFrameConnFeature(
   definition
 ) {
   if (
@@ -442,104 +442,104 @@ export function defineFrameHelmFeature(
     Array.isArray(definition)
   ) {
     throw new TypeError(
-      "Frame Helm feature definitions must be objects."
+      "Frame Conn feature definitions must be objects."
     );
   }
 
-  const id = normalizeRequiredFrameHelmIdentifier(
+  const id = normalizeRequiredFrameConnIdentifier(
     definition.id,
-    "Frame Helm feature"
+    "Frame Conn feature"
   );
 
   const domain =
-    normalizeOptionalFrameHelmIdentifier(
+    normalizeOptionalFrameConnIdentifier(
       definition.domain
     ) ?? id;
 
   const provides =
-    normalizeFrameHelmCapabilityList(
+    normalizeFrameConnCapabilityList(
       definition.provides,
       "provides"
     );
 
   const dependsOn =
-    normalizeFrameHelmCapabilityList(
+    normalizeFrameConnCapabilityList(
       definition.dependsOn,
       "dependsOn"
     );
 
   const optionalDependsOn =
-    normalizeFrameHelmCapabilityList(
+    normalizeFrameConnCapabilityList(
       definition.optionalDependsOn,
       "optionalDependsOn"
     );
 
   const state =
-    normalizeFrameHelmFeatureRecord(
+    normalizeFrameConnFeatureRecord(
       definition.state,
       "state"
     );
 
   const commands =
-    normalizeFrameHelmFeatureRecord(
+    normalizeFrameConnFeatureRecord(
       definition.commands,
       "commands"
     );
 
   const queries =
-    normalizeFrameHelmFeatureRecord(
+    normalizeFrameConnFeatureRecord(
       definition.queries,
       "queries"
     );
 
   const hooks =
-    normalizeFrameHelmFeatureRecord(
+    normalizeFrameConnFeatureRecord(
       definition.hooks,
       "hooks"
     );
 
   const lifecycle =
-    normalizeFrameHelmFeatureRecord(
+    normalizeFrameConnFeatureRecord(
       definition.lifecycle,
       "lifecycle"
     );
 
   const api =
-    normalizeFrameHelmFeatureRecord(
+    normalizeFrameConnFeatureRecord(
       definition.api,
       "api"
     );
 
   const metadata =
-    normalizeFrameHelmFeatureMetadata(
+    normalizeFrameConnFeatureMetadata(
       definition.metadata
     );
 
-  validateFrameHelmCallableRecord(
+  validateFrameConnCallableRecord(
     commands,
     "commands",
     id
   );
 
-  validateFrameHelmCallableRecord(
+  validateFrameConnCallableRecord(
     queries,
     "queries",
     id
   );
 
-  validateFrameHelmHookHandlers(
+  validateFrameConnHookHandlers(
     hooks,
     id
   );
 
-  validateFrameHelmLifecycleHandlers(
+  validateFrameConnLifecycleHandlers(
     lifecycle,
     id
   );
 
   const normalizedFeature = {
     contractVersion:
-      FRAME_HELM_FEATURE_CONTRACT_VERSION,
+      FRAME_CONN_FEATURE_CONTRACT_VERSION,
 
     id,
     domain,
@@ -569,14 +569,14 @@ export function defineFrameHelmFeature(
    ============================================================ */
 
 /**
- * Returns whether a value appears to be a normalized Frame Helm
+ * Returns whether a value appears to be a normalized Frame Conn
  * feature definition.
  *
  * This is intentionally a structural check rather than an
  * instanceof relationship so feature declarations remain simple
  * data records.
  */
-export function isFrameHelmFeatureDefinition(
+export function isFrameConnFeatureDefinition(
   candidate
 ) {
   return Boolean(
@@ -584,7 +584,7 @@ export function isFrameHelmFeatureDefinition(
     typeof candidate === "object" &&
     !Array.isArray(candidate) &&
     candidate.contractVersion ===
-      FRAME_HELM_FEATURE_CONTRACT_VERSION &&
+      FRAME_CONN_FEATURE_CONTRACT_VERSION &&
     typeof candidate.id === "string" &&
     candidate.id.length > 0 &&
     typeof candidate.domain === "string" &&
@@ -608,17 +608,17 @@ export function isFrameHelmFeatureDefinition(
 
 
 /**
- * Asserts that a value is a normalized Frame Helm feature.
+ * Asserts that a value is a normalized Frame Conn feature.
  *
  * Registry code can use this at its boundary rather than repeating
  * structural checks.
  */
-export function assertFrameHelmFeatureDefinition(
+export function assertFrameConnFeatureDefinition(
   candidate
 ) {
-  if (!isFrameHelmFeatureDefinition(candidate)) {
+  if (!isFrameConnFeatureDefinition(candidate)) {
     throw new TypeError(
-      "Expected a normalized Frame Helm feature definition."
+      "Expected a normalized Frame Conn feature definition."
     );
   }
 
@@ -633,16 +633,16 @@ export function assertFrameHelmFeatureDefinition(
 /**
  * Returns whether a feature explicitly provides a capability.
  */
-export function frameHelmFeatureProvidesCapability(
+export function frameConnFeatureProvidesCapability(
   feature,
   capability
 ) {
-  assertFrameHelmFeatureDefinition(feature);
+  assertFrameConnFeatureDefinition(feature);
 
   const capabilityId =
-    normalizeRequiredFrameHelmIdentifier(
+    normalizeRequiredFrameConnIdentifier(
       capability,
-      "Frame Helm capability"
+      "Frame Conn capability"
     );
 
   return feature.provides.includes(
@@ -654,16 +654,16 @@ export function frameHelmFeatureProvidesCapability(
 /**
  * Returns whether a feature explicitly requires a capability.
  */
-export function frameHelmFeatureDependsOnCapability(
+export function frameConnFeatureDependsOnCapability(
   feature,
   capability
 ) {
-  assertFrameHelmFeatureDefinition(feature);
+  assertFrameConnFeatureDefinition(feature);
 
   const capabilityId =
-    normalizeRequiredFrameHelmIdentifier(
+    normalizeRequiredFrameConnIdentifier(
       capability,
-      "Frame Helm capability"
+      "Frame Conn capability"
     );
 
   return feature.dependsOn.includes(
@@ -675,16 +675,16 @@ export function frameHelmFeatureDependsOnCapability(
 /**
  * Returns whether a feature optionally consumes a capability.
  */
-export function frameHelmFeatureOptionallyDependsOnCapability(
+export function frameConnFeatureOptionallyDependsOnCapability(
   feature,
   capability
 ) {
-  assertFrameHelmFeatureDefinition(feature);
+  assertFrameConnFeatureDefinition(feature);
 
   const capabilityId =
-    normalizeRequiredFrameHelmIdentifier(
+    normalizeRequiredFrameConnIdentifier(
       capability,
-      "Frame Helm capability"
+      "Frame Conn capability"
     );
 
   return feature.optionalDependsOn.includes(
@@ -700,11 +700,11 @@ export function frameHelmFeatureOptionallyDependsOnCapability(
 /**
  * Retrieves a named command from a feature.
  */
-export function getFrameHelmFeatureCommand(
+export function getFrameConnFeatureCommand(
   feature,
   commandName
 ) {
-  assertFrameHelmFeatureDefinition(feature);
+  assertFrameConnFeatureDefinition(feature);
 
   return feature.commands[
     String(commandName)
@@ -715,11 +715,11 @@ export function getFrameHelmFeatureCommand(
 /**
  * Retrieves a named query from a feature.
  */
-export function getFrameHelmFeatureQuery(
+export function getFrameConnFeatureQuery(
   feature,
   queryName
 ) {
-  assertFrameHelmFeatureDefinition(feature);
+  assertFrameConnFeatureDefinition(feature);
 
   return feature.queries[
     String(queryName)
@@ -730,11 +730,11 @@ export function getFrameHelmFeatureQuery(
 /**
  * Retrieves a named public API member from a feature.
  */
-export function getFrameHelmFeatureApiMember(
+export function getFrameConnFeatureApiMember(
   feature,
   memberName
 ) {
-  assertFrameHelmFeatureDefinition(feature);
+  assertFrameConnFeatureDefinition(feature);
 
   return feature.api[
     String(memberName)
@@ -745,17 +745,17 @@ export function getFrameHelmFeatureApiMember(
 /**
  * Retrieves one lifecycle handler.
  */
-export function getFrameHelmFeatureLifecycleHandler(
+export function getFrameConnFeatureLifecycleHandler(
   feature,
   phase
 ) {
-  assertFrameHelmFeatureDefinition(feature);
+  assertFrameConnFeatureDefinition(feature);
 
   const normalizedPhase =
     String(phase ?? "").trim();
 
   if (
-    !FRAME_HELM_FEATURE_LIFECYCLE_PHASES.includes(
+    !FRAME_CONN_FEATURE_LIFECYCLE_PHASES.includes(
       normalizedPhase
     )
   ) {
@@ -778,10 +778,10 @@ export function getFrameHelmFeatureLifecycleHandler(
  * Useful for debugging, diagnostics, and future registry
  * inspection without serializing functions or mutable state.
  */
-export function summarizeFrameHelmFeature(
+export function summarizeFrameConnFeature(
   feature
 ) {
-  assertFrameHelmFeatureDefinition(feature);
+  assertFrameConnFeatureDefinition(feature);
 
   return Object.freeze({
     contractVersion:

@@ -6,13 +6,13 @@ cat > docs/af-full-tech.md <<‘EOF’
 
 **Native dedicated Full Tech orchestration:** Not currently established.
 
-**Underlying Quick Tech execution strategies:** Established sufficiently for Frame Helm design.
+**Underlying Quick Tech execution strategies:** Established sufficiently for Frame Conn design.
 
-**Frame Helm implementation status:** Requires Frame Helm-owned Full Tech orchestration over two Quick Tech executions OR delegation to a single native/system-owned Full Tech action.
+**Frame Conn implementation status:** Requires Frame Conn-owned Full Tech orchestration over two Quick Tech executions OR delegation to a single native/system-owned Full Tech action.
 
 ## Purpose
 
-This document defines the Frame Helm execution model for the **Full Tech** Full Action based on the already-established universal Quick Tech architecture and the Lancer rules for Full Tech.
+This document defines the Frame Conn execution model for the **Full Tech** Full Action based on the already-established universal Quick Tech architecture and the Lancer rules for Full Tech.
 
 Full Tech is structurally not one fixed mechanical action.
 
@@ -27,7 +27,7 @@ The important architectural distinction is:
 
 > Full Tech determines what combination of tech actions the player may perform.
 >
-> The selected underlying tech actions retain their own native or Frame Helm execution strategies.
+> The selected underlying tech actions retain their own native or Frame Conn execution strategies.
 
 This is analogous to how Barrage orchestrates native weapon attacks rather than replacing them.
 
@@ -115,7 +115,7 @@ Full Tech
 └── SINGLE FULL TECH ACTION
     └── native/system-owned execution strategy
 
-Therefore Frame Helm should own the composition of Full Tech while delegating the actual mechanical execution of its selected sub-actions.
+Therefore Frame Conn should own the composition of Full Tech while delegating the actual mechanical execution of its selected sub-actions.
 
 —
 
@@ -127,13 +127,13 @@ Bolster
 → Quick Tech
 → not a Tech Attack
 → no dedicated native flow found
-→ Frame Helm-owned implementation required
+→ Frame Conn-owned implementation required
 
 Lock On
 → Quick Tech
 → not a Tech Attack
 → no native application flow found
-→ Frame Helm applies native `lockon` condition
+→ Frame Conn applies native `lockon` condition
 → native attacks later consume it
 
 Scan
@@ -157,7 +157,7 @@ Full Tech
 becomes:
 
 Full Tech orchestration
-→ Frame Helm Lock On application strategy
+→ Frame Conn Lock On application strategy
 → native Scan execution strategy
 
 Another example:
@@ -170,7 +170,7 @@ becomes:
 
 Full Tech orchestration
 → native `TechAttackFlow`
-→ Frame Helm Bolster implementation
+→ Frame Conn Bolster implementation
 
 The fact that the two selected actions may use completely different execution mechanisms is expected.
 
@@ -180,7 +180,7 @@ The fact that the two selected actions may use completely different execution me
 
 The Full Tech rules explicitly permit the same Quick Tech option to be selected multiple times.
 
-Therefore Frame Helm must NOT reuse the ordinary duplicate-action restriction that prevents a normal Quick Action from simply being repeated during the same turn.
+Therefore Frame Conn must NOT reuse the ordinary duplicate-action restriction that prevents a normal Quick Action from simply being repeated during the same turn.
 
 A Full Tech sequence may legally contain:
 
@@ -210,7 +210,7 @@ Full Tech consumes:
 
 **one Full Action**
 
-If the player chooses the two-Quick-Tech mode, the two selected Quick Tech sub-actions do **not** independently spend Frame Helm’s normal Quick Action budget.
+If the player chooses the two-Quick-Tech mode, the two selected Quick Tech sub-actions do **not** independently spend Frame Conn’s normal Quick Action budget.
 
 Conceptually:
 
@@ -236,7 +236,7 @@ This distinction is critical.
 
 # 6. Full Tech Execution Context
 
-Frame Helm should eventually provide an explicit execution context indicating that an underlying Quick Tech is being executed as part of Full Tech.
+Frame Conn should eventually provide an explicit execution context indicating that an underlying Quick Tech is being executed as part of Full Tech.
 
 Conceptually:
 
@@ -264,7 +264,7 @@ The first user interaction should be:
 Player commits Full Tech
 → Full Tech appears in Committed Plan
 → player presses execution control
-→ Frame Helm opens Full Tech selector
+→ Frame Conn opens Full Tech selector
 → choose:
 
 [ TWO QUICK TECH OPTIONS ]
@@ -273,7 +273,7 @@ or:
 
 [ FULL TECH SYSTEM / TECH ACTION ]
 
-The available choices should come from authoritative actor data and Frame Helm action discovery.
+The available choices should come from authoritative actor data and Frame Conn action discovery.
 
 —
 
@@ -283,7 +283,7 @@ If the player chooses:
 
 `Two Quick Tech Options`
 
-Frame Helm should present available Quick Tech actions.
+Frame Conn should present available Quick Tech actions.
 
 At minimum, universal options include:
 
@@ -304,7 +304,7 @@ Quick Tech B
 
 The same option may be selected twice.
 
-Then Frame Helm executes the two sub-actions sequentially.
+Then Frame Conn executes the two sub-actions sequentially.
 
 Conceptually:
 
@@ -396,7 +396,7 @@ then:
 
 some second tech action resolves
 
-Therefore Frame Helm should not precompute both actions from stale state and then resolve them simultaneously.
+Therefore Frame Conn should not precompute both actions from stale state and then resolve them simultaneously.
 
 Preferred flow:
 
@@ -443,7 +443,7 @@ Each universal Quick Tech retains its established execution strategy.
 Full Tech sub-action:
 
 Bolster
-→ Frame Helm-owned Bolster implementation
+→ Frame Conn-owned Bolster implementation
 
 No Tech Attack roll.
 
@@ -491,7 +491,7 @@ Mounted Systems and other actor-owned features may grant actions with native act
 
 `Quick Tech`
 
-Therefore the eventual Full Tech selector should gather Quick Tech options from the same action-discovery architecture used elsewhere in Frame Helm.
+Therefore the eventual Full Tech selector should gather Quick Tech options from the same action-discovery architecture used elsewhere in Frame Conn.
 
 Conceptually:
 
@@ -519,7 +519,7 @@ Relevant sources may include:
 - Mech Core Powers
 - possibly other features that expose Full Tech actions
 
-Frame Helm should discover these from authoritative actor/native action data.
+Frame Conn should discover these from authoritative actor/native action data.
 
 The action’s native activation classification should identify it as:
 
@@ -563,7 +563,7 @@ If the player chooses one actor-owned Full Tech action:
 Full Tech
 → choose eligible Full Tech action
 → resolve exact native source/action identity
-→ execute using that action’s native or Frame Helm strategy
+→ execute using that action’s native or Frame Conn strategy
 → complete Full Tech
 
 The action should not also attempt to perform two Quick Tech options.
@@ -602,7 +602,7 @@ depending on its source and mechanical type.
 
 The Activate research established that item-owned actions can dispatch according to their native action data, including delegation into `TechAttackFlow` where appropriate.
 
-Therefore Frame Helm should not assume that every Full Tech system action resolves the same way.
+Therefore Frame Conn should not assume that every Full Tech system action resolves the same way.
 
 Instead:
 
@@ -617,7 +617,7 @@ Full Tech system action
 
 For item-based Full Tech actions using native `ActionData`, a likely route may be:
 
-Frame Helm
+Frame Conn
 → resolve item
 → resolve `actionPath`
 → `item.beginActivationFlow(actionPath)`
@@ -632,7 +632,7 @@ Do not invent a `FullTechFlow` merely to wrap actions already understood by nati
 
 —
 
-# 19. Proposed Frame Helm Full Tech Flow
+# 19. Proposed Frame Conn Full Tech Flow
 
 The overall player-facing flow should eventually be:
 
@@ -722,7 +722,7 @@ Quick Tech A completes successfully.
 
 Quick Tech B is cancelled.
 
-Frame Helm must not lose track of the fact that the first sub-action already occurred.
+Frame Conn must not lose track of the fact that the first sub-action already occurred.
 
 Possible execution states:
 
@@ -742,7 +742,7 @@ Exact policy should be determined during implementation.
 
 # 23. Cancellation and Rollback
 
-Frame Helm should not assume that it can roll back Quick Tech A merely because Quick Tech B was cancelled.
+Frame Conn should not assume that it can roll back Quick Tech A merely because Quick Tech B was cancelled.
 
 The first action may already have:
 
@@ -780,9 +780,9 @@ This is a parent-action-specific legality rule.
 
 —
 
-# 25. Interaction With Frame Helm Turn State
+# 25. Interaction With Frame Conn Turn State
 
-Frame Helm’s Turn feature should own the overall Full Tech action expenditure.
+Frame Conn’s Turn feature should own the overall Full Tech action expenditure.
 
 Conceptually:
 
@@ -856,7 +856,7 @@ Full Tech
 → Quick Tech A
 → Quick Tech B
 
-This suggests Frame Helm may benefit from a reusable compound-action execution model.
+This suggests Frame Conn may benefit from a reusable compound-action execution model.
 
 Exact names and abstractions should wait until the organizational refactor is complete.
 
@@ -882,7 +882,7 @@ native `ScanFlow`
 
 with:
 
-Frame Helm native-condition application
+Frame Conn native-condition application
 
 Another:
 
@@ -904,7 +904,7 @@ Therefore Full Tech sequencing must be execution-strategy agnostic.
 
 # 29. Full Tech System Action Discovery
 
-Before implementation, Frame Helm must research how Full Tech actions granted by actor-owned content are represented.
+Before implementation, Frame Conn must research how Full Tech actions granted by actor-owned content are represented.
 
 Relevant research sources:
 
@@ -932,7 +932,7 @@ For each source determine:
 
 # 30. Targeting Architecture
 
-Full Tech should reuse Frame Helm’s general action-specific targeting system.
+Full Tech should reuse Frame Conn’s general action-specific targeting system.
 
 Each child action independently declares/derives:
 
@@ -949,7 +949,7 @@ Full Tech should not attempt to impose one universal targeting policy.
 
 # 31. Future Automation
 
-As Frame Helm becomes more automated:
+As Frame Conn becomes more automated:
 
 Bolster
 → automated effect application
@@ -973,7 +973,7 @@ The Full Tech layer should not itself need to know the low-level mechanics of ea
 
 # 32. Deterministic Effects
 
-Frame Helm’s wider deterministic-consequence rule applies to Full Tech children.
+Frame Conn’s wider deterministic-consequence rule applies to Full Tech children.
 
 If a selected Quick Tech or Full Tech action deterministically:
 
@@ -986,7 +986,7 @@ If a selected Quick Tech or Full Tech action deterministically:
 - deals damage
 - creates another structured consequence
 
-Frame Helm should carry that through automatically where native Lancer does not already do so.
+Frame Conn should carry that through automatically where native Lancer does not already do so.
 
 The parent Full Tech layer should delegate these mechanics to the child action execution strategy.
 
@@ -994,16 +994,16 @@ The parent Full Tech layer should delegate these mechanics to the child action e
 
 # 33. Native-System Boundary
 
-Frame Helm should follow the same native-system-first architecture established elsewhere:
+Frame Conn should follow the same native-system-first architecture established elsewhere:
 
-Frame Helm Full Tech UI
+Frame Conn Full Tech UI
 → Full Tech execution service
 → child action dispatcher
-→ native-system adapter or Frame Helm implementation
+→ native-system adapter or Frame Conn implementation
 → native Lancer entry point where available
 → native flow
 → authoritative Foundry mutations
-→ Frame Helm reconciliation
+→ Frame Conn reconciliation
 
 Do not place direct native Lancer flow knowledge into the UI selector.
 
@@ -1011,9 +1011,9 @@ Do not place direct native Lancer flow knowledge into the UI selector.
 
 # 34. Do Not Invent a Universal `FullTechFlow`
 
-Unless repository research later reveals an actual native Full Tech flow, Frame Helm should not pretend one exists.
+Unless repository research later reveals an actual native Full Tech flow, Frame Conn should not pretend one exists.
 
-The logical Frame Helm abstraction may be called a Full Tech execution service internally, but its role is orchestration.
+The logical Frame Conn abstraction may be called a Full Tech execution service internally, but its role is orchestration.
 
 It should not recreate the lower-level mechanics of:
 
@@ -1087,12 +1087,12 @@ Afterward:
 - [ ] Execute Quick Tech child B without spending normal Quick budget.
 - [ ] Support action-specific targeting for each child.
 - [ ] Add single Full Tech system-action mode.
-- [ ] Route system action through appropriate native/Frame Helm strategy.
+- [ ] Route system action through appropriate native/Frame Conn strategy.
 - [ ] Track partial execution state.
 - [ ] Handle cancellation.
 - [ ] Prevent duplicate parent action expenditure.
 - [ ] Mark parent Full Tech complete according to child completion state.
-- [ ] Refresh Frame Helm presentation after each child and after parent completion.
+- [ ] Refresh Frame Conn presentation after each child and after parent completion.
 - [ ] Compare child executions against equivalent standalone/native executions.
 
 —
@@ -1150,7 +1150,7 @@ FULL TECH
 │   ├── Quick Tech Slot 1
 │   │   │
 │   │   ├── Bolster
-│   │   │   └── Frame Helm implementation
+│   │   │   └── Frame Conn implementation
 │   │   │
 │   │   ├── Lock On
 │   │   │   └── native condition application
@@ -1173,9 +1173,9 @@ FULL TECH
     ├── Core Power Full Tech
     └── other discovered Full Tech action
         ↓
-    action-specific native/Frame Helm execution strategy
+    action-specific native/Frame Conn execution strategy
 
-This is the current working architecture for Full Tech in Frame Helm.
+This is the current working architecture for Full Tech in Frame Conn.
 
 The Full Tech layer should own:
 

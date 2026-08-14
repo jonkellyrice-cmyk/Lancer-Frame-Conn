@@ -7,11 +7,11 @@
  */
 /**
  * ============================================================
- * FRAME HELM FEATURE -- MOVEMENT
+ * FRAME CONN FEATURE -- MOVEMENT
  * ============================================================
  *
  * ROLE:
- *   Owns Frame Helm's Foundry token-movement interpretation,
+ *   Owns Frame Conn's Foundry token-movement interpretation,
  *   movement-path measurement, elevation-movement interpretation,
  *   movement-triggered automatic action notifications, and
  *   movement-specific Foundry hooks.
@@ -19,17 +19,17 @@
  * PURPOSE:
  *   Remove physical token-movement and elevation-movement
  *   integration from runtime-orchestrator.js while preserving
- *   existing Frame Helm movement behavior exactly.
+ *   existing Frame Conn movement behavior exactly.
  *
  * RESPONSIBILITIES:
  *   - Determine whether a moved token belongs to the active
- *     Frame Helm turn.
+ *     Frame Conn turn.
  *   - Normalize Foundry movement points.
  *   - Collect movement-path waypoints.
  *   - Resolve direct Foundry movement distance when available.
  *   - Measure token movement paths.
  *   - Normalize scene-distance units into movement spaces.
- *   - Round movement distances for Frame Helm accounting.
+ *   - Round movement distances for Frame Conn accounting.
  *   - Submit measured movement into authoritative Turn state.
  *   - Notify users when movement automatically commits Boost.
  *   - Notify users when movement automatically spends
@@ -47,7 +47,7 @@
  *
  *     scripts/turn-feature.js
  *
- *   Specifically, FrameHelmTurnState currently still owns:
+ *   Specifically, FrameConnTurnState currently still owns:
  *
  *     - speed
  *     - movement.maximum
@@ -101,7 +101,7 @@
  *   - Actor telemetry synchronization.
  *   - Module settings.
  *   - Scene-control registration.
- *   - Public game.lancerFrameHelm composition.
+ *   - Public game.lancerFrameConn composition.
  *
  * ARCHITECTURAL RELATIONSHIP:
  *
@@ -169,13 +169,13 @@
    Imports
    ============================================================ */
 import {
-  defineFrameHelmFeature
+  defineFrameConnFeature
 } from "../feature-contract.js";
 /* ============================================================
    Movement feature identity
    ============================================================ */
 const MODULE_TITLE =
-  "Lancer: Frame Helm";
+  "Frame Conn";
 /* ============================================================
    Movement runtime bindings
    ============================================================ */
@@ -183,14 +183,14 @@ const MODULE_TITLE =
  * Explicit transitional dependency bridge.
  *
  * Movement requires authoritative Turn state because movement
- * accounting still temporarily resides on FrameHelmTurnState.
+ * accounting still temporarily resides on FrameConnTurnState.
  *
  * Movement may also request an Application UI refresh after
  * movement-visible state changes.
  *
  * Neither implementation belongs to this feature.
  */
-const frameHelmMovementRuntimeBindings = {
+const frameConnMovementRuntimeBindings = {
   getTurnState:
     null,
   renderApplication:
@@ -203,7 +203,7 @@ const frameHelmMovementRuntimeBindings = {
  * narrow composition surface rather than becoming an implicit
  * service container.
  */
-function configureFrameHelmMovementRuntime(
+function configureFrameConnMovementRuntime(
   bindings = {}
 ) {
   if (
@@ -212,13 +212,13 @@ function configureFrameHelmMovementRuntime(
       "object"
   ) {
     throw new TypeError(
-      "Frame Helm Movement runtime bindings must be supplied as an object."
+      "Frame Conn Movement runtime bindings must be supplied as an object."
     );
   }
   const allowedKeys =
     new Set(
       Object.keys(
-        frameHelmMovementRuntimeBindings
+        frameConnMovementRuntimeBindings
       )
     );
   for (
@@ -236,7 +236,7 @@ function configureFrameHelmMovementRuntime(
       )
     ) {
       throw new Error(
-        `Frame Helm Movement received unknown runtime binding: ${key}`
+        `Frame Conn Movement received unknown runtime binding: ${key}`
       );
     }
     if (
@@ -245,28 +245,28 @@ function configureFrameHelmMovementRuntime(
         "function"
     ) {
       throw new TypeError(
-        `Frame Helm Movement runtime binding "${key}" must be a function or null.`
+        `Frame Conn Movement runtime binding "${key}" must be a function or null.`
       );
     }
-    frameHelmMovementRuntimeBindings[
+    frameConnMovementRuntimeBindings[
       key
     ] = value;
   }
   return (
-    getFrameHelmMovementRuntimeBindings()
+    getFrameConnMovementRuntimeBindings()
   );
 }
 /**
  * Returns binding availability without exposing bound functions.
  */
-function getFrameHelmMovementRuntimeBindings() {
+function getFrameConnMovementRuntimeBindings() {
   return Object.freeze({
     turnState:
-      typeof frameHelmMovementRuntimeBindings
+      typeof frameConnMovementRuntimeBindings
         .getTurnState ===
         "function",
     applicationRendering:
-      typeof frameHelmMovementRuntimeBindings
+      typeof frameConnMovementRuntimeBindings
         .renderApplication ===
         "function"
   });
@@ -280,9 +280,9 @@ function getFrameHelmMovementRuntimeBindings() {
  * Movement does not own that state during this transitional
  * extraction.
  */
-function getFrameHelmMovementTurnState() {
+function getFrameConnMovementTurnState() {
   return (
-    frameHelmMovementRuntimeBindings
+    frameConnMovementRuntimeBindings
       .getTurnState?.() ??
     null
   );
@@ -293,11 +293,11 @@ function getFrameHelmMovementTurnState() {
  *
  * Movement does not own application rendering.
  */
-function renderFrameHelmMovementApplication(
+function renderFrameConnMovementApplication(
   force = false
 ) {
   return (
-    frameHelmMovementRuntimeBindings
+    frameConnMovementRuntimeBindings
       .renderApplication?.(
         Boolean(
           force
@@ -311,17 +311,17 @@ function renderFrameHelmMovementApplication(
    ============================================================ */
 /**
  * Returns whether a TokenDocument belongs to the currently active
- * Frame Helm Turn state.
+ * Frame Conn Turn state.
  *
  * Token identity is preferred.
  *
  * Actor identity is retained as a fallback when the Turn context
  * does not contain a token id.
  */
-function frameHelmMovementTokenMatches(
+function frameConnMovementTokenMatches(
   tokenDocument,
   state =
-    getFrameHelmMovementTurnState()
+    getFrameConnMovementTurnState()
 ) {
   if (
     !tokenDocument ||
@@ -360,9 +360,9 @@ function frameHelmMovementTokenMatches(
    ============================================================ */
 /**
  * Converts a Foundry movement coordinate into the stable point
- * representation used by Frame Helm movement measurement.
+ * representation used by Frame Conn movement measurement.
  */
-function frameHelmMovementPoint(
+function frameConnMovementPoint(
   point
 ) {
   if (
@@ -413,7 +413,7 @@ function frameHelmMovementPoint(
  * different Foundry movement paths may expose waypoint data under
  * different properties.
  */
-function frameHelmCollectMovementPoints(
+function frameConnCollectMovementPoints(
   movement
 ) {
   const points =
@@ -421,7 +421,7 @@ function frameHelmCollectMovementPoints(
   const addPoint =
     point => {
       const normalized =
-        frameHelmMovementPoint(
+        frameConnMovementPoint(
           point
         );
       if (
@@ -490,7 +490,7 @@ function frameHelmCollectMovementPoints(
  * Attempts to resolve an already-computed movement distance from
  * Foundry before performing our own path measurement.
  */
-function frameHelmNumericMovementDistance(
+function frameConnNumericMovementDistance(
   movement
 ) {
   const candidates = [
@@ -581,7 +581,7 @@ function frameHelmNumericMovementDistance(
    Movement path measurement
    ============================================================ */
 /**
- * Measures one Foundry token movement in Frame Helm movement
+ * Measures one Foundry token movement in Frame Conn movement
  * spaces.
  *
  * Resolution order:
@@ -590,14 +590,14 @@ function frameHelmNumericMovementDistance(
  *   2. Attempt canvas.grid.measurePath().
  *   3. Fall back to geometric pixel-distance measurement.
  *
- * Scene distance is normalized into Frame Helm spaces.
+ * Scene distance is normalized into Frame Conn spaces.
  */
-function frameHelmMeasureMovementPath(
+function frameConnMeasureMovementPath(
   tokenDocument,
   movement
 ) {
   const directDistance =
-    frameHelmNumericMovementDistance(
+    frameConnNumericMovementDistance(
       movement
     );
   const sceneGridDistance =
@@ -645,7 +645,7 @@ function frameHelmMeasureMovementPath(
     );
   }
   const points =
-    frameHelmCollectMovementPoints(
+    frameConnCollectMovementPoints(
       movement
     );
   if (
@@ -742,7 +742,7 @@ function frameHelmMeasureMovementPath(
 /**
  * Normalizes a movement distance to two decimal places.
  */
-function frameHelmRoundMovementDistance(
+function frameConnRoundMovementDistance(
   distance
 ) {
   const numeric =
@@ -790,7 +790,7 @@ function notifyAutomaticMovementActions(
         .committed
     ) {
       ui.notifications.warn(
-        `Frame Helm tracked movement beyond the current allowance, but could not automatically commit Boost: ${automaticAction.reason ?? "no legal action budget remains"}.`
+        `Frame Conn tracked movement beyond the current allowance, but could not automatically commit Boost: ${automaticAction.reason ?? "no legal action budget remains"}.`
       );
       continue;
     }
@@ -822,7 +822,7 @@ function notifyAutomaticMovementActions(
 /**
  * Presents an excess-movement warning.
  */
-function notifyFrameHelmExcessMovement(
+function notifyFrameConnExcessMovement(
   result,
   {
     tokenWasStopped =
@@ -846,7 +846,7 @@ function notifyFrameHelmExcessMovement(
       ? ""
       : " The token was not stopped.";
   ui.notifications.warn(
-    `Frame Helm recorded ${excess} excess movement beyond the currently legal movement allowance.${suffix}`
+    `Frame Conn recorded ${excess} excess movement beyond the currently legal movement allowance.${suffix}`
   );
   return true;
 }
@@ -860,12 +860,12 @@ function notifyFrameHelmExcessMovement(
  * trackTokenMovement() still belongs to Turn during this
  * transitional extraction.
  */
-function trackFrameHelmMeasuredMovement(
+function trackFrameConnMeasuredMovement(
   distance,
   options = {}
 ) {
   const state =
-    getFrameHelmMovementTurnState();
+    getFrameConnMovementTurnState();
   if (
     !state
   ) {
@@ -875,7 +875,7 @@ function trackFrameHelmMeasuredMovement(
       distance:
         0,
       reason:
-        "No active Frame Helm turn exists."
+        "No active Frame Conn turn exists."
     };
   }
   if (
@@ -884,7 +884,7 @@ function trackFrameHelmMeasuredMovement(
       "function"
   ) {
     throw new Error(
-      "Frame Helm Movement could not resolve Turn movement accounting."
+      "Frame Conn Movement could not resolve Turn movement accounting."
     );
   }
   return (
@@ -900,14 +900,14 @@ function trackFrameHelmMeasuredMovement(
 /**
  * Handles a physical token movement supplied by Foundry.
  */
-function handleFrameHelmMoveToken(
+function handleFrameConnMoveToken(
   tokenDocument,
   movement
 ) {
   const state =
-    getFrameHelmMovementTurnState();
+    getFrameConnMovementTurnState();
   if (
-    !frameHelmMovementTokenMatches(
+    !frameConnMovementTokenMatches(
       tokenDocument,
       state
     )
@@ -915,8 +915,8 @@ function handleFrameHelmMoveToken(
     return null;
   }
   const distance =
-    frameHelmRoundMovementDistance(
-      frameHelmMeasureMovementPath(
+    frameConnRoundMovementDistance(
+      frameConnMeasureMovementPath(
         tokenDocument,
         movement
       )
@@ -928,7 +928,7 @@ function handleFrameHelmMoveToken(
   }
   try {
     const result =
-      trackFrameHelmMeasuredMovement(
+      trackFrameConnMeasuredMovement(
         distance,
         {
           movementId:
@@ -938,11 +938,11 @@ function handleFrameHelmMoveToken(
             movement?.method ??
             null,
           origin:
-            frameHelmMovementPoint(
+            frameConnMovementPoint(
               movement?.origin
             ),
           destination:
-            frameHelmMovementPoint(
+            frameConnMovementPoint(
               movement
                 ?.destination
             )
@@ -956,14 +956,14 @@ function handleFrameHelmMoveToken(
     notifyAutomaticMovementActions(
       result
     );
-    notifyFrameHelmExcessMovement(
+    notifyFrameConnExcessMovement(
       result,
       {
         tokenWasStopped:
           false
       }
     );
-    renderFrameHelmMovementApplication(
+    renderFrameConnMovementApplication(
       false
     );
     return result;
@@ -973,7 +973,7 @@ function handleFrameHelmMoveToken(
       error
     );
     ui.notifications.warn(
-      `Frame Helm could not track this movement: ${error.message}`
+      `Frame Conn could not track this movement: ${error.message}`
     );
     return null;
   }
@@ -988,7 +988,7 @@ function handleFrameHelmMoveToken(
  * This state belongs to Movement because it exists only to
  * interpret Foundry elevation changes as physical movement.
  */
-const frameHelmElevationOrigins =
+const frameConnElevationOrigins =
   new Map();
 /* ============================================================
    Elevation token identity
@@ -996,7 +996,7 @@ const frameHelmElevationOrigins =
 /**
  * Produces a stable map key for elevation-origin tracking.
  */
-function frameHelmElevationKey(
+function frameConnElevationKey(
   tokenDocument
 ) {
   return String(
@@ -1010,7 +1010,7 @@ function frameHelmElevationKey(
 /**
  * Captures elevation before Foundry applies an elevation change.
  */
-function handleFrameHelmPreUpdateTokenElevation(
+function handleFrameConnPreUpdateTokenElevation(
   tokenDocument,
   changes
 ) {
@@ -1023,8 +1023,8 @@ function handleFrameHelmPreUpdateTokenElevation(
   ) {
     return null;
   }
-  frameHelmElevationOrigins.set(
-    frameHelmElevationKey(
+  frameConnElevationOrigins.set(
+    frameConnElevationKey(
       tokenDocument
     ),
     Number(
@@ -1032,8 +1032,8 @@ function handleFrameHelmPreUpdateTokenElevation(
     ) || 0
   );
   return (
-    frameHelmElevationOrigins.get(
-      frameHelmElevationKey(
+    frameConnElevationOrigins.get(
+      frameConnElevationKey(
         tokenDocument
       )
     )
@@ -1044,9 +1044,9 @@ function handleFrameHelmPreUpdateTokenElevation(
    ============================================================ */
 /**
  * Converts an elevation change from scene-distance units into
- * Frame Helm movement spaces.
+ * Frame Conn movement spaces.
  */
-function frameHelmMeasureElevationMovement(
+function frameConnMeasureElevationMovement(
   tokenDocument,
   previousElevation,
   nextElevation
@@ -1077,7 +1077,7 @@ function frameHelmMeasureElevationMovement(
         sceneDistance
       : elevationDistance;
   return (
-    frameHelmRoundMovementDistance(
+    frameConnRoundMovementDistance(
       movementSpaces
     )
   );
@@ -1087,9 +1087,9 @@ function frameHelmMeasureElevationMovement(
    ============================================================ */
 /**
  * Interprets an applied TokenDocument elevation change as movement
- * for the currently active Frame Helm turn.
+ * for the currently active Frame Conn turn.
  */
-function handleFrameHelmUpdateTokenElevation(
+function handleFrameConnUpdateTokenElevation(
   tokenDocument,
   changes
 ) {
@@ -1103,9 +1103,9 @@ function handleFrameHelmUpdateTokenElevation(
     return null;
   }
   const state =
-    getFrameHelmMovementTurnState();
+    getFrameConnMovementTurnState();
   if (
-    !frameHelmMovementTokenMatches(
+    !frameConnMovementTokenMatches(
       tokenDocument,
       state
     )
@@ -1113,14 +1113,14 @@ function handleFrameHelmUpdateTokenElevation(
     return null;
   }
   const key =
-    frameHelmElevationKey(
+    frameConnElevationKey(
       tokenDocument
     );
   const previousElevation =
-    frameHelmElevationOrigins.get(
+    frameConnElevationOrigins.get(
       key
     );
-  frameHelmElevationOrigins.delete(
+  frameConnElevationOrigins.delete(
     key
   );
   const nextElevation =
@@ -1138,7 +1138,7 @@ function handleFrameHelmUpdateTokenElevation(
     return null;
   }
   const distance =
-    frameHelmMeasureElevationMovement(
+    frameConnMeasureElevationMovement(
       tokenDocument,
       previousElevation,
       nextElevation
@@ -1150,7 +1150,7 @@ function handleFrameHelmUpdateTokenElevation(
   }
   try {
     const result =
-      trackFrameHelmMeasuredMovement(
+      trackFrameConnMeasuredMovement(
         distance,
         {
           movementId:
@@ -1189,19 +1189,19 @@ function handleFrameHelmUpdateTokenElevation(
       return result;
     }
     ui.notifications.info(
-      `Elevation changed by ${distance} space(s); Frame Helm recorded it as movement.`
+      `Elevation changed by ${distance} space(s); Frame Conn recorded it as movement.`
     );
     notifyAutomaticMovementActions(
       result
     );
-    notifyFrameHelmExcessMovement(
+    notifyFrameConnExcessMovement(
       result,
       {
         tokenWasStopped:
           true
       }
     );
-    renderFrameHelmMovementApplication(
+    renderFrameConnMovementApplication(
       false
     );
     return result;
@@ -1211,7 +1211,7 @@ function handleFrameHelmUpdateTokenElevation(
       error
     );
     ui.notifications.warn(
-      `Frame Helm could not track the elevation change: ${error.message}`
+      `Frame Conn could not track the elevation change: ${error.message}`
     );
     return null;
   }
@@ -1223,12 +1223,12 @@ function handleFrameHelmUpdateTokenElevation(
  * Returns a presentation-safe diagnostic representation of the
  * current Movement integration state.
  */
-function getFrameHelmMovementDiagnostics() {
+function getFrameConnMovementDiagnostics() {
   const state =
-    getFrameHelmMovementTurnState();
+    getFrameConnMovementTurnState();
   return Object.freeze({
     runtimeBindings:
-      getFrameHelmMovementRuntimeBindings(),
+      getFrameConnMovementRuntimeBindings(),
     hasActiveTurn:
       Boolean(
         state &&
@@ -1273,7 +1273,7 @@ function getFrameHelmMovementDiagnostics() {
           }
         : null,
     trackedElevationOrigins:
-      frameHelmElevationOrigins
+      frameConnElevationOrigins
         .size
   });
 }
@@ -1288,8 +1288,8 @@ function getFrameHelmMovementDiagnostics() {
  * scripts/feature-registry.js remains the canonical JavaScript
  * feature-composition boundary.
  */
-export const frameHelmMovementFeature =
-  defineFrameHelmFeature({
+export const frameConnMovementFeature =
+  defineFrameConnFeature({
     id:
       "movement",
     domain:
@@ -1311,82 +1311,82 @@ export const frameHelmMovementFeature =
     ],
     state: {
       elevationOrigins:
-        frameHelmElevationOrigins
+        frameConnElevationOrigins
     },
     commands: {
       configureRuntime:
-        configureFrameHelmMovementRuntime,
+        configureFrameConnMovementRuntime,
       track:
-        trackFrameHelmMeasuredMovement,
+        trackFrameConnMeasuredMovement,
       render:
-        renderFrameHelmMovementApplication
+        renderFrameConnMovementApplication
     },
     queries: {
       tokenMatches:
-        frameHelmMovementTokenMatches,
+        frameConnMovementTokenMatches,
       point:
-        frameHelmMovementPoint,
+        frameConnMovementPoint,
       collectPoints:
-        frameHelmCollectMovementPoints,
+        frameConnCollectMovementPoints,
       numericDistance:
-        frameHelmNumericMovementDistance,
+        frameConnNumericMovementDistance,
       measurePath:
-        frameHelmMeasureMovementPath,
+        frameConnMeasureMovementPath,
       roundDistance:
-        frameHelmRoundMovementDistance,
+        frameConnRoundMovementDistance,
       measureElevation:
-        frameHelmMeasureElevationMovement,
+        frameConnMeasureElevationMovement,
       diagnostics:
-        getFrameHelmMovementDiagnostics,
+        getFrameConnMovementDiagnostics,
       runtimeBindings:
-        getFrameHelmMovementRuntimeBindings
+        getFrameConnMovementRuntimeBindings
     },
     hooks: {
       moveToken:
-        handleFrameHelmMoveToken,
+        handleFrameConnMoveToken,
       preUpdateToken:
-        handleFrameHelmPreUpdateTokenElevation,
+        handleFrameConnPreUpdateTokenElevation,
       updateToken:
-        handleFrameHelmUpdateTokenElevation
+        handleFrameConnUpdateTokenElevation
     },
     lifecycle: {},
     api: {
       configureRuntime:
-        configureFrameHelmMovementRuntime,
+        configureFrameConnMovementRuntime,
       getTurnState:
-        getFrameHelmMovementTurnState,
+        getFrameConnMovementTurnState,
       tokenMatches:
-        frameHelmMovementTokenMatches,
+        frameConnMovementTokenMatches,
       normalizePoint:
-        frameHelmMovementPoint,
+        frameConnMovementPoint,
       collectPoints:
-        frameHelmCollectMovementPoints,
+        frameConnCollectMovementPoints,
       numericDistance:
-        frameHelmNumericMovementDistance,
+        frameConnNumericMovementDistance,
       measurePath:
-        frameHelmMeasureMovementPath,
+        frameConnMeasureMovementPath,
       roundDistance:
-        frameHelmRoundMovementDistance,
+        frameConnRoundMovementDistance,
       track:
-        trackFrameHelmMeasuredMovement,
+        trackFrameConnMeasuredMovement,
       measureElevation:
-        frameHelmMeasureElevationMovement,
+        frameConnMeasureElevationMovement,
       notifyAutomaticActions:
         notifyAutomaticMovementActions,
       notifyExcess:
-        notifyFrameHelmExcessMovement,
+        notifyFrameConnExcessMovement,
       render:
-        renderFrameHelmMovementApplication,
+        renderFrameConnMovementApplication,
       diagnostics:
-        getFrameHelmMovementDiagnostics,
+        getFrameConnMovementDiagnostics,
       runtimeBindings:
-        getFrameHelmMovementRuntimeBindings
+        getFrameConnMovementRuntimeBindings
     },
     metadata: {
       label:
         "Movement",
       description:
-        "Owns Frame Helm token-movement interpretation, path measurement, elevation movement, movement notifications, and movement-specific Foundry integration.",
+        "Owns Frame Conn token-movement interpretation, path measurement, elevation movement, movement notifications, and movement-specific Foundry integration.",
       extractedFrom:
         "scripts/runtime-orchestrator.js",
       turnFeature:
@@ -1400,12 +1400,12 @@ export const frameHelmMovementFeature =
       extractionModel:
         "movement-integration-with-transitional-turn-accounting",
       transitionalOwnership: [
-        "movement accounting remains on FrameHelmTurnState",
-        "automatic Boost accounting remains on FrameHelmTurnState"
+        "movement accounting remains on FrameConnTurnState",
+        "automatic Boost accounting remains on FrameConnTurnState"
       ],
       futureMigrationTargets: [
         "move movement state from turn-feature.js",
-        "move movement accounting methods from FrameHelmTurnState"
+        "move movement accounting methods from FrameConnTurnState"
       ]
     }
   });
@@ -1417,23 +1417,23 @@ export const frameHelmMovementFeature =
  * runtime orchestrator is converted to Movement registry access.
  *
  * New cross-feature consumers should preferably resolve Movement
- * through frameHelmFeatureRegistry.
+ * through frameConnFeatureRegistry.
  */
 export {
-  configureFrameHelmMovementRuntime,
-  getFrameHelmMovementRuntimeBindings,
-  getFrameHelmMovementTurnState,
-  renderFrameHelmMovementApplication,
-  frameHelmMovementTokenMatches,
-  frameHelmMovementPoint,
-  frameHelmCollectMovementPoints,
-  frameHelmNumericMovementDistance,
-  frameHelmMeasureMovementPath,
-  frameHelmRoundMovementDistance,
+  configureFrameConnMovementRuntime,
+  getFrameConnMovementRuntimeBindings,
+  getFrameConnMovementTurnState,
+  renderFrameConnMovementApplication,
+  frameConnMovementTokenMatches,
+  frameConnMovementPoint,
+  frameConnCollectMovementPoints,
+  frameConnNumericMovementDistance,
+  frameConnMeasureMovementPath,
+  frameConnRoundMovementDistance,
   notifyAutomaticMovementActions,
-  notifyFrameHelmExcessMovement,
-  trackFrameHelmMeasuredMovement,
-  frameHelmElevationKey,
-  frameHelmMeasureElevationMovement,
-  getFrameHelmMovementDiagnostics
+  notifyFrameConnExcessMovement,
+  trackFrameConnMeasuredMovement,
+  frameConnElevationKey,
+  frameConnMeasureElevationMovement,
+  getFrameConnMovementDiagnostics
 };

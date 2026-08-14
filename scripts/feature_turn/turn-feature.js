@@ -9,16 +9,16 @@
 
 /**
  * ============================================================
- * FRAME HELM FEATURE -- TURN
+ * FRAME CONN FEATURE -- TURN
  * ============================================================
  *
  * ROLE:
  *   Provides the primary composition and feature-declaration
- *   surface for the Frame Helm Turn domain.
+ *   surface for the Frame Conn Turn domain.
  *
  * PURPOSE:
  *   Assemble the independently-owned Turn submodules into the
- *   canonical Turn feature consumed by Frame Helm's application-
+ *   canonical Turn feature consumed by Frame Conn's application-
  *   wide feature registry.
  *
  * OWNS:
@@ -32,8 +32,8 @@
  *   - Turn-domain metadata.
  *
  * DOES NOT OWN:
- *   - FrameHelmTurnState implementation.
- *   - FrameHelmTurnStateManager implementation.
+ *   - FrameConnTurnState implementation.
+ *   - FrameConnTurnStateManager implementation.
  *   - Turn movement-state implementation.
  *   - Runtime-binding implementation.
  *   - Combat synchronization implementation.
@@ -89,11 +89,11 @@
  *
  *   getCurrent()
  *
- *     Returns the currently-active FrameHelmTurnState, or null.
+ *     Returns the currently-active FrameConnTurnState, or null.
  *
  *   getManager()
  *
- *     Returns the canonical FrameHelmTurnStateManager.
+ *     Returns the canonical FrameConnTurnStateManager.
  *
  *   snapshot()
  *
@@ -117,7 +117,7 @@
    ============================================================ */
 
 import {
-  defineFrameHelmFeature
+  defineFrameConnFeature
 } from "../feature-contract.js";
 
 
@@ -126,10 +126,10 @@ import {
    ============================================================ */
 
 import {
-  configureFrameHelmTurnRuntime,
-  getFrameHelmTurnRuntimeBindings,
-  getFrameHelmTurnActionRegistry,
-  renderFrameHelmTurnApplication
+  configureFrameConnTurnRuntime,
+  getFrameConnTurnRuntimeBindings,
+  getFrameConnTurnActionRegistry,
+  renderFrameConnTurnApplication
 } from "./turn-runtime-bindings.js";
 
 
@@ -138,7 +138,7 @@ import {
    ============================================================ */
 
 import {
-  FrameHelmTurnState
+  FrameConnTurnState
 } from "./turn-state.js";
 
 
@@ -147,8 +147,8 @@ import {
    ============================================================ */
 
 import {
-  FrameHelmTurnStateManager,
-  frameHelmTurnState
+  FrameConnTurnStateManager,
+  frameConnTurnState
 } from "./turn-state-manager.js";
 
 
@@ -157,22 +157,22 @@ import {
    ============================================================ */
 
 import {
-  getCurrentFrameHelmTurn,
-  getFrameHelmTurnStateManager,
-  getFrameHelmTurnSnapshot,
+  getCurrentFrameConnTurn,
+  getFrameConnTurnStateManager,
+  getFrameConnTurnSnapshot,
 
-  beginFrameHelmTurn,
-  ensureFrameHelmTurn,
-  endFrameHelmTurn,
-  clearFrameHelmTurn,
+  beginFrameConnTurn,
+  ensureFrameConnTurn,
+  endFrameConnTurn,
+  clearFrameConnTurn,
 
-  canUseFrameHelmTurnAction,
-  useFrameHelmTurnAction,
+  canUseFrameConnTurnAction,
+  useFrameConnTurnAction,
 
-  spendFrameHelmTurnMovement,
-  setFrameHelmTurnSpeed,
+  spendFrameConnTurnMovement,
+  setFrameConnTurnSpeed,
 
-  useFrameHelmTurnOvercharge
+  useFrameConnTurnOvercharge
 } from "./turn-commands.js";
 
 
@@ -184,9 +184,9 @@ import {
   activeCombatTurnContext,
   syncTurnStateToCombat,
 
-  handleFrameHelmCombatStart,
-  handleFrameHelmCombatUpdate,
-  handleFrameHelmCombatDelete
+  handleFrameConnCombatStart,
+  handleFrameConnCombatUpdate,
+  handleFrameConnCombatDelete
 } from "./turn-combat-sync.js";
 
 
@@ -203,8 +203,8 @@ import {
  *
  *   scripts/feature-registry.js
  */
-export const frameHelmTurnFeature =
-  defineFrameHelmFeature({
+export const frameConnTurnFeature =
+  defineFrameConnFeature({
     id:
       "turn",
 
@@ -251,7 +251,7 @@ export const frameHelmTurnFeature =
 
     state: {
       manager:
-        frameHelmTurnState
+        frameConnTurnState
     },
 
 
@@ -261,37 +261,37 @@ export const frameHelmTurnFeature =
 
     commands: {
       configureRuntime:
-        configureFrameHelmTurnRuntime,
+        configureFrameConnTurnRuntime,
 
       begin:
-        beginFrameHelmTurn,
+        beginFrameConnTurn,
 
       ensure:
-        ensureFrameHelmTurn,
+        ensureFrameConnTurn,
 
       end:
-        endFrameHelmTurn,
+        endFrameConnTurn,
 
       clear:
-        clearFrameHelmTurn,
+        clearFrameConnTurn,
 
       sync:
         syncTurnStateToCombat,
 
       canUseAction:
-        canUseFrameHelmTurnAction,
+        canUseFrameConnTurnAction,
 
       useAction:
-        useFrameHelmTurnAction,
+        useFrameConnTurnAction,
 
       spendMovement:
-        spendFrameHelmTurnMovement,
+        spendFrameConnTurnMovement,
 
       setSpeed:
-        setFrameHelmTurnSpeed,
+        setFrameConnTurnSpeed,
 
       overcharge:
-        useFrameHelmTurnOvercharge
+        useFrameConnTurnOvercharge
     },
 
 
@@ -301,19 +301,19 @@ export const frameHelmTurnFeature =
 
     queries: {
       current:
-        getCurrentFrameHelmTurn,
+        getCurrentFrameConnTurn,
 
       manager:
-        getFrameHelmTurnStateManager,
+        getFrameConnTurnStateManager,
 
       snapshot:
-        getFrameHelmTurnSnapshot,
+        getFrameConnTurnSnapshot,
 
       context:
         activeCombatTurnContext,
 
       runtimeBindings:
-        getFrameHelmTurnRuntimeBindings
+        getFrameConnTurnRuntimeBindings
     },
 
 
@@ -323,13 +323,13 @@ export const frameHelmTurnFeature =
 
     hooks: {
       combatStart:
-        handleFrameHelmCombatStart,
+        handleFrameConnCombatStart,
 
       updateCombat:
-        handleFrameHelmCombatUpdate,
+        handleFrameConnCombatUpdate,
 
       deleteCombat:
-        handleFrameHelmCombatDelete
+        handleFrameConnCombatDelete
     },
 
 
@@ -346,10 +346,10 @@ export const frameHelmTurnFeature =
 
     api: {
       manager:
-        frameHelmTurnState,
+        frameConnTurnState,
 
       configureRuntime:
-        configureFrameHelmTurnRuntime,
+        configureFrameConnTurnRuntime,
 
 
       /* ------------------------------------------------------
@@ -357,16 +357,16 @@ export const frameHelmTurnFeature =
          ------------------------------------------------------ */
 
       begin:
-        beginFrameHelmTurn,
+        beginFrameConnTurn,
 
       ensure:
-        ensureFrameHelmTurn,
+        ensureFrameConnTurn,
 
       end:
-        endFrameHelmTurn,
+        endFrameConnTurn,
 
       clear:
-        clearFrameHelmTurn,
+        clearFrameConnTurn,
 
 
       /* ------------------------------------------------------
@@ -382,13 +382,13 @@ export const frameHelmTurnFeature =
          ------------------------------------------------------ */
 
       getCurrent:
-        getCurrentFrameHelmTurn,
+        getCurrentFrameConnTurn,
 
       getManager:
-        getFrameHelmTurnStateManager,
+        getFrameConnTurnStateManager,
 
       snapshot:
-        getFrameHelmTurnSnapshot,
+        getFrameConnTurnSnapshot,
 
 
       /* ------------------------------------------------------
@@ -397,13 +397,13 @@ export const frameHelmTurnFeature =
 
       get current() {
         return (
-          getCurrentFrameHelmTurn()
+          getCurrentFrameConnTurn()
         );
       },
 
       get state() {
         return (
-          getFrameHelmTurnSnapshot()
+          getFrameConnTurnSnapshot()
         );
       },
 
@@ -413,10 +413,10 @@ export const frameHelmTurnFeature =
          ------------------------------------------------------ */
 
       canUse:
-        canUseFrameHelmTurnAction,
+        canUseFrameConnTurnAction,
 
       use:
-        useFrameHelmTurnAction,
+        useFrameConnTurnAction,
 
 
       /* ------------------------------------------------------
@@ -424,10 +424,10 @@ export const frameHelmTurnFeature =
          ------------------------------------------------------ */
 
       move:
-        spendFrameHelmTurnMovement,
+        spendFrameConnTurnMovement,
 
       setSpeed:
-        setFrameHelmTurnSpeed,
+        setFrameConnTurnSpeed,
 
 
       /* ------------------------------------------------------
@@ -435,7 +435,7 @@ export const frameHelmTurnFeature =
          ------------------------------------------------------ */
 
       overcharge:
-        useFrameHelmTurnOvercharge,
+        useFrameConnTurnOvercharge,
 
 
       /* ------------------------------------------------------
@@ -451,7 +451,7 @@ export const frameHelmTurnFeature =
          ------------------------------------------------------ */
 
       runtimeBindings:
-        getFrameHelmTurnRuntimeBindings
+        getFrameConnTurnRuntimeBindings
     },
 
 
@@ -464,7 +464,7 @@ export const frameHelmTurnFeature =
         "Turn State",
 
       description:
-        "Composes Frame Helm per-turn state, action budgets, protocol/reaction state, committed actions, transitional movement accounting, and Foundry combat-turn synchronization.",
+        "Composes Frame Conn per-turn state, action budgets, protocol/reaction state, committed actions, transitional movement accounting, and Foundry combat-turn synchronization.",
 
       extractedFrom:
         "scripts/runtime-orchestrator.js",
@@ -514,13 +514,13 @@ export const frameHelmTurnFeature =
    ============================================================ */
 
 export {
-  configureFrameHelmTurnRuntime,
+  configureFrameConnTurnRuntime,
 
-  getFrameHelmTurnRuntimeBindings,
+  getFrameConnTurnRuntimeBindings,
 
-  getFrameHelmTurnActionRegistry,
+  getFrameConnTurnActionRegistry,
 
-  renderFrameHelmTurnApplication
+  renderFrameConnTurnApplication
 };
 
 
@@ -529,11 +529,11 @@ export {
    ============================================================ */
 
 export {
-  FrameHelmTurnState,
+  FrameConnTurnState,
 
-  FrameHelmTurnStateManager,
+  FrameConnTurnStateManager,
 
-  frameHelmTurnState
+  frameConnTurnState
 };
 
 
@@ -542,11 +542,11 @@ export {
    ============================================================ */
 
 export {
-  getCurrentFrameHelmTurn,
+  getCurrentFrameConnTurn,
 
-  getFrameHelmTurnStateManager,
+  getFrameConnTurnStateManager,
 
-  getFrameHelmTurnSnapshot
+  getFrameConnTurnSnapshot
 };
 
 
@@ -555,23 +555,23 @@ export {
    ============================================================ */
 
 export {
-  beginFrameHelmTurn,
+  beginFrameConnTurn,
 
-  ensureFrameHelmTurn,
+  ensureFrameConnTurn,
 
-  endFrameHelmTurn,
+  endFrameConnTurn,
 
-  clearFrameHelmTurn,
+  clearFrameConnTurn,
 
-  canUseFrameHelmTurnAction,
+  canUseFrameConnTurnAction,
 
-  useFrameHelmTurnAction,
+  useFrameConnTurnAction,
 
-  spendFrameHelmTurnMovement,
+  spendFrameConnTurnMovement,
 
-  setFrameHelmTurnSpeed,
+  setFrameConnTurnSpeed,
 
-  useFrameHelmTurnOvercharge
+  useFrameConnTurnOvercharge
 };
 
 
@@ -584,9 +584,9 @@ export {
 
   syncTurnStateToCombat,
 
-  handleFrameHelmCombatStart,
+  handleFrameConnCombatStart,
 
-  handleFrameHelmCombatUpdate,
+  handleFrameConnCombatUpdate,
 
-  handleFrameHelmCombatDelete
+  handleFrameConnCombatDelete
 };

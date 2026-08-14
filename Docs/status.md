@@ -32,11 +32,11 @@
 
 **Native complete Shutdown transition engine:** Not found.
 
-**Frame Helm implementation status:** Frame Helm should treat Lancer statuses and conditions as native Foundry/Lancer ActiveEffect state, reuse all native downstream consumers, and add only the missing application, lifecycle, spatial derivation, and legality orchestration.
+**Frame Conn implementation status:** Frame Conn should treat Lancer statuses and conditions as native Foundry/Lancer ActiveEffect state, reuse all native downstream consumers, and add only the missing application, lifecycle, spatial derivation, and legality orchestration.
 
 ## Purpose
 
-This document records the native Foundry Lancer architecture for statuses and conditions and defines the intended Frame Helm integration boundary.
+This document records the native Foundry Lancer architecture for statuses and conditions and defines the intended Frame Conn integration boundary.
 
 Statuses and conditions are not action Flows.
 
@@ -66,7 +66,7 @@ However, the native repository often does **not** determine when those statuses 
 
 Therefore the critical architectural rule is:
 
-> Frame Helm should own missing rules orchestration around native status state, not create a parallel status system.
+> Frame Conn should own missing rules orchestration around native status state, not create a parallel status system.
 
 —
 
@@ -102,7 +102,7 @@ The registry is attached to:
 
 `CONFIG.statusEffects`
 
-Frame Helm should prefer reading/validating native status definitions from this registry instead of maintaining a duplicate hardcoded catalog where possible.
+Frame Conn should prefer reading/validating native status definitions from this registry instead of maintaining a duplicate hardcoded catalog where possible.
 
 —
 
@@ -162,7 +162,7 @@ The repository exposes status/effect identities including:
 
 Other optional/NPC presentation statuses may also exist.
 
-Frame Helm should not assume this list is permanently exhaustive.
+Frame Conn should not assume this list is permanently exhaustive.
 
 —
 
@@ -178,7 +178,7 @@ while the actor derived boolean is:
 
 `system.statuses.slowed`
 
-Therefore Frame Helm should not assume:
+Therefore Frame Conn should not assume:
 
 status ID
 =
@@ -252,7 +252,7 @@ Foundry/Lancer ActiveEffect
 → native status identity
 → derived actor boolean.
 
-This should be a hard Frame Helm invariant.
+This should be a hard Frame Conn invariant.
 
 —
 
@@ -274,7 +274,7 @@ or:
 
 during actor preparation.
 
-Frame Helm should manipulate the effect/status, not the derived boolean.
+Frame Conn should manipulate the effect/status, not the derived boolean.
 
 —
 
@@ -288,7 +288,7 @@ This is the preferred general status application boundary.
 
 Conceptually:
 
-Frame Helm action
+Frame Conn action
 → native status adapter
 → `toggleStatusEffect`
 → native ActiveEffect
@@ -302,7 +302,7 @@ The same Foundry API supports removal:
 
 `actor.toggleStatusEffect(statusId, { active: false })`
 
-This gives Frame Helm a symmetric general status adapter.
+This gives Frame Conn a symmetric general status adapter.
 
 Native code also uses helpers such as:
 
@@ -348,7 +348,7 @@ It should not answer:
 
 `When should this status exist?`
 
-That belongs to a separate Frame Helm condition/rules layer.
+That belongs to a separate Frame Conn condition/rules layer.
 
 —
 
@@ -356,7 +356,7 @@ That belongs to a separate Frame Helm condition/rules layer.
 
 Conceptually:
 
-`frame-helm-condition-rules`
+`frame-conn-condition-rules`
 
 may own things like:
 
@@ -439,7 +439,7 @@ This corresponds to:
 
 on attacks.
 
-Frame Helm should not add an additional attack penalty.
+Frame Conn should not add an additional attack penalty.
 
 —
 
@@ -455,13 +455,13 @@ Therefore native HASE checks/saves using StatRollFlow automatically receive:
 
 while Impaired.
 
-Frame Helm should preserve this native behavior.
+Frame Conn should preserve this native behavior.
 
 —
 
-# 17. Impaired — Frame Helm Responsibility
+# 17. Impaired — Frame Conn Responsibility
 
-Frame Helm should generally own only:
+Frame Conn should generally own only:
 
 - application;
 - removal;
@@ -496,7 +496,7 @@ Therefore once Engaged is correctly represented:
 
 → native ranged attack handling applies the penalty.
 
-Frame Helm should not manually add the attack Difficulty.
+Frame Conn should not manually add the attack Difficulty.
 
 —
 
@@ -514,7 +514,7 @@ or:
 move away
 → remove Engaged.
 
-Therefore Frame Helm needs to derive Engaged spatially if full automation is desired.
+Therefore Frame Conn needs to derive Engaged spatially if full automation is desired.
 
 —
 
@@ -578,11 +578,11 @@ Therefore Exposed’s major damage consequence is already native.
 
 —
 
-# 25. Exposed — Frame Helm Responsibility
+# 25. Exposed — Frame Conn Responsibility
 
-Frame Helm should only ensure native Exposed is correctly applied or removed when rules require.
+Frame Conn should only ensure native Exposed is correctly applied or removed when rules require.
 
-Do not double damage in Frame Helm before calling `damageCalc()`.
+Do not double damage in Frame Conn before calling `damageCalc()`.
 
 That would cause double application.
 
@@ -615,13 +615,13 @@ No complete runtime consumer was found for:
 
 Therefore native Hidden is primarily state representation.
 
-Frame Helm must own Hidden’s missing rules behavior.
+Frame Conn must own Hidden’s missing rules behavior.
 
 —
 
-# 28. Hidden — Frame Helm Responsibilities
+# 28. Hidden — Frame Conn Responsibilities
 
-Frame Helm will likely own:
+Frame Conn will likely own:
 
 - Hide eligibility;
 - visibility/observation logic;
@@ -658,7 +658,7 @@ Therefore:
 target Invisible
 → native attack flow automatically resolves the 50% miss chance.
 
-Frame Helm should not duplicate it.
+Frame Conn should not duplicate it.
 
 —
 
@@ -673,13 +673,13 @@ Lancer Invisible
 
 Applying Lancer Invisible should not automatically remove the token from normal Foundry vision.
 
-Frame Helm Sensors/visibility logic must account for this distinction.
+Frame Conn Sensors/visibility logic must account for this distinction.
 
 —
 
-# 32. Invisible — Frame Helm Responsibility
+# 32. Invisible — Frame Conn Responsibility
 
-Frame Helm should own:
+Frame Conn should own:
 
 - application;
 - removal;
@@ -715,7 +715,7 @@ Attacks against a Prone target receive:
 
 through the native Accuracy/Difficulty system.
 
-Frame Helm should not duplicate this modifier.
+Frame Conn should not duplicate this modifier.
 
 —
 
@@ -728,7 +728,7 @@ Native Lancer does not appear to fully automate:
 - standing up using standard movement;
 - removing Prone on stand-up.
 
-Frame Helm Movement should own those lifecycle behaviors where required.
+Frame Conn Movement should own those lifecycle behaviors where required.
 
 —
 
@@ -761,16 +761,16 @@ Native attack execution then removes the Lock On effect.
 Therefore:
 
 Lock On action
-→ Frame Helm/native action applies `lockon`
+→ Frame Conn/native action applies `lockon`
 
 later attack
 → native attack flow handles Accuracy + consumption.
 
 —
 
-# 38. Lock On — Frame Helm Responsibility
+# 38. Lock On — Frame Conn Responsibility
 
-Frame Helm should primarily own:
+Frame Conn should primarily own:
 
 - selecting the Lock On target;
 - validating Sensors/range;
@@ -813,9 +813,9 @@ This is fully implemented natively.
 
 —
 
-# 41. Shredded — Frame Helm Responsibility
+# 41. Shredded — Frame Conn Responsibility
 
-Frame Helm should only:
+Frame Conn should only:
 
 - apply native Shredded;
 - remove it when its duration ends;
@@ -847,11 +847,11 @@ No runtime movement/action consumer was found automatically enforcing:
 - no special movement;
 - standard movement only.
 
-Therefore Frame Helm must enforce Slowed in central action/movement legality.
+Therefore Frame Conn must enforce Slowed in central action/movement legality.
 
 —
 
-# 44. Slowed — Frame Helm Movement Behavior
+# 44. Slowed — Frame Conn Movement Behavior
 
 Conceptually:
 
@@ -880,7 +880,7 @@ Native status identity:
 
 No native runtime consumer was found that automatically blocks voluntary movement.
 
-Therefore Frame Helm Movement must enforce the condition.
+Therefore Frame Conn Movement must enforce the condition.
 
 —
 
@@ -934,7 +934,7 @@ Jammed characters cannot:
 - take Tech Actions;
 - benefit from Tech Actions.
 
-Frame Helm must enforce the action-facing subset centrally.
+Frame Conn must enforce the action-facing subset centrally.
 
 —
 
@@ -1014,7 +1014,7 @@ Therefore:
 Stunned mech
 → native Evasion maximum/effective value becomes 5.
 
-Frame Helm should not manually overwrite Evasion.
+Frame Conn should not manually overwrite Evasion.
 
 —
 
@@ -1028,7 +1028,7 @@ No native runtime code was found fully enforcing that Stunned mechs cannot:
 - take Free Actions;
 - take Reactions.
 
-Therefore Frame Helm must enforce these through central legality.
+Therefore Frame Conn must enforce these through central legality.
 
 —
 
@@ -1041,7 +1041,7 @@ No native `StatRollFlow` behavior was found automatically failing:
 
 while Stunned.
 
-Therefore Frame Helm’s check/save adapter should detect this state.
+Therefore Frame Conn’s check/save adapter should detect this state.
 
 —
 
@@ -1101,7 +1101,7 @@ No complete native engine was found implementing all official Shutdown consequen
 
 Therefore native Shutdown is primarily a state marker.
 
-Frame Helm must orchestrate the transition and ongoing legality.
+Frame Conn must orchestrate the transition and ongoing legality.
 
 —
 
@@ -1116,7 +1116,7 @@ When a mech Shuts Down:
 
 These are deterministic transition effects.
 
-Frame Helm’s Shut Down action should implement them through native mutation helpers.
+Frame Conn’s Shut Down action should implement them through native mutation helpers.
 
 —
 
@@ -1129,7 +1129,7 @@ While Shut Down:
 - mech is Stunned indefinitely;
 - Shutdown remains until Boot Up.
 
-Frame Helm must enforce the missing legality/immunity behavior where native systems do not.
+Frame Conn must enforce the missing legality/immunity behavior where native systems do not.
 
 —
 
@@ -1143,7 +1143,7 @@ Shut Down
 
 provides the native Evasion consequence automatically.
 
-Frame Helm still needs to enforce Stunned’s missing action/check restrictions.
+Frame Conn still needs to enforce Stunned’s missing action/check restrictions.
 
 —
 
@@ -1157,7 +1157,7 @@ remove every negative condition
 
 because only Tech-originated conditions are specified.
 
-Frame Helm may need source metadata or native effect origin inspection to identify qualifying effects.
+Frame Conn may need source metadata or native effect origin inspection to identify qualifying effects.
 
 Lock On is a clear example.
 
@@ -1225,7 +1225,7 @@ Native attack handling already accounts for cover-ignoring situations such as:
 - Tech attacks;
 - applicable non-thrown Melee attacks.
 
-Frame Helm should not duplicate these exceptions.
+Frame Conn should not duplicate these exceptions.
 
 —
 
@@ -1285,7 +1285,7 @@ Native `cover_soft` / `cover_hard` remain useful for:
 - fallback adjudication;
 - cases where cover legitimately applies globally.
 
-Frame Helm should preserve this manual/native pathway.
+Frame Conn should preserve this manual/native pathway.
 
 —
 
@@ -1313,7 +1313,7 @@ The repository contains optional LOS integration, including terrain-height-tools
 
 However, no complete native status engine uses that geometry to automatically determine Cover, Hidden, or Engaged.
 
-Therefore Frame Helm may reuse the geometry primitives without assuming the native system already owns tactical legality.
+Therefore Frame Conn may reuse the geometry primitives without assuming the native system already owns tactical legality.
 
 —
 
@@ -1332,7 +1332,7 @@ Confirmed native behavior includes:
 - Overshield;
 - damage multipliers such as half damage.
 
-Therefore Frame Helm damage should terminate in `damageCalc(...)` whenever practical.
+Therefore Frame Conn damage should terminate in `damageCalc(...)` whenever practical.
 
 —
 
@@ -1341,7 +1341,7 @@ Therefore Frame Helm damage should terminate in `damageCalc(...)` whenever pract
 Conceptually:
 
 target has Exposed
-→ Frame Helm sends ordinary typed damage
+→ Frame Conn sends ordinary typed damage
 → native `damageCalc(...)`
 → relevant damage doubled automatically.
 
@@ -1354,7 +1354,7 @@ Do not pre-double damage.
 Conceptually:
 
 target has Shredded
-→ Frame Helm sends ordinary typed damage
+→ Frame Conn sends ordinary typed damage
 → native `damageCalc(...)`
 → native Armor/Resistance block skipped.
 
@@ -1396,9 +1396,9 @@ Hide should:
 
 → apply native `hidden`
 
-after Frame Helm validates Hide legality.
+after Frame Conn validates Hide legality.
 
-Frame Helm then owns Hidden lifecycle and break conditions.
+Frame Conn then owns Hidden lifecycle and break conditions.
 
 —
 
@@ -1412,7 +1412,7 @@ through the native status adapter.
 
 Native future attacks then automatically gain the Prone attack benefit.
 
-Frame Helm only needs to own the Ram resolution and Prone lifecycle.
+Frame Conn only needs to own the Ram resolution and Prone lifecycle.
 
 —
 
@@ -1514,11 +1514,11 @@ Many Lancer statuses/conditions have durations such as:
 - until start of source’s next turn;
 - until cleared by an action.
 
-Frame Helm should avoid storing duration only as display text.
+Frame Conn should avoid storing duration only as display text.
 
 Where native ActiveEffect duration/origin metadata can represent it, use that.
 
-Otherwise Frame Helm may need supplemental lifecycle metadata.
+Otherwise Frame Conn may need supplemental lifecycle metadata.
 
 —
 
@@ -1674,7 +1674,7 @@ This will matter for:
 
 If native attack/stat machinery already consumes a status:
 
-Frame Helm should not also modify the roll.
+Frame Conn should not also modify the roll.
 
 Confirmed examples:
 
@@ -1694,7 +1694,7 @@ Status correctness is enough.
 
 If native damageCalc already consumes a status:
 
-Frame Helm should not manually alter the damage.
+Frame Conn should not manually alter the damage.
 
 Confirmed examples:
 
@@ -1710,7 +1710,7 @@ apply status correctly
 
 # 99. Manual Native Status UI Remains Useful
 
-Because Foundry Lancer already exposes manual status selection in the token/UI, Frame Helm should coexist with manual GM/player adjudication.
+Because Foundry Lancer already exposes manual status selection in the token/UI, Frame Conn should coexist with manual GM/player adjudication.
 
 If a GM manually applies:
 
@@ -1722,7 +1722,7 @@ Impaired
 
 native combat code should continue to consume it.
 
-Frame Helm should not overwrite manual states without a strong reason.
+Frame Conn should not overwrite manual states without a strong reason.
 
 —
 
@@ -1732,8 +1732,8 @@ Derived automation such as Engaged should be careful not to fight manual effects
 
 Potential strategy:
 
-- Frame Helm-created derived effects use a recognizable source/origin;
-- Frame Helm removes only its own derived effect;
+- Frame Conn-created derived effects use a recognizable source/origin;
+- Frame Conn removes only its own derived effect;
 - manually applied native effects remain untouched.
 
 This is preferable to blindly toggling all effects of the same status off.
@@ -1742,14 +1742,14 @@ This is preferable to blindly toggling all effects of the same status off.
 
 # 101. Engaged Effect Ownership
 
-If Frame Helm derives Engaged automatically:
+If Frame Conn derives Engaged automatically:
 
-apply Engaged with Frame Helm source metadata
+apply Engaged with Frame Conn source metadata
 
 then later:
 
 no longer adjacent
-→ remove only Frame Helm-derived Engaged.
+→ remove only Frame Conn-derived Engaged.
 
 If another effect independently grants Engaged:
 
@@ -1779,7 +1779,7 @@ Invisible:
 
 A character may possess both.
 
-Frame Helm should never implement:
+Frame Conn should never implement:
 
 Hide
 → apply Invisible
@@ -1794,7 +1794,7 @@ Prone has its own native status.
 
 The rules additionally make a Prone character Slowed.
 
-Frame Helm should determine whether to:
+Frame Conn should determine whether to:
 
 - apply both native statuses;
 - derive Slowed from Prone in legality;
@@ -1818,9 +1818,9 @@ Source-aware status/effect handling is recommended.
 
 # 106. Native Effect Origins Are Important
 
-For mature automation, Frame Helm should record enough source information to distinguish:
+For mature automation, Frame Conn should record enough source information to distinguish:
 
-- Frame Helm-derived Engaged;
+- Frame Conn-derived Engaged;
 - Shutdown-caused Stunned;
 - system-created Invisible;
 - action-created Hidden;
@@ -1832,7 +1832,7 @@ The native ActiveEffect `origin`/flags infrastructure should be investigated for
 
 # 107. Status Duration Architecture
 
-A mature Frame Helm status mutation helper may need options conceptually like:
+A mature Frame Conn status mutation helper may need options conceptually like:
 
 `source`
 
@@ -1856,7 +1856,7 @@ Do not bake duration logic into individual UI components.
 
 Current confirmed matrix:
 
-| Status / Condition | Native Representation | Native Rule Consumer | Frame Helm Responsibility |
+| Status / Condition | Native Representation | Native Rule Consumer | Frame Conn Responsibility |
 |—|—|—|—|
 | Impaired | Yes | Attacks + HASE checks/saves | Apply/remove/lifecycle |
 | Engaged | Yes | Attack penalty | Spatial derivation/lifecycle |
@@ -1881,11 +1881,11 @@ Current confirmed matrix:
 The correct general pattern is:
 
 Rule/action determines that condition should change
-→ Frame Helm native status adapter
+→ Frame Conn native status adapter
 → Foundry/Lancer ActiveEffect state
 → native actor derived status
 → native downstream rule consumers
-→ Frame Helm supplements only missing rule behavior.
+→ Frame Conn supplements only missing rule behavior.
 
 This should replace ad hoc direct state mutation.
 
@@ -1893,12 +1893,12 @@ This should replace ad hoc direct state mutation.
 
 # 110. Status Consumer Principle
 
-Before implementing a status consequence in Frame Helm:
+Before implementing a status consequence in Frame Conn:
 
 1. search native attack/stat/damage/movement code;
 2. determine whether native Lancer already consumes the status;
 3. if yes, do not duplicate it;
-4. if no, implement the missing rule at the appropriate Frame Helm domain layer.
+4. if no, implement the missing rule at the appropriate Frame Conn domain layer.
 
 This should be standard practice for future system/talent/core-power integration.
 
@@ -1926,8 +1926,8 @@ This should be standard practice for future system/talent/core-power integration
 - [ ] Trace native Lancer effect flags.
 - [ ] Determine how status items encode source.
 - [ ] Determine how manual status toggles differ from sourced effects.
-- [ ] Add Frame Helm source marker for derived effects.
-- [ ] Remove only effects owned by the relevant Frame Helm source when appropriate.
+- [ ] Add Frame Conn source marker for derived effects.
+- [ ] Remove only effects owned by the relevant Frame Conn source when appropriate.
 
 —
 
@@ -1995,7 +1995,7 @@ This should be standard practice for future system/talent/core-power integration
 - [ ] Deny Reactions.
 - [ ] Deny Tech Actions.
 - [ ] Prevent benefiting from Tech Actions where applicable.
-- [ ] Integrate comms restriction if Frame Helm ever controls comms.
+- [ ] Integrate comms restriction if Frame Conn ever controls comms.
 - [ ] Centralize in action legality.
 
 —
@@ -2056,7 +2056,7 @@ This should be standard practice for future system/talent/core-power integration
 
 # 122. Damage Pipeline TODO
 
-- [ ] Route Frame Helm damage through native `damageCalc(...)`.
+- [ ] Route Frame Conn damage through native `damageCalc(...)`.
 - [ ] Preserve typed damage.
 - [ ] Preserve AP.
 - [ ] Preserve Paracausal.
@@ -2167,7 +2167,7 @@ This should be standard practice for future system/talent/core-power integration
 - [ ] Exposed doubles Kinetic damage once.
 - [ ] Exposed doubles Energy damage once.
 - [ ] Exposed doubles Explosive damage once.
-- [ ] Frame Helm does not double it again.
+- [ ] Frame Conn does not double it again.
 - [ ] Shredded ignores Armor.
 - [ ] Shredded ignores Resistance.
 - [ ] AP works natively.
@@ -2200,7 +2200,7 @@ This should be standard practice for future system/talent/core-power integration
 
 **Invariant 1**
 
-Statuses and conditions are native Foundry/Lancer ActiveEffect state, not Frame Helm-local booleans.
+Statuses and conditions are native Foundry/Lancer ActiveEffect state, not Frame Conn-local booleans.
 
 **Invariant 2**
 
@@ -2212,7 +2212,7 @@ Ordinary native status mutation should use `toggleStatusEffect(...)` or an equiv
 
 **Invariant 4**
 
-Frame Helm should reuse native downstream status consumers wherever they already exist.
+Frame Conn should reuse native downstream status consumers wherever they already exist.
 
 **Invariant 5**
 
@@ -2252,11 +2252,11 @@ Stunned Evasion 5 is native, but its action/movement/reaction restrictions and H
 
 **Invariant 14**
 
-Jammed, Slowed, Immobilized, Hidden, and Shutdown require significant Frame Helm rules orchestration.
+Jammed, Slowed, Immobilized, Hidden, and Shutdown require significant Frame Conn rules orchestration.
 
 **Invariant 15**
 
-All Frame Helm damage should use native `damageCalc(...)` whenever possible.
+All Frame Conn damage should use native `damageCalc(...)` whenever possible.
 
 **Invariant 16**
 
@@ -2293,7 +2293,7 @@ LANCER STATUS / CONDITION
 │       ├── Exposed
 │       └── Shredded
 │
-├── Frame Helm missing-rule layer
+├── Frame Conn missing-rule layer
 │   │
 │   ├── Engaged spatial derivation
 │   ├── Cover geometry
@@ -2315,6 +2315,6 @@ LANCER STATUS / CONDITION
 
 The critical architectural rule is:
 
-**Frame Helm should decide when a status applies; native Lancer should represent it and consume it wherever the native system already knows what it does.**
+**Frame Conn should decide when a status applies; native Lancer should represent it and consume it wherever the native system already knows what it does.**
 
-Where native Lancer does not enforce the rule, Frame Helm should add that missing behavior at the correct centralized rules layer rather than creating a second status engine.
+Where native Lancer does not enforce the rule, Frame Conn should add that missing behavior at the correct centralized rules layer rather than creating a second status engine.

@@ -8,7 +8,7 @@
 
 /**
  * ============================================================
- * FRAME HELM UI FEATURE -- TURN
+ * FRAME CONN UI FEATURE -- TURN
  * ============================================================
  *
  * ROLE:
@@ -33,7 +33,7 @@
    ============================================================ */
 
 import {
-  defineFrameHelmFeature
+  defineFrameConnFeature
 } from "../../scripts/feature-contract.js";
 
 
@@ -42,11 +42,11 @@ import {
    ============================================================ */
 
 import {
-  configureFrameHelmTurnUiRuntime,
-  getFrameHelmTurnUiRuntimeBindings,
-  getFrameHelmTurnUiTurnApi,
-  getFrameHelmTurnUiActionRegistry,
-  renderFrameHelmTurnUiApplication
+  configureFrameConnTurnUiRuntime,
+  getFrameConnTurnUiRuntimeBindings,
+  getFrameConnTurnUiTurnApi,
+  getFrameConnTurnUiActionRegistry,
+  renderFrameConnTurnUiApplication
 } from "./components/turn-runtime-bindings.js";
 
 
@@ -55,8 +55,8 @@ import {
    ============================================================ */
 
 import {
-  getFrameHelmTurnUiCurrentState,
-  getFrameHelmTurnUiSnapshot
+  getFrameConnTurnUiCurrentState,
+  getFrameConnTurnUiSnapshot
 } from "./components/turn-state-access.js";
 
 
@@ -65,11 +65,11 @@ import {
    ============================================================ */
 
 import {
-  buildFrameHelmTurnContextPresentation,
-  buildFrameHelmTurnBudgetPresentation,
-  buildFrameHelmTurnProtocolPresentation,
-  buildFrameHelmTurnReactionPresentation,
-  buildFrameHelmTurnOverchargePresentation
+  buildFrameConnTurnContextPresentation,
+  buildFrameConnTurnBudgetPresentation,
+  buildFrameConnTurnProtocolPresentation,
+  buildFrameConnTurnReactionPresentation,
+  buildFrameConnTurnOverchargePresentation
 } from "./components/turn-status-presentation.js";
 
 
@@ -78,8 +78,8 @@ import {
    ============================================================ */
 
 import {
-  buildFrameHelmTurnCommittedActionPresentation,
-  buildFrameHelmTurnCommittedPlanPresentation
+  buildFrameConnTurnCommittedActionPresentation,
+  buildFrameConnTurnCommittedPlanPresentation
 } from "./components/turn-committed-plan-presentation.js";
 
 
@@ -88,8 +88,8 @@ import {
    ============================================================ */
 
 import {
-  buildFrameHelmTurnUiClasses,
-  buildFrameHelmTurnUiDataAttributes
+  buildFrameConnTurnUiClasses,
+  buildFrameConnTurnUiDataAttributes
 } from "./components/turn-ui-semantics.js";
 
 
@@ -108,9 +108,9 @@ const TURN_UI_FEATURE_ID =
 /**
  * Canonical presentation model consumed by application rendering.
  */
-function buildFrameHelmTurnUiModel() {
+function buildFrameConnTurnUiModel() {
   const snapshot =
-    getFrameHelmTurnUiSnapshot();
+    getFrameConnTurnUiSnapshot();
 
 
   return Object.freeze({
@@ -125,42 +125,42 @@ function buildFrameHelmTurnUiModel() {
       ),
 
     context:
-      buildFrameHelmTurnContextPresentation(
+      buildFrameConnTurnContextPresentation(
         snapshot
       ),
 
     budget:
-      buildFrameHelmTurnBudgetPresentation(
+      buildFrameConnTurnBudgetPresentation(
         snapshot
       ),
 
     protocol:
-      buildFrameHelmTurnProtocolPresentation(
+      buildFrameConnTurnProtocolPresentation(
         snapshot
       ),
 
     reaction:
-      buildFrameHelmTurnReactionPresentation(
+      buildFrameConnTurnReactionPresentation(
         snapshot
       ),
 
     overcharge:
-      buildFrameHelmTurnOverchargePresentation(
+      buildFrameConnTurnOverchargePresentation(
         snapshot
       ),
 
     committedPlan:
-      buildFrameHelmTurnCommittedPlanPresentation(
+      buildFrameConnTurnCommittedPlanPresentation(
         snapshot
       ),
 
     classes:
-      buildFrameHelmTurnUiClasses(
+      buildFrameConnTurnUiClasses(
         snapshot
       ),
 
     attributes:
-      buildFrameHelmTurnUiDataAttributes(
+      buildFrameConnTurnUiDataAttributes(
         snapshot
       )
   });
@@ -177,9 +177,9 @@ function buildFrameHelmTurnUiModel() {
  * Its only command beyond runtime configuration is an explicit
  * presentation refresh request.
  */
-function refreshFrameHelmTurnUi() {
+function refreshFrameConnTurnUi() {
   return (
-    renderFrameHelmTurnUiApplication(
+    renderFrameConnTurnUiApplication(
       false
     )
   );
@@ -190,8 +190,8 @@ function refreshFrameHelmTurnUi() {
    Turn UI feature definition
    ============================================================ */
 
-export const frameHelmTurnUiFeature =
-  defineFrameHelmFeature({
+export const frameConnTurnUiFeature =
+  defineFrameConnFeature({
     id:
       TURN_UI_FEATURE_ID,
 
@@ -223,48 +223,48 @@ export const frameHelmTurnUiFeature =
 
     commands: {
       configureRuntime:
-        configureFrameHelmTurnUiRuntime,
+        configureFrameConnTurnUiRuntime,
 
       refresh:
-        refreshFrameHelmTurnUi
+        refreshFrameConnTurnUi
     },
 
     queries: {
       currentState:
-        getFrameHelmTurnUiCurrentState,
+        getFrameConnTurnUiCurrentState,
 
       snapshot:
-        getFrameHelmTurnUiSnapshot,
+        getFrameConnTurnUiSnapshot,
 
       model:
-        buildFrameHelmTurnUiModel,
+        buildFrameConnTurnUiModel,
 
       context:
-        buildFrameHelmTurnContextPresentation,
+        buildFrameConnTurnContextPresentation,
 
       budget:
-        buildFrameHelmTurnBudgetPresentation,
+        buildFrameConnTurnBudgetPresentation,
 
       protocol:
-        buildFrameHelmTurnProtocolPresentation,
+        buildFrameConnTurnProtocolPresentation,
 
       reaction:
-        buildFrameHelmTurnReactionPresentation,
+        buildFrameConnTurnReactionPresentation,
 
       overcharge:
-        buildFrameHelmTurnOverchargePresentation,
+        buildFrameConnTurnOverchargePresentation,
 
       committedPlan:
-        buildFrameHelmTurnCommittedPlanPresentation,
+        buildFrameConnTurnCommittedPlanPresentation,
 
       classes:
-        buildFrameHelmTurnUiClasses,
+        buildFrameConnTurnUiClasses,
 
       attributes:
-        buildFrameHelmTurnUiDataAttributes,
+        buildFrameConnTurnUiDataAttributes,
 
       runtimeBindings:
-        getFrameHelmTurnUiRuntimeBindings
+        getFrameConnTurnUiRuntimeBindings
     },
 
     hooks: {},
@@ -273,54 +273,54 @@ export const frameHelmTurnUiFeature =
 
     api: {
       configureRuntime:
-        configureFrameHelmTurnUiRuntime,
+        configureFrameConnTurnUiRuntime,
 
       refresh:
-        refreshFrameHelmTurnUi,
+        refreshFrameConnTurnUi,
 
       getCurrentState:
-        getFrameHelmTurnUiCurrentState,
+        getFrameConnTurnUiCurrentState,
 
       getSnapshot:
-        getFrameHelmTurnUiSnapshot,
+        getFrameConnTurnUiSnapshot,
 
       getModel:
-        buildFrameHelmTurnUiModel,
+        buildFrameConnTurnUiModel,
 
       getContext:
-        buildFrameHelmTurnContextPresentation,
+        buildFrameConnTurnContextPresentation,
 
       getBudget:
-        buildFrameHelmTurnBudgetPresentation,
+        buildFrameConnTurnBudgetPresentation,
 
       getProtocol:
-        buildFrameHelmTurnProtocolPresentation,
+        buildFrameConnTurnProtocolPresentation,
 
       getReaction:
-        buildFrameHelmTurnReactionPresentation,
+        buildFrameConnTurnReactionPresentation,
 
       getOvercharge:
-        buildFrameHelmTurnOverchargePresentation,
+        buildFrameConnTurnOverchargePresentation,
 
       getCommittedPlan:
-        buildFrameHelmTurnCommittedPlanPresentation,
+        buildFrameConnTurnCommittedPlanPresentation,
 
       getClasses:
-        buildFrameHelmTurnUiClasses,
+        buildFrameConnTurnUiClasses,
 
       getAttributes:
-        buildFrameHelmTurnUiDataAttributes,
+        buildFrameConnTurnUiDataAttributes,
 
       runtimeBindings:
-        getFrameHelmTurnUiRuntimeBindings
+        getFrameConnTurnUiRuntimeBindings
     },
 
     metadata: {
       label:
-        "Frame Helm Turn UI",
+        "Frame Conn Turn UI",
 
       description:
-        "Adapts authoritative Turn-domain state into presentation models consumed by the Frame Helm Application UI.",
+        "Adapts authoritative Turn-domain state into presentation models consumed by the Frame Conn Application UI.",
 
       domainFeature:
         "scripts/turn-feature.js",
@@ -351,39 +351,39 @@ export const frameHelmTurnUiFeature =
    ============================================================ */
 
 export {
-  configureFrameHelmTurnUiRuntime,
+  configureFrameConnTurnUiRuntime,
 
-  getFrameHelmTurnUiRuntimeBindings,
+  getFrameConnTurnUiRuntimeBindings,
 
-  getFrameHelmTurnUiTurnApi,
+  getFrameConnTurnUiTurnApi,
 
-  getFrameHelmTurnUiActionRegistry,
+  getFrameConnTurnUiActionRegistry,
 
-  renderFrameHelmTurnUiApplication,
+  renderFrameConnTurnUiApplication,
 
-  getFrameHelmTurnUiCurrentState,
+  getFrameConnTurnUiCurrentState,
 
-  getFrameHelmTurnUiSnapshot,
+  getFrameConnTurnUiSnapshot,
 
-  buildFrameHelmTurnContextPresentation,
+  buildFrameConnTurnContextPresentation,
 
-  buildFrameHelmTurnBudgetPresentation,
+  buildFrameConnTurnBudgetPresentation,
 
-  buildFrameHelmTurnProtocolPresentation,
+  buildFrameConnTurnProtocolPresentation,
 
-  buildFrameHelmTurnReactionPresentation,
+  buildFrameConnTurnReactionPresentation,
 
-  buildFrameHelmTurnOverchargePresentation,
+  buildFrameConnTurnOverchargePresentation,
 
-  buildFrameHelmTurnCommittedActionPresentation,
+  buildFrameConnTurnCommittedActionPresentation,
 
-  buildFrameHelmTurnCommittedPlanPresentation,
+  buildFrameConnTurnCommittedPlanPresentation,
 
-  buildFrameHelmTurnUiClasses,
+  buildFrameConnTurnUiClasses,
 
-  buildFrameHelmTurnUiDataAttributes,
+  buildFrameConnTurnUiDataAttributes,
 
-  buildFrameHelmTurnUiModel,
+  buildFrameConnTurnUiModel,
 
-  refreshFrameHelmTurnUi
+  refreshFrameConnTurnUi
 };

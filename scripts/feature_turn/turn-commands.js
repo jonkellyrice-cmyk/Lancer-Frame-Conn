@@ -9,12 +9,12 @@
 
 /**
  * ============================================================
- * FRAME HELM TURN -- COMMAND SURFACE
+ * FRAME CONN TURN -- COMMAND SURFACE
  * ============================================================
  *
  * ROLE:
  *   Provides the public command and query surface for the
- *   canonical Frame Helm Turn state manager.
+ *   canonical Frame Conn Turn state manager.
  *
  * PURPOSE:
  *   Remove Turn command delegation from turn-feature.js so that
@@ -38,8 +38,8 @@
  *     not already cause the manager to render.
  *
  * DOES NOT OWN:
- *   - FrameHelmTurnState.
- *   - FrameHelmTurnStateManager.
+ *   - FrameConnTurnState.
+ *   - FrameConnTurnStateManager.
  *   - Canonical Turn-manager construction.
  *   - Turn runtime bindings.
  *   - Actions registry ownership.
@@ -76,9 +76,9 @@
  *
  *   This module deliberately exposes explicit:
  *
- *     getCurrentFrameHelmTurn()
- *     getFrameHelmTurnStateManager()
- *     getFrameHelmTurnSnapshot()
+ *     getCurrentFrameConnTurn()
+ *     getFrameConnTurnStateManager()
+ *     getFrameConnTurnSnapshot()
  *
  *   These allow turn-feature.js to expose:
  *
@@ -96,7 +96,7 @@
    ============================================================ */
 
 import {
-  frameHelmTurnState
+  frameConnTurnState
 } from "./turn-state-manager.js";
 
 
@@ -105,15 +105,15 @@ import {
    ============================================================ */
 
 /**
- * Returns the current Frame Helm Turn state.
+ * Returns the current Frame Conn Turn state.
  *
  * IMPORTANT:
  *
  * This does NOT create a Turn when no Turn currently exists.
  */
-function getCurrentFrameHelmTurn() {
+function getCurrentFrameConnTurn() {
   return (
-    frameHelmTurnState
+    frameConnTurnState
       .current ??
     null
   );
@@ -125,9 +125,9 @@ function getCurrentFrameHelmTurn() {
    ============================================================ */
 
 /**
- * Returns the canonical Frame Helm Turn-state manager.
+ * Returns the canonical Frame Conn Turn-state manager.
  *
- * This is intentionally distinct from getCurrentFrameHelmTurn().
+ * This is intentionally distinct from getCurrentFrameConnTurn().
  *
  * The manager owns:
  *
@@ -139,10 +139,10 @@ function getCurrentFrameHelmTurn() {
  *   - renderApplication()
  *
  * while its .current property contains the active
- * FrameHelmTurnState.
+ * FrameConnTurnState.
  */
-function getFrameHelmTurnStateManager() {
-  return frameHelmTurnState;
+function getFrameConnTurnStateManager() {
+  return frameConnTurnState;
 }
 
 
@@ -155,9 +155,9 @@ function getFrameHelmTurnStateManager() {
  *
  * Returns null when no Turn state exists.
  */
-function getFrameHelmTurnSnapshot() {
+function getFrameConnTurnSnapshot() {
   return (
-    frameHelmTurnState
+    frameConnTurnState
       .snapshot()
   );
 }
@@ -168,16 +168,16 @@ function getFrameHelmTurnSnapshot() {
    ============================================================ */
 
 /**
- * Begins a new Frame Helm Turn state using the supplied context.
+ * Begins a new Frame Conn Turn state using the supplied context.
  *
- * FrameHelmTurnStateManager.beginTurn() already notifies the
+ * FrameConnTurnStateManager.beginTurn() already notifies the
  * Application rendering surface after constructing the state.
  */
-function beginFrameHelmTurn(
+function beginFrameConnTurn(
   context = {}
 ) {
   return (
-    frameHelmTurnState
+    frameConnTurnState
       .beginTurn(
         context
       )
@@ -193,11 +193,11 @@ function beginFrameHelmTurn(
  * Returns the existing active Turn state, or begins one when no
  * active state exists.
  */
-function ensureFrameHelmTurn(
+function ensureFrameConnTurn(
   context = {}
 ) {
   return (
-    frameHelmTurnState
+    frameConnTurnState
       .ensureTurn(
         context
       )
@@ -210,14 +210,14 @@ function ensureFrameHelmTurn(
    ============================================================ */
 
 /**
- * Ends the current Frame Helm Turn.
+ * Ends the current Frame Conn Turn.
  *
- * FrameHelmTurnStateManager.endTurn() already requests an
+ * FrameConnTurnStateManager.endTurn() already requests an
  * Application render after mutation.
  */
-function endFrameHelmTurn() {
+function endFrameConnTurn() {
   return (
-    frameHelmTurnState
+    frameConnTurnState
       .endTurn()
   );
 }
@@ -230,12 +230,12 @@ function endFrameHelmTurn() {
 /**
  * Clears the canonical current Turn state.
  *
- * FrameHelmTurnStateManager.clear() already requests an
+ * FrameConnTurnStateManager.clear() already requests an
  * Application render after mutation.
  */
-function clearFrameHelmTurn() {
+function clearFrameConnTurn() {
   return (
-    frameHelmTurnState
+    frameConnTurnState
       .clear()
   );
 }
@@ -252,12 +252,12 @@ function clearFrameHelmTurn() {
  * This preserves the existing behavior of ensuring a Turn first
  * when invoked through the public command surface.
  */
-function canUseFrameHelmTurnAction(
+function canUseFrameConnTurnAction(
   actionId,
   options
 ) {
   return (
-    frameHelmTurnState
+    frameConnTurnState
       .ensureTurn()
       .canUseAction(
         actionId,
@@ -274,16 +274,16 @@ function canUseFrameHelmTurnAction(
 /**
  * Commits an action against the active Turn state.
  *
- * Unlike manager-level lifecycle commands, FrameHelmTurnState's
+ * Unlike manager-level lifecycle commands, FrameConnTurnState's
  * useAction() mutates the current state directly and therefore
  * requires an explicit application-render notification afterward.
  */
-function useFrameHelmTurnAction(
+function useFrameConnTurnAction(
   actionId,
   options
 ) {
   const state =
-    frameHelmTurnState
+    frameConnTurnState
       .ensureTurn();
 
 
@@ -294,7 +294,7 @@ function useFrameHelmTurnAction(
     );
 
 
-  frameHelmTurnState
+  frameConnTurnState
     .renderApplication();
 
 
@@ -310,17 +310,17 @@ function useFrameHelmTurnAction(
  * TRANSITIONAL:
  *
  * Movement accounting still resides partly inside
- * FrameHelmTurnState.
+ * FrameConnTurnState.
  *
  * This command remains available from the Turn public surface
  * until movement ownership is fully migrated into the Movement
  * feature.
  */
-function spendFrameHelmTurnMovement(
+function spendFrameConnTurnMovement(
   distance
 ) {
   const state =
-    frameHelmTurnState
+    frameConnTurnState
       .ensureTurn();
 
 
@@ -330,7 +330,7 @@ function spendFrameHelmTurnMovement(
     );
 
 
-  frameHelmTurnState
+  frameConnTurnState
     .renderApplication();
 
 
@@ -346,13 +346,13 @@ function spendFrameHelmTurnMovement(
  * Updates the active Turn state's movement Speed.
  *
  * Speed currently remains part of the transitional movement state
- * retained by FrameHelmTurnState.
+ * retained by FrameConnTurnState.
  */
-function setFrameHelmTurnSpeed(
+function setFrameConnTurnSpeed(
   speed
 ) {
   const state =
-    frameHelmTurnState
+    frameConnTurnState
       .ensureTurn();
 
 
@@ -362,7 +362,7 @@ function setFrameHelmTurnSpeed(
     );
 
 
-  frameHelmTurnState
+  frameConnTurnState
     .renderApplication();
 
 
@@ -377,11 +377,11 @@ function setFrameHelmTurnSpeed(
 /**
  * Activates Overcharge against the active Turn state.
  */
-function useFrameHelmTurnOvercharge(
+function useFrameConnTurnOvercharge(
   options
 ) {
   const state =
-    frameHelmTurnState
+    frameConnTurnState
       .ensureTurn();
 
 
@@ -391,7 +391,7 @@ function useFrameHelmTurnOvercharge(
     );
 
 
-  frameHelmTurnState
+  frameConnTurnState
     .renderApplication();
 
 
@@ -404,27 +404,27 @@ function useFrameHelmTurnOvercharge(
    ============================================================ */
 
 export {
-  getCurrentFrameHelmTurn,
+  getCurrentFrameConnTurn,
 
-  getFrameHelmTurnStateManager,
+  getFrameConnTurnStateManager,
 
-  getFrameHelmTurnSnapshot,
+  getFrameConnTurnSnapshot,
 
-  beginFrameHelmTurn,
+  beginFrameConnTurn,
 
-  ensureFrameHelmTurn,
+  ensureFrameConnTurn,
 
-  endFrameHelmTurn,
+  endFrameConnTurn,
 
-  clearFrameHelmTurn,
+  clearFrameConnTurn,
 
-  canUseFrameHelmTurnAction,
+  canUseFrameConnTurnAction,
 
-  useFrameHelmTurnAction,
+  useFrameConnTurnAction,
 
-  spendFrameHelmTurnMovement,
+  spendFrameConnTurnMovement,
 
-  setFrameHelmTurnSpeed,
+  setFrameConnTurnSpeed,
 
-  useFrameHelmTurnOvercharge
+  useFrameConnTurnOvercharge
 };

@@ -3,7 +3,7 @@
    ============================================================ */
 
 import {
-  getFrameHelmApplicationActionRegistry
+  getFrameConnApplicationActionRegistry
 } from "./application-runtime-bindings.js";
 
 
@@ -23,12 +23,12 @@ function renderMovementPanel(
     !state
   ) {
     return `
-      <section class="frame-helm-action-panel">
-        <div class="frame-helm-section-heading frame-helm-section-heading-with-back">
+      <section class="frame-conn-action-panel">
+        <div class="frame-conn-section-heading frame-conn-section-heading-with-back">
           <button
             type="button"
-            class="frame-helm-back-button"
-            data-frame-helm-command="back"
+            class="frame-conn-back-button"
+            data-frame-conn-command="back"
             aria-label="Back to action categories"
           >
             <i class="fas fa-arrow-left"></i>
@@ -42,7 +42,7 @@ function renderMovementPanel(
           </div>
         </div>
 
-        <div class="frame-helm-no-actions">
+        <div class="frame-conn-no-actions">
           <i class="fas fa-circle-play"></i>
           <p>
             Begin a turn plan to configure and track movement.
@@ -54,7 +54,7 @@ function renderMovementPanel(
 
 
   const registry =
-    getFrameHelmApplicationActionRegistry();
+    getFrameConnApplicationActionRegistry();
 
   const movement =
     state.movement;
@@ -68,32 +68,32 @@ function renderMovementPanel(
     hasRatedSpeed
       ? ""
       : `
-        <section class="frame-helm-movement-speed-setup">
-          <label for="frame-helm-speed-input">
+        <section class="frame-conn-movement-speed-setup">
+          <label for="frame-conn-speed-input">
             Mech Speed
           </label>
 
-          <div class="frame-helm-movement-input-row">
+          <div class="frame-conn-movement-input-row">
             <input
-              id="frame-helm-speed-input"
+              id="frame-conn-speed-input"
               type="number"
               min="0"
               step="1"
               inputmode="numeric"
               placeholder="Enter Speed"
-              data-frame-helm-speed-input
+              data-frame-conn-speed-input
             >
 
             <button
               type="button"
-              data-frame-helm-command="set-speed"
+              data-frame-conn-command="set-speed"
             >
               <i class="fas fa-gauge-high"></i>
               Set Speed
             </button>
           </div>
 
-          <p class="frame-helm-movement-note">
+          <p class="frame-conn-movement-note">
             Automatic Speed detection will be added during Lancer-system integration.
           </p>
         </section>
@@ -118,7 +118,7 @@ function renderMovementPanel(
 
           const selectedClass =
             selected
-              ? " frame-helm-movement-mode-selected"
+              ? " frame-conn-movement-mode-selected"
               : "";
 
 
@@ -135,8 +135,8 @@ function renderMovementPanel(
           return `
             <button
               type="button"
-              class="frame-helm-movement-mode${selectedClass}"
-              data-frame-helm-movement-mode="${foundry.utils.escapeHTML(action.id)}"
+              class="frame-conn-movement-mode${selectedClass}"
+              data-frame-conn-movement-mode="${foundry.utils.escapeHTML(action.id)}"
               ${movement.completed ? "disabled" : ""}
             >
               <i class="${foundry.utils.escapeHTML(action.icon)}"></i>
@@ -167,7 +167,7 @@ function renderMovementPanel(
 
   const standardMoveClass =
     standardMoveSelected
-      ? " frame-helm-movement-mode-selected"
+      ? " frame-conn-movement-mode-selected"
       : "";
 
 
@@ -188,8 +188,8 @@ function renderMovementPanel(
   const tracker =
     hasRatedSpeed
       ? `
-        <section class="frame-helm-movement-tracker">
-          <div class="frame-helm-movement-summary">
+        <section class="frame-conn-movement-tracker">
+          <div class="frame-conn-movement-summary">
             <div>
               <span>Speed</span>
               <strong>${movement.maximum}</strong>
@@ -206,7 +206,7 @@ function renderMovementPanel(
             </div>
           </div>
 
-          <div class="frame-helm-movement-current-mode">
+          <div class="frame-conn-movement-current-mode">
             <span>
               Selected Mode
             </span>
@@ -216,15 +216,15 @@ function renderMovementPanel(
             </strong>
           </div>
 
-          <p class="frame-helm-movement-note frame-helm-movement-commit-note">
-            Selecting a movement mode commits the unit's entire currently available movement allowance. Frame Helm tracks the action budget; the token may still be moved normally on the canvas.
+          <p class="frame-conn-movement-note frame-conn-movement-commit-note">
+            Selecting a movement mode commits the unit's entire currently available movement allowance. Frame Conn tracks the action budget; the token may still be moved normally on the canvas.
           </p>
 
-          <div class="frame-helm-movement-controls">
+          <div class="frame-conn-movement-controls">
             <button
               type="button"
-              class="frame-helm-secondary-button"
-              data-frame-helm-command="reset-movement"
+              class="frame-conn-secondary-button"
+              data-frame-conn-command="reset-movement"
             >
               <i class="fas fa-rotate-left"></i>
               Reset Movement
@@ -232,8 +232,8 @@ function renderMovementPanel(
 
             <button
               type="button"
-              class="frame-helm-primary-button"
-              data-frame-helm-command="${movement.completed ? "reopen-movement" : "complete-movement"}"
+              class="frame-conn-primary-button"
+              data-frame-conn-command="${movement.completed ? "reopen-movement" : "complete-movement"}"
             >
               <i class="fas ${movement.completed ? "fa-lock-open" : "fa-check"}"></i>
               ${movement.completed ? "Reopen Movement" : "Movement Complete"}
@@ -245,12 +245,12 @@ function renderMovementPanel(
 
 
   return `
-    <section class="frame-helm-action-panel frame-helm-movement-panel">
-      <div class="frame-helm-section-heading frame-helm-section-heading-with-back">
+    <section class="frame-conn-action-panel frame-conn-movement-panel">
+      <div class="frame-conn-section-heading frame-conn-section-heading-with-back">
         <button
           type="button"
-          class="frame-helm-back-button"
-          data-frame-helm-command="back"
+          class="frame-conn-back-button"
+          data-frame-conn-command="back"
           aria-label="Back to action categories"
         >
           <i class="fas fa-arrow-left"></i>
@@ -269,15 +269,15 @@ function renderMovementPanel(
 
       ${speedConfiguration}
 
-      <section class="frame-helm-movement-modes">
-        <div class="frame-helm-movement-subheading">
+      <section class="frame-conn-movement-modes">
+        <div class="frame-conn-movement-subheading">
           Choose Movement Mode
         </div>
 
         <button
           type="button"
-          class="frame-helm-movement-mode${standardMoveClass}"
-          data-frame-helm-movement-mode="movement.standard"
+          class="frame-conn-movement-mode${standardMoveClass}"
+          data-frame-conn-movement-mode="movement.standard"
           ${movement.completed ? "disabled" : ""}
         >
           <i class="fas fa-person-walking"></i>

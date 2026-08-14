@@ -23,7 +23,7 @@
  * - future actor_owned_feature_registry/*
  * - future system_bridge/*
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - execution_transaction/ supplies targeting/final-validation boundaries
  * - semantic_execution_context/ carries source/target identity
  * - semantic_event_bus/ provides targeting event vocabulary
@@ -1371,7 +1371,7 @@ export function createAreaTargetRequirement({
  *
  * Sensors and visual visibility are separate concerns.
  *
- * Frame Helm requirements include detecting enemy identity/outline within
+ * Frame Conn requirements include detecting enemy identity/outline within
  * Sensors even when ordinary scene darkness prevents visual perception.
  *
  * targeting-spatial service therefore needs:

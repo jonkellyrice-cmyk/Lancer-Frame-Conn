@@ -9,7 +9,7 @@
  * @path main/resource_service/resource-service.js
  * @module resource-service
  * @layer resource-service-public-boundary
- * @responsibility expose-one-stable-frame-helm-facing-resource-service-api
+ * @responsibility expose-one-stable-frame-conn-facing-resource-service-api
  * @public-boundary true
  * @side-effects delegated-through-resource-hooks-and-resource-transactions
  *
@@ -19,9 +19,9 @@
  * - resource-transaction
  * - resource-hooks
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumed by runtime-orchestrator.js
- * - consumed by future frame-helm-runtime composition
+ * - consumed by future frame-conn-runtime composition
  * - consumed by feature_runtime_bridge/
  * - consumed by lifecycle_service/*
  * - consumed by execution strategies that need direct resource access
@@ -77,7 +77,7 @@ import * as hooks from "./resource-hooks.js";
  * @section module-identity
  */
 export const RESOURCE_SERVICE_MODULE_ID =
-  "lancer-frame-helm.resource-service";
+  "lancer-frame-conn.resource-service";
 export const RESOURCE_SERVICE_MODULE_VERSION =
   1;
 /* ============================================================
@@ -488,12 +488,12 @@ export function isNativeResourceDescriptor(
       descriptor
     );
 }
-export function isFrameHelmResourceDescriptor(
+export function isFrameConnResourceDescriptor(
   descriptor
 ) {
   return resourceService
     .contract
-    .isFrameHelmResourceDescriptor(
+    .isFrameConnResourceDescriptor(
       descriptor
     );
 }
@@ -642,7 +642,7 @@ export function toExecutionTransactionCommitResult(
  *
  * supplemental-state persistence should supply:
  *
- * Frame Helm resource writer
+ * Frame Conn resource writer
  */
 export function setResourceDeclarationResolver(
   resolver
@@ -658,19 +658,19 @@ export function getResourceDeclarationResolver() {
     .hooks
     .getResourceDeclarationResolver();
 }
-export function setFrameHelmResourceWriter(
+export function setFrameConnResourceWriter(
   writer
 ) {
   return resourceService
     .hooks
-    .setFrameHelmResourceWriter(
+    .setFrameConnResourceWriter(
       writer
     );
 }
-export function getFrameHelmResourceWriter() {
+export function getFrameConnResourceWriter() {
   return resourceService
     .hooks
-    .getFrameHelmResourceWriter();
+    .getFrameConnResourceWriter();
 }
 /* ============================================================
    RESOURCE HOOK REGISTRATION
@@ -827,7 +827,7 @@ export async function getResourceExecutionDiagnostics(
 /**
  * @section feature-runtime-bridge-boundary
  *
- * The existing Frame Helm registry remains stable.
+ * The existing Frame Conn registry remains stable.
  *
  * Future composition:
  *
@@ -855,7 +855,7 @@ export async function getResourceExecutionDiagnostics(
 /**
  * @section supplemental-state-boundary
  *
- * Frame Helm-owned resources require persistent backing.
+ * Frame Conn-owned resources require persistent backing.
  *
  * Examples:
  *
@@ -872,7 +872,7 @@ export async function getResourceExecutionDiagnostics(
  * supplemental_state_repository/
  *        │
  *        ▼
- * setFrameHelmResourceWriter(...)
+ * setFrameConnResourceWriter(...)
  *
  * Reads should eventually be wired into resource-resolver.js through the
  * same repository boundary.
@@ -945,16 +945,16 @@ export async function getResourceExecutionDiagnostics(
  *
  * whether to validate
  * whether native execution owns consumption
- * whether Frame Helm owns deferred consumption
+ * whether Frame Conn owns deferred consumption
  * whether native mutation must only be verified
  *
  * It does not bypass native_adapter.
  */
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * runtime-orchestrator.js
  * -----------------------
@@ -1035,7 +1035,7 @@ export async function getResourceExecutionDiagnostics(
  * lifecycle_service/
  * ------------------
  *
- * Will reset Frame Helm-owned frequency resources according to resetScope.
+ * Will reset Frame Conn-owned frequency resources according to resetScope.
  *
  *
  * feature_runtime_bridge/
@@ -1050,7 +1050,7 @@ export async function getResourceExecutionDiagnostics(
 /**
  * @section recommended-top-level-composition
  *
- * Future frame-helm-runtime composition should approximately:
+ * Future frame-conn-runtime composition should approximately:
  *
  * 1. initialize native_adapter
  *
@@ -1064,7 +1064,7 @@ export async function getResourceExecutionDiagnostics(
  *
  * 5. configure:
  *
- *    setFrameHelmResourceWriter(...)
+ *    setFrameConnResourceWriter(...)
  *
  * 6. register:
  *
@@ -1164,7 +1164,7 @@ export async function getResourceExecutionDiagnostics(
  * @section boundary-invariants
  *
  * INVARIANT 1
- * resource-service.js is the public Frame Helm resource boundary.
+ * resource-service.js is the public Frame Conn resource boundary.
  *
  * INVARIANT 2
  * Contract owns shapes.
@@ -1185,7 +1185,7 @@ export async function getResourceExecutionDiagnostics(
  * Native Flow-owned resources are never double-consumed.
  *
  * INVARIANT 8
- * Frame Helm deferred resources commit only through transaction commit
+ * Frame Conn deferred resources commit only through transaction commit
  * timing.
  *
  * INVARIANT 9

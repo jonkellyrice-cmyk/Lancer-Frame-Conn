@@ -20,7 +20,7 @@ cat > docs/af-prepare.md <<‘EOF’
 
 **Official tabletop Prepare rules:** Confirmed.
 
-**Frame Helm implementation status:** Frame Helm should own the complete Prepare state machine, trigger definition, action locking, Prepared Action lifecycle, reaction opportunity generation, child-action execution, expiration, and cancellation while delegating the prepared child action to its normal Frame Helm/native execution strategy.
+**Frame Conn implementation status:** Frame Conn should own the complete Prepare state machine, trigger definition, action locking, Prepared Action lifecycle, reaction opportunity generation, child-action execution, expiration, and cancellation while delegating the prepared child action to its normal Frame Conn/native execution strategy.
 
 ## Purpose
 
@@ -53,7 +53,7 @@ However, native Lancer does not appear to implement the complete rules state req
 
 Therefore:
 
-> Frame Helm should own Prepare as a higher-order action/state machine.
+> Frame Conn should own Prepare as a higher-order action/state machine.
 
 The prepared child action should retain its ordinary mechanical execution strategy.
 
@@ -135,7 +135,7 @@ Examples:
 
 `When a hostile character moves adjacent to me, then I Ram them.`
 
-Therefore Frame Helm should represent the trigger structurally rather than merely storing arbitrary prose wherever practical.
+Therefore Frame Conn should represent the trigger structurally rather than merely storing arbitrary prose wherever practical.
 
 —
 
@@ -152,7 +152,7 @@ Repository searching did not identify:
 - current Prepared Action runtime object
 - current Prepared Action execution service
 
-Therefore there is no native high-level Prepare flow for Frame Helm to preserve.
+Therefore there is no native high-level Prepare flow for Frame Conn to preserve.
 
 —
 
@@ -189,7 +189,7 @@ Prepare requires substantially more information than:
 
 `prepare = true`
 
-Frame Helm must know:
+Frame Conn must know:
 
 - which action was prepared;
 - who prepared it;
@@ -228,7 +228,7 @@ or:
 
 as current canonical action state.
 
-Frame Helm should not invent writes to:
+Frame Conn should not invent writes to:
 
 `actor.system.action_tracker.prepare`
 
@@ -254,7 +254,7 @@ However, Prepare itself has additional restrictions that generic Reaction state 
 
 The native system refreshes Reaction availability through combat automation.
 
-This behavior should remain relevant when Frame Helm determines whether the prepared action can be executed as a Reaction.
+This behavior should remain relevant when Frame Conn determines whether the prepared action can be executed as a Reaction.
 
 However, Prepare explicitly prevents other Reactions while the Prepared Action is being held.
 
@@ -272,7 +272,7 @@ but repository research has not established it as a complete Prepared Action mec
 
 No Prepare-specific runtime consumer was found.
 
-Frame Helm should not store the entire Prepare state there unless future research proves that is its intended role.
+Frame Conn should not store the entire Prepare state there unless future research proves that is its intended role.
 
 —
 
@@ -302,13 +302,13 @@ But:
 
 was not found.
 
-Therefore Frame Helm should not expect the native synergy system to provide a universal:
+Therefore Frame Conn should not expect the native synergy system to provide a universal:
 
 `when you Prepare`
 
 semantic hook.
 
-Prepare should still have its own Frame Helm semantic action identity.
+Prepare should still have its own Frame Conn semantic action identity.
 
 —
 
@@ -381,7 +381,7 @@ The official rule says:
 
 Therefore when Prepare is committed:
 
-Frame Helm must treat the chosen Quick Action as having been taken for purposes of:
+Frame Conn must treat the chosen Quick Action as having been taken for purposes of:
 
 - duplicate-action restrictions;
 - action-order restrictions;
@@ -408,7 +408,7 @@ Prepare Skirmish
 
 because the preparation counts as taking Skirmish again.
 
-Therefore Frame Helm should validate the child action during Prepare commitment using ordinary duplicate-action legality.
+Therefore Frame Conn should validate the child action during Prepare commitment using ordinary duplicate-action legality.
 
 Conceptually:
 
@@ -522,7 +522,7 @@ or:
 
 under the ordinary Prepare rule.
 
-Frame Helm should help constrain the trigger definition to legal event categories.
+Frame Conn should help constrain the trigger definition to legal event categories.
 
 —
 
@@ -533,7 +533,7 @@ The trigger is caused by:
 - a hostile character;
 - or an allied character.
 
-Frame Helm should therefore likely store a trigger relation such as:
+Frame Conn should therefore likely store a trigger relation such as:
 
 - any hostile;
 - any ally;
@@ -576,7 +576,7 @@ uses a system
 
 takes a Reaction
 
-Frame Helm should consume its existing action and movement event architecture rather than build Prepare-only observers.
+Frame Conn should consume its existing action and movement event architecture rather than build Prepare-only observers.
 
 —
 
@@ -658,7 +658,7 @@ The wording is permissive.
 
 Therefore trigger occurrence should create an opportunity.
 
-It should not automatically execute the action without player choice unless Frame Helm later offers an explicit automation setting.
+It should not automatically execute the action without player choice unless Frame Conn later offers an explicit automation setting.
 
 Conceptually:
 
@@ -720,7 +720,7 @@ until:
 - or the Prepared Action is dropped;
 - or the state expires at the start of the next turn.
 
-Therefore Frame Helm needs a stronger concept than ordinary:
+Therefore Frame Conn needs a stronger concept than ordinary:
 
 `reaction available`
 
@@ -765,7 +765,7 @@ Therefore once the Prepared Action is triggered and resolved:
 
 the Prepare reaction lock ends.
 
-Ordinary Reaction behavior resumes according to the character’s remaining Reaction availability and native/Frame Helm rules.
+Ordinary Reaction behavior resumes according to the character’s remaining Reaction availability and native/Frame Conn rules.
 
 —
 
@@ -802,7 +802,7 @@ Doing so:
 - restores the ability to take Reactions normally;
 - does not refund the Quick Action already spent.
 
-Frame Helm should provide an explicit:
+Frame Conn should provide an explicit:
 
 `Drop Prepared Action`
 
@@ -853,7 +853,7 @@ While a Prepared Action is being held:
 
 the character cannot move.
 
-Frame Helm’s Movement feature should check Prepared state before accepting ordinary voluntary movement.
+Frame Conn’s Movement feature should check Prepared state before accepting ordinary voluntary movement.
 
 Conceptually:
 
@@ -862,7 +862,7 @@ token movement detected
 → YES
 → movement illegal
 
-Depending on implementation constraints, Frame Helm may:
+Depending on implementation constraints, Frame Conn may:
 
 - prevent the move;
 - revert it;
@@ -889,7 +889,7 @@ This includes ordinary:
 
 Exact interaction with special/free actions should follow the official rules and exceptions.
 
-Frame Helm’s central action legality layer should inspect Prepare lock state.
+Frame Conn’s central action legality layer should inspect Prepare lock state.
 
 —
 
@@ -928,7 +928,7 @@ Because after Prepare the character cannot:
 
 the action effectively ends the character’s active decision-making for that turn.
 
-Frame Helm should reflect this strongly in presentation.
+Frame Conn should reflect this strongly in presentation.
 
 However:
 
@@ -964,7 +964,7 @@ Therefore action-order restrictions must be checked when Prepare is created, not
 
 # 40. Child Action Precondition Validation
 
-When Prepare is committed, Frame Helm should validate all restrictions that apply to:
+When Prepare is committed, Frame Conn should validate all restrictions that apply to:
 
 `taking the chosen action now`
 
@@ -1042,7 +1042,7 @@ The official Prepare rule says the preparation counts as taking the action, whic
 
 But item/resource mutation may need action-specific tracing.
 
-Frame Helm should not adopt one global answer without research.
+Frame Conn should not adopt one global answer without research.
 
 —
 
@@ -1056,7 +1056,7 @@ Example:
 
 The target is not necessarily known when Prepare is created.
 
-Therefore Frame Helm should support target resolution from trigger context.
+Therefore Frame Conn should support target resolution from trigger context.
 
 Conceptually:
 
@@ -1072,7 +1072,7 @@ This is extremely useful for automation.
 
 Where the trigger clearly defines the target:
 
-Frame Helm should bind that target automatically.
+Frame Conn should bind that target automatically.
 
 Example:
 
@@ -1082,7 +1082,7 @@ No separate target-selection prompt should be required.
 
 For prepared actions whose target is not determined by the trigger:
 
-Frame Helm may need to prompt at execution time.
+Frame Conn may need to prompt at execution time.
 
 —
 
@@ -1256,7 +1256,7 @@ This is preferable to relying solely on raw English text.
 
 # 54. Human-Readable Trigger
 
-Even with a structured trigger, Frame Helm should retain/display the player’s human-readable declaration.
+Even with a structured trigger, Frame Conn should retain/display the player’s human-readable declaration.
 
 Example:
 
@@ -1275,13 +1275,13 @@ This is useful for:
 
 The tabletop rule allows natural-language triggers, which means not every legal trigger will be easy to automate perfectly.
 
-Frame Helm should therefore support a layered model:
+Frame Conn should therefore support a layered model:
 
 1. structured triggers it can automate;
 2. manually acknowledged triggers it can store and present;
 3. GM/player adjudication where automation is ambiguous.
 
-This matches Frame Helm’s player-first scope without trying to become the arbiter of every rule.
+This matches Frame Conn’s player-first scope without trying to become the arbiter of every rule.
 
 —
 
@@ -1330,7 +1330,7 @@ Examples include:
 - taking aim;
 - cycling systems.
 
-Therefore Frame Helm should not treat a Prepared Action as secret state by default.
+Therefore Frame Conn should not treat a Prepared Action as secret state by default.
 
 Presentation may expose that a character is:
 
@@ -1346,11 +1346,11 @@ The exact UI visibility to opposing players should be decided deliberately.
 
 No current native Prepared status was found.
 
-Therefore Frame Helm should not invent a fake native Lancer status unless one is needed for canvas/UI presentation.
+Therefore Frame Conn should not invent a fake native Lancer status unless one is needed for canvas/UI presentation.
 
-The authoritative Prepare state should probably remain Frame Helm-owned.
+The authoritative Prepare state should probably remain Frame Conn-owned.
 
-A Foundry flag or Frame Helm document state may be appropriate if persistence across reloads is needed.
+A Foundry flag or Frame Conn document state may be appropriate if persistence across reloads is needed.
 
 —
 
@@ -1358,7 +1358,7 @@ A Foundry flag or Frame Helm document state may be appropriate if persistence ac
 
 Prepared state may need to survive:
 
-- Frame Helm application rerenders;
+- Frame Conn application rerenders;
 - application close/reopen;
 - token selection changes;
 - turn changes involving other actors;
@@ -1429,7 +1429,7 @@ Examples:
 - actor Shut Down;
 - target out of range.
 
-Frame Helm needs a policy for whether the Prepared Action is:
+Frame Conn needs a policy for whether the Prepared Action is:
 
 - lost;
 - remains held;
@@ -1464,7 +1464,7 @@ The rule says:
 
 which may refer to voluntary movement rather than being forcibly moved.
 
-Frame Helm should research whether:
+Frame Conn should research whether:
 
 - Knockback;
 - Ram;
@@ -1544,7 +1544,7 @@ Prepare should not special-case Protocol unless a specific rule requires it.
 
 After Prepare, the player is effectively unable to voluntarily do more.
 
-Frame Helm may make the End Turn control prominent.
+Frame Conn may make the End Turn control prominent.
 
 However, Prepare itself should not automatically advance combat unless that becomes an explicit UX preference.
 
@@ -1552,7 +1552,7 @@ However, Prepare itself should not automatically advance combat unless that beco
 
 # 72. Prepare and Duplicate Keys
 
-Frame Helm’s duplicate-action tracking should account for the prepared child.
+Frame Conn’s duplicate-action tracking should account for the prepared child.
 
 Conceptually:
 
@@ -1653,7 +1653,7 @@ Prepare is special because the child executes later and through a Reaction.
 
 The intended ownership split is:
 
-**FRAME HELM OWNS:**
+**FRAME CONN OWNS:**
 
 - Prepare Quick Action;
 - child Quick Action selection;
@@ -1687,13 +1687,13 @@ The intended ownership split is:
 
 No native `PrepareFlow` was found.
 
-Frame Helm may implement a Prepare service/state machine, but it should be clearly Frame Helm-owned.
+Frame Conn may implement a Prepare service/state machine, but it should be clearly Frame Conn-owned.
 
 Native child action flows remain reusable where they actually exist.
 
 —
 
-# 78. Initial Frame Helm Prepare Flow
+# 78. Initial Frame Conn Prepare Flow
 
 The initial implementation should conceptually be:
 
@@ -1747,7 +1747,7 @@ start of actor’s next turn
 - [ ] Trace native Reaction state completely.
 - [ ] Trace native Reaction refresh completely.
 - [ ] Trace `used_reactions`.
-- [ ] Determine whether native action_tracker reaction state should remain synchronized with Frame Helm.
+- [ ] Determine whether native action_tracker reaction state should remain synchronized with Frame Conn.
 - [ ] Search for current native prepared-action terminology under alternate names.
 - [ ] Search for delayed-action / held-action helpers.
 - [ ] Search for combat hooks useful for start-of-next-turn expiration.
@@ -1760,7 +1760,7 @@ start of actor’s next turn
 
 # 80. Trigger Engine Research TODO
 
-- [ ] Define generic Frame Helm game-event envelope.
+- [ ] Define generic Frame Conn game-event envelope.
 - [ ] Define movement event.
 - [ ] Define action event.
 - [ ] Define reaction event.
@@ -2015,7 +2015,7 @@ The critical architectural rule is:
 
 **Prepare is delayed execution of an action that has already been taken.**
 
-Frame Helm therefore needs to separate:
+Frame Conn therefore needs to separate:
 
 `action legality / action expenditure / duplicate identity`
 

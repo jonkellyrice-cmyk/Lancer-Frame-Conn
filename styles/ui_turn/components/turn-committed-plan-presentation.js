@@ -3,11 +3,11 @@
    ============================================================ */
 
 import {
-  getFrameHelmTurnUiActionRegistry
+  getFrameConnTurnUiActionRegistry
 } from "./turn-runtime-bindings.js";
 
 import {
-  getFrameHelmTurnUiSnapshot
+  getFrameConnTurnUiSnapshot
 } from "./turn-state-access.js";
 
 
@@ -18,7 +18,7 @@ import {
 /**
  * Resolve action metadata for presentation.
  */
-function getFrameHelmTurnUiAction(
+function getFrameConnTurnUiAction(
   actionId
 ) {
   if (
@@ -29,7 +29,7 @@ function getFrameHelmTurnUiAction(
 
 
   const registry =
-    getFrameHelmTurnUiActionRegistry();
+    getFrameConnTurnUiActionRegistry();
 
 
   return (
@@ -54,7 +54,7 @@ function getFrameHelmTurnUiAction(
  * importing the Action Execution feature directly across feature
  * boundaries.
  */
-const FRAME_HELM_TURN_UI_NO_ROLL_ACTION_IDS =
+const FRAME_CONN_TURN_UI_NO_ROLL_ACTION_IDS =
   Object.freeze(
     new Set([
       "movement.standard",
@@ -83,7 +83,7 @@ const FRAME_HELM_TURN_UI_NO_ROLL_ACTION_IDS =
  * execution workflow available through the current universal-action
  * execution surface.
  */
-function frameHelmTurnUiCommittedActionCanRoll(
+function frameConnTurnUiCommittedActionCanRoll(
   action
 ) {
   if (
@@ -94,7 +94,7 @@ function frameHelmTurnUiCommittedActionCanRoll(
 
 
   return (
-    !FRAME_HELM_TURN_UI_NO_ROLL_ACTION_IDS
+    !FRAME_CONN_TURN_UI_NO_ROLL_ACTION_IDS
       .has(
         action.id
       )
@@ -110,7 +110,7 @@ function frameHelmTurnUiCommittedActionCanRoll(
  * execution can address the exact committed action rather than only
  * the underlying universal-action definition.
  */
-function buildFrameHelmTurnCommittedActionExecutionPresentation(
+function buildFrameConnTurnCommittedActionExecutionPresentation(
   action,
   entry
 ) {
@@ -135,7 +135,7 @@ function buildFrameHelmTurnCommittedActionExecutionPresentation(
     );
 
   const canRoll =
-    frameHelmTurnUiCommittedActionCanRoll(
+    frameConnTurnUiCommittedActionCanRoll(
       action
     );
 
@@ -197,7 +197,7 @@ function buildFrameHelmTurnCommittedActionExecutionPresentation(
  * Determine the broad semantic kind used to style a committed
  * action.
  */
-function frameHelmTurnUiCommittedActionKind(
+function frameConnTurnUiCommittedActionKind(
   action,
   entry
 ) {
@@ -257,7 +257,7 @@ function frameHelmTurnUiCommittedActionKind(
  * Produce the short detail line historically displayed by the
  * Application UI for a committed action.
  */
-function frameHelmTurnUiCommittedActionDetail(
+function frameConnTurnUiCommittedActionDetail(
   action,
   entry
 ) {
@@ -295,24 +295,24 @@ function frameHelmTurnUiCommittedActionDetail(
 /**
  * Convert one committed Turn action into a presentation-safe row.
  */
-function buildFrameHelmTurnCommittedActionPresentation(
+function buildFrameConnTurnCommittedActionPresentation(
   entry,
   index = 0
 ) {
   const action =
-    getFrameHelmTurnUiAction(
+    getFrameConnTurnUiAction(
       entry?.actionId
     );
 
 
   const kind =
-    frameHelmTurnUiCommittedActionKind(
+    frameConnTurnUiCommittedActionKind(
       action,
       entry
     );
 
   const execution =
-    buildFrameHelmTurnCommittedActionExecutionPresentation(
+    buildFrameConnTurnCommittedActionExecutionPresentation(
       action,
       entry
     );
@@ -355,7 +355,7 @@ function buildFrameHelmTurnCommittedActionPresentation(
       "",
 
     detail:
-      frameHelmTurnUiCommittedActionDetail(
+      frameConnTurnUiCommittedActionDetail(
         action,
         entry
       ),
@@ -427,13 +427,13 @@ function buildFrameHelmTurnCommittedActionPresentation(
         : "committed",
 
     classNames: [
-      "frame-helm-plan-entry",
+      "frame-conn-plan-entry",
 
-      `frame-helm-plan-${kind}`,
+      `frame-conn-plan-${kind}`,
 
       entry?.executed
-        ? "frame-helm-plan-executed"
-        : "frame-helm-plan-pending"
+        ? "frame-conn-plan-executed"
+        : "frame-conn-plan-pending"
     ]
       .filter(
         Boolean
@@ -457,7 +457,7 @@ function buildFrameHelmTurnCommittedActionPresentation(
  * receive synthetic committed-action identities and are therefore
  * explicitly non-executable.
  */
-function buildFrameHelmTurnCommittedHistoryPresentation(
+function buildFrameConnTurnCommittedHistoryPresentation(
   event,
   index = 0
 ) {
@@ -472,7 +472,7 @@ function buildFrameHelmTurnCommittedHistoryPresentation(
 
 
   const action =
-    getFrameHelmTurnUiAction(
+    getFrameConnTurnUiAction(
       actionId
     );
 
@@ -671,9 +671,9 @@ function buildFrameHelmTurnCommittedHistoryPresentation(
       "recorded",
 
     classNames: [
-      "frame-helm-plan-entry",
-      `frame-helm-plan-${kind}`,
-      "frame-helm-plan-recorded"
+      "frame-conn-plan-entry",
+      `frame-conn-plan-${kind}`,
+      "frame-conn-plan-recorded"
     ]
       .filter(
         Boolean
@@ -690,7 +690,7 @@ function buildFrameHelmTurnCommittedHistoryPresentation(
  * plan. Other Turn-history entries remain domain telemetry and are
  * intentionally excluded from this presentation surface.
  */
-function frameHelmTurnUiIsCommittedPlanHistoryEvent(
+function frameConnTurnUiIsCommittedPlanHistoryEvent(
   event
 ) {
   return [
@@ -716,9 +716,9 @@ function frameHelmTurnUiIsCommittedPlanHistoryEvent(
  * historically displayed by the Application UI, then restores
  * their chronological order before assigning presentation indices.
  */
-function buildFrameHelmTurnCommittedPlanPresentation(
+function buildFrameConnTurnCommittedPlanPresentation(
   snapshot =
-    getFrameHelmTurnUiSnapshot()
+    getFrameConnTurnUiSnapshot()
 ) {
   const usedActions =
     Array.isArray(
@@ -759,7 +759,7 @@ function buildFrameHelmTurnCommittedPlanPresentation(
 
     ...history
       .filter(
-        frameHelmTurnUiIsCommittedPlanHistoryEvent
+        frameConnTurnUiIsCommittedPlanHistoryEvent
       )
       .map(
         (
@@ -819,7 +819,7 @@ function buildFrameHelmTurnCommittedPlanPresentation(
           "history"
         ) {
           return (
-            buildFrameHelmTurnCommittedHistoryPresentation(
+            buildFrameConnTurnCommittedHistoryPresentation(
               orderedEntry.value,
               index
             )
@@ -828,7 +828,7 @@ function buildFrameHelmTurnCommittedPlanPresentation(
 
 
         return (
-          buildFrameHelmTurnCommittedActionPresentation(
+          buildFrameConnTurnCommittedActionPresentation(
             orderedEntry.value,
             index
           )
@@ -883,14 +883,14 @@ function buildFrameHelmTurnCommittedPlanPresentation(
    ============================================================ */
 
 export {
-  FRAME_HELM_TURN_UI_NO_ROLL_ACTION_IDS,
-  getFrameHelmTurnUiAction,
-  frameHelmTurnUiCommittedActionCanRoll,
-  buildFrameHelmTurnCommittedActionExecutionPresentation,
-  frameHelmTurnUiCommittedActionKind,
-  frameHelmTurnUiCommittedActionDetail,
-  buildFrameHelmTurnCommittedActionPresentation,
-  buildFrameHelmTurnCommittedHistoryPresentation,
-  frameHelmTurnUiIsCommittedPlanHistoryEvent,
-  buildFrameHelmTurnCommittedPlanPresentation
+  FRAME_CONN_TURN_UI_NO_ROLL_ACTION_IDS,
+  getFrameConnTurnUiAction,
+  frameConnTurnUiCommittedActionCanRoll,
+  buildFrameConnTurnCommittedActionExecutionPresentation,
+  frameConnTurnUiCommittedActionKind,
+  frameConnTurnUiCommittedActionDetail,
+  buildFrameConnTurnCommittedActionPresentation,
+  buildFrameConnTurnCommittedHistoryPresentation,
+  frameConnTurnUiIsCommittedPlanHistoryEvent,
+  buildFrameConnTurnCommittedPlanPresentation
 };

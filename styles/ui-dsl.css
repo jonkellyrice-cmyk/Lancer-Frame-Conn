@@ -8,19 +8,19 @@
 
 /**
  * ============================================================
- * FRAME HELM UI DSL
+ * FRAME CONN UI DSL
  * ============================================================
  *
  * ROLE:
  *   Provides a small semantic CSS vocabulary for repeated
- *   Frame Helm interface structures.
+ *   Frame Conn interface structures.
  *
  * PURPOSE:
  *   Reduce repeated CSS declarations without hiding layout or
  *   presentation behavior behind generated code.
  *
  * OWNS:
- *   - Frame Helm visual design tokens
+ *   - Frame Conn visual design tokens
  *   - Shared cockpit panel surfaces
  *   - Shared metric-cell presentation
  *   - Shared selectable-action presentation
@@ -47,7 +47,7 @@
  *   This file contains only reusable visual primitives.
  *
  *   Feature CSS should remain readable in terms of meaningful
- *   Frame Helm selectors while delegating repeated declarations
+ *   Frame Conn selectors while delegating repeated declarations
  *   to the grouped semantic rules below.
  */
 
@@ -56,37 +56,37 @@
    UI DSL -- Design tokens
    ============================================================ */
 
-.lancer-frame-helm {
-  --fh-bg-deep: #071116;
-  --fh-bg-panel: rgba(11, 28, 35, 0.96);
-  --fh-bg-panel-alt: rgba(16, 39, 47, 0.94);
+.lancer-frame-conn {
+  --fc-bg-deep: #071116;
+  --fc-bg-panel: rgba(11, 28, 35, 0.96);
+  --fc-bg-panel-alt: rgba(16, 39, 47, 0.94);
 
-  --fh-cyan: #56e0df;
-  --fh-cyan-bright: #b7ffff;
-  --fh-cyan-muted: rgba(86, 224, 223, 0.34);
+  --fc-cyan: #56e0df;
+  --fc-cyan-bright: #b7ffff;
+  --fc-cyan-muted: rgba(86, 224, 223, 0.34);
 
-  --fh-amber: #ffb84a;
-  --fh-amber-muted: rgba(255, 184, 74, 0.28);
+  --fc-amber: #ffb84a;
+  --fc-amber-muted: rgba(255, 184, 74, 0.28);
 
-  --fh-red: #ff5d67;
+  --fc-red: #ff5d67;
 
-  --fh-text: #e8f8f8;
-  --fh-text-muted: #94b9bc;
+  --fc-text: #e8f8f8;
+  --fc-text-muted: #94b9bc;
 
-  --fh-line: rgba(104, 231, 228, 0.34);
+  --fc-line: rgba(104, 231, 228, 0.34);
 
-  --fh-shadow:
+  --fc-shadow:
     0 0 18px rgba(38, 227, 221, 0.18);
 
-  --fh-surface-background:
+  --fc-surface-background:
     linear-gradient(
       135deg,
       rgba(48, 144, 151, 0.08),
       transparent 44%
     ),
-    var(--fh-bg-panel);
+    var(--fc-bg-panel);
 
-  --fh-cell-background:
+  --fc-cell-background:
     linear-gradient(
       90deg,
       rgba(38, 126, 132, 0.16),
@@ -94,7 +94,7 @@
     ),
     rgba(2, 11, 14, 0.7);
 
-  --fh-button-background:
+  --fc-button-background:
     linear-gradient(
       90deg,
       rgba(38, 125, 132, 0.17),
@@ -102,7 +102,7 @@
     ),
     rgba(4, 17, 21, 0.94);
 
-  --fh-button-hover-background:
+  --fc-button-hover-background:
     linear-gradient(
       90deg,
       rgba(62, 209, 209, 0.23),
@@ -110,10 +110,10 @@
     ),
     rgba(7, 28, 34, 0.98);
 
-  --fh-scrollbar-track:
+  --fc-scrollbar-track:
     rgba(2, 11, 14, 0.72);
 
-  --fh-scrollbar-border:
+  --fc-scrollbar-border:
     rgba(2, 11, 14, 0.88);
 }
 
@@ -129,20 +129,20 @@
  * utility-only class names.
  */
 
-.frame-helm-unit-panel,
-.frame-helm-budget,
-.frame-helm-action-panel,
-.frame-helm-plan-panel,
-.frame-helm-movement-speed-setup,
-.frame-helm-movement-tracker,
-.frame-helm-movement-modes,
-.frame-helm-quick-detail,
-.frame-helm-full-detail {
-  border: 1px solid var(--fh-line);
+.frame-conn-unit-panel,
+.frame-conn-budget,
+.frame-conn-action-panel,
+.frame-conn-plan-panel,
+.frame-conn-movement-speed-setup,
+.frame-conn-movement-tracker,
+.frame-conn-movement-modes,
+.frame-conn-quick-detail,
+.frame-conn-full-detail {
+  border: 1px solid var(--fc-line);
   border-radius: 0;
 
   background:
-    var(--fh-surface-background);
+    var(--fc-surface-background);
 
   box-shadow:
     inset 0 0 16px rgba(0, 0, 0, 0.45),
@@ -154,15 +154,15 @@
    UI DSL -- Small label typography
    ============================================================ */
 
-.frame-helm-label,
-.frame-helm-stat-label,
-.frame-helm-budget-item span,
-.frame-helm-quick-budget span,
-.frame-helm-full-budget span,
-.frame-helm-movement-summary span,
-.frame-helm-movement-current-mode span,
-.frame-helm-movement-ledger span {
-  color: var(--fh-text-muted);
+.frame-conn-label,
+.frame-conn-stat-label,
+.frame-conn-budget-item span,
+.frame-conn-quick-budget span,
+.frame-conn-full-budget span,
+.frame-conn-movement-summary span,
+.frame-conn-movement-current-mode span,
+.frame-conn-movement-ledger span {
+  color: var(--fc-text-muted);
 
   font-family: monospace;
   font-weight: 700;
@@ -176,14 +176,14 @@
    UI DSL -- Metric value typography
    ============================================================ */
 
-.frame-helm-unit-text strong,
-.frame-helm-budget-item strong,
-.frame-helm-quick-budget strong,
-.frame-helm-full-budget strong,
-.frame-helm-movement-summary strong,
-.frame-helm-movement-current-mode strong,
-.frame-helm-movement-ledger strong {
-  color: var(--fh-cyan-bright);
+.frame-conn-unit-text strong,
+.frame-conn-budget-item strong,
+.frame-conn-quick-budget strong,
+.frame-conn-full-budget strong,
+.frame-conn-movement-summary strong,
+.frame-conn-movement-current-mode strong,
+.frame-conn-movement-ledger strong {
+  color: var(--fc-cyan-bright);
   font-family: monospace;
 }
 
@@ -192,11 +192,11 @@
    UI DSL -- Metric grids
    ============================================================ */
 
-.frame-helm-budget-grid,
-.frame-helm-quick-budget,
-.frame-helm-full-budget,
-.frame-helm-movement-summary,
-.frame-helm-movement-ledger {
+.frame-conn-budget-grid,
+.frame-conn-quick-budget,
+.frame-conn-full-budget,
+.frame-conn-movement-summary,
+.frame-conn-movement-ledger {
   display: grid;
   gap: 0.4rem;
 }
@@ -206,12 +206,12 @@
    UI DSL -- Metric cells
    ============================================================ */
 
-.frame-helm-budget-item,
-.frame-helm-quick-budget > div,
-.frame-helm-full-budget > div,
-.frame-helm-movement-summary > div,
-.frame-helm-movement-current-mode,
-.frame-helm-movement-ledger > div {
+.frame-conn-budget-item,
+.frame-conn-quick-budget > div,
+.frame-conn-full-budget > div,
+.frame-conn-movement-summary > div,
+.frame-conn-movement-current-mode,
+.frame-conn-movement-ledger > div {
   display: flex;
   flex-direction: column;
 
@@ -219,11 +219,11 @@
 
   gap: 0.1rem;
 
-  border: 1px solid var(--fh-cyan-muted);
+  border: 1px solid var(--fc-cyan-muted);
   border-radius: 0;
 
   background:
-    var(--fh-cell-background);
+    var(--fc-cell-background);
 
   padding: 0.5rem;
 }
@@ -233,25 +233,25 @@
    UI DSL -- Interactive control base
    ============================================================ */
 
-.frame-helm-primary-button,
-.frame-helm-secondary-button,
-.frame-helm-end-turn-button,
-.frame-helm-back-button,
-.frame-helm-category-button,
-.frame-helm-action-button,
-.frame-helm-movement-mode,
-.frame-helm-quick-execute-button,
-.frame-helm-full-execute-button,
-.frame-helm-movement-input-row button,
-.frame-helm-movement-controls button,
-.frame-helm-plan-execute {
-  border: 1px solid var(--fh-cyan-muted);
+.frame-conn-primary-button,
+.frame-conn-secondary-button,
+.frame-conn-end-turn-button,
+.frame-conn-back-button,
+.frame-conn-category-button,
+.frame-conn-action-button,
+.frame-conn-movement-mode,
+.frame-conn-quick-execute-button,
+.frame-conn-full-execute-button,
+.frame-conn-movement-input-row button,
+.frame-conn-movement-controls button,
+.frame-conn-plan-execute {
+  border: 1px solid var(--fc-cyan-muted);
   border-radius: 0;
 
   background:
-    var(--fh-button-background);
+    var(--fc-button-background);
 
-  color: var(--fh-text);
+  color: var(--fc-text);
 
   cursor: pointer;
 
@@ -264,22 +264,22 @@
    UI DSL -- Interactive control hover
    ============================================================ */
 
-.frame-helm-primary-button:hover,
-.frame-helm-secondary-button:hover,
-.frame-helm-category-button:hover,
-.frame-helm-action-button:hover,
-.frame-helm-movement-mode:hover,
-.frame-helm-quick-execute-button:hover,
-.frame-helm-full-execute-button:hover {
-  border-color: var(--fh-cyan);
+.frame-conn-primary-button:hover,
+.frame-conn-secondary-button:hover,
+.frame-conn-category-button:hover,
+.frame-conn-action-button:hover,
+.frame-conn-movement-mode:hover,
+.frame-conn-quick-execute-button:hover,
+.frame-conn-full-execute-button:hover {
+  border-color: var(--fc-cyan);
 
   background:
-    var(--fh-button-hover-background);
+    var(--fc-button-hover-background);
 
-  color: var(--fh-cyan-bright);
+  color: var(--fc-cyan-bright);
 
   box-shadow:
-    inset 4px 0 0 var(--fh-cyan),
+    inset 4px 0 0 var(--fc-cyan),
     0 0 12px rgba(60, 228, 224, 0.16);
 }
 
@@ -288,10 +288,10 @@
    UI DSL -- Disabled interactive state
    ============================================================ */
 
-.frame-helm-action-button:disabled,
-.frame-helm-movement-mode:disabled,
-.frame-helm-quick-execute-button:disabled,
-.frame-helm-full-execute-button:disabled {
+.frame-conn-action-button:disabled,
+.frame-conn-movement-mode:disabled,
+.frame-conn-quick-execute-button:disabled,
+.frame-conn-full-execute-button:disabled {
   cursor: not-allowed;
 
   filter: grayscale(0.65);
@@ -303,11 +303,11 @@
    UI DSL -- Selectable action card
    ============================================================ */
 
-.frame-helm-category-button,
-.frame-helm-action-button,
-.frame-helm-quick-choice,
-.frame-helm-full-choice,
-.frame-helm-movement-mode {
+.frame-conn-category-button,
+.frame-conn-action-button,
+.frame-conn-quick-choice,
+.frame-conn-full-choice,
+.frame-conn-movement-mode {
   display: flex;
   align-items: flex-start;
 
@@ -336,16 +336,16 @@
    UI DSL -- Selectable action leading icon
    ============================================================ */
 
-.frame-helm-category-button > i:first-child,
-.frame-helm-action-button > i:first-child,
-.frame-helm-movement-mode > i {
+.frame-conn-category-button > i:first-child,
+.frame-conn-action-button > i:first-child,
+.frame-conn-movement-mode > i {
   flex: 0 0 1.7rem;
 
   width: 1.7rem;
 
   margin-top: 0.2rem;
 
-  color: var(--fh-cyan);
+  color: var(--fc-cyan);
 
   font-size: 1.1rem;
 
@@ -360,11 +360,11 @@
    UI DSL -- Action copy container
    ============================================================ */
 
-.frame-helm-category-copy,
-.frame-helm-action-copy,
-.frame-helm-movement-mode > span,
-.frame-helm-quick-execute-button > span,
-.frame-helm-full-execute-button > span {
+.frame-conn-category-copy,
+.frame-conn-action-copy,
+.frame-conn-movement-mode > span,
+.frame-conn-quick-execute-button > span,
+.frame-conn-full-execute-button > span {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -383,11 +383,11 @@
    UI DSL -- Action primary text
    ============================================================ */
 
-.frame-helm-category-copy strong,
-.frame-helm-action-copy strong,
-.frame-helm-movement-mode strong,
-.frame-helm-quick-execute-button strong,
-.frame-helm-full-execute-button strong {
+.frame-conn-category-copy strong,
+.frame-conn-action-copy strong,
+.frame-conn-movement-mode strong,
+.frame-conn-quick-execute-button strong,
+.frame-conn-full-execute-button strong {
   display: block;
 
   width: 100%;
@@ -396,7 +396,7 @@
   height: auto;
   max-height: none;
 
-  color: var(--fh-text);
+  color: var(--fc-text);
 
   font-family: monospace;
 
@@ -416,12 +416,12 @@
    UI DSL -- Action secondary text
    ============================================================ */
 
-.frame-helm-category-copy small,
-.frame-helm-action-copy small,
-.frame-helm-movement-mode small,
-.frame-helm-movement-mode em,
-.frame-helm-quick-execute-button small,
-.frame-helm-full-execute-button small {
+.frame-conn-category-copy small,
+.frame-conn-action-copy small,
+.frame-conn-movement-mode small,
+.frame-conn-movement-mode em,
+.frame-conn-quick-execute-button small,
+.frame-conn-full-execute-button small {
   display: block;
 
   width: 100%;
@@ -432,7 +432,7 @@
 
   margin-top: 0.25rem;
 
-  color: var(--fh-text-muted);
+  color: var(--fc-text-muted);
 
   line-height: 1.35;
 
@@ -449,9 +449,9 @@
    UI DSL -- Requirement / notice block
    ============================================================ */
 
-.frame-helm-quick-requirement,
-.frame-helm-full-requirement,
-.frame-helm-no-actions {
+.frame-conn-quick-requirement,
+.frame-conn-full-requirement,
+.frame-conn-no-actions {
   display: flex;
   align-items: center;
 
@@ -465,7 +465,7 @@
 
   gap: 0.55rem;
 
-  border: 1px dashed var(--fh-cyan-muted);
+  border: 1px dashed var(--fc-cyan-muted);
   border-radius: 0;
 
   background:
@@ -473,7 +473,7 @@
 
   padding: 0.55rem;
 
-  color: var(--fh-text-muted);
+  color: var(--fc-text-muted);
 
   font-size: 0.75rem;
 
@@ -483,9 +483,9 @@
   white-space: normal;
 }
 
-.frame-helm-quick-requirement span,
-.frame-helm-full-requirement span,
-.frame-helm-no-actions p {
+.frame-conn-quick-requirement span,
+.frame-conn-full-requirement span,
+.frame-conn-no-actions p {
   min-width: 0;
 
   overflow: visible;
@@ -500,7 +500,7 @@
    UI DSL -- Action unavailable reason
    ============================================================ */
 
-.frame-helm-action-reason {
+.frame-conn-action-reason {
   display: block;
 
   width: 100%;
@@ -524,8 +524,8 @@
    UI DSL -- Detail surface
    ============================================================ */
 
-.frame-helm-quick-detail,
-.frame-helm-full-detail {
+.frame-conn-quick-detail,
+.frame-conn-full-detail {
   display: flex;
   flex-direction: column;
 
@@ -539,23 +539,23 @@
    UI DSL -- Detail header
    ============================================================ */
 
-.frame-helm-quick-detail-header,
-.frame-helm-full-detail-header {
+.frame-conn-quick-detail-header,
+.frame-conn-full-detail-header {
   display: flex;
   align-items: flex-start;
 
   gap: 0.75rem;
 }
 
-.frame-helm-quick-detail-header > i,
-.frame-helm-full-detail-header > i {
+.frame-conn-quick-detail-header > i,
+.frame-conn-full-detail-header > i {
   flex: 0 0 2rem;
 
   width: 2rem;
 
   margin-top: 0.1rem;
 
-  color: var(--fh-cyan);
+  color: var(--fc-cyan);
 
   font-size: 1.5rem;
 
@@ -565,16 +565,16 @@
     0 0 7px rgba(86, 224, 223, 0.5);
 }
 
-.frame-helm-quick-detail-header > div,
-.frame-helm-full-detail-header > div {
+.frame-conn-quick-detail-header > div,
+.frame-conn-full-detail-header > div {
   min-width: 0;
 }
 
-.frame-helm-quick-detail-header h3,
-.frame-helm-full-detail-header h3 {
+.frame-conn-quick-detail-header h3,
+.frame-conn-full-detail-header h3 {
   margin: 0;
 
-  color: var(--fh-text);
+  color: var(--fc-text);
 
   font-family: monospace;
   font-size: 1.15rem;
@@ -582,11 +582,11 @@
   letter-spacing: 0.025em;
 }
 
-.frame-helm-quick-detail-header p,
-.frame-helm-full-detail-header p {
+.frame-conn-quick-detail-header p,
+.frame-conn-full-detail-header p {
   margin: 0.2rem 0 0;
 
-  color: var(--fh-text-muted);
+  color: var(--fc-text-muted);
 
   font-size: 0.8rem;
 
@@ -598,8 +598,8 @@
    UI DSL -- Execution button
    ============================================================ */
 
-.frame-helm-quick-execute-button,
-.frame-helm-full-execute-button {
+.frame-conn-quick-execute-button,
+.frame-conn-full-execute-button {
   display: flex;
   align-items: center;
 
@@ -623,13 +623,13 @@
   white-space: normal;
 }
 
-.frame-helm-quick-execute-button > i,
-.frame-helm-full-execute-button > i {
+.frame-conn-quick-execute-button > i,
+.frame-conn-full-execute-button > i {
   flex: 0 0 1.7rem;
 
   width: 1.7rem;
 
-  color: var(--fh-cyan);
+  color: var(--fc-cyan);
 
   font-size: 1.15rem;
 
@@ -641,7 +641,7 @@
    UI DSL -- Telemetry cell
    ============================================================ */
 
-.frame-helm-stat-cell {
+.frame-conn-stat-cell {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -663,11 +663,11 @@
   padding: 0.45rem 0.5rem;
 }
 
-.frame-helm-stat-cell:last-child {
+.frame-conn-stat-cell:last-child {
   border-right: 0;
 }
 
-.frame-helm-stat-value-group {
+.frame-conn-stat-value-group {
   display: grid;
 
   grid-template-columns:
@@ -680,14 +680,14 @@
   gap: 0.2rem;
 }
 
-.frame-helm-stat-cell input {
+.frame-conn-stat-cell input {
   width: 100%;
   min-width: 0;
   height: 1.85rem;
 
   margin: 0;
 
-  border: 1px solid var(--fh-cyan-muted);
+  border: 1px solid var(--fc-cyan-muted);
   border-radius: 0;
 
   background:
@@ -698,7 +698,7 @@
     ),
     rgba(1, 9, 12, 0.94);
 
-  color: var(--fh-cyan-bright);
+  color: var(--fc-cyan-bright);
 
   font-family: monospace;
   font-size: 0.85rem;
@@ -717,15 +717,15 @@
    UI DSL -- Generic empty state
    ============================================================ */
 
-.frame-helm-placeholder,
-.frame-helm-no-actions {
+.frame-conn-placeholder,
+.frame-conn-no-actions {
   align-items: center;
   justify-content: center;
 
   text-align: center;
 }
 
-.frame-helm-placeholder {
+.frame-conn-placeholder {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -734,15 +734,15 @@
 
   min-height: 140px;
 
-  border: 1px dashed var(--fh-cyan-muted);
+  border: 1px dashed var(--fc-cyan-muted);
 
   padding: 1.5rem;
 
-  color: var(--fh-text-muted);
+  color: var(--fc-text-muted);
 }
 
-.frame-helm-placeholder p,
-.frame-helm-no-actions p {
+.frame-conn-placeholder p,
+.frame-conn-no-actions p {
   margin: 0;
 }
 
@@ -751,19 +751,19 @@
    UI DSL -- Scroll region
    ============================================================ */
 
-.frame-helm-overview-column,
-.frame-helm-plan-list,
-.frame-helm-action-column .frame-helm-category-list,
-.frame-helm-action-column .frame-helm-action-list,
-.frame-helm-action-column .frame-helm-quick-detail,
-.frame-helm-action-column .frame-helm-full-detail,
-.frame-helm-action-column > .frame-helm-movement-panel,
-.frame-helm-mech-stats-grid {
+.frame-conn-overview-column,
+.frame-conn-plan-list,
+.frame-conn-action-column .frame-conn-category-list,
+.frame-conn-action-column .frame-conn-action-list,
+.frame-conn-action-column .frame-conn-quick-detail,
+.frame-conn-action-column .frame-conn-full-detail,
+.frame-conn-action-column > .frame-conn-movement-panel,
+.frame-conn-mech-stats-grid {
   scrollbar-width: thin;
 
   scrollbar-color:
-    var(--fh-cyan)
-    var(--fh-scrollbar-track);
+    var(--fc-cyan)
+    var(--fc-scrollbar-track);
 }
 
 
@@ -771,13 +771,13 @@
    UI DSL -- Vertical WebKit scrollbar
    ============================================================ */
 
-.frame-helm-overview-column::-webkit-scrollbar,
-.frame-helm-plan-list::-webkit-scrollbar,
-.frame-helm-action-column .frame-helm-category-list::-webkit-scrollbar,
-.frame-helm-action-column .frame-helm-action-list::-webkit-scrollbar,
-.frame-helm-action-column .frame-helm-quick-detail::-webkit-scrollbar,
-.frame-helm-action-column .frame-helm-full-detail::-webkit-scrollbar,
-.frame-helm-action-column > .frame-helm-movement-panel::-webkit-scrollbar {
+.frame-conn-overview-column::-webkit-scrollbar,
+.frame-conn-plan-list::-webkit-scrollbar,
+.frame-conn-action-column .frame-conn-category-list::-webkit-scrollbar,
+.frame-conn-action-column .frame-conn-action-list::-webkit-scrollbar,
+.frame-conn-action-column .frame-conn-quick-detail::-webkit-scrollbar,
+.frame-conn-action-column .frame-conn-full-detail::-webkit-scrollbar,
+.frame-conn-action-column > .frame-conn-movement-panel::-webkit-scrollbar {
   width: 9px;
 }
 
@@ -786,7 +786,7 @@
    UI DSL -- Horizontal WebKit scrollbar
    ============================================================ */
 
-.frame-helm-mech-stats-grid::-webkit-scrollbar {
+.frame-conn-mech-stats-grid::-webkit-scrollbar {
   height: 7px;
 }
 
@@ -795,16 +795,16 @@
    UI DSL -- WebKit scrollbar track
    ============================================================ */
 
-.frame-helm-overview-column::-webkit-scrollbar-track,
-.frame-helm-plan-list::-webkit-scrollbar-track,
-.frame-helm-action-column .frame-helm-category-list::-webkit-scrollbar-track,
-.frame-helm-action-column .frame-helm-action-list::-webkit-scrollbar-track,
-.frame-helm-action-column .frame-helm-quick-detail::-webkit-scrollbar-track,
-.frame-helm-action-column .frame-helm-full-detail::-webkit-scrollbar-track,
-.frame-helm-action-column > .frame-helm-movement-panel::-webkit-scrollbar-track,
-.frame-helm-mech-stats-grid::-webkit-scrollbar-track {
+.frame-conn-overview-column::-webkit-scrollbar-track,
+.frame-conn-plan-list::-webkit-scrollbar-track,
+.frame-conn-action-column .frame-conn-category-list::-webkit-scrollbar-track,
+.frame-conn-action-column .frame-conn-action-list::-webkit-scrollbar-track,
+.frame-conn-action-column .frame-conn-quick-detail::-webkit-scrollbar-track,
+.frame-conn-action-column .frame-conn-full-detail::-webkit-scrollbar-track,
+.frame-conn-action-column > .frame-conn-movement-panel::-webkit-scrollbar-track,
+.frame-conn-mech-stats-grid::-webkit-scrollbar-track {
   background:
-    var(--fh-scrollbar-track);
+    var(--fc-scrollbar-track);
 }
 
 
@@ -812,17 +812,17 @@
    UI DSL -- WebKit scrollbar thumb
    ============================================================ */
 
-.frame-helm-overview-column::-webkit-scrollbar-thumb,
-.frame-helm-plan-list::-webkit-scrollbar-thumb,
-.frame-helm-action-column .frame-helm-category-list::-webkit-scrollbar-thumb,
-.frame-helm-action-column .frame-helm-action-list::-webkit-scrollbar-thumb,
-.frame-helm-action-column .frame-helm-quick-detail::-webkit-scrollbar-thumb,
-.frame-helm-action-column .frame-helm-full-detail::-webkit-scrollbar-thumb,
-.frame-helm-action-column > .frame-helm-movement-panel::-webkit-scrollbar-thumb,
-.frame-helm-mech-stats-grid::-webkit-scrollbar-thumb {
+.frame-conn-overview-column::-webkit-scrollbar-thumb,
+.frame-conn-plan-list::-webkit-scrollbar-thumb,
+.frame-conn-action-column .frame-conn-category-list::-webkit-scrollbar-thumb,
+.frame-conn-action-column .frame-conn-action-list::-webkit-scrollbar-thumb,
+.frame-conn-action-column .frame-conn-quick-detail::-webkit-scrollbar-thumb,
+.frame-conn-action-column .frame-conn-full-detail::-webkit-scrollbar-thumb,
+.frame-conn-action-column > .frame-conn-movement-panel::-webkit-scrollbar-thumb,
+.frame-conn-mech-stats-grid::-webkit-scrollbar-thumb {
   border:
-    2px solid var(--fh-scrollbar-border);
+    2px solid var(--fc-scrollbar-border);
 
   background:
-    var(--fh-cyan);
+    var(--fc-cyan);
 }

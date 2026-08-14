@@ -17,7 +17,7 @@ Structure/Overheat cascade prompt hooks
 cascade chat output
 \`\`\`
 
-Frame Helm must supply controller-state and cascade gameplay consequences.
+Frame Conn must supply controller-state and cascade gameplay consequences.
 
 —
 
@@ -169,7 +169,7 @@ tg_no_cascade
 
 but CascadeFlow does not generically consume it.
 
-Frame Helm should filter cascade-resistant sources correctly.
+Frame Conn should filter cascade-resistant sources correctly.
 
 —
 
@@ -186,7 +186,7 @@ controller state
 cascade recovery
 \`\`\`
 
-Frame Helm owns these.
+Frame Conn owns these.
 
 —
 
@@ -203,13 +203,13 @@ NHPControlFlow
 
 was found.
 
-Voluntary AI control is a Frame Helm subsystem.
+Voluntary AI control is a Frame Conn subsystem.
 
 —
 
 # 10. Controller State
 
-Frame Helm needs explicit controller state.
+Frame Conn needs explicit controller state.
 
 Minimum model:
 
@@ -244,7 +244,7 @@ Use:
 \`\`\`text
 native Mech actor
 +
-Frame Helm controller state
+Frame Conn controller state
 \`\`\`
 
 —
@@ -348,7 +348,7 @@ Talents
 other Pilot features
 \`\`\`
 
-Frame Helm must suppress Pilot-derived feature contributions when:
+Frame Conn must suppress Pilot-derived feature contributions when:
 
 \`\`\`text
 controllerMode == ai
@@ -391,7 +391,7 @@ subsequent Pilot turn
 
 # 19. Cascade Check Automation
 
-Frame Helm should hook successful completion of:
+Frame Conn should hook successful completion of:
 
 \`\`\`text
 Structure check
@@ -457,7 +457,7 @@ Preferred:
 
 \`\`\`text
 controllerMode = cascade
-→ player Frame Helm blocks Mech execution
+→ player Frame Conn blocks Mech execution
 → GM retains execution access
 \`\`\`
 
@@ -481,7 +481,7 @@ SHUT DOWN
 
 to stabilize the NHP.
 
-Frame Helm action registry must enforce this restriction.
+Frame Conn action registry must enforce this restriction.
 
 —
 
@@ -513,7 +513,7 @@ system.cascading = false
 
 during normal gameplay.
 
-Frame Helm must clear it on successful stabilization.
+Frame Conn must clear it on successful stabilization.
 
 —
 
@@ -627,7 +627,7 @@ AI cascading
 → native item.cascading
 
 who currently controls Mech
-→ Frame Helm controllerMode
+→ Frame Conn controllerMode
 \`\`\`
 
 Do not infer control directly from AI installation.
@@ -665,7 +665,7 @@ Do not leave stale AI Item UUIDs.
 
 —
 
-# 34. Native vs Frame Helm Ownership
+# 34. Native vs Frame Conn Ownership
 
 ## Native Lancer
 
@@ -681,7 +681,7 @@ Mech/Pilot actors
 normal Mech actions
 \`\`\`
 
-## Frame Helm
+## Frame Conn
 
 \`\`\`text
 correct cascade gating
@@ -793,7 +793,7 @@ Only natural 1 should enter cascade.
 
 **Invariant 6**
 
-Voluntary AI control requires Frame Helm controller state.
+Voluntary AI control requires Frame Conn controller state.
 
 **Invariant 7**
 
@@ -829,7 +829,7 @@ NATIVE MECH
 └── Cascade roll primitives
         │
         ▼
-FRAME HELM NHP CONTROL
+FRAME CONN NHP CONTROL
 │
 ├── controllerMode
 │   ├── pilot
@@ -857,7 +857,7 @@ FRAME HELM NHP CONTROL
 
 Critical rule:
 
-**Reuse native AI tags, capacity, cascade triggers, and item.cascading state. Frame Helm supplies the missing controller-state machine, corrects the native cascade bug, implements voluntary NHP control, separates AI action economy, suppresses Pilot features under AI control, and connects cascade recovery to Shutdown.**
+**Reuse native AI tags, capacity, cascade triggers, and item.cascading state. Frame Conn supplies the missing controller-state machine, corrects the native cascade bug, implements voluntary NHP control, separates AI action economy, suppresses Pilot features under AI control, and connects cascade recovery to Shutdown.**
 `;
 
 fs.writeFileSync(“nhp-control-cascade.md”, content, “utf8”);

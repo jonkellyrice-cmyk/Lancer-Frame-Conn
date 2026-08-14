@@ -22,11 +22,11 @@
 
 **Native Hide semantic SynergyLocation:** Not found.
 
-**Frame Helm implementation status:** Frame Helm should own Hide legality, visibility/cover qualification, application and lifecycle of the native `hidden` status, and Hidden-specific rules consequences, while reusing native Lancer status, cover, invisibility, and attack-modifier infrastructure wherever those already exist.
+**Frame Conn implementation status:** Frame Conn should own Hide legality, visibility/cover qualification, application and lifecycle of the native `hidden` status, and Hidden-specific rules consequences, while reusing native Lancer status, cover, invisibility, and attack-modifier infrastructure wherever those already exist.
 
 ## Purpose
 
-This document records the native Foundry Lancer findings relevant to the universal **Hide** Quick Action and defines the intended Frame Helm implementation boundary.
+This document records the native Foundry Lancer findings relevant to the universal **Hide** Quick Action and defines the intended Frame Conn implementation boundary.
 
 Repository investigation did not reveal a dedicated executable Hide flow such as:
 
@@ -56,7 +56,7 @@ What the native system does **not** appear to provide is the higher-order Hide r
 
 Therefore:
 
-> Frame Helm should implement the universal Hide action and Hidden lifecycle.
+> Frame Conn should implement the universal Hide action and Hidden lifecycle.
 
 while:
 
@@ -105,7 +105,7 @@ Repository searching did not identify:
 - dedicated Hide runtime app
 - dedicated Hide action executor
 
-Therefore Frame Helm cannot delegate Hide to a native Hide workflow.
+Therefore Frame Conn cannot delegate Hide to a native Hide workflow.
 
 —
 
@@ -129,7 +129,7 @@ Therefore the native system has a legitimate authoritative representation for:
 
 `this actor is Hidden`
 
-Frame Helm should use that status rather than creating a second independent Hidden flag.
+Frame Conn should use that status rather than creating a second independent Hidden flag.
 
 —
 
@@ -141,11 +141,11 @@ The native status-icon registry includes:
 
 with the native Hidden icon.
 
-Therefore Frame Helm can rely on native Lancer/Foundry presentation for the underlying Hidden condition.
+Therefore Frame Conn can rely on native Lancer/Foundry presentation for the underlying Hidden condition.
 
 Conceptually:
 
-Frame Helm performs Hide
+Frame Conn performs Hide
 → native `hidden` status applied
 → actor native status state updates
 → native status icon/presentation updates
@@ -168,7 +168,7 @@ can drive:
 
 `system.statuses.hidden`
 
-Frame Helm should prefer native status/effect helpers rather than raw actor field mutation.
+Frame Conn should prefer native status/effect helpers rather than raw actor field mutation.
 
 —
 
@@ -184,7 +184,7 @@ Therefore:
 
 > Applying native `hidden` is necessary, but not sufficient.
 
-Frame Helm will need to own the rules behavior that makes Hidden mechanically meaningful.
+Frame Conn will need to own the rules behavior that makes Hidden mechanically meaningful.
 
 —
 
@@ -242,7 +242,7 @@ target has `system.statuses.invisible`
 
 The implementation includes a dedicated invisibility plugin/module.
 
-Therefore Frame Helm should preserve native attack handling for Invisible.
+Therefore Frame Conn should preserve native attack handling for Invisible.
 
 Do not recreate Invisible attack resolution inside Hide.
 
@@ -266,13 +266,13 @@ does **not** simply mean:
 
 This is important.
 
-Frame Helm sensors/targeting cannot assume the Lancer Invisible status will automatically remove a token from Foundry visibility.
+Frame Conn sensors/targeting cannot assume the Lancer Invisible status will automatically remove a token from Foundry visibility.
 
 —
 
 # 11. Hidden Is Not Foundry Token Hidden
 
-Frame Helm must also distinguish:
+Frame Conn must also distinguish:
 
 Lancer status:
 `hidden`
@@ -347,7 +347,7 @@ Conceptually:
 Soft Cover
 → native attack modifier
 
-Frame Helm should not duplicate that modifier.
+Frame Conn should not duplicate that modifier.
 
 If the target correctly possesses native `cover_soft`, native attacks should remain authoritative for the attack consequence.
 
@@ -362,7 +362,7 @@ Hard Cover
 
 The native Accuracy/Difficulty system already interprets it.
 
-Frame Helm should not pre-subtract or independently reproduce Hard Cover attack Difficulty.
+Frame Conn should not pre-subtract or independently reproduce Hard Cover attack Difficulty.
 
 —
 
@@ -376,7 +376,7 @@ The discovered logic includes exceptions for concepts such as:
 - Tech Attacks;
 - applicable Melee attacks.
 
-Therefore Frame Helm should not create a separate generic:
+Therefore Frame Conn should not create a separate generic:
 
 `if cover then -X`
 
@@ -411,7 +411,7 @@ Therefore the distinction is:
 native system:
 → understands effects of Cover
 
-Frame Helm / GM / other integration:
+Frame Conn / GM / other integration:
 → must determine whether Cover actually exists
 
 This is directly relevant to Hide legality.
@@ -439,7 +439,7 @@ Hide legality may depend on:
 - special rules;
 - visibility effects.
 
-Therefore Frame Helm should treat native Cover status as one useful input, not necessarily the entire Hide legality decision.
+Therefore Frame Conn should treat native Cover status as one useful input, not necessarily the entire Hide legality decision.
 
 The exact rule text must remain authoritative.
 
@@ -505,9 +505,9 @@ a discovered complete Hide legality engine.
 
 —
 
-# 22. Frame Helm Hide Eligibility Layer
+# 22. Frame Conn Hide Eligibility Layer
 
-Frame Helm will therefore need a dedicated Hide eligibility function/service.
+Frame Conn will therefore need a dedicated Hide eligibility function/service.
 
 Conceptually:
 
@@ -527,7 +527,7 @@ The exact algorithm should come from confirmed Lancer Hide rules.
 
 Hide may depend on whether the character is actually observed rather than only whether one geometric LOS line exists.
 
-Therefore Frame Helm should avoid prematurely reducing Hide legality to:
+Therefore Frame Conn should avoid prematurely reducing Hide legality to:
 
 `no LOS from one selected enemy`
 
@@ -545,9 +545,9 @@ This requires explicit rules research.
 
 —
 
-# 24. Frame Helm Sensors Relationship
+# 24. Frame Conn Sensors Relationship
 
-Frame Helm already has a player-facing Sensors system.
+Frame Conn already has a player-facing Sensors system.
 
 Hide should eventually integrate with that broader perception architecture.
 
@@ -578,15 +578,15 @@ Hide action succeeds
 → apply native `hidden`
 → await authoritative actor mutation
 → verify `actor.system.statuses.hidden`
-→ refresh Frame Helm
+→ refresh Frame Conn
 
-This provides native status identity and presentation while Frame Helm supplies the missing lifecycle mechanics.
+This provides native status identity and presentation while Frame Conn supplies the missing lifecycle mechanics.
 
 —
 
 # 26. Proposed Initial Hide Flow
 
-The initial Frame Helm flow should be:
+The initial Frame Conn flow should be:
 
 Player commits Hide
 → Hide appears in Committed Plan
@@ -602,7 +602,7 @@ Player commits Hide
    record Hide execution
    register Hidden lifecycle monitoring
 → refresh authoritative actor state
-→ refresh Frame Helm presentation
+→ refresh Frame Conn presentation
 
 No attack roll is required.
 
@@ -634,7 +634,7 @@ Hide consumes:
 
 **one Quick Action**
 
-Frame Helm’s Turn feature should remain authoritative for this expenditure.
+Frame Conn’s Turn feature should remain authoritative for this expenditure.
 
 The native `hidden` status application should not independently consume action budget.
 
@@ -653,7 +653,7 @@ Hide execution strategy
 
 # 29. Commit vs Execute
 
-If Frame Helm retains the committed-plan distinction:
+If Frame Conn retains the committed-plan distinction:
 
 Commit Hide:
 → spend/reserve Quick Action
@@ -695,7 +695,7 @@ execute
 
 The largest missing native component is the lifecycle of Hidden.
 
-Frame Helm must eventually know:
+Frame Conn must eventually know:
 
 - what events immediately end Hidden;
 - what actions preserve Hidden;
@@ -711,7 +711,7 @@ These should come directly from confirmed Lancer rules.
 
 # 32. Hidden Break Events
 
-The eventual action/event architecture should allow Frame Helm to listen for relevant events.
+The eventual action/event architecture should allow Frame Conn to listen for relevant events.
 
 Conceptually:
 
@@ -728,7 +728,7 @@ actor Hidden
 If break condition met:
 
 → remove native `hidden`
-→ update Frame Helm state/presentation
+→ update Frame Conn state/presentation
 
 Exact trigger names are conceptual only.
 
@@ -746,7 +746,7 @@ Before implementation, confirm the exact Lancer Hide/Hidden rule text.
 
 # 34. Native Status Removal
 
-When Hidden ends, Frame Helm should remove the native:
+When Hidden ends, Frame Conn should remove the native:
 
 `hidden`
 
@@ -759,13 +759,13 @@ Hidden break event
 → authoritative actor update
 → UI refresh
 
-Do not merely set a Frame Helm boolean to false.
+Do not merely set a Frame Conn boolean to false.
 
 —
 
 # 35. Hidden Persistence State
 
-Frame Helm may need supplemental runtime metadata beyond the native Hidden boolean.
+Frame Conn may need supplemental runtime metadata beyond the native Hidden boolean.
 
 Potential information includes:
 
@@ -786,7 +786,7 @@ It supplements it.
 
 Because Hidden and Invisible are distinct native statuses, a character may potentially possess both if rules grant both.
 
-Frame Helm should not make them mutually exclusive without rule support.
+Frame Conn should not make them mutually exclusive without rule support.
 
 Conceptually:
 
@@ -798,7 +798,7 @@ may produce combined behavior.
 
 Native Invisible attack mechanics should remain native.
 
-Frame Helm Hidden targeting/lifecycle rules should be layered separately.
+Frame Conn Hidden targeting/lifecycle rules should be layered separately.
 
 —
 
@@ -820,7 +820,7 @@ Because native runtime code does not appear to use:
 
 `statuses.hidden`
 
-for target legality, Frame Helm will likely need to own Hidden’s player-facing targeting consequences.
+for target legality, Frame Conn will likely need to own Hidden’s player-facing targeting consequences.
 
 Potential areas include:
 
@@ -846,13 +846,13 @@ Foundry token hidden state is primarily a visibility/GM presentation mechanism.
 
 Lancer Hidden is a mechanical condition.
 
-Frame Helm should instead implement the actual game rules and only alter token presentation if a deliberate UX layer requires it.
+Frame Conn should instead implement the actual game rules and only alter token presentation if a deliberate UX layer requires it.
 
 —
 
-# 40. Frame Helm Sensors Presentation
+# 40. Frame Conn Sensors Presentation
 
-Frame Helm’s Sensors view may need to visually distinguish:
+Frame Conn’s Sensors view may need to visually distinguish:
 
 - visible enemy;
 - detected but Hidden enemy;
@@ -888,7 +888,7 @@ They are different states.
 
 # 42. Cover Detection Architecture
 
-Frame Helm may eventually need a reusable Cover service.
+Frame Conn may eventually need a reusable Cover service.
 
 Conceptually:
 
@@ -897,7 +897,7 @@ attacker/observer
 → scene geometry
 → token geometry
 → obstruction
-→ native/Frame Helm rules
+→ native/Frame Conn rules
 → None / Soft / Hard
 
 Such a service could support:
@@ -937,7 +937,7 @@ Hide should consume this service.
 
 # 44. Optional terrain-height-tools Dependency
 
-Because LOS functionality discovered in the repo is associated with optional terrain-height-tools integration, Frame Helm should not make Hide fundamentally depend on that module unless it becomes an explicit dependency.
+Because LOS functionality discovered in the repo is associated with optional terrain-height-tools integration, Frame Conn should not make Hide fundamentally depend on that module unless it becomes an explicit dependency.
 
 Preferred architecture:
 
@@ -975,7 +975,7 @@ Likewise, confirm whether being Invisible changes the requirements for Hiding.
 
 Because Invisible is a separate condition with its own mechanics, it may alter observation or Hide eligibility.
 
-Frame Helm’s visibility service should be capable of considering this without merging the statuses.
+Frame Conn’s visibility service should be capable of considering this without merging the statuses.
 
 —
 
@@ -988,7 +988,7 @@ Confirm how Sensors interacts with:
 - LOS;
 - cover.
 
-Frame Helm should not assume:
+Frame Conn should not assume:
 
 inside Sensors
 → automatically detectable
@@ -1000,7 +1000,7 @@ outside LOS
 
 without the actual rules.
 
-This is especially relevant because Frame Helm already presents sensor-range information.
+This is especially relevant because Frame Conn already presents sensor-range information.
 
 —
 
@@ -1012,7 +1012,7 @@ Unlike Boost, Brace, Disengage, Overwatch, Grapple, and Ram, repository search d
 
 as a native `SynergyLocation`.
 
-Therefore Frame Helm should not assume native structured synergy metadata can discover:
+Therefore Frame Conn should not assume native structured synergy metadata can discover:
 
 `when you Hide`
 
@@ -1046,13 +1046,13 @@ semantic action location
 
 was not found in the SynergyLocation list inspected during the search.
 
-Therefore future trigger support may require a Frame Helm semantic Hide event even if native structured synergy data does not provide one.
+Therefore future trigger support may require a Frame Conn semantic Hide event even if native structured synergy data does not provide one.
 
 —
 
-# 50. Frame Helm Semantic Hide Event
+# 50. Frame Conn Semantic Hide Event
 
-Conceptually, Frame Helm should preserve:
+Conceptually, Frame Conn should preserve:
 
 Hide executed
 
@@ -1090,7 +1090,7 @@ The intended state split is:
 - status icons;
 - generic status/effect infrastructure.
 
-**FRAME HELM OWNS:**
+**FRAME CONN OWNS:**
 
 - why Hidden is applied;
 - when Hidden is legal;
@@ -1110,7 +1110,7 @@ and:
 
 Cover attack modifiers.
 
-Therefore Frame Helm should not implement those inside Hide.
+Therefore Frame Conn should not implement those inside Hide.
 
 If an attack targets an Invisible character:
 
@@ -1149,7 +1149,7 @@ This keeps responsibility clean.
 
 No native `HideFlow` was found.
 
-Frame Helm may implement an internal Hide execution service, but it should not pretend to delegate to a nonexistent native workflow.
+Frame Conn may implement an internal Hide execution service, but it should not pretend to delegate to a nonexistent native workflow.
 
 The reusable native boundary is:
 
@@ -1168,7 +1168,7 @@ The safest first-stage implementation is:
 1. Use confirmed Lancer Hide rules for legality.
 2. Resolve relevant cover/visibility state.
 3. Apply native `hidden`.
-4. Display Hidden through native/Frame Helm UI.
+4. Display Hidden through native/Frame Conn UI.
 5. Implement explicit known break conditions.
 6. Do not automatically recreate every stealth interaction at once.
 7. Expand targeting/Sensors automation incrementally.
@@ -1179,7 +1179,7 @@ This provides useful Hide behavior without overbuilding an unverified stealth en
 
 # 56. Future Automation Strategy
 
-The mature Frame Helm flow may eventually become:
+The mature Frame Conn flow may eventually become:
 
 Hide execution requested
 → resolve all hostile observers
@@ -1257,7 +1257,7 @@ Before final implementation:
 
 # 59. Visibility Service TODO
 
-Frame Helm will probably need a reusable visibility/observation service.
+Frame Conn will probably need a reusable visibility/observation service.
 
 Research/design tasks:
 
@@ -1301,7 +1301,7 @@ Afterward:
 - [ ] Await authoritative actor mutation.
 - [ ] Confirm native Hidden state active.
 - [ ] Mark committed Hide executed.
-- [ ] Refresh Frame Helm state/presentation.
+- [ ] Refresh Frame Conn state/presentation.
 - [ ] Add Hidden lifecycle monitoring.
 - [ ] Remove native Hidden on confirmed break conditions.
 - [ ] Integrate Hidden with Sensors presentation.
@@ -1309,7 +1309,7 @@ Afterward:
 - [ ] Preserve native Cover modifiers.
 - [ ] Preserve native Invisible attack behavior.
 - [ ] Avoid manipulating Foundry token-hidden state unless explicitly needed.
-- [ ] Emit Frame Helm Hide/Hidden semantic events for future trigger support.
+- [ ] Emit Frame Conn Hide/Hidden semantic events for future trigger support.
 
 —
 
@@ -1319,7 +1319,7 @@ Afterward:
 - [ ] Hide with invalid conditions.
 - [ ] Native Hidden icon appears.
 - [ ] Actor `system.statuses.hidden` updates.
-- [ ] Hidden survives Frame Helm rerender.
+- [ ] Hidden survives Frame Conn rerender.
 - [ ] Hidden removal updates native status correctly.
 - [ ] Invisible remains distinct from Hidden.
 - [ ] Soft Cover remains distinct from Hidden.
@@ -1374,7 +1374,7 @@ Native Lancer already owns Soft/Hard Cover attack modifiers.
 
 **Invariant 10**
 
-Frame Helm should determine Hide legality without duplicating native Cover attack math.
+Frame Conn should determine Hide legality without duplicating native Cover attack math.
 
 **Invariant 11**
 
@@ -1396,7 +1396,7 @@ HIDE
 │
 ├── no dedicated native HideFlow
 │
-├── Frame Helm owns:
+├── Frame Conn owns:
 │   ├── Hide legality
 │   ├── cover / visibility evaluation
 │   ├── LOS / observation integration
@@ -1429,7 +1429,7 @@ HIDE
 
 The critical architectural rule is:
 
-**Hide should apply and maintain native Hidden state, but Frame Helm must supply the missing stealth rules around that state.**
+**Hide should apply and maintain native Hidden state, but Frame Conn must supply the missing stealth rules around that state.**
 
 Do not implement Hide as:
 

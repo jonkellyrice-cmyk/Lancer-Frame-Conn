@@ -26,7 +26,7 @@ cat > docs/af-self-destruct.md <<‘EOF’
 
 **Official tabletop Self Destruct rules:** Confirmed.
 
-**Frame Helm implementation status:** Frame Helm should own Self Destruct action economy, initiation, detonation-window state, end-of-turn timing, detonation choice, Burst target resolution, Agility saves, occupant destruction, and explosion orchestration while reusing native meltdown state/status and native damage/stat infrastructure where appropriate.
+**Frame Conn implementation status:** Frame Conn should own Self Destruct action economy, initiation, detonation-window state, end-of-turn timing, detonation choice, Burst target resolution, Agility saves, occupant destruction, and explosion orchestration while reusing native meltdown state/status and native damage/stat infrastructure where appropriate.
 
 ## Purpose
 
@@ -62,7 +62,7 @@ What the native system does not appear to provide is the actual universal Self D
 
 Therefore:
 
-> Frame Helm should implement Self Destruct as a persistent delayed-action state machine over native meltdown primitives.
+> Frame Conn should implement Self Destruct as a persistent delayed-action state machine over native meltdown primitives.
 
 —
 
@@ -130,7 +130,7 @@ Repository searching did not identify:
 - dedicated Self Destruct core macro
 - dedicated Self Destruct flow file
 
-Therefore Frame Helm cannot delegate complete Self Destruct execution to a native Self Destruct workflow.
+Therefore Frame Conn cannot delegate complete Self Destruct execution to a native Self Destruct workflow.
 
 —
 
@@ -158,7 +158,7 @@ It is:
 - exposed as trackable actor state;
 - explicitly cleared by Full Repair.
 
-Therefore Frame Helm should strongly prefer using:
+Therefore Frame Conn should strongly prefer using:
 
 `actor.system.meltdown_timer`
 
@@ -174,7 +174,7 @@ Native Full Repair behavior explicitly clears:
 
 This is strong evidence that the field represents active reactor-meltdown state.
 
-Frame Helm should preserve this native cleanup relationship.
+Frame Conn should preserve this native cleanup relationship.
 
 If Full Repair legally occurs while a meltdown timer exists:
 
@@ -194,7 +194,7 @@ Therefore the system has a first-class semantic/presentation identity for:
 
 `this reactor is in meltdown`.
 
-Frame Helm should use this native status where appropriate rather than inventing a duplicate visual condition.
+Frame Conn should use this native status where appropriate rather than inventing a duplicate visual condition.
 
 —
 
@@ -231,7 +231,7 @@ is not the same event as:
 
 rolling a reactor-meltdown result through Overheat.
 
-Frame Helm should preserve the distinction between:
+Frame Conn should preserve the distinction between:
 
 - meltdown caused by Self Destruct;
 - meltdown caused by Overheat or another rule.
@@ -252,7 +252,7 @@ or:
 timer reaches zero
 → explode actor
 
-Therefore Frame Helm must own the lifecycle/timing system.
+Therefore Frame Conn must own the lifecycle/timing system.
 
 —
 
@@ -282,7 +282,7 @@ A plain decrementing integer may be insufficient by itself.
 
 —
 
-# 12. Meltdown Timer vs Frame Helm Detonation Metadata
+# 12. Meltdown Timer vs Frame Conn Detonation Metadata
 
 A useful ownership split is:
 
@@ -291,7 +291,7 @@ Native:
 `actor.system.meltdown_timer`
 → persisted reactor meltdown timing indicator
 
-Frame Helm:
+Frame Conn:
 
 supplemental Self Destruct metadata
 → source = self-destruct
@@ -301,7 +301,7 @@ supplemental Self Destruct metadata
 → selected/declared detonation state
 → lifecycle status
 
-Frame Helm should use the native timer where possible but may need additional metadata to represent the official timing window precisely.
+Frame Conn should use the native timer where possible but may need additional metadata to represent the official timing window precisely.
 
 —
 
@@ -365,7 +365,7 @@ Self Destruct consumes:
 
 **one Quick Action**
 
-Frame Helm Turn state owns this expenditure.
+Frame Conn Turn state owns this expenditure.
 
 The future explosion does not consume another Quick Action.
 
@@ -434,7 +434,7 @@ Player commits Self Destruct
 → create native meltdown state
 → set/update `actor.system.meltdown_timer` appropriately
 → apply native `reactor_meltdown` status if appropriate
-→ create Frame Helm Self Destruct metadata
+→ create Frame Conn Self Destruct metadata
 → mark Self Destruct initiation complete
 → refresh authoritative state/UI
 
@@ -442,7 +442,7 @@ Player commits Self Destruct
 
 # 19. Self Destruct Source Identity
 
-Frame Helm should preserve that this reactor meltdown was initiated by:
+Frame Conn should preserve that this reactor meltdown was initiated by:
 
 `Self Destruct`
 
@@ -504,7 +504,7 @@ not:
 - end of every combatant;
 - end of round globally.
 
-Frame Helm Turn/runtime architecture should emit a canonical actor-turn-end event.
+Frame Conn Turn/runtime architecture should emit a canonical actor-turn-end event.
 
 Self Destruct should consume that event.
 
@@ -514,7 +514,7 @@ Self Destruct should consume that event.
 
 At a legal end-of-turn opportunity:
 
-Frame Helm should present:
+Frame Conn should present:
 
 `DETONATE REACTOR?`
 
@@ -540,7 +540,7 @@ Detonation
 
 The player explicitly chooses when within the legal window to detonate.
 
-Therefore Frame Helm must not:
+Therefore Frame Conn must not:
 
 initiate Self Destruct
 → automatically explode at end of next turn
@@ -555,7 +555,7 @@ If the player reaches the final legal end-of-turn timing without detonating earl
 
 → the mech explodes.
 
-Frame Helm should not allow the Self Destruct state to continue indefinitely.
+Frame Conn should not allow the Self Destruct state to continue indefinitely.
 
 —
 
@@ -588,7 +588,7 @@ The official direct consequences given in Self Destruct are:
 - 4d6 Explosive damage;
 - Agility save for half.
 
-Frame Helm should implement these explicitly.
+Frame Conn should implement these explicitly.
 
 —
 
@@ -600,7 +600,7 @@ The explosion is:
 
 centered on the exploding mech.
 
-Therefore Frame Helm needs to identify all valid affected characters within Burst 2 using native Foundry/Lancer grid measurement.
+Therefore Frame Conn needs to identify all valid affected characters within Burst 2 using native Foundry/Lancer grid measurement.
 
 Do not use raw pixel radius.
 
@@ -643,7 +643,7 @@ Self Destruct’s Burst affects everyone in the area.
 
 The player should not manually choose explosion targets.
 
-Frame Helm should derive the affected set from scene geometry.
+Frame Conn should derive the affected set from scene geometry.
 
 —
 
@@ -742,7 +742,7 @@ This allows native Lancer to remain authoritative for downstream processing such
 - Burn if relevant;
 - other native defenses.
 
-Frame Helm should calculate the explosion and save result.
+Frame Conn should calculate the explosion and save result.
 
 Native Lancer should apply final damage.
 
@@ -793,7 +793,7 @@ or:
 
 take Structure damage.
 
-Frame Helm needs to identify the correct native/Foundry representation of an annihilated/destroyed mech.
+Frame Conn needs to identify the correct native/Foundry representation of an annihilated/destroyed mech.
 
 Do not implement annihilation as ordinary damage if the rules require unconditional destruction.
 
@@ -825,7 +825,7 @@ Therefore occupants do not make the Burst Agility save to survive being inside t
 
 The occupant consequence is direct.
 
-Frame Helm must determine who is currently inside the mech.
+Frame Conn must determine who is currently inside the mech.
 
 —
 
@@ -853,7 +853,7 @@ If mounted:
 
 # 43. Other Occupants
 
-If Lancer rules or actor state can represent passengers/other occupants, Frame Helm should include them.
+If Lancer rules or actor state can represent passengers/other occupants, Frame Conn should include them.
 
 Repository research so far has only established the pilot↔mech mounted relationship.
 
@@ -911,7 +911,7 @@ Nothing in the provided rule says the mech becomes stationary merely because Sel
 
 Therefore the explosion location must remain dynamic.
 
-Frame Helm should not lock token movement unless another rule says so.
+Frame Conn should not lock token movement unless another rule says so.
 
 —
 
@@ -938,7 +938,7 @@ The ordinary duplicate-action rules should apply to Self Destruct as a Quick Act
 
 Once reactor meltdown is already active:
 
-Frame Helm should likely reject initiating Self Destruct again.
+Frame Conn should likely reject initiating Self Destruct again.
 
 Even if duplicate-action exceptions exist, creating multiple simultaneous Self Destruct timers on one reactor would be nonsensical unless a specific rule explicitly allows it.
 
@@ -948,7 +948,7 @@ Even if duplicate-action exceptions exist, creating multiple simultaneous Self D
 
 Before initiating Self Destruct:
 
-Frame Helm should inspect:
+Frame Conn should inspect:
 
 `actor.system.meltdown_timer`
 
@@ -976,7 +976,7 @@ mech already has reactor-meltdown state
 
 The rule interaction should be researched explicitly.
 
-Frame Helm should not maintain two independent reactor-meltdown engines.
+Frame Conn should not maintain two independent reactor-meltdown engines.
 
 A shared meltdown domain/service is preferable.
 
@@ -1032,7 +1032,7 @@ Do not assume status timing without tracing.
 
 The provided Self Destruct rule does not describe voluntarily cancelling Self Destruct.
 
-Therefore Frame Helm should not invent a Cancel Self Destruct button.
+Therefore Frame Conn should not invent a Cancel Self Destruct button.
 
 If another rule can cancel reactor meltdown:
 
@@ -1048,13 +1048,13 @@ Native Full Repair clears:
 
 However, whether a Full Repair can actually be performed in the middle of an active Self Destruct countdown is a tabletop legality question.
 
-Frame Helm should preserve native cleanup but not treat it as an always-available cancellation button.
+Frame Conn should preserve native cleanup but not treat it as an always-available cancellation button.
 
 —
 
 # 55. Turn-End Presentation
 
-While Self Destruct is active, Frame Helm should display:
+While Self Destruct is active, Frame Conn should display:
 
 - reactor meltdown active;
 - earliest/legal detonation timing;
@@ -1075,7 +1075,7 @@ A mech with a reactor meltdown underway is a major battlefield state.
 
 The native `reactor_meltdown` icon can provide canvas/status presentation.
 
-Frame Helm may additionally show a prominent telemetry warning.
+Frame Conn may additionally show a prominent telemetry warning.
 
 Presentation should derive from authoritative meltdown state.
 
@@ -1087,7 +1087,7 @@ Self Destruct spans multiple turns and potentially multiple rounds.
 
 Therefore Self Destruct state must survive:
 
-- Frame Helm rerenders;
+- Frame Conn rerenders;
 - application close/reopen;
 - token selection changes;
 - other actors’ turns;
@@ -1097,7 +1097,7 @@ UI-local state is insufficient.
 
 Native `meltdown_timer` provides part of the persistent state.
 
-Supplemental Frame Helm metadata should use durable Foundry state/flags if necessary.
+Supplemental Frame Conn metadata should use durable Foundry state/flags if necessary.
 
 —
 
@@ -1105,7 +1105,7 @@ Supplemental Frame Helm metadata should use durable Foundry state/flags if neces
 
 Self Destruct timing depends on combat rounds/turns.
 
-Frame Helm should use authoritative Foundry Combat state rather than locally incremented counters.
+Frame Conn should use authoritative Foundry Combat state rather than locally incremented counters.
 
 Potential inputs include:
 
@@ -1124,13 +1124,13 @@ The relevant end-of-turn event is specifically:
 
 the Self Destructing actor’s turn.
 
-Frame Helm should bind Self Destruct state to actor/combatant identity rather than merely a numeric turn index, because initiative ordering can change.
+Frame Conn should bind Self Destruct state to actor/combatant identity rather than merely a numeric turn index, because initiative ordering can change.
 
 —
 
 # 60. No Combat Case
 
-If Self Destruct is used outside a Foundry Combat encounter, Frame Helm needs a policy for interpreting:
+If Self Destruct is used outside a Foundry Combat encounter, Frame Conn needs a policy for interpreting:
 
 `your next turn`
 and:
@@ -1139,7 +1139,7 @@ and:
 Possible options include:
 
 - require combat;
-- use Frame Helm turn state;
+- use Frame Conn turn state;
 - provide GM/manual resolution.
 
 Do not silently invent real-time timing.
@@ -1172,7 +1172,7 @@ An Agility save requires a target number.
 
 The Self Destruct rule excerpt does not specify the save target because Lancer’s general save rules determine it.
 
-Frame Helm needs to resolve the correct Save Target from the exploding mech/character according to the general rules.
+Frame Conn needs to resolve the correct Save Target from the exploding mech/character according to the general rules.
 
 This is a critical implementation detail.
 
@@ -1232,7 +1232,7 @@ The final mechanical result must remain correct.
 
 Burst 2 geometry should use native Foundry/Lancer distance/area measurement.
 
-Frame Helm should account for:
+Frame Conn should account for:
 
 - token size;
 - grid type;
@@ -1324,7 +1324,7 @@ Anyone inside is killed because of reactor annihilation.
 
 They should not be processed merely as ordinary Burst targets with 4d6 damage.
 
-If an occupant also happens to be represented by a separate token within Burst 2 due to inconsistent Foundry state, Frame Helm must avoid double-processing.
+If an occupant also happens to be represented by a separate token within Burst 2 due to inconsistent Foundry state, Frame Conn must avoid double-processing.
 
 Mounted-state reconciliation is important.
 
@@ -1354,7 +1354,7 @@ to the same individual twice.
 
 The intended ownership split is:
 
-**FRAME HELM OWNS:**
+**FRAME CONN OWNS:**
 
 - Self Destruct Quick Action;
 - action expenditure;
@@ -1390,7 +1390,7 @@ The intended ownership split is:
 
 No native SelfDestructFlow was found.
 
-Frame Helm may implement an internal Self Destruct state machine/service, but it should clearly be Frame Helm-owned.
+Frame Conn may implement an internal Self Destruct state machine/service, but it should clearly be Frame Conn-owned.
 
 The reusable native boundaries are:
 
@@ -1405,10 +1405,10 @@ The reusable native boundaries are:
 # 76. Proposed Initial Self Destruct Flow
 
 SELF DESTRUCT
-→ Frame Helm validates active mech/Turn
+→ Frame Conn validates active mech/Turn
 → spend Quick Action
 → initiate native meltdown state
-→ persist Frame Helm detonation-window metadata
+→ persist Frame Conn detonation-window metadata
 → apply native reactor-meltdown presentation
 → action initiation complete
 
@@ -1439,7 +1439,7 @@ DETONATION
 → kill occupants
 → annihilate mech
 → clear/finalize meltdown state
-→ refresh scene/Frame Helm
+→ refresh scene/Frame Conn
 → write execution history/chat output
 
 —
@@ -1529,7 +1529,7 @@ Afterward:
 - [ ] Kill current occupants.
 - [ ] Annihilate mech through native/Foundry destruction path.
 - [ ] Clear/finalize meltdown state.
-- [ ] Refresh scene and Frame Helm UI.
+- [ ] Refresh scene and Frame Conn UI.
 - [ ] Produce clear chat/history output.
 - [ ] Avoid duplicate execution after detonation.
 
@@ -1586,7 +1586,7 @@ Mech:
 - [ ] destruction represented correctly in Foundry.
 - [ ] meltdown state finalized.
 - [ ] detonation cannot occur twice.
-- [ ] Frame Helm refreshes after source mech destruction.
+- [ ] Frame Conn refreshes after source mech destruction.
 
 —
 
@@ -1673,7 +1673,7 @@ SELF DESTRUCT
 │   ├── native:
 │   │   ├── `meltdown_timer`
 │   │   └── `reactor_meltdown`
-│   └── Frame Helm:
+│   └── Frame Conn:
 │       └── persist legal detonation window
 │
 ├── WAIT
@@ -1708,7 +1708,7 @@ SELF DESTRUCT
     ├── kill anyone inside
     ├── annihilate mech
     ├── finalize meltdown state
-    └── refresh Foundry / Frame Helm
+    └── refresh Foundry / Frame Conn
 
 The critical architectural rule is:
 
@@ -1716,5 +1716,5 @@ The critical architectural rule is:
 
 Native Lancer already supplies the reactor-meltdown state and downstream damage primitives.
 
-Frame Helm must supply the missing timing, choice, Burst/save orchestration, occupant handling, and annihilation lifecycle.
+Frame Conn must supply the missing timing, choice, Burst/save orchestration, occupant handling, and annihilation lifecycle.
 EOF

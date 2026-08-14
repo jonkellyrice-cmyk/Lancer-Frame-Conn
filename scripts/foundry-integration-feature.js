@@ -9,26 +9,26 @@
 
 /**
  * ============================================================
- * FRAME HELM FEATURE -- FOUNDRY INTEGRATION
+ * FRAME CONN FEATURE -- FOUNDRY INTEGRATION
  * ============================================================
  *
  * ROLE:
- *   Owns Frame Helm's direct integration with Foundry's module
+ *   Owns Frame Conn's direct integration with Foundry's module
  *   settings and scene-control surfaces.
  *
  * PURPOSE:
  *   Remove Foundry-specific application-shell integration from
- *   runtime-orchestrator.js while preserving Frame Helm startup
+ *   runtime-orchestrator.js while preserving Frame Conn startup
  *   behavior and public interaction exactly.
  *
  * RESPONSIBILITIES:
- *   - Register Frame Helm module settings.
- *   - Resolve whether Frame Helm is enabled.
+ *   - Register Frame Conn module settings.
+ *   - Resolve whether Frame Conn is enabled.
  *   - React when the enabled setting changes.
- *   - Close the Frame Helm Application when disabled.
- *   - Add the Frame Helm launcher to Token scene controls.
+ *   - Close the Frame Conn Application when disabled.
+ *   - Add the Frame Conn launcher to Token scene controls.
  *   - Support Foundry scene-control collection shapes.
- *   - Prevent duplicate Frame Helm scene-control tools.
+ *   - Prevent duplicate Frame Conn scene-control tools.
  *   - Declare the getSceneControlButtons Foundry hook.
  *   - Expose Foundry-integration diagnostics.
  *
@@ -37,8 +37,8 @@
  *   - Canonical feature registration.
  *   - Feature dependency ordering.
  *   - Cross-feature runtime composition.
- *   - Public game.lancerFrameHelm composition.
- *   - FrameHelmApplication implementation.
+ *   - Public game.lancerFrameConn composition.
+ *   - FrameConnApplication implementation.
  *   - Application instance ownership.
  *   - Application rendering implementation.
  *   - Action registry implementation.
@@ -123,7 +123,7 @@
    ============================================================ */
 
 import {
-  defineFrameHelmFeature
+  defineFrameConnFeature
 } from "./feature-contract.js";
 
 
@@ -132,15 +132,15 @@ import {
    ============================================================ */
 
 const MODULE_ID =
-  "lancer-frame-helm";
+  "lancer-frame-conn";
 
 
 const MODULE_TITLE =
   "Frame Conn";
 
 
-const FRAME_HELM_SCENE_CONTROL_NAME =
-  "lancer-frame-helm";
+const FRAME_CONN_SCENE_CONTROL_NAME =
+  "lancer-frame-conn";
 
 
 /* ============================================================
@@ -150,10 +150,10 @@ const FRAME_HELM_SCENE_CONTROL_NAME =
 /**
  * Explicit dependency bridge for Application UI behavior.
  *
- * Foundry Integration knows that Frame Helm may be opened or
+ * Foundry Integration knows that Frame Conn may be opened or
  * closed, but does not own the Application implementation.
  */
-const frameHelmFoundryIntegrationRuntimeBindings = {
+const frameConnFoundryIntegrationRuntimeBindings = {
   openApplication:
     null,
 
@@ -169,7 +169,7 @@ const frameHelmFoundryIntegrationRuntimeBindings = {
  * narrow dependency boundary rather than becoming an application
  * service container.
  */
-function configureFrameHelmFoundryIntegrationRuntime(
+function configureFrameConnFoundryIntegrationRuntime(
   bindings = {}
 ) {
   if (
@@ -178,7 +178,7 @@ function configureFrameHelmFoundryIntegrationRuntime(
       "object"
   ) {
     throw new TypeError(
-      "Frame Helm Foundry Integration runtime bindings must be supplied as an object."
+      "Frame Conn Foundry Integration runtime bindings must be supplied as an object."
     );
   }
 
@@ -186,7 +186,7 @@ function configureFrameHelmFoundryIntegrationRuntime(
   const allowedKeys =
     new Set(
       Object.keys(
-        frameHelmFoundryIntegrationRuntimeBindings
+        frameConnFoundryIntegrationRuntimeBindings
       )
     );
 
@@ -206,7 +206,7 @@ function configureFrameHelmFoundryIntegrationRuntime(
       )
     ) {
       throw new Error(
-        `Frame Helm Foundry Integration received unknown runtime binding: ${key}`
+        `Frame Conn Foundry Integration received unknown runtime binding: ${key}`
       );
     }
 
@@ -217,19 +217,19 @@ function configureFrameHelmFoundryIntegrationRuntime(
         "function"
     ) {
       throw new TypeError(
-        `Frame Helm Foundry Integration runtime binding "${key}" must be a function or null.`
+        `Frame Conn Foundry Integration runtime binding "${key}" must be a function or null.`
       );
     }
 
 
-    frameHelmFoundryIntegrationRuntimeBindings[
+    frameConnFoundryIntegrationRuntimeBindings[
       key
     ] = value;
   }
 
 
   return (
-    getFrameHelmFoundryIntegrationRuntimeBindings()
+    getFrameConnFoundryIntegrationRuntimeBindings()
   );
 }
 
@@ -238,15 +238,15 @@ function configureFrameHelmFoundryIntegrationRuntime(
  * Returns runtime-binding availability without exposing the bound
  * functions themselves.
  */
-function getFrameHelmFoundryIntegrationRuntimeBindings() {
+function getFrameConnFoundryIntegrationRuntimeBindings() {
   return Object.freeze({
     applicationOpening:
-      typeof frameHelmFoundryIntegrationRuntimeBindings
+      typeof frameConnFoundryIntegrationRuntimeBindings
         .openApplication ===
         "function",
 
     applicationClosing:
-      typeof frameHelmFoundryIntegrationRuntimeBindings
+      typeof frameConnFoundryIntegrationRuntimeBindings
         .closeApplication ===
         "function"
   });
@@ -258,15 +258,15 @@ function getFrameHelmFoundryIntegrationRuntimeBindings() {
    ============================================================ */
 
 /**
- * Requests that the primary Frame Helm Application open.
+ * Requests that the primary Frame Conn Application open.
  *
  * Application ownership remains with ui-application.js.
  */
-function openFrameHelmFromFoundryIntegration(
+function openFrameConnFromFoundryIntegration(
   ...args
 ) {
   const openApplication =
-    frameHelmFoundryIntegrationRuntimeBindings
+    frameConnFoundryIntegrationRuntimeBindings
       .openApplication;
 
 
@@ -275,7 +275,7 @@ function openFrameHelmFromFoundryIntegration(
     "function"
   ) {
     throw new Error(
-      "Frame Helm Foundry Integration could not resolve the Application open surface."
+      "Frame Conn Foundry Integration could not resolve the Application open surface."
     );
   }
 
@@ -289,15 +289,15 @@ function openFrameHelmFromFoundryIntegration(
 
 
 /**
- * Requests that the primary Frame Helm Application close.
+ * Requests that the primary Frame Conn Application close.
  *
  * Application ownership remains with ui-application.js.
  */
-function closeFrameHelmFromFoundryIntegration(
+function closeFrameConnFromFoundryIntegration(
   ...args
 ) {
   const closeApplication =
-    frameHelmFoundryIntegrationRuntimeBindings
+    frameConnFoundryIntegrationRuntimeBindings
       .closeApplication;
 
 
@@ -322,12 +322,12 @@ function closeFrameHelmFromFoundryIntegration(
    ============================================================ */
 
 /**
- * Returns whether Frame Helm is currently enabled for this world.
+ * Returns whether Frame Conn is currently enabled for this world.
  *
  * This query assumes settings registration has already occurred at
  * the Foundry init boundary.
  */
-function isFrameHelmEnabled() {
+function isFrameConnEnabled() {
   return Boolean(
     game.settings.get(
       MODULE_ID,
@@ -342,11 +342,11 @@ function isFrameHelmEnabled() {
    ============================================================ */
 
 /**
- * Handles changes to the Frame Helm enabled setting.
+ * Handles changes to the Frame Conn enabled setting.
  *
  * Disabling the feature closes the currently-open Application.
  */
-function handleFrameHelmEnabledSettingChange(
+function handleFrameConnEnabledSettingChange(
   enabled
 ) {
   if (
@@ -357,7 +357,7 @@ function handleFrameHelmEnabledSettingChange(
 
 
   return (
-    closeFrameHelmFromFoundryIntegration()
+    closeFrameConnFromFoundryIntegration()
   );
 }
 
@@ -376,7 +376,7 @@ function handleFrameHelmEnabledSettingChange(
  * The authoritative startup boundary remains owned by
  * runtime-orchestrator.js.
  */
-function registerFrameHelmSettings() {
+function registerFrameConnSettings() {
   game.settings.register(
     MODULE_ID,
     "enabled",
@@ -403,7 +403,7 @@ function registerFrameHelmSettings() {
         true,
 
       onChange:
-        handleFrameHelmEnabledSettingChange
+        handleFrameConnEnabledSettingChange
     }
   );
 
@@ -427,7 +427,7 @@ function registerFrameHelmSettings() {
  * Both representations are preserved from the previous runtime
  * implementation.
  */
-function getFrameHelmTokenSceneControls(
+function getFrameConnTokenSceneControls(
   controls
 ) {
   if (
@@ -459,9 +459,9 @@ function getFrameHelmTokenSceneControls(
    ============================================================ */
 
 /**
- * Constructs the Frame Helm Token scene-control launcher.
+ * Constructs the Frame Conn Token scene-control launcher.
  */
-function createFrameHelmSceneControlTool(
+function createFrameConnSceneControlTool(
   tokenControls =
     null
 ) {
@@ -482,7 +482,7 @@ function createFrameHelmSceneControlTool(
 
   return {
     name:
-      FRAME_HELM_SCENE_CONTROL_NAME,
+      FRAME_CONN_SCENE_CONTROL_NAME,
 
     title:
       MODULE_TITLE,
@@ -500,7 +500,7 @@ function createFrameHelmSceneControlTool(
 
     onChange:
       () =>
-        openFrameHelmFromFoundryIntegration()
+        openFrameConnFromFoundryIntegration()
   };
 }
 
@@ -513,7 +513,7 @@ function createFrameHelmSceneControlTool(
  * Returns whether the Token controls already contain the Frame
  * Helm launcher.
  */
-function hasFrameHelmSceneControlTool(
+function hasFrameConnSceneControlTool(
   tokenControls
 ) {
   const tools =
@@ -530,7 +530,7 @@ function hasFrameHelmSceneControlTool(
         existingTool =>
           existingTool
             ?.name ===
-          FRAME_HELM_SCENE_CONTROL_NAME
+          FRAME_CONN_SCENE_CONTROL_NAME
       )
     );
   }
@@ -543,7 +543,7 @@ function hasFrameHelmSceneControlTool(
   ) {
     return Boolean(
       tools[
-        FRAME_HELM_SCENE_CONTROL_NAME
+        FRAME_CONN_SCENE_CONTROL_NAME
       ]
     );
   }
@@ -558,15 +558,15 @@ function hasFrameHelmSceneControlTool(
    ============================================================ */
 
 /**
- * Adds the Frame Helm launcher to a resolved Token scene-control
+ * Adds the Frame Conn launcher to a resolved Token scene-control
  * group.
  *
  * Supports both array- and object-based Foundry tool containers.
  */
-function insertFrameHelmSceneControlTool(
+function insertFrameConnSceneControlTool(
   tokenControls,
   tool =
-    createFrameHelmSceneControlTool(
+    createFrameConnSceneControlTool(
       tokenControls
     )
 ) {
@@ -578,7 +578,7 @@ function insertFrameHelmSceneControlTool(
 
 
   if (
-    hasFrameHelmSceneControlTool(
+    hasFrameConnSceneControlTool(
       tokenControls
     )
   ) {
@@ -605,7 +605,7 @@ function insertFrameHelmSceneControlTool(
 
 
   tokenControls.tools[
-    FRAME_HELM_SCENE_CONTROL_NAME
+    FRAME_CONN_SCENE_CONTROL_NAME
   ] = tool;
 
 
@@ -618,21 +618,21 @@ function insertFrameHelmSceneControlTool(
    ============================================================ */
 
 /**
- * Adds the Frame Helm launcher to Foundry's Token controls when
+ * Adds the Frame Conn launcher to Foundry's Token controls when
  * the module is enabled.
  */
-function addFrameHelmControlButton(
+function addFrameConnControlButton(
   controls
 ) {
   if (
-    !isFrameHelmEnabled()
+    !isFrameConnEnabled()
   ) {
     return false;
   }
 
 
   const tokenControls =
-    getFrameHelmTokenSceneControls(
+    getFrameConnTokenSceneControls(
       controls
     );
 
@@ -651,7 +651,7 @@ function addFrameHelmControlButton(
 
 
   return (
-    insertFrameHelmSceneControlTool(
+    insertFrameConnSceneControlTool(
       tokenControls
     )
   );
@@ -666,14 +666,14 @@ function addFrameHelmControlButton(
  * Produces a lightweight diagnostic representation of Foundry
  * Integration state.
  */
-function getFrameHelmFoundryIntegrationDiagnostics() {
+function getFrameConnFoundryIntegrationDiagnostics() {
   let enabled =
     null;
 
 
   try {
     enabled =
-      isFrameHelmEnabled();
+      isFrameConnEnabled();
   } catch (_error) {
     /**
      * Settings may not yet be registered if diagnostics are
@@ -694,10 +694,10 @@ function getFrameHelmFoundryIntegrationDiagnostics() {
     enabled,
 
     sceneControlName:
-      FRAME_HELM_SCENE_CONTROL_NAME,
+      FRAME_CONN_SCENE_CONTROL_NAME,
 
     runtimeBindings:
-      getFrameHelmFoundryIntegrationRuntimeBindings()
+      getFrameConnFoundryIntegrationRuntimeBindings()
   });
 }
 
@@ -719,8 +719,8 @@ function getFrameHelmFoundryIntegrationDiagnostics() {
  *
  *   scripts/runtime-orchestrator.js
  */
-export const frameHelmFoundryIntegrationFeature =
-  defineFrameHelmFeature({
+export const frameConnFoundryIntegrationFeature =
+  defineFrameConnFeature({
     id:
       "foundry-integration",
 
@@ -745,41 +745,41 @@ export const frameHelmFoundryIntegrationFeature =
 
     commands: {
       configureRuntime:
-        configureFrameHelmFoundryIntegrationRuntime,
+        configureFrameConnFoundryIntegrationRuntime,
 
       registerSettings:
-        registerFrameHelmSettings,
+        registerFrameConnSettings,
 
       openApplication:
-        openFrameHelmFromFoundryIntegration,
+        openFrameConnFromFoundryIntegration,
 
       closeApplication:
-        closeFrameHelmFromFoundryIntegration,
+        closeFrameConnFromFoundryIntegration,
 
       addSceneControl:
-        addFrameHelmControlButton
+        addFrameConnControlButton
     },
 
     queries: {
       enabled:
-        isFrameHelmEnabled,
+        isFrameConnEnabled,
 
       tokenControls:
-        getFrameHelmTokenSceneControls,
+        getFrameConnTokenSceneControls,
 
       hasSceneControl:
-        hasFrameHelmSceneControlTool,
+        hasFrameConnSceneControlTool,
 
       diagnostics:
-        getFrameHelmFoundryIntegrationDiagnostics,
+        getFrameConnFoundryIntegrationDiagnostics,
 
       runtimeBindings:
-        getFrameHelmFoundryIntegrationRuntimeBindings
+        getFrameConnFoundryIntegrationRuntimeBindings
     },
 
     hooks: {
       getSceneControlButtons:
-        addFrameHelmControlButton
+        addFrameConnControlButton
     },
 
     /**
@@ -793,40 +793,40 @@ export const frameHelmFoundryIntegrationFeature =
 
     api: {
       configureRuntime:
-        configureFrameHelmFoundryIntegrationRuntime,
+        configureFrameConnFoundryIntegrationRuntime,
 
       registerSettings:
-        registerFrameHelmSettings,
+        registerFrameConnSettings,
 
       isEnabled:
-        isFrameHelmEnabled,
+        isFrameConnEnabled,
 
       open:
-        openFrameHelmFromFoundryIntegration,
+        openFrameConnFromFoundryIntegration,
 
       close:
-        closeFrameHelmFromFoundryIntegration,
+        closeFrameConnFromFoundryIntegration,
 
       addSceneControl:
-        addFrameHelmControlButton,
+        addFrameConnControlButton,
 
       getTokenControls:
-        getFrameHelmTokenSceneControls,
+        getFrameConnTokenSceneControls,
 
       createSceneControlTool:
-        createFrameHelmSceneControlTool,
+        createFrameConnSceneControlTool,
 
       hasSceneControl:
-        hasFrameHelmSceneControlTool,
+        hasFrameConnSceneControlTool,
 
       insertSceneControl:
-        insertFrameHelmSceneControlTool,
+        insertFrameConnSceneControlTool,
 
       diagnostics:
-        getFrameHelmFoundryIntegrationDiagnostics,
+        getFrameConnFoundryIntegrationDiagnostics,
 
       runtimeBindings:
-        getFrameHelmFoundryIntegrationRuntimeBindings
+        getFrameConnFoundryIntegrationRuntimeBindings
     },
 
     metadata: {
@@ -834,7 +834,7 @@ export const frameHelmFoundryIntegrationFeature =
         "Foundry Integration",
 
       description:
-        "Owns Frame Helm module settings and Foundry Token scene-control integration.",
+        "Owns Frame Conn module settings and Foundry Token scene-control integration.",
 
       extractedFrom:
         "scripts/runtime-orchestrator.js",
@@ -871,32 +871,32 @@ export const frameHelmFoundryIntegrationFeature =
  * runtime orchestrator is converted to registry access.
  *
  * New cross-feature consumers should preferably resolve this
- * feature through frameHelmFeatureRegistry.
+ * feature through frameConnFeatureRegistry.
  */
 export {
-  configureFrameHelmFoundryIntegrationRuntime,
+  configureFrameConnFoundryIntegrationRuntime,
 
-  getFrameHelmFoundryIntegrationRuntimeBindings,
+  getFrameConnFoundryIntegrationRuntimeBindings,
 
-  openFrameHelmFromFoundryIntegration,
+  openFrameConnFromFoundryIntegration,
 
-  closeFrameHelmFromFoundryIntegration,
+  closeFrameConnFromFoundryIntegration,
 
-  isFrameHelmEnabled,
+  isFrameConnEnabled,
 
-  handleFrameHelmEnabledSettingChange,
+  handleFrameConnEnabledSettingChange,
 
-  registerFrameHelmSettings,
+  registerFrameConnSettings,
 
-  getFrameHelmTokenSceneControls,
+  getFrameConnTokenSceneControls,
 
-  createFrameHelmSceneControlTool,
+  createFrameConnSceneControlTool,
 
-  hasFrameHelmSceneControlTool,
+  hasFrameConnSceneControlTool,
 
-  insertFrameHelmSceneControlTool,
+  insertFrameConnSceneControlTool,
 
-  addFrameHelmControlButton,
+  addFrameConnControlButton,
 
-  getFrameHelmFoundryIntegrationDiagnostics
+  getFrameConnFoundryIntegrationDiagnostics
 };

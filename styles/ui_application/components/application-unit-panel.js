@@ -9,13 +9,13 @@ function renderUnitPanel(
     data.tokenImage
       ? `
         <img
-          class="frame-helm-unit-image"
+          class="frame-conn-unit-image"
           src="${foundry.utils.escapeHTML(data.tokenImage)}"
           alt=""
         >
       `
       : `
-        <div class="frame-helm-unit-image frame-helm-unit-image-empty">
+        <div class="frame-conn-unit-image frame-conn-unit-image-empty">
           <i class="fas fa-robot"></i>
         </div>
       `;
@@ -24,8 +24,8 @@ function renderUnitPanel(
   const unitText =
     data.hasSelectedToken
       ? `
-        <div class="frame-helm-unit-text">
-          <span class="frame-helm-label">
+        <div class="frame-conn-unit-text">
+          <span class="frame-conn-label">
             Controlled Unit
           </span>
 
@@ -35,8 +35,8 @@ function renderUnitPanel(
         </div>
       `
       : `
-        <div class="frame-helm-unit-text">
-          <span class="frame-helm-label">
+        <div class="frame-conn-unit-text">
+          <span class="frame-conn-label">
             Controlled Unit
           </span>
 
@@ -52,7 +52,7 @@ function renderUnitPanel(
 
 
   return `
-    <section class="frame-helm-unit-panel">
+    <section class="frame-conn-unit-panel">
       ${portrait}
       ${unitText}
     </section>

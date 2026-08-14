@@ -22,11 +22,11 @@ cat > docs/af-protocol.md <<‘EOF’
 
 **Native universal Protocol selector/orchestrator:** Not found.
 
-**Frame Helm implementation status:** Frame Helm should own Protocol timing, discovery, legality, action-window closure, source selection, and execution orchestration while delegating actor-owned Protocol mechanics to native `ActivationFlow` where available.
+**Frame Conn implementation status:** Frame Conn should own Protocol timing, discovery, legality, action-window closure, source selection, and execution orchestration while delegating actor-owned Protocol mechanics to native `ActivationFlow` where available.
 
 ## Purpose
 
-This document records the native Foundry Lancer findings relevant to **Protocol** execution and defines the intended Frame Helm integration boundary.
+This document records the native Foundry Lancer findings relevant to **Protocol** execution and defines the intended Frame Conn integration boundary.
 
 Repository investigation did not reveal a dedicated executable Protocol flow such as:
 
@@ -50,7 +50,7 @@ Native Lancer already provides:
 
 Therefore:
 
-> Frame Helm should treat Protocol as a start-of-turn action-selection/orchestration layer.
+> Frame Conn should treat Protocol as a start-of-turn action-selection/orchestration layer.
 
 while:
 
@@ -74,7 +74,7 @@ other actor-owned action
 → ActionData
 → `activation = Protocol`
 
-Therefore a Frame Helm Protocol surface should primarily answer:
+Therefore a Frame Conn Protocol surface should primarily answer:
 
 `Which Protocol actions does this actor currently have available?`
 
@@ -95,7 +95,7 @@ Repository searching did not identify:
 - universal Protocol action implementation
 - universal Protocol effects engine
 
-Therefore Frame Helm should not invent a native Protocol flow.
+Therefore Frame Conn should not invent a native Protocol flow.
 
 —
 
@@ -123,7 +123,7 @@ This is much stronger than rules text parsing.
 
 # 4. Structured Protocol Discovery
 
-Where actor-owned content uses native `ActionData`, Frame Helm should discover Protocol actions through:
+Where actor-owned content uses native `ActionData`, Frame Conn should discover Protocol actions through:
 
 `action.activation === ActivationType.Protocol`
 
@@ -161,7 +161,7 @@ The native action model contains structured fields including concepts such as:
 - damage;
 - range.
 
-This gives Frame Helm a useful discovery and execution contract.
+This gives Frame Conn a useful discovery and execution contract.
 
 Protocol actions should preserve the complete native action identity rather than being flattened into display text.
 
@@ -171,7 +171,7 @@ Protocol actions should preserve the complete native action identity rather than
 
 A native item may contain multiple actions.
 
-Therefore Frame Helm must preserve:
+Therefore Frame Conn must preserve:
 
 - source item;
 - item UUID or equivalent identity;
@@ -218,7 +218,7 @@ At the start of the actor’s turn:
 
 This matches the tabletop timing concept that Protocol actions must occur before ordinary turn progression closes the opportunity.
 
-Frame Helm’s existing start-of-turn Protocol state should remain aligned with this native concept.
+Frame Conn’s existing start-of-turn Protocol state should remain aligned with this native concept.
 
 —
 
@@ -239,7 +239,7 @@ start turn
 take ordinary action
 → Protocol disabled
 
-This gives Frame Helm a strong native model to preserve.
+This gives Frame Conn a strong native model to preserve.
 
 —
 
@@ -247,17 +247,17 @@ This gives Frame Helm a strong native model to preserve.
 
 The stock native action tracker does not automatically reconcile every physical token movement with action-state expenditure.
 
-Therefore native Protocol lockout alone is not sufficient for Frame Helm.
+Therefore native Protocol lockout alone is not sufficient for Frame Conn.
 
-Frame Helm must still close the Protocol window when actual movement occurs.
+Frame Conn must still close the Protocol window when actual movement occurs.
 
-This is especially important because Frame Helm already tracks real token movement more accurately than the stock system.
+This is especially important because Frame Conn already tracks real token movement more accurately than the stock system.
 
 —
 
-# 11. Frame Helm Protocol Window
+# 11. Frame Conn Protocol Window
 
-Frame Helm should maintain one canonical concept equivalent to:
+Frame Conn should maintain one canonical concept equivalent to:
 
 `protocol.startOfTurnOpen`
 
@@ -304,7 +304,7 @@ The discovered native responsibilities include concepts such as:
 - mutate item/resource state;
 - print native activation card.
 
-Frame Helm should preserve this machinery.
+Frame Conn should preserve this machinery.
 
 —
 
@@ -326,7 +326,7 @@ item name
 +
 action label.
 
-Frame Helm should preserve that exact identity from discovery through execution.
+Frame Conn should preserve that exact identity from discovery through execution.
 
 —
 
@@ -344,9 +344,9 @@ This is a critical ownership boundary.
 
 —
 
-# 16. Frame Helm Owns Protocol Expenditure
+# 16. Frame Conn Owns Protocol Expenditure
 
-Frame Helm should therefore own:
+Frame Conn should therefore own:
 
 - Protocol timing legality;
 - Protocol use state;
@@ -359,7 +359,7 @@ Then native ActivationFlow owns:
 
 Conceptually:
 
-Frame Helm
+Frame Conn
 → validate Protocol
 → mark Protocol used / window closed
 
@@ -410,7 +410,7 @@ Protocol action
 
 # 19. Protocol Selector
 
-The Frame Helm Protocol entry should probably open a selector containing currently legal actor-owned Protocol actions.
+The Frame Conn Protocol entry should probably open a selector containing currently legal actor-owned Protocol actions.
 
 Conceptually:
 
@@ -447,7 +447,7 @@ The exact coverage of each source requires further research.
 
 # 21. No Hardcoded Protocol Catalog
 
-Frame Helm should not permanently hardcode a finite list of Protocol actions.
+Frame Conn should not permanently hardcode a finite list of Protocol actions.
 
 The available Protocol set should be derived from the controlled actor.
 
@@ -474,7 +474,7 @@ The action definitions themselves may remain visible for inspection.
 
 # 23. Protocol Legality
 
-Before execution, Frame Helm should validate:
+Before execution, Frame Conn should validate:
 
 - active turn;
 - correct acting actor;
@@ -507,7 +507,7 @@ Do not rely solely on stale UI selection state.
 
 # 25. Commit vs Execute
 
-If Frame Helm continues to separate committed plans from mechanical execution, Protocol needs special treatment because of start-of-turn timing.
+If Frame Conn continues to separate committed plans from mechanical execution, Protocol needs special treatment because of start-of-turn timing.
 
 Potential architecture:
 
@@ -527,7 +527,7 @@ Therefore Protocol may need tighter commit/execution coupling than ordinary plan
 A clean first implementation may be:
 
 player selects Protocol action
-→ Frame Helm validates
+→ Frame Conn validates
 → immediately commit/use Protocol
 → immediately launch native ActivationFlow
 
@@ -539,7 +539,7 @@ If Protocol is displayed in the Committed Plan, the card should represent an act
 
 # 27. Movement Closes Protocol Window
 
-Frame Helm Movement should close Protocol timing when the actor physically moves.
+Frame Conn Movement should close Protocol timing when the actor physically moves.
 
 Conceptually:
 
@@ -557,7 +557,7 @@ This is required because native action tracker movement accounting does not full
 
 Movement variants that count as movement should also close the Protocol window according to the tabletop rules.
 
-Frame Helm should use the canonical Movement event stream rather than special-case every movement variant in the Protocol feature.
+Frame Conn should use the canonical Movement event stream rather than special-case every movement variant in the Protocol feature.
 
 Conceptually:
 
@@ -586,7 +586,7 @@ teleport movement cost 0
 
 Forced movement caused by another effect may not count as the actor voluntarily moving.
 
-Therefore Frame Helm should distinguish voluntary and forced movement before closing the Protocol window.
+Therefore Frame Conn should distinguish voluntary and forced movement before closing the Protocol window.
 
 The exact rules interaction should be confirmed.
 
@@ -598,7 +598,7 @@ When the actor takes a normal Quick or Full Action:
 
 → Protocol window closes
 
-Frame Helm’s central Turn/action legality should enforce this globally.
+Frame Conn’s central Turn/action legality should enforce this globally.
 
 Protocol should not need to inspect every individual action implementation.
 
@@ -608,7 +608,7 @@ Protocol should not need to inspect every individual action implementation.
 
 Overcharge is a special turn action that likely leaves the start-of-turn Protocol timing.
 
-Frame Helm should explicitly confirm the tabletop timing and then close Protocol appropriately.
+Frame Conn should explicitly confirm the tabletop timing and then close Protocol appropriately.
 
 The existing Turn state already models Overcharge separately.
 
@@ -626,17 +626,17 @@ The official Protocol rule should remain authoritative.
 
 # 34. Native Action Tracker Synchronization
 
-Frame Helm currently has richer Turn state than the native action tracker.
+Frame Conn currently has richer Turn state than the native action tracker.
 
 Therefore Protocol state may need synchronization.
 
 Potential models include:
 
-1. Frame Helm authoritative, native adapted;
-2. native tracker authoritative, Frame Helm adapted;
+1. Frame Conn authoritative, native adapted;
+2. native tracker authoritative, Frame Conn adapted;
 3. explicit reconciliation.
 
-Given physical movement tracking, Frame Helm will likely need to remain authoritative for the player-facing Protocol window.
+Given physical movement tracking, Frame Conn will likely need to remain authoritative for the player-facing Protocol window.
 
 —
 
@@ -644,7 +644,7 @@ Given physical movement tracking, Frame Helm will likely need to remain authorit
 
 Avoid this situation:
 
-Frame Helm:
+Frame Conn:
 `protocol open = false`
 
 native actor:
@@ -652,7 +652,7 @@ native actor:
 
 or the reverse indefinitely.
 
-When practical, Frame Helm should update/reconcile the native tracker so character-sheet state and Frame Helm remain consistent.
+When practical, Frame Conn should update/reconcile the native tracker so character-sheet state and Frame Conn remain consistent.
 
 The exact mutation strategy should be traced before implementation.
 
@@ -668,7 +668,7 @@ Native ActivationFlow should remain authoritative for item-specific mechanical m
 - item state;
 - native chat output.
 
-Frame Helm should not duplicate these.
+Frame Conn should not duplicate these.
 
 —
 
@@ -704,7 +704,7 @@ The selected action’s structured data and native activation behavior determine
 
 The preferred native route for ordinary item-owned Protocol actions is:
 
-Frame Helm
+Frame Conn
 → source item
 → exact action path
 → `item.beginActivationFlow(actionPath)`
@@ -716,7 +716,7 @@ If specific action sources use another native entry point, those should be trace
 
 # 40. Protocol ActionData Preservation
 
-Frame Helm should preserve enough native action metadata for later automation.
+Frame Conn should preserve enough native action metadata for later automation.
 
 Useful fields may include:
 
@@ -757,7 +757,7 @@ The exact visual design belongs to the UI layer.
 
 # 42. Protocol Availability Reason
 
-If a Protocol is no longer legal because the player has moved or acted, Frame Helm should provide a clear reason.
+If a Protocol is no longer legal because the player has moved or acted, Frame Conn should provide a clear reason.
 
 Example:
 
@@ -771,7 +771,7 @@ Exact wording can be refined later.
 
 If the player declines to use a Protocol and begins ordinary play, the Protocol opportunity is simply lost for that turn.
 
-Frame Helm should not carry unused Protocol availability into later turns.
+Frame Conn should not carry unused Protocol availability into later turns.
 
 Turn initialization resets it appropriately.
 
@@ -822,7 +822,7 @@ The rules determine whether:
 - multiple may be used if granted;
 - special effects override normal timing.
 
-Frame Helm should not assume arbitrary multiple execution without rule support.
+Frame Conn should not assume arbitrary multiple execution without rule support.
 
 —
 
@@ -852,7 +852,7 @@ Structured native action metadata should be preferred.
 
 Protocol is already a native structured activation type.
 
-Therefore Frame Helm does not need to invent a separate action-type vocabulary for ordinary Protocol actions.
+Therefore Frame Conn does not need to invent a separate action-type vocabulary for ordinary Protocol actions.
 
 Preserve:
 
@@ -874,7 +874,7 @@ This is separate from:
 
 A Protocol action may have explanatory/conditional trigger metadata of its own.
 
-Frame Helm should not confuse:
+Frame Conn should not confuse:
 
 action activation timing
 
@@ -888,7 +888,7 @@ action-specific trigger text.
 
 The intended ownership split is:
 
-**FRAME HELM OWNS:**
+**FRAME CONN OWNS:**
 
 - start-of-turn Protocol window;
 - Protocol legality;
@@ -921,7 +921,7 @@ The intended ownership split is:
 
 No native `ProtocolFlow` was found.
 
-Frame Helm may implement a Protocol orchestration service, but it should not pretend to call a native Protocol workflow.
+Frame Conn may implement a Protocol orchestration service, but it should not pretend to call a native Protocol workflow.
 
 The reusable native boundary is:
 
@@ -934,7 +934,7 @@ for the selected actor-owned action.
 # 51. Proposed Initial Protocol Flow
 
 START OF TURN
-→ Frame Helm opens Protocol window
+→ Frame Conn opens Protocol window
 → discover actor-owned actions where:
   `activation === Protocol`
 → display legal Protocol choices
@@ -953,7 +953,7 @@ Player selects one
 → await native mutations
 → refresh actor/item state
 → mark Protocol execution complete
-→ refresh Frame Helm UI
+→ refresh Frame Conn UI
 
 If instead player moves/acts:
 → close Protocol window
@@ -1048,7 +1048,7 @@ Afterward:
 - [ ] Disable Protocol after window closes.
 - [ ] Preserve native item/resource handling.
 - [ ] Add clear legality reasons.
-- [ ] Emit Protocol semantic execution event if useful for Frame Helm trigger architecture.
+- [ ] Emit Protocol semantic execution event if useful for Frame Conn trigger architecture.
 
 —
 
@@ -1073,7 +1073,7 @@ Afterward:
 - [ ] Protocol window closes after Quick Action.
 - [ ] Protocol window closes after Full Action.
 - [ ] Overcharge interaction verified.
-- [ ] Frame Helm/native action tracker stay synchronized.
+- [ ] Frame Conn/native action tracker stay synchronized.
 - [ ] stale item/action selection fails cleanly.
 - [ ] custom native ActionData Protocol works.
 - [ ] multiple available Protocols display correctly.
@@ -1104,7 +1104,7 @@ Native action tracking closes Protocol availability when ordinary action state i
 
 **Invariant 6**
 
-Frame Helm must additionally close Protocol timing from actual movement events.
+Frame Conn must additionally close Protocol timing from actual movement events.
 
 **Invariant 7**
 
@@ -1120,7 +1120,7 @@ ActivationFlow does not currently own complete Protocol action-budget deduction.
 
 **Invariant 10**
 
-Frame Helm owns Protocol timing/action economy; native Lancer owns item-specific mechanical activation.
+Frame Conn owns Protocol timing/action economy; native Lancer owns item-specific mechanical activation.
 
 —
 
@@ -1134,7 +1134,7 @@ PROTOCOL
 ├── native availability primitive
 │   └── `actor.system.action_tracker.protocol`
 │
-├── Frame Helm start-of-turn window
+├── Frame Conn start-of-turn window
 │   │
 │   ├── opens at turn start
 │   ├── closes after Protocol use
@@ -1146,12 +1146,12 @@ PROTOCOL
 │   └── actor-owned `ActionData`
 │       └── `activation === Protocol`
 │
-├── Frame Helm selection
+├── Frame Conn selection
 │   ├── source item
 │   ├── exact action path
 │   └── legality
 │
-├── Frame Helm action economy
+├── Frame Conn action economy
 │   ├── mark Protocol used
 │   └── close Protocol window
 │
@@ -1171,7 +1171,7 @@ The critical architectural rule is:
 
 **Protocol is a timing-and-selection layer over actor-owned native actions.**
 
-Frame Helm should own the start-of-turn Protocol window and execution orchestration.
+Frame Conn should own the start-of-turn Protocol window and execution orchestration.
 
 Native Lancer should continue to own the selected item’s actual mechanical activation.
 EOF

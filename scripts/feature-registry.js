@@ -9,22 +9,22 @@
 
 /**
  * ============================================================
- * FRAME HELM FEATURE REGISTRY
+ * FRAME CONN FEATURE REGISTRY
  * ============================================================
  *
  * ROLE:
- *   Declares the complete application-wide Frame Helm feature
+ *   Declares the complete application-wide Frame Conn feature
  *   graph.
  *
  * PURPOSE:
  *   Assemble runtime/domain features and executable UI features
- *   into the single canonical Frame Helm feature registry.
+ *   into the single canonical Frame Conn feature registry.
  *
  * OWNS:
  *   - Runtime/domain feature imports.
  *   - Executable UI package import.
  *   - Canonical runtime/domain feature declaration.
- *   - Canonical FrameHelmFeatureRegistry instance.
+ *   - Canonical FrameConnFeatureRegistry instance.
  *   - Application-wide feature registration.
  *   - Immediate feature-graph validation.
  *
@@ -54,11 +54,11 @@
  *
  *   That module answers:
  *
- *     "How does the Frame Helm feature registry work?"
+ *     "How does the Frame Conn feature registry work?"
  *
  *   This module answers:
  *
- *     "Which features are part of Frame Helm?"
+ *     "Which features are part of Frame Conn?"
  *
  * ARCHITECTURAL RELATIONSHIP:
  *
@@ -67,7 +67,7 @@
  *        ▼
  *   feature-registry-core.js
  *        │
- *        │ FrameHelmFeatureRegistry
+ *        │ FrameConnFeatureRegistry
  *        ▼
  *   feature-registry.js
  *        │
@@ -92,7 +92,7 @@
  *   future *-feature.js
  *        │
  *        ▼
- *   FRAME_HELM_RUNTIME_FEATURES
+ *   FRAME_CONN_RUNTIME_FEATURES
  *
  *
  * EXECUTABLE UI PACKAGE:
@@ -107,22 +107,22 @@
  *   styles/ui-registry.js
  *        │
  *        ▼
- *   FRAME_HELM_UI_FEATURES
+ *   FRAME_CONN_UI_FEATURES
  *
  *
  * APPLICATION-WIDE FEATURE GRAPH:
  *
- *   FRAME_HELM_RUNTIME_FEATURES
+ *   FRAME_CONN_RUNTIME_FEATURES
  *              │
  *              ├──────────────┐
  *              │              │
  *              ▼              │
  *                             │
- *   FRAME_HELM_UI_FEATURES    │
+ *   FRAME_CONN_UI_FEATURES    │
  *              │              │
  *              └──────┬───────┘
  *                     ▼
- *          frameHelmFeatureRegistry
+ *          frameConnFeatureRegistry
  *                     │
  *                     ▼
  *          runtime-orchestrator.js
@@ -150,7 +150,7 @@
  *   Adding a new runtime/domain feature should normally require:
  *
  *     1. Importing the feature definition.
- *     2. Adding it to FRAME_HELM_RUNTIME_FEATURES.
+ *     2. Adding it to FRAME_CONN_RUNTIME_FEATURES.
  *
  *   Adding a new executable UI feature should normally require:
  *
@@ -176,8 +176,8 @@
  *
  *   foundry-integration-feature.js owns:
  *
- *     - Frame Helm module settings
- *     - Frame Helm enabled-state integration
+ *     - Frame Conn module settings
+ *     - Frame Conn enabled-state integration
  *     - Token scene-control integration
  *     - getSceneControlButtons hook declaration
  *
@@ -214,7 +214,7 @@
    ============================================================ */
 
 import {
-  FrameHelmFeatureRegistry
+  FrameConnFeatureRegistry
 } from "./feature-registry-core.js";
 
 
@@ -223,62 +223,62 @@ import {
    ============================================================ */
 
 import {
-  frameHelmActionsFeature
+  frameConnActionsFeature
 } from "./feature_actions/actions-feature.js";
 
 
 import {
-  frameHelmSensorsFeature
+  frameConnSensorsFeature
 } from "./sensors-feature.js";
 
 
 import {
-  frameHelmTurnFeature
+  frameConnTurnFeature
 } from "./feature_turn/turn-feature.js";
 
 
 import {
-  frameHelmMovementFeature
+  frameConnMovementFeature
 } from "./feature_movement/movement-feature.js";
 
 
 import {
-  frameHelmFoundryIntegrationFeature
+  frameConnFoundryIntegrationFeature
 } from "./foundry-integration-feature.js";
 
 
 import {
-  frameHelmActionExecutionFeature
+  frameConnActionExecutionFeature
 } from "./feature_actions/action-execution-feature.js";
 
 
 import {
-  frameHelmLifecycleFeature
+  frameConnLifecycleFeature
 } from "./feature_lifecycle/lifecycle-feature.js";
 
 
 import {
-  frameHelmTargetingSpatialFeature
+  frameConnTargetingSpatialFeature
 } from "./feature_targeting_spatial/targeting-spatial-feature.js";
 
 
 import {
-  frameHelmSystemBridgeFeature
+  frameConnSystemBridgeFeature
 } from "./feature_system_bridge/system-bridge-feature.js";
 
 
 import {
-  frameHelmSemanticExecutionContextFeature
+  frameConnSemanticExecutionContextFeature
 } from "./feature_semantic_execution_context/semantic-execution-context-feature.js";
 
 
 import {
-  frameHelmExecutionTransactionFeature
+  frameConnExecutionTransactionFeature
 } from "../execution_transaction/execution-transaction-feature.js";
 
 
 import {
-  frameHelmNativeAdapterFeature
+  frameConnNativeAdapterFeature
 } from "../native_adapter/native-adapter-feature.js";
 
 
@@ -300,7 +300,7 @@ import {
  * styles/ui-registry.js owns that package declaration.
  */
 import {
-  FRAME_HELM_UI_FEATURES
+  FRAME_CONN_UI_FEATURES
 } from "../styles/ui-registry.js";
 
 
@@ -317,39 +317,39 @@ import {
  * Dependency-safe runtime ordering does not depend on this array
  * order.
  *
- * FrameHelmFeatureRegistry.orderedFeatures() resolves actual
+ * FrameConnFeatureRegistry.orderedFeatures() resolves actual
  * dependency order from declared required capabilities.
  */
-export const FRAME_HELM_RUNTIME_FEATURES =
+export const FRAME_CONN_RUNTIME_FEATURES =
   Object.freeze([
-    frameHelmActionsFeature,
-    frameHelmSensorsFeature,
-    frameHelmTurnFeature,
-    frameHelmMovementFeature,
-    frameHelmFoundryIntegrationFeature,
-    frameHelmActionExecutionFeature,
-    frameHelmLifecycleFeature,
-    frameHelmTargetingSpatialFeature,
-    frameHelmSystemBridgeFeature,
-    frameHelmSemanticExecutionContextFeature,
-    frameHelmExecutionTransactionFeature,
-    frameHelmNativeAdapterFeature
+    frameConnActionsFeature,
+    frameConnSensorsFeature,
+    frameConnTurnFeature,
+    frameConnMovementFeature,
+    frameConnFoundryIntegrationFeature,
+    frameConnActionExecutionFeature,
+    frameConnLifecycleFeature,
+    frameConnTargetingSpatialFeature,
+    frameConnSystemBridgeFeature,
+    frameConnSemanticExecutionContextFeature,
+    frameConnExecutionTransactionFeature,
+    frameConnNativeAdapterFeature
   ]);
 
 
 /* ============================================================
-   Canonical Frame Helm feature registry
+   Canonical Frame Conn feature registry
    ============================================================ */
 
 /**
- * Single application-wide Frame Helm feature registry.
+ * Single application-wide Frame Conn feature registry.
  *
  * Registry behavior itself is implemented by:
  *
  *   feature-registry-core.js
  */
-export const frameHelmFeatureRegistry =
-  new FrameHelmFeatureRegistry();
+export const frameConnFeatureRegistry =
+  new FrameConnFeatureRegistry();
 
 
 /* ============================================================
@@ -357,15 +357,15 @@ export const frameHelmFeatureRegistry =
    ============================================================ */
 
 /**
- * Register the complete Frame Helm JavaScript feature graph.
+ * Register the complete Frame Conn JavaScript feature graph.
  *
  * Runtime/domain and integration features originate from:
  *
- *   FRAME_HELM_RUNTIME_FEATURES
+ *   FRAME_CONN_RUNTIME_FEATURES
  *
  * Executable UI features originate from:
  *
- *   FRAME_HELM_UI_FEATURES
+ *   FRAME_CONN_UI_FEATURES
  *
  * Required dependencies may cross either package boundary.
  *
@@ -406,9 +406,9 @@ export const frameHelmFeatureRegistry =
  *     current consumer:
  *       - ui-application through runtime composition
  */
-frameHelmFeatureRegistry.registerMany([
-  ...FRAME_HELM_RUNTIME_FEATURES,
-  ...FRAME_HELM_UI_FEATURES
+frameConnFeatureRegistry.registerMany([
+  ...FRAME_CONN_RUNTIME_FEATURES,
+  ...FRAME_CONN_UI_FEATURES
 ]);
 
 
@@ -443,5 +443,5 @@ frameHelmFeatureRegistry.registerMany([
  *
  * Those operations remain runtime-orchestrator responsibilities.
  */
-frameHelmFeatureRegistry
+frameConnFeatureRegistry
   .validateDependencies();

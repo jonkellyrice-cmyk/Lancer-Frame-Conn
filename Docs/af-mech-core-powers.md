@@ -50,7 +50,7 @@
 
 **Native generic AoE save orchestration:** Not implemented.
 
-**Frame Helm implementation status:** Frame Helm should discover Core Systems from the equipped Frame, use native `CoreActiveFlow` for CP-spending Core Power execution, preserve native passive/active actions and bonuses, and bridge only the missing action-economy and persistent `core_active` lifecycle behavior.
+**Frame Conn implementation status:** Frame Conn should discover Core Systems from the equipped Frame, use native `CoreActiveFlow` for CP-spending Core Power execution, preserve native passive/active actions and bonuses, and bridge only the missing action-economy and persistent `core_active` lifecycle behavior.
 
 ## Purpose
 
@@ -79,11 +79,11 @@ for spending Core Power.
 
 Therefore:
 
-> Frame Helm should not recreate Core Power resource mechanics.
+> Frame Conn should not recreate Core Power resource mechanics.
 
 Instead:
 
-> Frame Helm should expose Core Systems as a first-class actor-owned feature source, route CP-consuming activation through native CoreActiveFlow, and add the runtime Core Active lifecycle behavior that the native repository leaves incomplete.
+> Frame Conn should expose Core Systems as a first-class actor-owned feature source, route CP-consuming activation through native CoreActiveFlow, and add the runtime Core Active lifecycle behavior that the native repository leaves incomplete.
 
 —
 
@@ -128,7 +128,7 @@ The Frame Core System contains structured data including concepts such as:
 - deployables;
 - integrated equipment.
 
-This means Core Systems can participate in several Frame Helm subsystems beyond simple CP activation.
+This means Core Systems can participate in several Frame Conn subsystems beyond simple CP activation.
 
 —
 
@@ -157,7 +157,7 @@ CORE SYSTEM
     ├── active actions
     └── CP-consuming activation.
 
-Frame Helm should preserve this structural distinction.
+Frame Conn should preserve this structural distinction.
 
 —
 
@@ -183,7 +183,7 @@ Conceptually:
 `core_energy = 0`
 → CP spent.
 
-Frame Helm should not create a duplicate CP counter.
+Frame Conn should not create a duplicate CP counter.
 
 —
 
@@ -203,7 +203,7 @@ Conceptually:
 `core_active`
 → is the Frame’s persistent active Core System state currently enabled?
 
-These must remain separate in Frame Helm.
+These must remain separate in Frame Conn.
 
 —
 
@@ -244,7 +244,7 @@ Frame item
 → CP validation
 → CP consumption.
 
-Frame Helm should invoke this through its native-system adapter.
+Frame Conn should invoke this through its native-system adapter.
 
 —
 
@@ -272,7 +272,7 @@ Relevant source data includes:
 - `core_system.active_effect`;
 - Core tags/metadata.
 
-Therefore Frame Helm should not require every Core Power to contain an explicit `active_actions[0]` before it is considered executable.
+Therefore Frame Conn should not require every Core Power to contain an explicit `active_actions[0]` before it is considered executable.
 
 —
 
@@ -293,7 +293,7 @@ Potential values may include normal native activation categories such as:
 - Reaction;
 - other native activation types.
 
-Frame Helm should use this structured value to place the Core Power into the correct action category.
+Frame Conn should use this structured value to place the Core Power into the correct action category.
 
 Do not parse the action type from Core Power prose.
 
@@ -312,7 +312,7 @@ This includes native handling for concepts such as:
 - item updates;
 - native activation/chat output.
 
-Frame Helm should not reproduce these mechanics.
+Frame Conn should not reproduce these mechanics.
 
 —
 
@@ -358,7 +358,7 @@ The discovered native CoreActiveFlow sequence is conceptually:
 
 `printActionUseCard`
 
-This is the native mechanical execution path Frame Helm should preserve.
+This is the native mechanical execution path Frame Conn should preserve.
 
 —
 
@@ -380,7 +380,7 @@ If no CP remains:
 → native flow warns;
 → flow stops.
 
-Frame Helm may use CP state for presentation and early legality, but native CoreActiveFlow should remain the final execution-time validator.
+Frame Conn may use CP state for presentation and early legality, but native CoreActiveFlow should remain the final execution-time validator.
 
 —
 
@@ -392,11 +392,11 @@ CoreActiveFlow consumes Core Power by updating:
 
 after successful Core Active execution.
 
-Therefore Frame Helm must not separately spend CP.
+Therefore Frame Conn must not separately spend CP.
 
 Correct:
 
-Frame Helm
+Frame Conn
 → invoke CoreActiveFlow
 
 Native Lancer
@@ -408,7 +408,7 @@ Native Lancer
 
 Wrong:
 
-Frame Helm:
+Frame Conn:
 `core_energy = 0`
 
 then:
@@ -418,7 +418,7 @@ CoreActiveFlow
 
 Correct:
 
-Frame Helm:
+Frame Conn:
 → action-economy validation only
 
 Native CoreActiveFlow:
@@ -447,7 +447,7 @@ CoreActiveFlow
 next Full Repair
 → CP restored.
 
-Frame Helm should simply refresh from actor state after Full Repair.
+Frame Conn should simply refresh from actor state after Full Repair.
 
 —
 
@@ -515,7 +515,7 @@ Frame bonuses requested
 └── YES
     └── passive + active Core bonuses.
 
-This means Frame Helm does not need to manually apply every structured active bonus.
+This means Frame Conn does not need to manually apply every structured active bonus.
 
 It only needs to ensure persistent Core Active state is represented correctly.
 
@@ -560,7 +560,7 @@ a Core Power with persistent:
 
 will not necessarily have those bonuses begin contributing merely because native CoreActiveFlow consumed CP.
 
-Frame Helm may need to bridge this.
+Frame Conn may need to bridge this.
 
 —
 
@@ -620,7 +620,7 @@ Therefore if a Core Active lasts:
 - until manually ended;
 - until another condition;
 
-Frame Helm may need to own that lifecycle.
+Frame Conn may need to own that lifecycle.
 
 —
 
@@ -630,7 +630,7 @@ The only general runtime reset found is Full Repair:
 
 `core_active = false`.
 
-Therefore Frame Helm can safely rely on Full Repair as one endpoint.
+Therefore Frame Conn can safely rely on Full Repair as one endpoint.
 
 Earlier expiration must be handled according to the individual Core Power.
 
@@ -653,7 +653,7 @@ Possible lifecycles include:
 - mission-long;
 - manually ended.
 
-Frame Helm should preserve source-specific duration.
+Frame Conn should preserve source-specific duration.
 
 —
 
@@ -693,7 +693,7 @@ These are structured actions associated with the active side of the Core System.
 
 They may have normal action activation types.
 
-Frame Helm should discover and normalize them.
+Frame Conn should discover and normalize them.
 
 —
 
@@ -710,7 +710,7 @@ Therefore:
 Core System
 ≠ only one CP-spending action.
 
-Frame Helm’s actor-owned action discovery must inspect both passive and active actions.
+Frame Conn’s actor-owned action discovery must inspect both passive and active actions.
 
 —
 
@@ -745,7 +745,7 @@ This distinction should be preserved in the action registry.
 
 # 32. Suggested Core Action Source Identities
 
-Conceptually, Frame Helm may normalize Core System sources such as:
+Conceptually, Frame Conn may normalize Core System sources such as:
 
 `frame-core-primary-active`
 
@@ -791,7 +791,7 @@ The Core System contains structured:
 
 These contribute through native Frame bonus resolution regardless of Core Active state.
 
-Frame Helm should not manually recreate these bonuses.
+Frame Conn should not manually recreate these bonuses.
 
 —
 
@@ -813,7 +813,7 @@ Therefore correctly managing `core_active` can automatically activate these bonu
 
 Wrong:
 
-Frame Helm detects active bonus
+Frame Conn detects active bonus
 → manually modifies attack/check
 
 and:
@@ -823,7 +823,7 @@ native Frame bonus resolver sees `core_active`
 
 Correct:
 
-Frame Helm manages Core Active state
+Frame Conn manages Core Active state
 → native bonus resolver handles structured bonus.
 
 —
@@ -842,7 +842,7 @@ Some may require:
 - AoEs;
 - action grants.
 
-Frame Helm will still need source-specific integration where the native system provides only descriptive text.
+Frame Conn will still need source-specific integration where the native system provides only descriptive text.
 
 —
 
@@ -889,7 +889,7 @@ These may influence:
 - action legality;
 - interactions with other systems.
 
-Frame Helm should preserve native tags rather than flatten Core Active into plain text.
+Frame Conn should preserve native tags rather than flatten Core Active into plain text.
 
 —
 
@@ -899,7 +899,7 @@ A Core Power may grant or perform an attack.
 
 Where native action/weapon/attack metadata exists:
 
-Frame Helm should route the attack through native attack machinery.
+Frame Conn should route the attack through native attack machinery.
 
 CoreActiveFlow handles the CP activation.
 
@@ -942,11 +942,11 @@ If a Core Power uses an AoE save:
 
 native generic multi-target save automation is incomplete.
 
-Therefore Frame Helm should use:
+Therefore Frame Conn should use:
 
 native AoE geometry
 +
-Frame Helm save orchestration.
+Frame Conn save orchestration.
 
 The Core Power remains the source of:
 
@@ -967,7 +967,7 @@ These should use the shared native status architecture documented in:
 Conceptually:
 
 Core effect
-→ Frame Helm/source rules
+→ Frame Conn/source rules
 → native status adapter
 → Foundry/Lancer ActiveEffect.
 
@@ -1004,7 +1004,7 @@ If the Core action has:
 
 `activation = Protocol`
 
-Frame Helm should expose it during the start-of-turn Protocol window.
+Frame Conn should expose it during the start-of-turn Protocol window.
 
 The mechanical activation should use the appropriate native entry point.
 
@@ -1022,7 +1022,7 @@ or:
 
 `Quick Tech`.
 
-These should appear in the corresponding Frame Helm action categories.
+These should appear in the corresponding Frame Conn action categories.
 
 Their source remains the Frame/Core System.
 
@@ -1038,13 +1038,13 @@ or:
 
 `Full Tech`.
 
-Frame Helm should spend the appropriate action budget while preserving exact source identity.
+Frame Conn should spend the appropriate action budget while preserving exact source identity.
 
 —
 
 # 50. Core Power Free Actions
 
-Free actions granted by Core Systems should use Frame Helm’s shared Free Action architecture.
+Free actions granted by Core Systems should use Frame Conn’s shared Free Action architecture.
 
 They should not consume ordinary Quick/Full budget.
 
@@ -1054,7 +1054,7 @@ They should not consume ordinary Quick/Full budget.
 
 Some Core content may not fit ordinary activation types.
 
-Frame Helm should preserve the native activation metadata and create source-specific orchestration only where necessary.
+Frame Conn should preserve the native activation metadata and create source-specific orchestration only where necessary.
 
 Do not force every Core action into a weapon-shaped execution path.
 
@@ -1066,11 +1066,11 @@ Some `active_actions` may logically be available only while:
 
 `core_active = true`.
 
-Frame Helm should research whether native sheet/action rendering automatically filters these.
+Frame Conn should research whether native sheet/action rendering automatically filters these.
 
 If not:
 
-Frame Helm’s actor-owned action registry may need to conditionally expose active actions based on Core Active state.
+Frame Conn’s actor-owned action registry may need to conditionally expose active actions based on Core Active state.
 
 —
 
@@ -1084,7 +1084,7 @@ They should not depend on remaining CP unless their own rules say so.
 
 # 54. CP Availability UI
 
-Frame Helm can read:
+Frame Conn can read:
 
 `actor.system.core_energy`
 
@@ -1111,7 +1111,7 @@ Between rendering and execution:
 - Full Repair may occur;
 - Frame may change.
 
-Therefore Frame Helm should re-resolve the actor and Frame before executing CoreActiveFlow.
+Therefore Frame Conn should re-resolve the actor and Frame before executing CoreActiveFlow.
 
 —
 
@@ -1138,7 +1138,7 @@ depending on the Frame.
 
 CoreActiveFlow contains the same familiar TODO around deducting action economy from the actor tracker.
 
-Therefore Frame Helm must own:
+Therefore Frame Conn must own:
 
 - Protocol/Quick/Full/etc. expenditure;
 - duplicate-action legality;
@@ -1151,7 +1151,7 @@ Native CoreActiveFlow owns CP and action-specific item mechanics.
 
 # 58. Core Power Ownership Split
 
-**FRAME HELM OWNS:**
+**FRAME CONN OWNS:**
 
 - Core System discovery;
 - player-facing Core Power UI;
@@ -1186,11 +1186,11 @@ Native CoreActiveFlow owns CP and action-specific item mechanics.
 # 59. Proposed Primary Core Activation Flow
 
 CORE POWER
-→ Frame Helm resolves authoritative mech
+→ Frame Conn resolves authoritative mech
 → resolve equipped Frame
 → resolve `frame.system.core_system`
 → read structured activation type
-→ validate Frame Helm action economy
+→ validate Frame Conn action economy
 → verify presentation CP state
 → preserve exact Frame + Core path
 → execute
@@ -1203,7 +1203,7 @@ CORE POWER
 → CP consumed
 → native chat output
 → await native completion
-→ Frame Helm re-reads actor/Frame state
+→ Frame Conn re-reads actor/Frame state
 → determine whether persistent Core Active state is required
 → if required:
    enable `system.core_active`
@@ -1215,7 +1215,7 @@ CORE POWER
 
 If the Core Power establishes a persistent active mode:
 
-Frame Helm may need to perform:
+Frame Conn may need to perform:
 
 `actor.update({ “system.core_active”: true })`
 
@@ -1250,7 +1250,7 @@ This prevents native bonuses from turning on after failed activation.
 
 When the Core Active’s actual duration ends:
 
-Frame Helm should perform:
+Frame Conn should perform:
 
 `core_active = false`
 
@@ -1287,7 +1287,7 @@ and:
 
 After Full Repair:
 
-Frame Helm should re-read actor state.
+Frame Conn should re-read actor state.
 
 Do not independently duplicate those mutations unless needed for synchronization.
 
@@ -1309,7 +1309,7 @@ The authoritative source is the currently equipped Frame item.
 
 If `core_active = true` and the Frame changes through unusual editing:
 
-Frame Helm should reconcile the state safely.
+Frame Conn should reconcile the state safely.
 
 Do not assume a Core Active from Frame A should apply Frame B’s active bonuses.
 
@@ -1319,7 +1319,7 @@ This is an edge case worth guarding.
 
 # 67. Actor Rebind
 
-If Frame Helm opens for a different mech:
+If Frame Conn opens for a different mech:
 
 Core Power state must derive from that mech’s:
 
@@ -1335,7 +1335,7 @@ Do not carry local Core state between actors.
 
 Native Frame bonus resolution already exposes passive Core bonuses.
 
-Frame Helm does not need a separate passive-bonus engine merely to display/use them.
+Frame Conn does not need a separate passive-bonus engine merely to display/use them.
 
 However, future UI may inspect them for explanation.
 
@@ -1364,7 +1364,7 @@ For Core Systems:
 1. prefer native passive/active bonuses;
 2. prefer structured actions;
 3. prefer native tags/ranges/effects;
-4. add explicit Frame Helm adapters for missing behavior;
+4. add explicit Frame Conn adapters for missing behavior;
 5. parse prose only as a last resort.
 
 This should be the general actor-owned feature integration principle.
@@ -1457,7 +1457,7 @@ The normalized action’s execution strategy should determine the downstream nat
 
 If a Core Power causes damage:
 
-Frame Helm should route final typed damage through native:
+Frame Conn should route final typed damage through native:
 
 `LancerActor.damageCalc(...)`
 
@@ -1484,7 +1484,7 @@ If a Core Power applies:
 - Jammed;
 - etc.
 
-Frame Helm should apply native statuses through the shared status adapter.
+Frame Conn should apply native statuses through the shared status adapter.
 
 Native downstream consumers then work automatically where implemented.
 
@@ -1520,7 +1520,7 @@ Do not impose one universal Core Power target model.
 
 If Core action data contains a save:
 
-Frame Helm may need to orchestrate the save if native ActivationFlow does not.
+Frame Conn may need to orchestrate the save if native ActivationFlow does not.
 
 This is especially relevant to:
 
@@ -1543,7 +1543,7 @@ These are prime consumers of:
 
 `core_active`.
 
-Frame Helm should turn on the native state and allow:
+Frame Conn should turn on the native state and allow:
 
 `active_bonuses`
 
@@ -1576,7 +1576,7 @@ CoreActiveFlow may not automatically handle placement.
 
 The deployable’s native representation and placement flow should be traced separately.
 
-Frame Helm can then call the correct native deployable entry point.
+Frame Conn can then call the correct native deployable entry point.
 
 —
 
@@ -1586,7 +1586,7 @@ Because CoreActiveFlow inherits ActivationFlow:
 
 native Limited/Charged checks may participate where applicable.
 
-Frame Helm should not pre-decrement or pre-toggle those resources.
+Frame Conn should not pre-decrement or pre-toggle those resources.
 
 —
 
@@ -1598,7 +1598,7 @@ Therefore if the Core action has structured Heat cost:
 
 native flow should own that mutation.
 
-Frame Helm must not apply it a second time.
+Frame Conn must not apply it a second time.
 
 —
 
@@ -1606,7 +1606,7 @@ Frame Helm must not apply it a second time.
 
 CoreActiveFlow inherits source-item destruction checks.
 
-Therefore Frame Helm can use source state for UI hints but should rely on native execution-time revalidation.
+Therefore Frame Conn can use source state for UI hints but should rely on native execution-time revalidation.
 
 —
 
@@ -1616,7 +1616,7 @@ If:
 
 `core_system.activation === Protocol`
 
-Frame Helm should:
+Frame Conn should:
 
 - expose the Core Active during Protocol window;
 - validate start-of-turn timing;
@@ -1631,11 +1631,11 @@ Native CoreActiveFlow still owns CP.
 
 If the Core Active is Quick:
 
-Frame Helm spends one Quick Action.
+Frame Conn spends one Quick Action.
 
 Native flow spends CP.
 
-Do not let native action tracker TODO lead to untracked Frame Helm action economy.
+Do not let native action tracker TODO lead to untracked Frame Conn action economy.
 
 —
 
@@ -1643,7 +1643,7 @@ Do not let native action tracker TODO lead to untracked Frame Helm action econom
 
 If the Core Active is Full:
 
-Frame Helm spends the Full Action.
+Frame Conn spends the Full Action.
 
 Native flow spends CP.
 
@@ -1655,7 +1655,7 @@ The same separation applies.
 
 If the Core Active is Free:
 
-Frame Helm should treat it as a Free Action under central legality.
+Frame Conn should treat it as a Free Action under central legality.
 
 Native flow still performs CP validation/consumption.
 
@@ -1722,14 +1722,14 @@ Do not code these separately inside CorePower UI.
 
 The central advantage of `core_active` is:
 
-Frame Helm does not need to know every bonus mechanically.
+Frame Conn does not need to know every bonus mechanically.
 
 If the Frame defines them structurally:
 
 `core_active = true`
 → native bonus resolver sees them.
 
-This is precisely the kind of native-system leverage Frame Helm should prefer.
+This is precisely the kind of native-system leverage Frame Conn should prefer.
 
 —
 
@@ -1765,7 +1765,7 @@ A visual marker could exist separately if desired, but native actor state should
 
 # 98. Core Active Presentation
 
-Frame Helm can derive UI such as:
+Frame Conn can derive UI such as:
 
 CP AVAILABLE
 
@@ -1824,7 +1824,7 @@ core_active = false
 activate persistent Core Power:
 → CoreActiveFlow
 → CP = 0
-→ Frame Helm sets core_active = true
+→ Frame Conn sets core_active = true
 
 during mode:
 CP = 0
@@ -1850,7 +1850,7 @@ Full Repair
 → CP = 1
 → core_active = false.
 
-Frame Helm should refresh and clear any supplemental Core Active lifecycle metadata accordingly.
+Frame Conn should refresh and clear any supplemental Core Active lifecycle metadata accordingly.
 
 —
 
@@ -1858,7 +1858,7 @@ Frame Helm should refresh and clear any supplemental Core Active lifecycle metad
 
 CoreActiveFlow prints native action-use output.
 
-Frame Helm should preserve that in the first implementation.
+Frame Conn should preserve that in the first implementation.
 
 Do not emit duplicate generic Core Power chat output unless supplemental automation needs an additional concise result.
 
@@ -1866,7 +1866,7 @@ Do not emit duplicate generic Core Power chat output unless supplemental automat
 
 # 103. Execution Completion
 
-Frame Helm should mark the committed Core Power executed only after native CoreActiveFlow resolves successfully.
+Frame Conn should mark the committed Core Power executed only after native CoreActiveFlow resolves successfully.
 
 If the flow fails because CP is unavailable:
 
@@ -1909,7 +1909,7 @@ Do not trust stale UI snapshots.
 
 # 106. Native CP Revalidation Remains Final
 
-Even after Frame Helm checks:
+Even after Frame Conn checks:
 
 `core_energy > 0`
 
@@ -2011,7 +2011,7 @@ This gives us defense against stale state.
 - [ ] Use native WeaponRangeTemplate.
 - [ ] Preserve friendly fire by default.
 - [ ] Resolve attack AoEs through native multi-target attack flow.
-- [ ] Resolve save AoEs through Frame Helm save resolver.
+- [ ] Resolve save AoEs through Frame Conn save resolver.
 - [ ] Resolve automatic AoEs through native status/damage adapters.
 - [ ] Apply Core-specific ally exemptions only where stated.
 
@@ -2046,7 +2046,7 @@ This gives us defense against stale state.
 - [ ] native CoreActiveFlow consumes CP.
 - [ ] CP becomes 0 exactly once.
 - [ ] second CP activation rejected natively.
-- [ ] Frame Helm displays spent state.
+- [ ] Frame Conn displays spent state.
 - [ ] Full Repair restores CP to 1.
 
 —
@@ -2132,7 +2132,7 @@ Native CoreActiveFlow validates and consumes CP.
 
 **Invariant 8**
 
-Frame Helm must not duplicate CP consumption.
+Frame Conn must not duplicate CP consumption.
 
 **Invariant 9**
 
@@ -2148,7 +2148,7 @@ CoreActiveFlow does not currently set `core_active = true`.
 
 **Invariant 12**
 
-Frame Helm should bridge persistent Core Active state only for Core Powers that actually establish an ongoing active mode.
+Frame Conn should bridge persistent Core Active state only for Core Powers that actually establish an ongoing active mode.
 
 **Invariant 13**
 
@@ -2156,7 +2156,7 @@ Instantaneous Core Powers may spend CP while leaving `core_active` false.
 
 **Invariant 14**
 
-Action economy remains Frame Helm-owned because CoreActiveFlow does not deduct it completely.
+Action economy remains Frame Conn-owned because CoreActiveFlow does not deduct it completely.
 
 **Invariant 15**
 
@@ -2164,7 +2164,7 @@ Core passive and active actions should feed the shared actor-owned action regist
 
 **Invariant 16**
 
-Core AoEs, statuses, attacks, saves, movement, and reactions should reuse shared Frame Helm/native subsystems rather than Core-specific duplicates.
+Core AoEs, statuses, attacks, saves, movement, and reactions should reuse shared Frame Conn/native subsystems rather than Core-specific duplicates.
 
 —
 
@@ -2192,7 +2192,7 @@ FRAME CORE SYSTEM
 ├── PRIMARY CORE ACTIVE
 │   │
 │   ├── structured activation type
-│   ├── Frame Helm action-economy validation
+│   ├── Frame Conn action-economy validation
 │   └── Native:
 │       └── `frame.beginCoreActiveFlow(“system.core_system”)`
 │           ├── initialize activation
@@ -2212,7 +2212,7 @@ FRAME CORE SYSTEM
 │   │
 │   ├── native CoreActiveFlow does NOT enable it
 │   │
-│   ├── Frame Helm determines whether active mode persists
+│   ├── Frame Conn determines whether active mode persists
 │   │
 │   ├── if persistent:
 │   │   └── `core_active = true`
@@ -2233,7 +2233,7 @@ FRAME CORE SYSTEM
 │   ├── attacks → native attack flows
 │   ├── AoE → `docs/aoe.md`
 │   ├── statuses → `docs/lancer-status-effects.md`
-│   ├── saves → shared Frame Helm save resolver
+│   ├── saves → shared Frame Conn save resolver
 │   ├── movement → shared Movement feature
 │   └── reactions/protocols → shared action architecture
 │
@@ -2244,4 +2244,4 @@ FRAME CORE SYSTEM
 
 The critical architectural rule is:
 
-**Native Lancer already owns Core Power data, CP spending, CP restoration, and the mechanical consumption of persistent Core Active bonuses. Frame Helm should own the missing orchestration: action economy, actor-owned action presentation, and the runtime lifecycle that turns `core_active` on and off when a particular Core Power actually establishes an ongoing active mode.**
+**Native Lancer already owns Core Power data, CP spending, CP restoration, and the mechanical consumption of persistent Core Active bonuses. Frame Conn should own the missing orchestration: action economy, actor-owned action presentation, and the runtime lifecycle that turns `core_active` on and off when a particular Core Power actually establishes an ongoing active mode.**

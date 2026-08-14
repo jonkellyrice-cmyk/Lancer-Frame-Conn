@@ -2,7 +2,7 @@
    Application runtime bindings
    ============================================================ */
 
-const frameHelmApplicationRuntimeBindings = {
+const frameConnApplicationRuntimeBindings = {
   getActionRegistry:
     null,
 
@@ -38,7 +38,7 @@ const frameHelmApplicationRuntimeBindings = {
    Application runtime binding configuration
    ============================================================ */
 
-function configureFrameHelmApplicationRuntime(
+function configureFrameConnApplicationRuntime(
   bindings = {}
 ) {
   if (
@@ -47,7 +47,7 @@ function configureFrameHelmApplicationRuntime(
       "object"
   ) {
     throw new TypeError(
-      "Frame Helm application runtime bindings must be supplied as an object."
+      "Frame Conn application runtime bindings must be supplied as an object."
     );
   }
 
@@ -55,7 +55,7 @@ function configureFrameHelmApplicationRuntime(
   const allowedKeys =
     new Set(
       Object.keys(
-        frameHelmApplicationRuntimeBindings
+        frameConnApplicationRuntimeBindings
       )
     );
 
@@ -75,7 +75,7 @@ function configureFrameHelmApplicationRuntime(
       )
     ) {
       throw new Error(
-        `Frame Helm application received unknown runtime binding: ${key}`
+        `Frame Conn application received unknown runtime binding: ${key}`
       );
     }
 
@@ -86,19 +86,19 @@ function configureFrameHelmApplicationRuntime(
         "function"
     ) {
       throw new TypeError(
-        `Frame Helm application runtime binding "${key}" must be a function or null.`
+        `Frame Conn application runtime binding "${key}" must be a function or null.`
       );
     }
 
 
-    frameHelmApplicationRuntimeBindings[
+    frameConnApplicationRuntimeBindings[
       key
     ] = value;
   }
 
 
   return (
-    getFrameHelmApplicationRuntimeBindings()
+    getFrameConnApplicationRuntimeBindings()
   );
 }
 
@@ -107,31 +107,31 @@ function configureFrameHelmApplicationRuntime(
    Application runtime binding diagnostics
    ============================================================ */
 
-function getFrameHelmApplicationRuntimeBindings() {
+function getFrameConnApplicationRuntimeBindings() {
   const canonicalActionExecution =
-    typeof frameHelmApplicationRuntimeBindings
+    typeof frameConnApplicationRuntimeBindings
       .executeAction ===
       "function";
 
   const legacyActionExecution =
-    typeof frameHelmApplicationRuntimeBindings
+    typeof frameConnApplicationRuntimeBindings
       .executeActionRoll ===
       "function";
 
 
   return Object.freeze({
     actionRegistry:
-      typeof frameHelmApplicationRuntimeBindings
+      typeof frameConnApplicationRuntimeBindings
         .getActionRegistry ===
         "function",
 
     turnState:
-      typeof frameHelmApplicationRuntimeBindings
+      typeof frameConnApplicationRuntimeBindings
         .getTurnState ===
         "function",
 
     turnStateManager:
-      typeof frameHelmApplicationRuntimeBindings
+      typeof frameConnApplicationRuntimeBindings
         .getTurnStateManager ===
         "function",
 
@@ -144,7 +144,7 @@ function getFrameHelmApplicationRuntimeBindings() {
     legacyActionExecution,
 
     telemetryRefresh:
-      typeof frameHelmApplicationRuntimeBindings
+      typeof frameConnApplicationRuntimeBindings
         .refreshTelemetry ===
         "function"
   });
@@ -155,9 +155,9 @@ function getFrameHelmApplicationRuntimeBindings() {
    Application dependency accessors
    ============================================================ */
 
-function getFrameHelmApplicationActionRegistry() {
+function getFrameConnApplicationActionRegistry() {
   const registry =
-    frameHelmApplicationRuntimeBindings
+    frameConnApplicationRuntimeBindings
       .getActionRegistry?.();
 
 
@@ -165,7 +165,7 @@ function getFrameHelmApplicationActionRegistry() {
     !registry
   ) {
     throw new Error(
-      "Frame Helm application could not resolve the Actions registry."
+      "Frame Conn application could not resolve the Actions registry."
     );
   }
 
@@ -174,18 +174,18 @@ function getFrameHelmApplicationActionRegistry() {
 }
 
 
-function getFrameHelmApplicationTurnState() {
+function getFrameConnApplicationTurnState() {
   return (
-    frameHelmApplicationRuntimeBindings
+    frameConnApplicationRuntimeBindings
       .getTurnState?.() ??
     null
   );
 }
 
 
-function getFrameHelmApplicationTurnStateManager() {
+function getFrameConnApplicationTurnStateManager() {
   return (
-    frameHelmApplicationRuntimeBindings
+    frameConnApplicationRuntimeBindings
       .getTurnStateManager?.() ??
     null
   );
@@ -200,14 +200,14 @@ function getFrameHelmApplicationTurnStateManager() {
  * Lancer workflow internals. Those remain behind runtime
  * composition.
  */
-async function executeFrameHelmApplicationAction(
+async function executeFrameConnApplicationAction(
   actor,
   action
 ) {
   const executor =
-    frameHelmApplicationRuntimeBindings
+    frameConnApplicationRuntimeBindings
       .executeAction ??
-    frameHelmApplicationRuntimeBindings
+    frameConnApplicationRuntimeBindings
       .executeActionRoll;
 
 
@@ -216,7 +216,7 @@ async function executeFrameHelmApplicationAction(
     "function"
   ) {
     throw new Error(
-      "Frame Helm application action execution has not been configured."
+      "Frame Conn application action execution has not been configured."
     );
   }
 
@@ -235,11 +235,11 @@ async function executeFrameHelmApplicationAction(
  * roll-named boundary until their next scoped migration. Both paths
  * terminate at the same canonical runtime execution command.
  */
-async function executeFrameHelmApplicationActionRoll(
+async function executeFrameConnApplicationActionRoll(
   actor,
   action
 ) {
-  return executeFrameHelmApplicationAction(
+  return executeFrameConnApplicationAction(
     actor,
     action
   );
@@ -251,11 +251,11 @@ async function executeFrameHelmApplicationActionRoll(
    ============================================================ */
 
 export {
-  configureFrameHelmApplicationRuntime,
-  getFrameHelmApplicationRuntimeBindings,
-  getFrameHelmApplicationActionRegistry,
-  getFrameHelmApplicationTurnState,
-  getFrameHelmApplicationTurnStateManager,
-  executeFrameHelmApplicationAction,
-  executeFrameHelmApplicationActionRoll
+  configureFrameConnApplicationRuntime,
+  getFrameConnApplicationRuntimeBindings,
+  getFrameConnApplicationActionRegistry,
+  getFrameConnApplicationTurnState,
+  getFrameConnApplicationTurnStateManager,
+  executeFrameConnApplicationAction,
+  executeFrameConnApplicationActionRoll
 };

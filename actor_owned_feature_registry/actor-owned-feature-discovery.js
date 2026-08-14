@@ -16,13 +16,13 @@
  * @depends-on
  * - actor-owned-feature-contract
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - runtime composition supplies discovery adapter backed by native_adapter/
  * - consumed by actor-owned-feature-normalizer.js
  * - consumed by actor-owned-feature-registry.js
  * - discovers mech/pilot actor ownership independently
  * - preserves native actor/item/action/profile/rank provenance
- * - existing Frame Helm registry remains separate
+ * - existing Frame Conn registry remains separate
  * - future system_bridge/ consumes normalized results, not raw discovery
  *
  * EXISTING ARCHITECTURE PRESERVED:
@@ -72,7 +72,7 @@ import {
    MODULE IDENTITY
    ============================================================ */
 export const ACTOR_OWNED_FEATURE_DISCOVERY_MODULE_ID =
-  "lancer-frame-helm.actor-owned-feature-discovery";
+  "lancer-frame-conn.actor-owned-feature-discovery";
 export const ACTOR_OWNED_FEATURE_DISCOVERY_MODULE_VERSION =
   1;
 /* ============================================================
@@ -1849,7 +1849,7 @@ export function getActorOwnedDiscoveryIdentityKey(
  * Mech Weapon:
  * ownerKind = MECH
  *
- * system_bridge may later compose both into one active Frame Helm runtime
+ * system_bridge may later compose both into one active Frame Conn runtime
  * view for the linked character.
  */
 /* ============================================================
@@ -1925,12 +1925,12 @@ export function getActorOwnedDiscoveryIdentityKey(
  * structured data or explicit augmentation.
  */
 /* ============================================================
-   EXISTING FRAME HELM REGISTRY BOUNDARY
+   EXISTING FRAME CONN REGISTRY BOUNDARY
    ============================================================ */
 /**
- * @section existing-frame-helm-registry-boundary
+ * @section existing-frame-conn-registry-boundary
  *
- * Existing Frame Helm registry is NOT queried here.
+ * Existing Frame Conn registry is NOT queried here.
  *
  * Discovery source:
  *
@@ -1938,7 +1938,7 @@ export function getActorOwnedDiscoveryIdentityKey(
  *
  * Later:
  *
- * existing Frame Helm registry
+ * existing Frame Conn registry
  *            +
  * actor_owned_feature_registry
  *            +
@@ -2080,10 +2080,10 @@ export function getActorOwnedFeatureDiscoveryDiagnostics() {
   });
 }
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * native_adapter/
  * ---------------
@@ -2140,7 +2140,7 @@ export function getActorOwnedFeatureDiscoveryDiagnostics() {
  * Range/Threat/Sensors data is preserved for normalization.
  *
  *
- * existing Frame Helm registry
+ * existing Frame Conn registry
  * ----------------------------
  *
  * Remains separate.
@@ -2203,7 +2203,7 @@ export function getActorOwnedFeatureDiscoveryDiagnostics() {
  * discovery.
  *
  * INVARIANT 15
- * Existing Frame Helm registry is not merged during discovery.
+ * Existing Frame Conn registry is not merged during discovery.
  *
  * INVARIANT 16
  * system_bridge consumes normalized registry data later, not raw native

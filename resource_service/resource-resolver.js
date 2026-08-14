@@ -18,7 +18,7 @@
  * - semantic_execution_context/execution-context
  * - native_adapter/native-adapter
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumes ExecutionContext from semantic_execution_context/
  * - consumes native resource discovery from native_adapter/
  * - consumes resource declarations supplied by:
@@ -444,7 +444,7 @@ function descriptorFromDeclaration(
         declaration.kind,
       authority:
         declaration.authority ??
-        RESOURCE_AUTHORITY.FRAME_HELM,
+        RESOURCE_AUTHORITY.FRAME_CONN,
       actorUuid,
       itemUuid,
       itemLid,
@@ -593,7 +593,7 @@ function inferNativeConsumption(
        * consumption.
        *
        * Resolver leaves it verify-only unless augmentation declares
-       * explicit Frame Helm consumption.
+       * explicit Frame Conn consumption.
        */
       return RESOURCE_CONSUMPTION.VERIFY_ONLY;
   }
@@ -1245,10 +1245,10 @@ async function resolveNativeResourceSnapshot(
   });
 }
 /* ============================================================
-   FRAME HELM RESOURCE SNAPSHOT RESOLUTION
+   FRAME CONN RESOURCE SNAPSHOT RESOLUTION
    ============================================================ */
 /**
- * @section frame-helm-resource-snapshot-resolution
+ * @section frame-conn-resource-snapshot-resolution
  *
  * Supplemental persistence service does not exist yet.
  *
@@ -1263,7 +1263,7 @@ async function resolveNativeResourceSnapshot(
  * Once the persistence/lifecycle service exists, replace this fallback
  * through the public service boundary rather than changing descriptors.
  */
-function resolveFrameHelmResourceSnapshot(
+function resolveFrameConnResourceSnapshot(
   context,
   descriptor
 ) {
@@ -1290,7 +1290,7 @@ function resolveFrameHelmResourceSnapshot(
         false,
       metadata: {
         reason:
-          "frame-helm-resource-state-unresolved"
+          "frame-conn-resource-state-unresolved"
       }
     });
   }
@@ -1412,8 +1412,8 @@ export async function resolveExecutionResourceSnapshot(
       return resolveNativeResourceSnapshot(
         descriptor
       );
-    case RESOURCE_AUTHORITY.FRAME_HELM:
-      return resolveFrameHelmResourceSnapshot(
+    case RESOURCE_AUTHORITY.FRAME_CONN:
+      return resolveFrameConnResourceSnapshot(
         context,
         descriptor
       );
@@ -1611,10 +1611,10 @@ export async function getResourceResolverDiagnostics(
   });
 }
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * feature-registry.js / feature-registry-core.js
  * ------------------------------------------------
@@ -1714,7 +1714,7 @@ export async function getResourceResolverDiagnostics(
  * → existing registry action
  * + augmentation frequency declaration
  * → resolver
- * → Frame Helm scene resource descriptor
+ * → Frame Conn scene resource descriptor
  *
  *
  * actor_owned_feature_registry/
@@ -1795,7 +1795,7 @@ export async function getResourceResolverDiagnostics(
  *
  * resolver:
  *
- * authority = FRAME_HELM
+ * authority = FRAME_CONN
  * consumption = DEFERRED
  * resetScope = SCENE
  *
@@ -1809,7 +1809,7 @@ export async function getResourceResolverDiagnostics(
  *
  * resolver:
  *
- * native or Frame Helm backing depending on actual persistence
+ * native or Frame Conn backing depending on actual persistence
  *
  * semantic spend remains explicitly declared rather than assumed from
  * CounterData presence.
@@ -1845,7 +1845,7 @@ export async function getResourceResolverDiagnostics(
  * spending.
  *
  * INVARIANT 8
- * Frame Helm frequency resources remain distinct from native Limited.
+ * Frame Conn frequency resources remain distinct from native Limited.
  *
  * INVARIANT 9
  * No arbitrary effect-text parsing occurs here.

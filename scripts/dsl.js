@@ -3,16 +3,16 @@
  * FILE PATH / NAME
  * ============================================================
  *
- * scripts/frame-helm/dsl.js
+ * scripts/frame-conn/dsl.js
  */
 /**
  * ============================================================
- * FRAME HELM DECLARATIVE DSL
+ * FRAME CONN DECLARATIVE DSL
  * ============================================================
  *
  * ROLE:
  *   Provides small, descriptive construction helpers for
- *   Frame Helm's declarative action and category definitions.
+ *   Frame Conn's declarative action and category definitions.
  *
  * PURPOSE:
  *   Reduce repeated object-shape boilerplate while keeping
@@ -51,7 +51,7 @@
  *     - must return an ordinary JavaScript object
  *
  *   The returned objects must remain compatible with the
- *   existing FrameHelmActionRegistry input contracts.
+ *   existing FrameConnActionRegistry input contracts.
  *
  * DEPENDENCY RULE:
  *   This file must remain dependency-free.
@@ -65,7 +65,7 @@
  * This exists primarily to make metadata construction
  * semantically explicit at call sites.
  */
-export function defineFrameHelmActionMetadata(
+export function defineFrameConnActionMetadata(
   metadata = {}
 ) {
   return {
@@ -81,12 +81,12 @@ export function defineFrameHelmActionMetadata(
  * Example:
  *
  *   {
- *     ...defineFrameHelmTargetRequirement(
+ *     ...defineFrameConnTargetRequirement(
  *       "adjacent-character"
  *     )
  *   }
  */
-export function defineFrameHelmTargetRequirement(
+export function defineFrameConnTargetRequirement(
   targetType
 ) {
   return {
@@ -101,7 +101,7 @@ export function defineFrameHelmTargetRequirement(
  * requiresTarget to false, but useful where explicitness helps
  * document intent.
  */
-export function defineFrameHelmNoTargetRequirement() {
+export function defineFrameConnNoTargetRequirement() {
   return {
     requiresTarget: false,
     targetType: null
@@ -114,7 +114,7 @@ export function defineFrameHelmNoTargetRequirement() {
  * definition when nesting is clearer than assigning parentId
  * directly.
  */
-export function defineFrameHelmChildActionOf(
+export function defineFrameConnChildActionOf(
   parentId
 ) {
   return {
@@ -124,14 +124,14 @@ export function defineFrameHelmChildActionOf(
 /**
  * Creates metadata for a mech-skill action.
  *
- * Existing Frame Helm execution logic recognizes statPath and
+ * Existing Frame Conn execution logic recognizes statPath and
  * statLabel in action.metadata.
  */
-export function defineFrameHelmMechSkillMetadata({
+export function defineFrameConnMechSkillMetadata({
   statPath,
   statLabel
 }) {
-  return defineFrameHelmActionMetadata({
+  return defineFrameConnActionMetadata({
     statPath,
     statLabel
   });
@@ -140,12 +140,12 @@ export function defineFrameHelmMechSkillMetadata({
    Category definitions
    ============================================================ */
 /**
- * Constructs a Frame Helm action-category definition.
+ * Constructs a Frame Conn action-category definition.
  *
- * This mirrors the existing FrameHelmActionRegistry
+ * This mirrors the existing FrameConnActionRegistry
  * registerCategory input shape.
  */
-export function defineFrameHelmActionCategory({
+export function defineFrameConnActionCategory({
   id,
   label,
   description = "",
@@ -167,13 +167,13 @@ export function defineFrameHelmActionCategory({
    ============================================================ */
 /**
  * Constructs the complete declarative shape accepted by
- * FrameHelmActionRegistry.register().
+ * FrameConnActionRegistry.register().
  *
  * This is the lowest-level action constructor in the DSL.
  * More semantic action constructors below specialize it by
  * assigning category and cost.
  */
-export function defineFrameHelmUniversalAction({
+export function defineFrameConnUniversalAction({
   id,
   label,
   shortDescription = "",
@@ -224,7 +224,7 @@ export function defineFrameHelmUniversalAction({
  *   category: "movement"
  *   cost: "movement"
  */
-export function defineFrameHelmMovementAction({
+export function defineFrameConnMovementAction({
   id,
   label,
   shortDescription = "",
@@ -241,7 +241,7 @@ export function defineFrameHelmMovementAction({
   visible = true,
   metadata = {}
 }) {
-  return defineFrameHelmUniversalAction({
+  return defineFrameConnUniversalAction({
     id,
     label,
     shortDescription,
@@ -271,7 +271,7 @@ export function defineFrameHelmMovementAction({
  *   category: "quick"
  *   cost: "quick"
  */
-export function defineFrameHelmQuickAction({
+export function defineFrameConnQuickAction({
   id,
   label,
   shortDescription = "",
@@ -288,7 +288,7 @@ export function defineFrameHelmQuickAction({
   visible = true,
   metadata = {}
 }) {
-  return defineFrameHelmUniversalAction({
+  return defineFrameConnUniversalAction({
     id,
     label,
     shortDescription,
@@ -318,7 +318,7 @@ export function defineFrameHelmQuickAction({
  *   category: "full"
  *   cost: "full"
  */
-export function defineFrameHelmFullAction({
+export function defineFrameConnFullAction({
   id,
   label,
   shortDescription = "",
@@ -335,7 +335,7 @@ export function defineFrameHelmFullAction({
   visible = true,
   metadata = {}
 }) {
-  return defineFrameHelmUniversalAction({
+  return defineFrameConnUniversalAction({
     id,
     label,
     shortDescription,
@@ -367,7 +367,7 @@ export function defineFrameHelmFullAction({
  *   "overcharge"
  *   "none"
  */
-export function defineFrameHelmSpecialAction({
+export function defineFrameConnSpecialAction({
   id,
   label,
   shortDescription = "",
@@ -384,7 +384,7 @@ export function defineFrameHelmSpecialAction({
   visible = true,
   metadata = {}
 }) {
-  return defineFrameHelmUniversalAction({
+  return defineFrameConnUniversalAction({
     id,
     label,
     shortDescription,
@@ -413,7 +413,7 @@ export function defineFrameHelmSpecialAction({
  *   category: "reaction"
  *   cost: "reaction"
  */
-export function defineFrameHelmReaction({
+export function defineFrameConnReaction({
   id,
   label,
   shortDescription = "",
@@ -429,7 +429,7 @@ export function defineFrameHelmReaction({
   visible = true,
   metadata = {}
 }) {
-  return defineFrameHelmUniversalAction({
+  return defineFrameConnUniversalAction({
     id,
     label,
     shortDescription,
@@ -463,7 +463,7 @@ export function defineFrameHelmReaction({
  *   category: "protocol"
  *   cost: "none"
  */
-export function defineFrameHelmProtocol({
+export function defineFrameConnProtocol({
   id,
   label,
   shortDescription = "",
@@ -479,7 +479,7 @@ export function defineFrameHelmProtocol({
   visible = true,
   metadata = {}
 }) {
-  return defineFrameHelmUniversalAction({
+  return defineFrameConnUniversalAction({
     id,
     label,
     shortDescription,
@@ -507,10 +507,10 @@ export function defineFrameHelmProtocol({
  * This remains purely declarative. Capability checking belongs
  * to whichever behavior domain eventually implements it.
  */
-export function defineFrameHelmRequiresFlightCapabilityMetadata(
+export function defineFrameConnRequiresFlightCapabilityMetadata(
   metadata = {}
 ) {
-  return defineFrameHelmActionMetadata({
+  return defineFrameConnActionMetadata({
     ...metadata,
     requiresFlightCapability: true
   });
@@ -518,10 +518,10 @@ export function defineFrameHelmRequiresFlightCapabilityMetadata(
 /**
  * Marks an action as requiring teleport capability.
  */
-export function defineFrameHelmRequiresTeleportCapabilityMetadata(
+export function defineFrameConnRequiresTeleportCapabilityMetadata(
   metadata = {}
 ) {
-  return defineFrameHelmActionMetadata({
+  return defineFrameConnActionMetadata({
     ...metadata,
     requiresTeleportCapability: true
   });
@@ -530,10 +530,10 @@ export function defineFrameHelmRequiresTeleportCapabilityMetadata(
  * Describes the current Hide prerequisites represented in the
  * existing action definitions.
  */
-export function defineFrameHelmHideRequirementMetadata(
+export function defineFrameConnHideRequirementMetadata(
   metadata = {}
 ) {
-  return defineFrameHelmActionMetadata({
+  return defineFrameConnActionMetadata({
     ...metadata,
     requiresNotEngaged: true,
     requiresCoverOrInvisibility: true
@@ -543,10 +543,10 @@ export function defineFrameHelmHideRequirementMetadata(
  * Marks a Full Action as requiring a compatible Full Action
  * system or equipment entry.
  */
-export function defineFrameHelmRequiresFullActionSystemMetadata(
+export function defineFrameConnRequiresFullActionSystemMetadata(
   metadata = {}
 ) {
-  return defineFrameHelmActionMetadata({
+  return defineFrameConnActionMetadata({
     ...metadata,
     requiresFullActionSystem: true
   });
@@ -554,10 +554,10 @@ export function defineFrameHelmRequiresFullActionSystemMetadata(
 /**
  * Describes the available modes for Mount / Dismount / Eject.
  */
-export function defineFrameHelmMountDismountModesMetadata(
+export function defineFrameConnMountDismountModesMetadata(
   metadata = {}
 ) {
-  return defineFrameHelmActionMetadata({
+  return defineFrameConnActionMetadata({
     ...metadata,
     modes: [
       "mount",
@@ -571,10 +571,10 @@ export function defineFrameHelmMountDismountModesMetadata(
  *
  * This does not implement Overcharge behavior.
  */
-export function defineFrameHelmOverchargeMetadata(
+export function defineFrameConnOverchargeMetadata(
   metadata = {}
 ) {
-  return defineFrameHelmActionMetadata({
+  return defineFrameConnActionMetadata({
     ...metadata,
     grantsQuickAction: true,
     permitsDuplicateAction: true

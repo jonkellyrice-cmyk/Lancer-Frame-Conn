@@ -9,8 +9,8 @@
  * @file
  * @path scripts/feature_lifecycle/lifecycle-feature.js
  * @module lifecycle-feature
- * @layer frame-helm-runtime-feature
- * @responsibility expose-lifecycle-service-through-the-canonical-frame-helm-feature-contract
+ * @layer frame-conn-runtime-feature
+ * @responsibility expose-lifecycle-service-through-the-canonical-frame-conn-feature-contract
  * @public-boundary true
  * @side-effects lifecycle-hook-registration-through-feature-lifecycle
  *
@@ -27,7 +27,7 @@
  * runtime-orchestrator.js
  *
  * THIS FILE OWNS:
- * - canonical Frame Helm Lifecycle feature definition
+ * - canonical Frame Conn Lifecycle feature definition
  * - Lifecycle capability declaration
  * - narrow runtime adapter configuration boundary
  * - feature-lifecycle activation/deactivation of semantic lifecycle hooks
@@ -57,7 +57,7 @@
    ============================================================ */
 
 import {
-  defineFrameHelmFeature
+  defineFrameConnFeature
 } from "../feature-contract.js";
 
 import * as lifecycleRuntime from
@@ -71,7 +71,7 @@ import * as lifecycleRuntime from
  * Lifecycle owns no Foundry/Lancer persistence or mutation implementation.
  * Those authorities are supplied at application composition time.
  */
-function configureFrameHelmLifecycleRuntime(
+function configureFrameConnLifecycleRuntime(
   bindings = {}
 ) {
   if (
@@ -80,7 +80,7 @@ function configureFrameHelmLifecycleRuntime(
     Array.isArray(bindings)
   ) {
     throw new TypeError(
-      "Frame Helm Lifecycle runtime bindings must be supplied as an object."
+      "Frame Conn Lifecycle runtime bindings must be supplied as an object."
     );
   }
 
@@ -93,7 +93,7 @@ function configureFrameHelmLifecycleRuntime(
   for (const key of Object.keys(bindings)) {
     if (!allowedKeys.has(key)) {
       throw new Error(
-        `Frame Helm Lifecycle received unknown runtime binding: ${key}`
+        `Frame Conn Lifecycle received unknown runtime binding: ${key}`
       );
     }
   }
@@ -120,13 +120,13 @@ function configureFrameHelmLifecycleRuntime(
     );
   }
 
-  return getFrameHelmLifecycleRuntimeBindings();
+  return getFrameConnLifecycleRuntimeBindings();
 }
 
 /**
  * Returns composition status without exposing adapter implementation details.
  */
-function getFrameHelmLifecycleRuntimeBindings() {
+function getFrameConnLifecycleRuntimeBindings() {
   return Object.freeze({
     stateAdapter:
       lifecycleRuntime.hasLifecycleStateAdapter(),
@@ -149,7 +149,7 @@ function getFrameHelmLifecycleRuntimeBindings() {
  * Semantic lifecycle listeners are activated only when the canonical feature
  * registry initializes this feature.
  */
-function initializeFrameHelmLifecycleFeature() {
+function initializeFrameConnLifecycleFeature() {
   return lifecycleRuntime
     .registerLifecycleSemanticHooks();
 }
@@ -157,7 +157,7 @@ function initializeFrameHelmLifecycleFeature() {
 /**
  * Lifecycle listener teardown belongs to feature shutdown.
  */
-function shutdownFrameHelmLifecycleFeature() {
+function shutdownFrameConnLifecycleFeature() {
   return lifecycleRuntime
     .unregisterLifecycleSemanticHooks();
 }
@@ -166,10 +166,10 @@ function shutdownFrameHelmLifecycleFeature() {
    FEATURE DIAGNOSTICS
    ============================================================ */
 
-function getFrameHelmLifecycleDiagnostics() {
+function getFrameConnLifecycleDiagnostics() {
   return Object.freeze({
     runtimeBindings:
-      getFrameHelmLifecycleRuntimeBindings(),
+      getFrameConnLifecycleRuntimeBindings(),
 
     serviceId:
       lifecycleRuntime
@@ -196,11 +196,11 @@ function getFrameHelmLifecycleDiagnostics() {
  *
  * Required registry-level dependencies are intentionally empty for the
  * current migration state because semantic_event_bus, resource_service, and
- * action_economy are not yet represented as Frame Helm feature definitions.
+ * action_economy are not yet represented as Frame Conn feature definitions.
  * Their implementation relationships remain explicit in lifecycle_service.
  */
-export const frameHelmLifecycleFeature =
-  defineFrameHelmFeature({
+export const frameConnLifecycleFeature =
+  defineFrameConnFeature({
     id:
       "lifecycle",
 
@@ -226,7 +226,7 @@ export const frameHelmLifecycleFeature =
 
     commands: {
       configureRuntime:
-        configureFrameHelmLifecycleRuntime,
+        configureFrameConnLifecycleRuntime,
 
       registerEntry:
         lifecycleRuntime.registerLifecycleEntry,
@@ -282,20 +282,20 @@ export const frameHelmLifecycleFeature =
         lifecycleRuntime.isLifecycleEntryDue,
 
       runtimeBindings:
-        getFrameHelmLifecycleRuntimeBindings,
+        getFrameConnLifecycleRuntimeBindings,
 
       diagnostics:
-        getFrameHelmLifecycleDiagnostics
+        getFrameConnLifecycleDiagnostics
     },
 
     hooks: {},
 
     lifecycle: {
       initialize:
-        initializeFrameHelmLifecycleFeature,
+        initializeFrameConnLifecycleFeature,
 
       shutdown:
-        shutdownFrameHelmLifecycleFeature
+        shutdownFrameConnLifecycleFeature
     },
 
     api: {
@@ -303,13 +303,13 @@ export const frameHelmLifecycleFeature =
         lifecycleRuntime.lifecycleService,
 
       configureRuntime:
-        configureFrameHelmLifecycleRuntime,
+        configureFrameConnLifecycleRuntime,
 
       runtimeBindings:
-        getFrameHelmLifecycleRuntimeBindings,
+        getFrameConnLifecycleRuntimeBindings,
 
       diagnostics:
-        getFrameHelmLifecycleDiagnostics,
+        getFrameConnLifecycleDiagnostics,
 
       createIdentity:
         lifecycleRuntime.createLifecycleIdentity,
@@ -422,7 +422,7 @@ export const frameHelmLifecycleFeature =
         "Lifecycle",
 
       description:
-        "Exposes Frame Helm lifecycle timing, registration, dispatch, and semantic lifecycle integration through the canonical feature registry.",
+        "Exposes Frame Conn lifecycle timing, registration, dispatch, and semantic lifecycle integration through the canonical feature registry.",
 
       serviceBoundary:
         "lifecycle_service/lifecycle-service.js",
@@ -449,9 +449,9 @@ export const frameHelmLifecycleFeature =
    ============================================================ */
 
 export {
-  configureFrameHelmLifecycleRuntime,
-  getFrameHelmLifecycleRuntimeBindings,
-  initializeFrameHelmLifecycleFeature,
-  shutdownFrameHelmLifecycleFeature,
-  getFrameHelmLifecycleDiagnostics
+  configureFrameConnLifecycleRuntime,
+  getFrameConnLifecycleRuntimeBindings,
+  initializeFrameConnLifecycleFeature,
+  shutdownFrameConnLifecycleFeature,
+  getFrameConnLifecycleDiagnostics
 };

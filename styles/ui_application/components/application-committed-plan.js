@@ -37,12 +37,12 @@ function renderCommittedPlan(
     entries.length === 0
   ) {
     return `
-      <div class="frame-helm-plan-empty">
-        <span class="frame-helm-plan-empty-icon">
+      <div class="frame-conn-plan-empty">
+        <span class="frame-conn-plan-empty-icon">
           <i class="fas fa-circle-notch"></i>
         </span>
 
-        <span class="frame-helm-plan-empty-label">
+        <span class="frame-conn-plan-empty-label">
           NO COMMITTED ACTIONS
         </span>
       </div>
@@ -51,12 +51,12 @@ function renderCommittedPlan(
 
 
   return `
-    <div class="frame-helm-plan-list">
+    <div class="frame-conn-plan-list">
       ${entries.map(
         entry => {
           const classNames =
             entry?.classNames ??
-            "frame-helm-plan-entry";
+            "frame-conn-plan-entry";
 
           const state =
             entry?.state ??
@@ -115,35 +115,35 @@ function renderCommittedPlan(
           return `
             <div
               class="${foundry.utils.escapeHTML(classNames)}"
-              data-frame-helm-plan-state="${foundry.utils.escapeHTML(state)}"
+              data-frame-conn-plan-state="${foundry.utils.escapeHTML(state)}"
               ${
                 actionId
-                  ? `data-frame-helm-action-id="${foundry.utils.escapeHTML(actionId)}"`
+                  ? `data-frame-conn-action-id="${foundry.utils.escapeHTML(actionId)}"`
                   : ""
               }
               ${
                 committedActionId
-                  ? `data-frame-helm-committed-action-id="${foundry.utils.escapeHTML(committedActionId)}"`
+                  ? `data-frame-conn-committed-action-id="${foundry.utils.escapeHTML(committedActionId)}"`
                   : ""
               }
             >
-              <span class="frame-helm-plan-index">
+              <span class="frame-conn-plan-index">
                 ${foundry.utils.escapeHTML(indexLabel)}
               </span>
 
-              <span class="frame-helm-plan-icon">
+              <span class="frame-conn-plan-icon">
                 <i class="${foundry.utils.escapeHTML(icon)}"></i>
               </span>
 
-              <span class="frame-helm-plan-copy">
-                <strong class="frame-helm-plan-label">
+              <span class="frame-conn-plan-copy">
+                <strong class="frame-conn-plan-label">
                   ${foundry.utils.escapeHTML(label)}
                 </strong>
 
                 ${
                   detail
                     ? `
-                      <small class="frame-helm-plan-detail">
+                      <small class="frame-conn-plan-detail">
                         ${foundry.utils.escapeHTML(detail)}
                       </small>
                     `
@@ -156,9 +156,9 @@ function renderCommittedPlan(
                   ? `
                     <button
                       type="button"
-                      class="frame-helm-plan-execute"
-                      data-frame-helm-committed-execute="${foundry.utils.escapeHTML(committedActionId)}"
-                      data-frame-helm-action-id="${foundry.utils.escapeHTML(actionId)}"
+                      class="frame-conn-plan-execute"
+                      data-frame-conn-committed-execute="${foundry.utils.escapeHTML(committedActionId)}"
+                      data-frame-conn-action-id="${foundry.utils.escapeHTML(actionId)}"
                       title="${foundry.utils.escapeHTML(executeLabel)}"
                       aria-label="${foundry.utils.escapeHTML(`${executeLabel} ${label}`)}"
                     >
@@ -168,7 +168,7 @@ function renderCommittedPlan(
                   : ""
               }
 
-              <span class="frame-helm-plan-state">
+              <span class="frame-conn-plan-state">
                 ${foundry.utils.escapeHTML(
                   String(state).toUpperCase()
                 )}

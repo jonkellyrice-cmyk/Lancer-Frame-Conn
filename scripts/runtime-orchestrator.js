@@ -9,16 +9,16 @@
 
 /**
  * ============================================================
- * FRAME HELM RUNTIME ORCHESTRATOR
+ * FRAME CONN RUNTIME ORCHESTRATOR
  * ============================================================
  *
  * ROLE:
  *   Provides the authoritative Foundry startup, runtime
  *   composition, and cross-feature orchestration surface for
- *   Frame Helm.
+ *   Frame Conn.
  *
  * PURPOSE:
- *   Compose registered Frame Helm features while retaining only
+ *   Compose registered Frame Conn features while retaining only
  *   behavior that genuinely belongs to application-wide runtime
  *   orchestration.
  *
@@ -87,7 +87,7 @@
  *
  *   - Foundry startup boundaries
  *   - Cross-feature runtime binding
- *   - Public game.lancerFrameHelm composition
+ *   - Public game.lancerFrameConn composition
  *
  * NO LONGER OWNS:
  *
@@ -99,7 +99,7 @@
  *   - Actor action-workflow delegation
  *   - Sensor rendering
  *   - Sensor hook behavior
- *   - FrameHelmApplication
+ *   - FrameConnApplication
  *   - Application singleton state
  *   - Application open/close behavior
  *   - Application rendering implementation
@@ -136,7 +136,7 @@
    ============================================================ */
 
 import {
-  frameHelmFeatureRegistry
+  frameConnFeatureRegistry
 } from "./feature-registry.js";
 
 
@@ -145,7 +145,7 @@ import {
    ============================================================ */
 
 const MODULE_TITLE =
-  "Lancer: Frame Helm";
+  "Frame Conn";
 
 
 /* ============================================================
@@ -162,44 +162,44 @@ const MODULE_TITLE =
    Actions
    ------------------------------------------------------------ */
 
-const frameHelmActionsApi =
-  frameHelmFeatureRegistry.getApi(
+const frameConnActionsApi =
+  frameConnFeatureRegistry.getApi(
     "actions"
   );
 
 
 if (
-  !frameHelmActionsApi
+  !frameConnActionsApi
 ) {
   throw new Error(
-    "Frame Helm | The registered Actions feature API could not be resolved."
+    "Frame Conn | The registered Actions feature API could not be resolved."
   );
 }
 
 
-const frameHelmActionRegistry =
-  frameHelmActionsApi.registry;
+const frameConnActionRegistry =
+  frameConnActionsApi.registry;
 
 
-const initializeFrameHelmActionRegistry =
-  frameHelmActionsApi.initialize;
+const initializeFrameConnActionRegistry =
+  frameConnActionsApi.initialize;
 
 
 /* ------------------------------------------------------------
    Turn
    ------------------------------------------------------------ */
 
-const frameHelmTurnApi =
-  frameHelmFeatureRegistry.getApi(
+const frameConnTurnApi =
+  frameConnFeatureRegistry.getApi(
     "turn"
   );
 
 
 if (
-  !frameHelmTurnApi
+  !frameConnTurnApi
 ) {
   throw new Error(
-    "Frame Helm | The registered Turn feature API could not be resolved."
+    "Frame Conn | The registered Turn feature API could not be resolved."
   );
 }
 
@@ -210,11 +210,11 @@ if (
  *
  * Turn-state ownership belongs entirely to turn-feature.js.
  */
-function getFrameHelmTurnState() {
+function getFrameConnTurnState() {
   return (
-    frameHelmTurnApi
+    frameConnTurnApi
       .getCurrent?.() ??
-    frameHelmTurnApi
+    frameConnTurnApi
       .current ??
     null
   );
@@ -225,11 +225,11 @@ function getFrameHelmTurnState() {
  * Resolve the canonical Turn state manager when exposed by the
  * feature.
  */
-function getFrameHelmTurnStateManager() {
+function getFrameConnTurnStateManager() {
   return (
-    frameHelmTurnApi
+    frameConnTurnApi
       .getManager?.() ??
-    frameHelmTurnApi
+    frameConnTurnApi
       .manager ??
     null
   );
@@ -240,17 +240,17 @@ function getFrameHelmTurnStateManager() {
    Movement
    ------------------------------------------------------------ */
 
-const frameHelmMovementApi =
-  frameHelmFeatureRegistry.getApi(
+const frameConnMovementApi =
+  frameConnFeatureRegistry.getApi(
     "movement"
   );
 
 
 if (
-  !frameHelmMovementApi
+  !frameConnMovementApi
 ) {
   throw new Error(
-    "Frame Helm | The registered Movement feature API could not be resolved."
+    "Frame Conn | The registered Movement feature API could not be resolved."
   );
 }
 
@@ -259,17 +259,17 @@ if (
    Foundry integration
    ------------------------------------------------------------ */
 
-const frameHelmFoundryIntegrationApi =
-  frameHelmFeatureRegistry.getApi(
+const frameConnFoundryIntegrationApi =
+  frameConnFeatureRegistry.getApi(
     "foundry-integration"
   );
 
 
 if (
-  !frameHelmFoundryIntegrationApi
+  !frameConnFoundryIntegrationApi
 ) {
   throw new Error(
-    "Frame Helm | The registered Foundry Integration feature API could not be resolved."
+    "Frame Conn | The registered Foundry Integration feature API could not be resolved."
   );
 }
 
@@ -278,17 +278,17 @@ if (
    Action execution
    ------------------------------------------------------------ */
 
-const frameHelmActionExecutionApi =
-  frameHelmFeatureRegistry.getApi(
+const frameConnActionExecutionApi =
+  frameConnFeatureRegistry.getApi(
     "action-execution"
   );
 
 
 if (
-  !frameHelmActionExecutionApi
+  !frameConnActionExecutionApi
 ) {
   throw new Error(
-    "Frame Helm | The registered Action Execution feature API could not be resolved."
+    "Frame Conn | The registered Action Execution feature API could not be resolved."
   );
 }
 
@@ -297,17 +297,17 @@ if (
    Lifecycle
    ------------------------------------------------------------ */
 
-const frameHelmLifecycleApi =
-  frameHelmFeatureRegistry.getApi(
+const frameConnLifecycleApi =
+  frameConnFeatureRegistry.getApi(
     "lifecycle"
   );
 
 
 if (
-  !frameHelmLifecycleApi
+  !frameConnLifecycleApi
 ) {
   throw new Error(
-    "Frame Helm | The registered Lifecycle feature API could not be resolved."
+    "Frame Conn | The registered Lifecycle feature API could not be resolved."
   );
 }
 
@@ -316,17 +316,17 @@ if (
    Targeting / spatial
    ------------------------------------------------------------ */
 
-const frameHelmTargetingSpatialApi =
-  frameHelmFeatureRegistry.getApi(
+const frameConnTargetingSpatialApi =
+  frameConnFeatureRegistry.getApi(
     "targeting-spatial"
   );
 
 
 if (
-  !frameHelmTargetingSpatialApi
+  !frameConnTargetingSpatialApi
 ) {
   throw new Error(
-    "Frame Helm | The registered Targeting / Spatial feature API could not be resolved."
+    "Frame Conn | The registered Targeting / Spatial feature API could not be resolved."
   );
 }
 
@@ -335,17 +335,17 @@ if (
    System Bridge
    ------------------------------------------------------------ */
 
-const frameHelmSystemBridgeApi =
-  frameHelmFeatureRegistry.getApi(
+const frameConnSystemBridgeApi =
+  frameConnFeatureRegistry.getApi(
     "system-bridge"
   );
 
 
 if (
-  !frameHelmSystemBridgeApi
+  !frameConnSystemBridgeApi
 ) {
   throw new Error(
-    "Frame Helm | The registered System Bridge feature API could not be resolved."
+    "Frame Conn | The registered System Bridge feature API could not be resolved."
   );
 }
 
@@ -354,17 +354,17 @@ if (
    Semantic Execution Context
    ------------------------------------------------------------ */
 
-const frameHelmSemanticExecutionContextApi =
-  frameHelmFeatureRegistry.getApi(
+const frameConnSemanticExecutionContextApi =
+  frameConnFeatureRegistry.getApi(
     "semantic-execution-context"
   );
 
 
 if (
-  !frameHelmSemanticExecutionContextApi
+  !frameConnSemanticExecutionContextApi
 ) {
   throw new Error(
-    "Frame Helm | The registered Semantic Execution Context feature API could not be resolved."
+    "Frame Conn | The registered Semantic Execution Context feature API could not be resolved."
   );
 }
 
@@ -373,17 +373,17 @@ if (
    Execution Transaction
    ------------------------------------------------------------ */
 
-const frameHelmExecutionTransactionApi =
-  frameHelmFeatureRegistry.getApi(
+const frameConnExecutionTransactionApi =
+  frameConnFeatureRegistry.getApi(
     "execution-transaction"
   );
 
 
 if (
-  !frameHelmExecutionTransactionApi
+  !frameConnExecutionTransactionApi
 ) {
   throw new Error(
-    "Frame Helm | The registered Execution Transaction feature API could not be resolved."
+    "Frame Conn | The registered Execution Transaction feature API could not be resolved."
   );
 }
 
@@ -392,17 +392,17 @@ if (
    Native Adapter
    ------------------------------------------------------------ */
 
-const frameHelmNativeAdapterApi =
-  frameHelmFeatureRegistry.getApi(
+const frameConnNativeAdapterApi =
+  frameConnFeatureRegistry.getApi(
     "native-adapter"
   );
 
 
 if (
-  !frameHelmNativeAdapterApi
+  !frameConnNativeAdapterApi
 ) {
   throw new Error(
-    "Frame Helm | The registered Native Adapter feature API could not be resolved."
+    "Frame Conn | The registered Native Adapter feature API could not be resolved."
   );
 }
 
@@ -411,17 +411,17 @@ if (
    Turn UI
    ------------------------------------------------------------ */
 
-const frameHelmTurnUiApi =
-  frameHelmFeatureRegistry.getApi(
+const frameConnTurnUiApi =
+  frameConnFeatureRegistry.getApi(
     "ui-turn"
   );
 
 
 if (
-  !frameHelmTurnUiApi
+  !frameConnTurnUiApi
 ) {
   throw new Error(
-    "Frame Helm | The registered Turn UI feature API could not be resolved."
+    "Frame Conn | The registered Turn UI feature API could not be resolved."
   );
 }
 
@@ -430,17 +430,17 @@ if (
    Movement UI
    ------------------------------------------------------------ */
 
-const frameHelmMovementUiApi =
-  frameHelmFeatureRegistry.getApi(
+const frameConnMovementUiApi =
+  frameConnFeatureRegistry.getApi(
     "ui-movement"
   );
 
 
 if (
-  !frameHelmMovementUiApi
+  !frameConnMovementUiApi
 ) {
   throw new Error(
-    "Frame Helm | The registered Movement UI feature API could not be resolved."
+    "Frame Conn | The registered Movement UI feature API could not be resolved."
   );
 }
 
@@ -449,42 +449,42 @@ if (
    Application UI
    ------------------------------------------------------------ */
 
-const frameHelmApplicationApi =
-  frameHelmFeatureRegistry.getApi(
+const frameConnApplicationApi =
+  frameConnFeatureRegistry.getApi(
     "ui-application"
   );
 
 
 if (
-  !frameHelmApplicationApi
+  !frameConnApplicationApi
 ) {
   throw new Error(
-    "Frame Helm | The registered Application UI feature API could not be resolved."
+    "Frame Conn | The registered Application UI feature API could not be resolved."
   );
 }
 
 
-const openFrameHelm =
+const openFrameConn =
   (...args) =>
-    frameHelmApplicationApi
+    frameConnApplicationApi
       .open(
         ...args
       );
 
 
-const closeFrameHelm =
+const closeFrameConn =
   (...args) =>
-    frameHelmApplicationApi
+    frameConnApplicationApi
       .close(
         ...args
       );
 
 
-function renderFrameHelmApplication(
+function renderFrameConnApplication(
   force = false
 ) {
   return (
-    frameHelmApplicationApi
+    frameConnApplicationApi
       .render?.(
         force
       ) ??
@@ -499,31 +499,31 @@ function renderFrameHelmApplication(
 
 /**
  * Runtime-level convergence point for actions migrated to the canonical
- * Frame Helm execution spine.
+ * Frame Conn execution spine.
  *
  * Feature implementations provide semantic intent. This orchestrator only
  * composes registered feature APIs and does not import their implementation
  * modules directly.
  */
-async function executeFrameHelmCanonicalAction({
+async function executeFrameConnCanonicalAction({
   actor = null,
   action = null,
   executionKind = null
 } = {}) {
   if (!actor) {
     throw new TypeError(
-      "Frame Helm canonical action execution requires an actor."
+      "Frame Conn canonical action execution requires an actor."
     );
   }
 
   if (!action?.id) {
     throw new TypeError(
-      "Frame Helm canonical action execution requires an action with an id."
+      "Frame Conn canonical action execution requires an action with an id."
     );
   }
 
   const bridgeComposition =
-    await frameHelmSystemBridgeApi
+    await frameConnSystemBridgeApi
       .resolveAndCompose({
         actorScopeId:
           actor.uuid ??
@@ -549,29 +549,29 @@ async function executeFrameHelmCanonicalAction({
       });
 
   if (
-    !frameHelmSystemBridgeApi
+    !frameConnSystemBridgeApi
       .compositionSucceeded(
         bridgeComposition
       )
   ) {
     throw new Error(
-      `Frame Helm System Bridge could not compose action: ${action.id}`
+      `Frame Conn System Bridge could not compose action: ${action.id}`
     );
   }
 
   if (
-    frameHelmSystemBridgeApi
+    frameConnSystemBridgeApi
       .compositionHasBlockingConflict(
         bridgeComposition
       )
   ) {
     throw new Error(
-      `Frame Helm System Bridge found a blocking conflict for action: ${action.id}`
+      `Frame Conn System Bridge found a blocking conflict for action: ${action.id}`
     );
   }
 
   const executionContext =
-    await frameHelmSemanticExecutionContextApi
+    await frameConnSemanticExecutionContextApi
       .buildExecutionContext({
         actor,
 
@@ -589,7 +589,7 @@ async function executeFrameHelmCanonicalAction({
               bridgeComposition.status,
 
             runtimeDescriptor:
-              frameHelmSystemBridgeApi
+              frameConnSystemBridgeApi
                 .getComposedRuntimeDescriptor(
                   bridgeComposition
                 )
@@ -603,7 +603,7 @@ async function executeFrameHelmCanonicalAction({
   switch (executionKind) {
     case "basic-attack":
       transaction =
-        await frameHelmExecutionTransactionApi
+        await frameConnExecutionTransactionApi
           .runNativeExecutionTransactionWithGlobalHooks({
             context:
               executionContext,
@@ -612,10 +612,10 @@ async function executeFrameHelmCanonicalAction({
               ({
                 context
               }) =>
-                frameHelmNativeAdapterApi
+                frameConnNativeAdapterApi
                   .executeBasicAttack({
                     actor:
-                      frameHelmSemanticExecutionContextApi
+                      frameConnSemanticExecutionContextApi
                         .getExecutionActor(
                           context
                         ) ??
@@ -640,7 +640,7 @@ async function executeFrameHelmCanonicalAction({
 
     default:
       throw new Error(
-        `Frame Helm canonical execution kind is not implemented: ${String(executionKind)}`
+        `Frame Conn canonical execution kind is not implemented: ${String(executionKind)}`
       );
   }
 
@@ -650,7 +650,7 @@ async function executeFrameHelmCanonicalAction({
   ) {
     const error =
       new Error(
-        `Frame Helm canonical action execution did not succeed: ${transaction?.status ?? "unknown"}`
+        `Frame Conn canonical action execution did not succeed: ${transaction?.status ?? "unknown"}`
       );
 
     error.executionTransaction =
@@ -674,7 +674,7 @@ async function executeFrameHelmCanonicalAction({
  * Keep those relationships explicit here rather than allowing
  * feature implementations to import one another directly.
  */
-function configureFrameHelmRuntimeBindings() {
+function configureFrameConnRuntimeBindings() {
   /* ----------------------------------------------------------
      Turn bindings
      ---------------------------------------------------------- */
@@ -683,15 +683,15 @@ function configureFrameHelmRuntimeBindings() {
    * Turn consumes the canonical Actions registry and requests
    * Application rendering when turn-visible state changes.
    */
-  frameHelmTurnApi
+  frameConnTurnApi
     .configureRuntime?.({
       getActionRegistry:
         () =>
-          frameHelmActionRegistry,
+          frameConnActionRegistry,
 
       renderApplication:
         force =>
-          renderFrameHelmApplication(
+          renderFrameConnApplication(
             force
           )
     });
@@ -706,17 +706,17 @@ function configureFrameHelmRuntimeBindings() {
    * changes against the authoritative Turn state.
    *
    * Movement accounting remains transitional inside
-   * FrameHelmTurnState.
+   * FrameConnTurnState.
    */
-  frameHelmMovementApi
+  frameConnMovementApi
     .configureRuntime?.({
       getTurnState:
         () =>
-          getFrameHelmTurnState(),
+          getFrameConnTurnState(),
 
       renderApplication:
         force =>
-          renderFrameHelmApplication(
+          renderFrameConnApplication(
             force
           )
     });
@@ -728,22 +728,22 @@ function configureFrameHelmRuntimeBindings() {
 
   /**
    * Foundry Integration owns the settings and scene-control
-   * surfaces which open and close the primary Frame Helm
+   * surfaces which open and close the primary Frame Conn
    * application.
    *
    * Application ownership itself remains with ui-application.
    */
-  frameHelmFoundryIntegrationApi
+  frameConnFoundryIntegrationApi
     .configureRuntime?.({
       openApplication:
         (...args) =>
-          openFrameHelm(
+          openFrameConn(
             ...args
           ),
 
       closeApplication:
         (...args) =>
-          closeFrameHelm(
+          closeFrameConn(
             ...args
           )
     });
@@ -758,27 +758,27 @@ function configureFrameHelmRuntimeBindings() {
    * an injected adapter so the bridge remains independent of the concrete
    * registry implementation.
    */
-  frameHelmSystemBridgeApi
+  frameConnSystemBridgeApi
     .configureRuntime?.({
       existingRegistryResolverAdapter:
         Object.freeze({
           getById:
             registryId =>
-              frameHelmActionRegistry
+              frameConnActionRegistry
                 .get(
                   registryId
                 ),
 
           findByActionId:
             actionId =>
-              frameHelmActionRegistry
+              frameConnActionRegistry
                 .get(
                   actionId
                 ),
 
           findByName:
             name =>
-              frameHelmActionRegistry
+              frameConnActionRegistry
                 .list({
                   includeHidden:
                     true
@@ -803,11 +803,11 @@ function configureFrameHelmRuntimeBindings() {
    * System Bridge, Execution Context, Transaction, and Native Adapter
    * implementation modules.
    */
-  frameHelmActionExecutionApi
+  frameConnActionExecutionApi
     .configureRuntime?.({
       executeCanonicalAction:
         options =>
-          executeFrameHelmCanonicalAction(
+          executeFrameConnCanonicalAction(
             options
           )
     });
@@ -823,19 +823,19 @@ function configureFrameHelmRuntimeBindings() {
    * composition. The Application's canonical committed-plan
    * presentation depends on these bindings during getData().
    */
-  frameHelmTurnUiApi
+  frameConnTurnUiApi
     .configureRuntime?.({
       getTurnApi:
         () =>
-          frameHelmTurnApi,
+          frameConnTurnApi,
 
       getActionRegistry:
         () =>
-          frameHelmActionRegistry,
+          frameConnActionRegistry,
 
       renderApplication:
         force =>
-          renderFrameHelmApplication(
+          renderFrameConnApplication(
             force
           )
     });
@@ -850,19 +850,19 @@ function configureFrameHelmRuntimeBindings() {
    * authoritative Turn state, and Application rendering through
    * explicit runtime composition.
    */
-  frameHelmMovementUiApi
+  frameConnMovementUiApi
     .configureRuntime?.({
       getMovementApi:
         () =>
-          frameHelmMovementApi,
+          frameConnMovementApi,
 
       getTurnApi:
         () =>
-          frameHelmTurnApi,
+          frameConnTurnApi,
 
       renderApplication:
         force =>
-          renderFrameHelmApplication(
+          renderFrameConnApplication(
             force
           )
     });
@@ -884,26 +884,26 @@ function configureFrameHelmRuntimeBindings() {
    *
    *   scripts/action-execution-feature.js
    */
-  frameHelmApplicationApi
+  frameConnApplicationApi
     .configureRuntime?.({
       getActionRegistry:
         () =>
-          frameHelmActionRegistry,
+          frameConnActionRegistry,
 
       getTurnState:
         () =>
-          getFrameHelmTurnState(),
+          getFrameConnTurnState(),
 
       getTurnStateManager:
         () =>
-          getFrameHelmTurnStateManager(),
+          getFrameConnTurnStateManager(),
 
       executeAction:
         (
           actor,
           action
         ) =>
-          frameHelmActionExecutionApi
+          frameConnActionExecutionApi
             .execute(
               actor,
               action
@@ -928,7 +928,7 @@ function configureFrameHelmRuntimeBindings() {
    Runtime composition validation
    ============================================================ */
 
-function assertFrameHelmRuntimeBindings(
+function assertFrameConnRuntimeBindings(
   label,
   runtimeBindings,
   requiredKeys
@@ -950,7 +950,7 @@ function assertFrameHelmRuntimeBindings(
       ]
     ) {
       throw new Error(
-        `Frame Helm | Runtime composition incomplete: ${label}.${key}`
+        `Frame Conn | Runtime composition incomplete: ${label}.${key}`
       );
     }
   }
@@ -960,45 +960,45 @@ function assertFrameHelmRuntimeBindings(
 }
 
 
-function validateFrameHelmRuntimeComposition() {
-  assertFrameHelmRuntimeBindings(
+function validateFrameConnRuntimeComposition() {
+  assertFrameConnRuntimeBindings(
     "Turn",
-    frameHelmTurnApi.runtimeBindings,
+    frameConnTurnApi.runtimeBindings,
     [
       "actionRegistry",
       "applicationRendering"
     ]
   );
 
-  assertFrameHelmRuntimeBindings(
+  assertFrameConnRuntimeBindings(
     "Movement",
-    frameHelmMovementApi.runtimeBindings,
+    frameConnMovementApi.runtimeBindings,
     [
       "turnState",
       "applicationRendering"
     ]
   );
 
-  assertFrameHelmRuntimeBindings(
+  assertFrameConnRuntimeBindings(
     "Foundry Integration",
-    frameHelmFoundryIntegrationApi.runtimeBindings,
+    frameConnFoundryIntegrationApi.runtimeBindings,
     [
       "applicationOpening",
       "applicationClosing"
     ]
   );
 
-  assertFrameHelmRuntimeBindings(
+  assertFrameConnRuntimeBindings(
     "Action Execution",
-    frameHelmActionExecutionApi.runtimeBindings,
+    frameConnActionExecutionApi.runtimeBindings,
     [
       "executeCanonicalAction"
     ]
   );
 
-  assertFrameHelmRuntimeBindings(
+  assertFrameConnRuntimeBindings(
     "Turn UI",
-    frameHelmTurnUiApi.runtimeBindings,
+    frameConnTurnUiApi.runtimeBindings,
     [
       "turn",
       "actions",
@@ -1006,9 +1006,9 @@ function validateFrameHelmRuntimeComposition() {
     ]
   );
 
-  assertFrameHelmRuntimeBindings(
+  assertFrameConnRuntimeBindings(
     "Movement UI",
-    frameHelmMovementUiApi.runtimeBindings,
+    frameConnMovementUiApi.runtimeBindings,
     [
       "movement",
       "turn",
@@ -1016,9 +1016,9 @@ function validateFrameHelmRuntimeComposition() {
     ]
   );
 
-  assertFrameHelmRuntimeBindings(
+  assertFrameConnRuntimeBindings(
     "Application UI",
-    frameHelmApplicationApi.runtimeBindings,
+    frameConnApplicationApi.runtimeBindings,
     [
       "actionRegistry",
       "turnState",
@@ -1070,9 +1070,9 @@ Hooks.once(
      * their authoritative external adapters before feature lifecycle
      * activation.
      */
-    configureFrameHelmRuntimeBindings();
+    configureFrameConnRuntimeBindings();
 
-    validateFrameHelmRuntimeComposition();
+    validateFrameConnRuntimeComposition();
 
 
     /**
@@ -1081,7 +1081,7 @@ Hooks.once(
      * The runtime retains responsibility only for choosing the
      * Foundry startup boundary at which they are registered.
      */
-    frameHelmFoundryIntegrationApi
+    frameConnFoundryIntegrationApi
       .registerSettings?.();
 
 
@@ -1089,14 +1089,14 @@ Hooks.once(
      * Actions retain synchronous catalog initialization during
      * the current migration.
      */
-    initializeFrameHelmActionRegistry();
+    initializeFrameConnActionRegistry();
 
 
     /**
      * All extracted domains have already been registered by
      * feature-registry.js.
      */
-    frameHelmFeatureRegistry
+    frameConnFeatureRegistry
       .validateDependencies();
 
 
@@ -1109,7 +1109,7 @@ Hooks.once(
      * d0cd008 runtime and prevents Foundry Integration hooks from reading
      * module settings before those settings exist.
      */
-    frameHelmFeatureRegistry
+    frameConnFeatureRegistry
       .installHooks();
 
   }
@@ -1119,12 +1119,12 @@ Hooks.once(
 Hooks.once(
   "ready",
   () => {
-    game.lancerFrameHelm = {
+    game.lancerFrameConn = {
       open:
-        openFrameHelm,
+        openFrameConn,
 
       close:
-        closeFrameHelm,
+        closeFrameConn,
 
 
       /* --------------------------------------------------------
@@ -1133,7 +1133,7 @@ Hooks.once(
 
       get application() {
         return (
-          frameHelmApplicationApi
+          frameConnApplicationApi
             .getApplication?.() ??
           null
         );
@@ -1145,10 +1145,10 @@ Hooks.once(
          -------------------------------------------------------- */
 
       registry:
-        frameHelmActionRegistry,
+        frameConnActionRegistry,
 
       features:
-        frameHelmFeatureRegistry,
+        frameConnFeatureRegistry,
 
 
       /* --------------------------------------------------------
@@ -1156,7 +1156,7 @@ Hooks.once(
          -------------------------------------------------------- */
 
       foundry:
-        frameHelmFoundryIntegrationApi,
+        frameConnFoundryIntegrationApi,
 
 
       /* --------------------------------------------------------
@@ -1164,7 +1164,7 @@ Hooks.once(
          -------------------------------------------------------- */
 
       actionExecution:
-        frameHelmActionExecutionApi,
+        frameConnActionExecutionApi,
 
 
       /* --------------------------------------------------------
@@ -1172,16 +1172,16 @@ Hooks.once(
          -------------------------------------------------------- */
 
       systemBridge:
-        frameHelmSystemBridgeApi,
+        frameConnSystemBridgeApi,
 
       semanticExecutionContext:
-        frameHelmSemanticExecutionContextApi,
+        frameConnSemanticExecutionContextApi,
 
       executionTransaction:
-        frameHelmExecutionTransactionApi,
+        frameConnExecutionTransactionApi,
 
       nativeAdapter:
-        frameHelmNativeAdapterApi,
+        frameConnNativeAdapterApi,
 
 
       /* --------------------------------------------------------
@@ -1189,7 +1189,7 @@ Hooks.once(
          -------------------------------------------------------- */
 
       lifecycle:
-        frameHelmLifecycleApi,
+        frameConnLifecycleApi,
 
 
       /* --------------------------------------------------------
@@ -1197,7 +1197,7 @@ Hooks.once(
          -------------------------------------------------------- */
 
       targetingSpatial:
-        frameHelmTargetingSpatialApi,
+        frameConnTargetingSpatialApi,
 
 
       /* --------------------------------------------------------
@@ -1208,7 +1208,7 @@ Hooks.once(
         begin:
           context => {
             return (
-              frameHelmTurnApi
+              frameConnTurnApi
                 .begin(
                   context
                 )
@@ -1219,7 +1219,7 @@ Hooks.once(
         ensure:
           context => {
             return (
-              frameHelmTurnApi
+              frameConnTurnApi
                 .ensure(
                   context
                 )
@@ -1230,7 +1230,7 @@ Hooks.once(
         end:
           () => {
             return (
-              frameHelmTurnApi
+              frameConnTurnApi
                 .end()
             );
           },
@@ -1239,7 +1239,7 @@ Hooks.once(
         clear:
           () => {
             return (
-              frameHelmTurnApi
+              frameConnTurnApi
                 .clear()
             );
           },
@@ -1248,7 +1248,7 @@ Hooks.once(
         sync:
           combat => {
             return (
-              frameHelmTurnApi
+              frameConnTurnApi
                 .sync(
                   combat
                 )
@@ -1258,14 +1258,14 @@ Hooks.once(
 
         get current() {
           return (
-            getFrameHelmTurnState()
+            getFrameConnTurnState()
           );
         },
 
 
         get state() {
           return (
-            frameHelmTurnApi
+            frameConnTurnApi
               .snapshot?.() ??
             null
           );
@@ -1278,7 +1278,7 @@ Hooks.once(
             options
           ) => {
             return (
-              frameHelmTurnApi
+              frameConnTurnApi
                 .canUse(
                   actionId,
                   options
@@ -1293,7 +1293,7 @@ Hooks.once(
             options
           ) => {
             return (
-              frameHelmTurnApi
+              frameConnTurnApi
                 .use(
                   actionId,
                   options
@@ -1305,7 +1305,7 @@ Hooks.once(
         move:
           distance => {
             return (
-              frameHelmTurnApi
+              frameConnTurnApi
                 .move(
                   distance
                 )
@@ -1316,7 +1316,7 @@ Hooks.once(
         setSpeed:
           speed => {
             return (
-              frameHelmTurnApi
+              frameConnTurnApi
                 .setSpeed(
                   speed
                 )
@@ -1327,7 +1327,7 @@ Hooks.once(
         overcharge:
           options => {
             return (
-              frameHelmTurnApi
+              frameConnTurnApi
                 .overcharge(
                   options
                 )
@@ -1347,7 +1347,7 @@ Hooks.once(
        * development inspection.
        */
       movement:
-        frameHelmMovementApi,
+        frameConnMovementApi,
 
 
       /* --------------------------------------------------------
@@ -1357,7 +1357,7 @@ Hooks.once(
       actions: {
         get:
           id =>
-            frameHelmActionRegistry
+            frameConnActionRegistry
               .get(
                 id
               ),
@@ -1365,7 +1365,7 @@ Hooks.once(
 
         list:
           options =>
-            frameHelmActionRegistry
+            frameConnActionRegistry
               .list(
                 options
               ),
@@ -1376,7 +1376,7 @@ Hooks.once(
             category,
             options
           ) =>
-            frameHelmActionRegistry
+            frameConnActionRegistry
               .roots(
                 category,
                 options
@@ -1388,7 +1388,7 @@ Hooks.once(
             parentId,
             options
           ) =>
-            frameHelmActionRegistry
+            frameConnActionRegistry
               .childrenOf(
                 parentId,
                 options
@@ -1397,7 +1397,7 @@ Hooks.once(
 
         categories:
           options =>
-            frameHelmActionRegistry
+            frameConnActionRegistry
               .listCategories(
                 options
               ),
@@ -1405,7 +1405,7 @@ Hooks.once(
 
         register:
           action =>
-            frameHelmActionRegistry
+            frameConnActionRegistry
               .register(
                 action
               )
@@ -1418,7 +1418,7 @@ Hooks.once(
      *
      * Subsequent combat changes are owned by turn-feature.js.
      */
-    frameHelmTurnApi
+    frameConnTurnApi
       .sync?.(
         game.combat
       );
@@ -1464,8 +1464,8 @@ Hooks.once(
  *   scripts/turn-feature.js
  *
  * Owns:
- *   - FrameHelmTurnState
- *   - FrameHelmTurnStateManager
+ *   - FrameConnTurnState
+ *   - FrameConnTurnStateManager
  *   - Canonical turn-state instance
  *   - Action-budget legality
  *   - Protocol state
@@ -1499,7 +1499,7 @@ Hooks.once(
  *
  * Transitional relationship:
  *
- *   FrameHelmTurnState still contains the authoritative movement
+ *   FrameConnTurnState still contains the authoritative movement
  *   accounting methods consumed by Movement.
  *
  *
@@ -1511,7 +1511,7 @@ Hooks.once(
  *   - Module settings registration
  *   - Enabled-state integration
  *   - Token scene-control integration
- *   - Frame Helm scene-control tool declaration
+ *   - Frame Conn scene-control tool declaration
  *   - getSceneControlButtons hook behavior
  *
  * Does not own:
@@ -1570,7 +1570,7 @@ Hooks.once(
  *   styles/ui-application.js
  *
  * Owns:
- *   - FrameHelmApplication
+ *   - FrameConnApplication
  *   - Application singleton
  *   - Application open/close behavior
  *   - Main UI rendering
@@ -1589,7 +1589,7 @@ Hooks.once(
  *
  * Runtime/domain features are registered through:
  *
- *   FRAME_HELM_RUNTIME_FEATURES
+ *   FRAME_CONN_RUNTIME_FEATURES
  *
  * Executable UI features are supplied through:
  *
@@ -1597,7 +1597,7 @@ Hooks.once(
  *
  * runtime-orchestrator.js imports only:
  *
- *   frameHelmFeatureRegistry
+ *   frameConnFeatureRegistry
  *
  * and resolves extracted behavior through registered APIs.
  */

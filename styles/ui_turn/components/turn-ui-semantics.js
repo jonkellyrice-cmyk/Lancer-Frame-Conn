@@ -8,7 +8,7 @@
 
 /**
  * ============================================================
- * FRAME HELM UI TURN -- SEMANTIC DOM PRESENTATION
+ * FRAME CONN UI TURN -- SEMANTIC DOM PRESENTATION
  * ============================================================
  *
  * ROLE:
@@ -38,14 +38,14 @@
    ============================================================ */
 
 import {
-  getFrameHelmTurnUiSnapshot
+  getFrameConnTurnUiSnapshot
 } from "./turn-state-access.js";
 
 import {
-  buildFrameHelmTurnBudgetPresentation,
-  buildFrameHelmTurnProtocolPresentation,
-  buildFrameHelmTurnReactionPresentation,
-  buildFrameHelmTurnOverchargePresentation
+  buildFrameConnTurnBudgetPresentation,
+  buildFrameConnTurnProtocolPresentation,
+  buildFrameConnTurnReactionPresentation,
+  buildFrameConnTurnOverchargePresentation
 } from "./turn-status-presentation.js";
 
 
@@ -59,52 +59,52 @@ import {
  * ui-turn.css may consume these classes without knowing anything
  * about the internal Turn state representation.
  */
-function buildFrameHelmTurnUiClasses(
+function buildFrameConnTurnUiClasses(
   snapshot =
-    getFrameHelmTurnUiSnapshot()
+    getFrameConnTurnUiSnapshot()
 ) {
   const budget =
-    buildFrameHelmTurnBudgetPresentation(
+    buildFrameConnTurnBudgetPresentation(
       snapshot
     );
 
 
   const protocol =
-    buildFrameHelmTurnProtocolPresentation(
+    buildFrameConnTurnProtocolPresentation(
       snapshot
     );
 
 
   const reaction =
-    buildFrameHelmTurnReactionPresentation(
+    buildFrameConnTurnReactionPresentation(
       snapshot
     );
 
 
   const overcharge =
-    buildFrameHelmTurnOverchargePresentation(
+    buildFrameConnTurnOverchargePresentation(
       snapshot
     );
 
 
   return Object.freeze([
-    "frame-helm-turn",
+    "frame-conn-turn",
 
     snapshot
-      ? "frame-helm-turn-active"
-      : "frame-helm-turn-inactive",
+      ? "frame-conn-turn-active"
+      : "frame-conn-turn-inactive",
 
     snapshot?.ended
-      ? "frame-helm-turn-ended"
+      ? "frame-conn-turn-ended"
       : null,
 
-    `frame-helm-turn-budget-${budget.state}`,
+    `frame-conn-turn-budget-${budget.state}`,
 
-    `frame-helm-turn-protocol-${protocol.state}`,
+    `frame-conn-turn-protocol-${protocol.state}`,
 
-    `frame-helm-turn-reaction-${reaction.state}`,
+    `frame-conn-turn-reaction-${reaction.state}`,
 
-    `frame-helm-turn-overcharge-${overcharge.state}`
+    `frame-conn-turn-overcharge-${overcharge.state}`
   ]
     .filter(
       Boolean
@@ -124,36 +124,36 @@ function buildFrameHelmTurnUiClasses(
  * These allow CSS to respond to Turn state without importing or
  * executing JavaScript.
  */
-function buildFrameHelmTurnUiDataAttributes(
+function buildFrameConnTurnUiDataAttributes(
   snapshot =
-    getFrameHelmTurnUiSnapshot()
+    getFrameConnTurnUiSnapshot()
 ) {
   const budget =
-    buildFrameHelmTurnBudgetPresentation(
+    buildFrameConnTurnBudgetPresentation(
       snapshot
     );
 
 
   const protocol =
-    buildFrameHelmTurnProtocolPresentation(
+    buildFrameConnTurnProtocolPresentation(
       snapshot
     );
 
 
   const reaction =
-    buildFrameHelmTurnReactionPresentation(
+    buildFrameConnTurnReactionPresentation(
       snapshot
     );
 
 
   const overcharge =
-    buildFrameHelmTurnOverchargePresentation(
+    buildFrameConnTurnOverchargePresentation(
       snapshot
     );
 
 
   return Object.freeze({
-    "data-frame-helm-turn":
+    "data-frame-conn-turn":
       snapshot
         ? "active"
         : "inactive",
@@ -187,6 +187,6 @@ function buildFrameHelmTurnUiDataAttributes(
    ============================================================ */
 
 export {
-  buildFrameHelmTurnUiClasses,
-  buildFrameHelmTurnUiDataAttributes
+  buildFrameConnTurnUiClasses,
+  buildFrameConnTurnUiDataAttributes
 };

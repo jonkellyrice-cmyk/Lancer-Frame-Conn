@@ -10,7 +10,7 @@
  * @path main/lifecycle_service/lifecycle-contract.js
  * @module lifecycle-contract
  * @layer lifecycle-service-contract
- * @responsibility define-stable-frame-helm-lifecycle-boundaries-expirations-resets-and-results
+ * @responsibility define-stable-frame-conn-lifecycle-boundaries-expirations-resets-and-results
  * @public-boundary true
  * @side-effects none
  *
@@ -25,7 +25,7 @@
  * - future actor_owned_feature_registry/*
  * - future system_bridge/*
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - semantic_event_bus/ supplies/receives lifecycle semantic events
  * - action_economy/ exposes turn-start/turn-end/reaction reset primitives
  * - resource_service/ exposes resettable resource descriptors
@@ -68,7 +68,7 @@
  * - no Lancer imports
  * - no state mutation
  * - lifecycle descriptors describe timing, not mechanic implementation
- * - preserve native-owned vs Frame Helm-owned expiration explicitly
+ * - preserve native-owned vs Frame Conn-owned expiration explicitly
  */
 
 /* ============================================================
@@ -228,8 +228,8 @@ export const LIFECYCLE_PHASE = Object.freeze({
  */
 
 export const LIFECYCLE_AUTHORITY = Object.freeze({
-  FRAME_HELM:
-    "frame-helm",
+  FRAME_CONN:
+    "frame-conn",
 
   NATIVE:
     "native",
@@ -709,7 +709,7 @@ export function createLifecycleExpirationDescriptor({
   subjectId,
 
   authority =
-    LIFECYCLE_AUTHORITY.FRAME_HELM,
+    LIFECYCLE_AUTHORITY.FRAME_CONN,
 
   scope,
 
@@ -861,7 +861,7 @@ export function createLifecycleResetDescriptor({
   subjectId,
 
   authority =
-    LIFECYCLE_AUTHORITY.FRAME_HELM,
+    LIFECYCLE_AUTHORITY.FRAME_CONN,
 
   scope,
 
@@ -989,7 +989,7 @@ export function createLifecycleEffectDescriptor({
   subjectId,
 
   authority =
-    LIFECYCLE_AUTHORITY.FRAME_HELM,
+    LIFECYCLE_AUTHORITY.FRAME_CONN,
 
   sourceActorUuid = null,
   targetActorUuid = null,
@@ -1622,7 +1622,7 @@ export function createFullRepairResetDescriptor({
 /**
  * @section status-condition-expiration
  *
- * Native/Frame Helm status application is separate from duration.
+ * Native/Frame Conn status application is separate from duration.
  *
  * Example:
  *
@@ -1749,11 +1749,11 @@ export function createFullRepairResetDescriptor({
  */
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * semantic_event_bus/
  * -------------------
@@ -1839,7 +1839,7 @@ export function createFullRepairResetDescriptor({
  * implemented independently inside each feature.
  *
  * INVARIANT 8
- * Native-owned lifecycle transitions must not be duplicated by Frame Helm.
+ * Native-owned lifecycle transitions must not be duplicated by Frame Conn.
  *
  * INVARIANT 9
  * turnOffset and roundOffset are relative to stored origin lifecycle state.

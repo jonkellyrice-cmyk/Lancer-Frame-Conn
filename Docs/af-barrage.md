@@ -8,11 +8,11 @@
 
 **Native individual weapon attack flow:** Found.
 
-**Frame Helm implementation status:** Requires Frame Helm-owned Barrage orchestration over native Lancer weapon attack execution.
+**Frame Conn implementation status:** Requires Frame Conn-owned Barrage orchestration over native Lancer weapon attack execution.
 
 ## Purpose
 
-This document records the native Foundry Lancer execution architecture relevant to the **Barrage** Full Action and defines the current plan for integrating Barrage execution into Frame Helm.
+This document records the native Foundry Lancer execution architecture relevant to the **Barrage** Full Action and defines the current plan for integrating Barrage execution into Frame Conn.
 
 Barrage is unusual compared with actions such as Improvised Attack because the native Foundry Lancer system does not appear to expose a single `BarrageFlow`.
 
@@ -22,11 +22,11 @@ Therefore:
 
 > **Native Lancer owns execution of an individual weapon attack.**
 >
-> **Frame Helm must own selection and sequencing of the weapons that constitute a Barrage.**
+> **Frame Conn must own selection and sequencing of the weapons that constitute a Barrage.**
 
-This is preferable to reimplementing weapon attacks inside Frame Helm.
+This is preferable to reimplementing weapon attacks inside Frame Conn.
 
-Frame Helm should orchestrate existing native execution wherever possible.
+Frame Conn should orchestrate existing native execution wherever possible.
 
 —
 
@@ -47,7 +47,7 @@ Conceptually:
 - Two selected mounts may therefore produce multiple individual weapon attacks.
 - A Superheavy weapon has special mount requirements and may occupy the capacity represented by more than one mount.
 
-Consequently, Frame Helm cannot model Barrage simply as:
+Consequently, Frame Conn cannot model Barrage simply as:
 
 `Barrage -> attack twice`
 
@@ -89,9 +89,9 @@ stock weapon roll button
 → `new WeaponAttackFlow(weapon)`
 → native weapon attack workflow
 
-This is the native execution path Frame Helm should preserve.
+This is the native execution path Frame Conn should preserve.
 
-Frame Helm should **not** recreate the weapon attack machinery unless a future requirement makes doing so unavoidable.
+Frame Conn should **not** recreate the weapon attack machinery unless a future requirement makes doing so unavoidable.
 
 —
 
@@ -115,13 +115,13 @@ Its native flow includes the following sequence:
 → `updateItemAfterAction`
 → `printAttackCard`
 
-This is extremely important for Frame Helm.
+This is extremely important for Frame Conn.
 
 By entering the native flow through:
 
 `weapon.beginWeaponAttackFlow()`
 
-Frame Helm can retain native handling for such concerns as:
+Frame Conn can retain native handling for such concerns as:
 
 - weapon state
 - destroyed weapons
@@ -163,9 +163,9 @@ Mech Actor
 → slots
 → weapon references
 
-Therefore Frame Helm should not need to invent a parallel representation of the mech’s equipped weapons.
+Therefore Frame Conn should not need to invent a parallel representation of the mech’s equipped weapons.
 
-The authoritative mount/loadout information should be read from the actor associated with the Frame Helm instance.
+The authoritative mount/loadout information should be read from the actor associated with the Frame Conn instance.
 
 —
 
@@ -173,7 +173,7 @@ The authoritative mount/loadout information should be read from the actor associ
 
 The intended responsibility boundary is:
 
-**FRAME HELM owns:**
+**FRAME CONN owns:**
 
 - Barrage action selection
 - Barrage mount selection
@@ -196,7 +196,7 @@ The intended responsibility boundary is:
 
 In short:
 
-Frame Helm asks:
+Frame Conn asks:
 
 > What attacks constitute this Barrage?
 
@@ -206,19 +206,19 @@ Native Lancer answers:
 
 —
 
-# 7. Proposed Initial Frame Helm Barrage Flow
+# 7. Proposed Initial Frame Conn Barrage Flow
 
-The first implementation should use Frame Helm as a native-flow sequencer.
+The first implementation should use Frame Conn as a native-flow sequencer.
 
 Proposed flow:
 
 Player commits Barrage
 → Barrage appears in committed plan
 → Player presses execution / d20 control
-→ Frame Helm opens Barrage weapon/mount selector
-→ Frame Helm reads `actor.system.loadout.weapon_mounts`
+→ Frame Conn opens Barrage weapon/mount selector
+→ Frame Conn reads `actor.system.loadout.weapon_mounts`
 → Player chooses legal Barrage mount combination
-→ Frame Helm expands selected mounts into weapon items
+→ Frame Conn expands selected mounts into weapon items
 → Weapon attack 1
 → `weapon.beginWeaponAttackFlow()`
 → native targeting / attack HUD
@@ -256,15 +256,15 @@ Barrage
 → select one target
 → all weapons attack that target
 
-Frame Helm may later provide a more efficient multi-target Barrage interface, but the underlying architecture must preserve the ability to attack different targets.
+Frame Conn may later provide a more efficient multi-target Barrage interface, but the underlying architecture must preserve the ability to attack different targets.
 
 —
 
 # 9. Barrage Mount Selector
 
-Frame Helm will require a Barrage-specific selection surface.
+Frame Conn will require a Barrage-specific selection surface.
 
-The selector should be driven by authoritative actor loadout data rather than by a duplicate Frame Helm weapon registry.
+The selector should be driven by authoritative actor loadout data rather than by a duplicate Frame Conn weapon registry.
 
 Conceptually:
 
@@ -336,7 +336,7 @@ We need to establish whether:
 - a Superheavy appears in multiple mount structures
 - duplicated references can occur
 
-Frame Helm’s Barrage selector must use the native representation rather than assuming the tabletop structure maps directly onto the document model.
+Frame Conn’s Barrage selector must use the native representation rather than assuming the tabletop structure maps directly onto the document model.
 
 —
 
@@ -368,17 +368,17 @@ Before Barrage integration is considered implementation-ready, investigate the f
 
 # 13. Important Implementation Rule
 
-Do not create a Frame Helm replacement for `WeaponAttackFlow` merely because Barrage itself lacks a native orchestration flow.
+Do not create a Frame Conn replacement for `WeaponAttackFlow` merely because Barrage itself lacks a native orchestration flow.
 
 The preferred architecture is composition:
 
-`FrameHelmBarrageExecution`
+`FrameConnBarrageExecution`
 → native `WeaponAttackFlow`
 → native `WeaponAttackFlow`
 → native `WeaponAttackFlow`
 → ...
 
-Frame Helm should add only the orchestration layer that is missing.
+Frame Conn should add only the orchestration layer that is missing.
 
 —
 
@@ -386,18 +386,18 @@ Frame Helm should add only the orchestration layer that is missing.
 
 The first implementation should preserve the native attack HUD.
 
-Eventually Frame Helm is intended to become more automated.
+Eventually Frame Conn is intended to become more automated.
 
 The desired later architecture is:
 
 Committed Barrage
 → press d20
-→ Frame Helm enters target-selection mode
+→ Frame Conn enters target-selection mode
 → player selects target(s)
-→ Frame Helm determines relevant attack modifiers
-→ Frame Helm determines Accuracy
-→ Frame Helm determines Difficulty
-→ Frame Helm determines flat modifiers
+→ Frame Conn determines relevant attack modifiers
+→ Frame Conn determines Accuracy
+→ Frame Conn determines Difficulty
+→ Frame Conn determines flat modifiers
 → attack automatically rolled
 → hit/miss automatically determined
 → damage automatically rolled
@@ -409,7 +409,7 @@ Committed Barrage
 
 However, this should be built incrementally.
 
-The native `WeaponAttackFlow` provides a functioning intermediate execution path while Frame Helm develops the additional automation required for the final player-facing experience.
+The native `WeaponAttackFlow` provides a functioning intermediate execution path while Frame Conn develops the additional automation required for the final player-facing experience.
 
 —
 
@@ -428,13 +428,13 @@ Pressing the execution control should begin the Barrage orchestration process.
 
 The committed action should not be considered fully executed merely because the first weapon attack has begun.
 
-Completion should occur only after the Barrage execution sequence has finished or has been explicitly cancelled/terminated according to whatever execution-state model Frame Helm ultimately adopts.
+Completion should occur only after the Barrage execution sequence has finished or has been explicitly cancelled/terminated according to whatever execution-state model Frame Conn ultimately adopts.
 
 —
 
 # 16. Failure and Cancellation Considerations
 
-Because Barrage consists of multiple native weapon flows, Frame Helm will eventually need to define behavior for interrupted execution.
+Because Barrage consists of multiple native weapon flows, Frame Conn will eventually need to define behavior for interrupted execution.
 
 Examples include:
 
@@ -458,7 +458,7 @@ The orchestration layer should distinguish between:
 
 This becomes particularly important because some weapon attacks may already have mutated authoritative Foundry documents before a later attack in the Barrage is cancelled.
 
-Frame Helm should not attempt to silently roll those mutations back unless a reliable native transaction mechanism is discovered.
+Frame Conn should not attempt to silently roll those mutations back unless a reliable native transaction mechanism is discovered.
 
 —
 
@@ -482,7 +482,7 @@ Native mount data:
 
 `actor.system.loadout.weapon_mounts`
 
-Therefore Frame Helm must implement:
+Therefore Frame Conn must implement:
 
 - Barrage selection
 - mount interpretation
@@ -490,13 +490,13 @@ Therefore Frame Helm must implement:
 - attack sequencing
 - Barrage execution state
 
-Frame Helm should delegate each individual weapon attack to:
+Frame Conn should delegate each individual weapon attack to:
 
 `WeaponAttackFlow`
 
-This keeps Frame Helm aligned with its intended role:
+This keeps Frame Conn aligned with its intended role:
 
-> Frame Helm is an alternate player-facing command and presentation layer over the native Lancer system, not a replacement Lancer rules engine.
+> Frame Conn is an alternate player-facing command and presentation layer over the native Lancer system, not a replacement Lancer rules engine.
 
 —
 
@@ -515,6 +515,6 @@ native mech loadout
 → `LancerItem`
 → `beginWeaponAttackFlow()`
 
-Once that representation is understood, Frame Helm should have enough information to design the authoritative Barrage mount-selection and execution-sequencing layer without recreating native weapon attack behavior.
+Once that representation is understood, Frame Conn should have enough information to design the authoritative Barrage mount-selection and execution-sequencing layer without recreating native weapon attack behavior.
 
 Note: each weapon used in barrage and skirmish may attack the same target or different targets.

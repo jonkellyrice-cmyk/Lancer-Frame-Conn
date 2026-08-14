@@ -16,7 +16,7 @@
  *
  * @depends-on native-contract, native-actors, native-items
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - extends/generalizes loadout inspection currently performed by
  *   feature_actions/* and foundry-integration-feature.js
  * - consumed by native-adapter.js
@@ -723,7 +723,7 @@ export async function getNativeMountSnapshot(
  * - Superheavy bracing
  * - Integrated exceptions
  *
- * Frame Helm should reuse this instead of duplicating those rules.
+ * Frame Conn should reuse this instead of duplicating those rules.
  */
 export function validateNativeMount(
   mech,
@@ -1198,7 +1198,7 @@ export async function resetNativeMounts(
 /**
  * Native listLoadout() is useful for compatibility/debug/discovery.
  *
- * Prefer specialized adapter reads for normal Frame Helm runtime.
+ * Prefer specialized adapter reads for normal Frame Conn runtime.
  */
 export function listNativeLoadout(
   mech
@@ -1266,10 +1266,10 @@ export async function createNativeLoadoutSignature(
   });
 }
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * feature_actions/
  * ----------------

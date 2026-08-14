@@ -2,16 +2,16 @@
 
 ## Purpose
 
-This document records the native Lancer system action flows that Frame Helm needs to understand well enough to invoke, automate, or adapt them from the Frame Helm interface.
+This document records the native Lancer system action flows that Frame Conn needs to understand well enough to invoke, automate, or adapt them from the Frame Conn interface.
 
-The long-term goal is for Frame Helm to:
+The long-term goal is for Frame Conn to:
 
 1. Link every action to the currently controlled actor/mech whose data is already being consumed for telemetry, name, and token identity.
 2. Add actions to the committed turn plan.
 3. Show an execution control on each committed-action card.
 4. Resolve required targets when the action is executed.
 5. Invoke the correct native Lancer flow.
-6. Eventually bypass manual native dialogs where Frame Helm can determine all required modifiers and choices itself.
+6. Eventually bypass manual native dialogs where Frame Conn can determine all required modifiers and choices itself.
 7. Ultimately automate attack rolls, damage rolls, and damage application where enough system information is available.
 
 The immediate research task is to identify and document the native Lancer flow entry points for every standard action category below.
@@ -24,7 +24,7 @@ The immediate research task is to identify and document the native Lancer flow e
 
 **Status:** Logged / initial native entry point identified.
 
-### Frame Helm execution intent
+### Frame Conn execution intent
 
 After **Improvised Attack** is selected and committed to the turn plan, the committed-action card should include a small d20-style execute button on its right side.
 
@@ -100,7 +100,7 @@ async beginBasicAttackFlow(title) {
   return await flow.begin();
 }
 
-### Near-term Frame Helm behavior
+### Near-term Frame Conn behavior
 
 Committed Improvised Attack
         ↓
@@ -118,7 +118,7 @@ mark committed action executed
 
 ### Long-term automation target
 
-Eventually Frame Helm should replace the manual attack HUD for actions it fully understands:
+Eventually Frame Conn should replace the manual attack HUD for actions it fully understands:
 
 Committed action [d20]
         ↓
@@ -195,7 +195,7 @@ For every action below, record at minimum:
 - What the flow returns.
 - What chat cards it produces.
 - Whether the flow mutates the actor, target, combat state, statuses, heat, structure, stress, repairs, etc.
-- Whether Frame Helm can initially delegate to the native flow unchanged.
+- Whether Frame Conn can initially delegate to the native flow unchanged.
 - What information would later be needed to automate the flow without its native dialog.
 
 ---
@@ -237,7 +237,7 @@ Important mount rules to capture while tracing the flow:
 - [ ] Determine how self-heat, loading, limited, ordnance, and other weapon tags are applied.
 - [ ] Determine how a Barrage produces chat cards.
 - [ ] Determine how the flow handles a Superheavy weapon differently.
-- [ ] Identify the minimum Frame Helm metadata required to invoke the native Barrage flow.
+- [ ] Identify the minimum Frame Conn metadata required to invoke the native Barrage flow.
 
 ---
 
@@ -267,7 +267,7 @@ Important mount rules to capture while tracing the flow:
 - [ ] Record repair choice behavior.
 - [ ] Record any selectable Stabilize options.
 - [ ] Record relevant actor resource mutations.
-- [ ] Determine whether Frame Helm can directly invoke the native flow.
+- [ ] Determine whether Frame Conn can directly invoke the native flow.
 - [ ] Determine what would be needed to automate its choices.
 
 ---
@@ -281,7 +281,7 @@ Important mount rules to capture while tracing the flow:
 - [ ] Determine relevant actor status checks.
 - [ ] Determine combat/action restrictions.
 - [ ] Determine chat output.
-- [ ] Determine minimum data Frame Helm must provide.
+- [ ] Determine minimum data Frame Conn must provide.
 
 ---
 
@@ -294,7 +294,7 @@ Important mount rules to capture while tracing the flow:
 - [ ] Record accuracy/difficulty support.
 - [ ] Record target requirements, if any.
 - [ ] Record chat-card output.
-- [ ] Determine how Frame Helm can expose all four mech-skill rolls directly.
+- [ ] Determine how Frame Conn can expose all four mech-skill rolls directly.
 
 ---
 
@@ -325,7 +325,7 @@ See **Known Flow — Full Action — Improvised Attack** above.
 - [ ] Determine whether the selected item itself owns the flow.
 - [ ] Determine target requirements.
 - [ ] Determine limited/charge/resource mutations.
-- [ ] Determine action cost enforcement performed natively versus by Frame Helm.
+- [ ] Determine action cost enforcement performed natively versus by Frame Conn.
 
 ---
 
@@ -398,7 +398,7 @@ Protocol is a special action category:
 - [ ] Determine whether Protocol actions consume resources.
 - [ ] Determine target-selection behavior.
 - [ ] Determine chat output.
-- [ ] Determine whether Frame Helm should invoke a native generic Protocol flow or dispatch directly to a selected system/action.
+- [ ] Determine whether Frame Conn should invoke a native generic Protocol flow or dispatch directly to a selected system/action.
 
 ---
 
@@ -427,7 +427,7 @@ Protocol is a special action category:
 - [ ] Determine target-selection behavior.
 - [ ] Determine reaction-state mutation.
 - [ ] Determine how movement-triggered Overwatch is represented.
-- [ ] Determine whether Frame Helm can invoke native Overwatch against a chosen target.
+- [ ] Determine whether Frame Conn can invoke native Overwatch against a chosen target.
 
 ---
 
@@ -458,7 +458,7 @@ Superheavy weapons are not normally fired with Skirmish because they span two mo
 - [ ] Determine multiple-target behavior where applicable.
 - [ ] Determine how weapon tags affect flow.
 - [ ] Determine how attack/damage chat cards are produced.
-- [ ] Determine minimum Frame Helm metadata needed to invoke native Skirmish.
+- [ ] Determine minimum Frame Conn metadata needed to invoke native Skirmish.
 - [ ] Compare directly with Barrage implementation.
 
 ---
@@ -468,7 +468,7 @@ Superheavy weapons are not normally fired with Skirmish because they span two mo
 - [ ] Find native Boost entry point, if one exists.
 - [ ] Determine whether Boost is represented as an action-state choice only.
 - [ ] Determine whether native code changes movement allowance.
-- [ ] Determine whether Frame Helm's current movement accounting already replaces most native handling.
+- [ ] Determine whether Frame Conn's current movement accounting already replaces most native handling.
 - [ ] Determine interaction with movement tracking and Overcharge.
 
 ---
@@ -601,7 +601,7 @@ Superheavy weapons are not normally fired with Skirmish because they span two mo
 - [ ] Determine what information is revealed.
 - [ ] Determine how Scan journals/cards are created.
 - [ ] Determine whether the scan result is persisted anywhere.
-- [ ] Determine how Frame Helm can invoke it using the selected target.
+- [ ] Determine how Frame Conn can invoke it using the selected target.
 
 Known actor-side shape observed during source inspection:
 
@@ -660,7 +660,7 @@ return await flow.begin();
 
 # Shared Actor / Character Sheet Integration
 
-Almost every action above should ultimately resolve from the same actor whose information Frame Helm already uses for:
+Almost every action above should ultimately resolve from the same actor whose information Frame Conn already uses for:
 
 - controlled-unit identity;
 - token image;
@@ -676,11 +676,11 @@ Therefore the execution architecture should prefer a single canonical actor-reso
 
 ### TODO
 
-- [ ] Identify the single canonical Frame Helm controlled-actor accessor.
+- [ ] Identify the single canonical Frame Conn controlled-actor accessor.
 - [ ] Ensure action execution uses that same accessor.
 - [ ] Ensure native actor methods are invoked on that actor.
 - [ ] Ensure action execution refuses or prompts cleanly when no valid mech actor is available.
-- [ ] Ensure actor/token identity remains correct if token control changes while Frame Helm is open.
+- [ ] Ensure actor/token identity remains correct if token control changes while Frame Conn is open.
 
 ---
 
@@ -688,7 +688,7 @@ Therefore the execution architecture should prefer a single canonical actor-reso
 
 Many actions require one or more targets.
 
-The desired Frame Helm interaction is:
+The desired Frame Conn interaction is:
 
 click committed-action execute button
         ↓
@@ -770,7 +770,7 @@ Each committed-plan card should eventually expose an execution control.
 The first few are the highest-value because they reveal the shared attack, targeting, weapon-mount, and tech-flow architecture that many later actions are likely to reuse.
 # Addendum — Actor-Specific Action Sources
 
-The standard universal action flows are only part of the execution surface Frame Helm eventually needs to understand.
+The standard universal action flows are only part of the execution surface Frame Conn eventually needs to understand.
 
 A mech or pilot can gain additional executable actions, reactions, protocols, special actions, triggered abilities, or modifiers from several actor-specific sources:
 
@@ -842,7 +842,7 @@ Examples of trigger structures include:
 - "1/scene..."
 - "1/mission..."
 
-This means Frame Helm cannot ultimately treat the universal action registry as the complete list of things a character can do.
+This means Frame Conn cannot ultimately treat the universal action registry as the complete list of things a character can do.
 
 The character sheet and the character's installed/acquired features are additional sources of available actions and action modifiers.
 
@@ -895,9 +895,9 @@ Controlled Actor
 
 The most important question is whether the Lancer system already exposes this information in a structured, machine-readable form.
 
-If it does, Frame Helm should consume that structure rather than attempting to recreate Lancer rules independently.
+If it does, Frame Conn should consume that structure rather than attempting to recreate Lancer rules independently.
 
-If some abilities exist primarily as descriptive text, we need to identify where the boundary lies between structured native behavior and rules text that would require explicit Frame Helm integration.
+If some abilities exist primarily as descriptive text, we need to identify where the boundary lies between structured native behavior and rules text that would require explicit Frame Conn integration.
 
 
 # TODO — Mounted Systems
@@ -931,7 +931,7 @@ Research checklist:
 - [ ] Determine how targets are passed into system actions.
 - [ ] Determine how rolls generated by systems reach chat.
 - [ ] Determine whether system actions expose a reusable callable function.
-- [ ] Determine whether Frame Helm can invoke that function directly.
+- [ ] Determine whether Frame Conn can invoke that function directly.
 
 
 # TODO — Mech Traits
@@ -991,7 +991,7 @@ Research checklist:
 - [ ] Determine whether Core Power activation has a native dialog.
 - [ ] Trace the character-sheet Core Power button.
 - [ ] Find its native execution entry point.
-- [ ] Determine whether Frame Helm can invoke that entry point directly.
+- [ ] Determine whether Frame Conn can invoke that entry point directly.
 
 
 # TODO — Pilot Talents
@@ -1024,14 +1024,14 @@ Research checklist:
 - [ ] Trace those buttons to their handlers.
 - [ ] Determine whether talent usage limits are tracked.
 - [ ] Determine how per-round/per-scene talent state is stored.
-- [ ] Determine whether Frame Helm can discover available talent actions dynamically.
+- [ ] Determine whether Frame Conn can discover available talent actions dynamically.
 
 
 # TODO — Manufacturer Core Bonuses
 
 Manufacturer Core Bonuses must also be treated as part of the actor's action/modifier surface.
 
-A Core Bonus may be entirely passive, may modify existing actions or equipment, or may potentially grant new capabilities that Frame Helm needs to understand.
+A Core Bonus may be entirely passive, may modify existing actions or equipment, or may potentially grant new capabilities that Frame Conn needs to understand.
 
 Research checklist:
 
@@ -1059,7 +1059,7 @@ Research checklist:
 - [ ] Determine whether Core Bonus effects are incorporated automatically by native Lancer roll calculations.
 - [ ] Determine whether any Core Bonus has a clickable character-sheet action.
 - [ ] Trace any such action to its native execution handler.
-- [ ] Determine whether Frame Helm can discover these effects dynamically.
+- [ ] Determine whether Frame Conn can discover these effects dynamically.
 
 
 # TODO — Cross-Cutting Native Action Representation
@@ -1153,14 +1153,14 @@ The basic research pattern should be:
 
 16. Identify where actor state is updated.
 
-17. Determine the narrowest native function Frame Helm could safely call.
+17. Determine the narrowest native function Frame Conn could safely call.
 
 
 # TODO — Modifier Pipeline
 
 This research is important not merely for discovering additional buttons.
 
-The eventual Frame Helm execution pipeline needs to understand everything that can modify an action.
+The eventual Frame Conn execution pipeline needs to understand everything that can modify an action.
 
 Conceptually:
 
@@ -1219,11 +1219,11 @@ Apply Native Consequences
 
 # Important Design Constraint
 
-Frame Helm should NOT become a second implementation of the Lancer rules engine.
+Frame Conn should NOT become a second implementation of the Lancer rules engine.
 
 Whenever possible:
 
-Frame Helm
+Frame Conn
     |
     v
 discovers intent
@@ -1239,7 +1239,7 @@ Lancer resolves rules
 
 rather than:
 
-Frame Helm
+Frame Conn
     |
     v
 reimplements every Lancer rule
@@ -1247,7 +1247,7 @@ reimplements every Lancer rule
 The latter would create an enormous maintenance problem and would inevitably drift away from the actual Lancer system.
 
 
-# Long-Term Desired Frame Helm Flow
+# Long-Term Desired Frame Conn Flow
 
 The eventual committed-plan card should be capable of representing both universal actions and actor-specific actions.
 
@@ -1407,11 +1407,11 @@ Once all universal action flows AND these actor-specific sources have been mappe
 
 17. What native Lancer function actually performs each operation?
 
-18. What is the narrowest stable native entry point Frame Helm can call?
+18. What is the narrowest stable native entry point Frame Conn can call?
 
-19. What state must Frame Helm provide to that entry point?
+19. What state must Frame Conn provide to that entry point?
 
-20. What state should Frame Helm leave entirely under native Lancer ownership?
+20. What state should Frame Conn leave entirely under native Lancer ownership?
 
 
 # Research Order
@@ -1441,13 +1441,13 @@ Then:
 
 The ideal architecture is not:
 
-    Frame Helm knows every Lancer ability.
+    Frame Conn knows every Lancer ability.
 
 It is:
 
-    Frame Helm knows how to ASK the Lancer actor what it can do,
-    present those capabilities through the Frame Helm interface,
+    Frame Conn knows how to ASK the Lancer actor what it can do,
+    present those capabilities through the Frame Conn interface,
     and hand execution back to the native Lancer machinery
     whenever that machinery already exists.
 
-That distinction will be critical if Frame Helm is going to support arbitrary frames, systems, talents, traits, Core Powers, and manufacturer Core Bonuses without hardcoding the entire game into the module.
+That distinction will be critical if Frame Conn is going to support arbitrary frames, systems, talents, traits, Core Powers, and manufacturer Core Bonuses without hardcoding the entire game into the module.

@@ -21,7 +21,7 @@
  * - actor-owned-features.js
  * - future system_bridge/*
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - native_adapter/ supplies authoritative actor/item/native action identity
  * - semantic_event_bus/ supplies trigger vocabulary
  * - lifecycle_service/ supplies expiration/reset vocabulary
@@ -29,7 +29,7 @@
  * - resource_service/ supplies resource declarations
  * - action_economy/ supplies activation/economy semantics
  * - semantic_execution_context/ consumes normalized runtime semantics later
- * - existing Frame Helm registry remains separate and is merged later by
+ * - existing Frame Conn registry remains separate and is merged later by
  *   system_bridge/
  *
  * THIS FILE OWNS:
@@ -157,7 +157,7 @@ export const ACTOR_OWNED_FEATURE_OWNER_KIND =
  *
  * SUPPLEMENTAL
  * ------------
- * Frame Helm/system bridge supplies runtime semantics.
+ * Frame Conn/system bridge supplies runtime semantics.
  *
  * UNKNOWN
  * -------
@@ -298,8 +298,8 @@ export const ACTOR_OWNED_FEATURE_AUTHORITY =
     NATIVE:
       "native",
 
-    FRAME_HELM:
-      "frame-helm",
+    FRAME_CONN:
+      "frame-conn",
 
     SYSTEM_BRIDGE:
       "system-bridge",
@@ -1492,13 +1492,13 @@ export function flattenActorOwnedFeatureActions(
  */
 
 /* ============================================================
-   EXISTING FRAME HELM REGISTRY RELATIONSHIP
+   EXISTING FRAME CONN REGISTRY RELATIONSHIP
    ============================================================ */
 
 /**
- * @section existing-frame-helm-registry-relationship
+ * @section existing-frame-conn-registry-relationship
  *
- * Existing Frame Helm registry:
+ * Existing Frame Conn registry:
  *
  * global/declared actions
  *
@@ -1605,7 +1605,7 @@ export function flattenActorOwnedFeatureActions(
  * Trigger declarations use semantic_event_bus vocabulary.
  *
  * INVARIANT 11
- * Existing Frame Helm registry and actor-owned registry remain separate
+ * Existing Frame Conn registry and actor-owned registry remain separate
  * sources before system_bridge composition.
  *
  * INVARIANT 12

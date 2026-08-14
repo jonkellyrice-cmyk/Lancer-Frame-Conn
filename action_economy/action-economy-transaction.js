@@ -17,7 +17,7 @@
  * - action-economy-contract
  * - action-economy-state
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumes ExecutionContext economy/flags
  * - reads/writes existing feature_turn/ through action-economy-state.js
  * - consumed by action-economy-hooks.js
@@ -344,7 +344,7 @@ export function buildActionEconomyRequest(
 /**
  * @section quick-full-coupling
  *
- * Frame Helm existing state exposes both:
+ * Frame Conn existing state exposes both:
  *
  * quickRemaining
  * fullAvailable
@@ -1307,10 +1307,10 @@ export function wasActionEconomyCommitPartial(
  * no economy commit.
  */
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * feature_turn/
  * -------------

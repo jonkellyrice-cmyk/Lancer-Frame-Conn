@@ -217,7 +217,7 @@ target becomes Jammed
 and moves 3 spaces
 \`\`\`
 
-requires Frame Helm orchestration unless represented by another native mechanic.
+requires Frame Conn orchestration unless represented by another native mechanic.
 
 Use native attack resolution, then apply special consequence.
 
@@ -233,7 +233,7 @@ system.destroyed
 
 SystemFlow and ActivationFlow both reject destroyed systems.
 
-Frame Helm may disable UI early, but native execution remains final validator.
+Frame Conn may disable UI early, but native execution remains final validator.
 
 —
 
@@ -404,7 +404,7 @@ deployable action execution
 mine damage
 \`\`\`
 
-Frame Helm must supply this layer.
+Frame Conn must supply this layer.
 
 —
 
@@ -417,7 +417,7 @@ Use:
 \`\`\`text
 system deployable definition
 → native Deployable Actor
-→ Frame Helm placement/operation
+→ Frame Conn placement/operation
 \`\`\`
 
 —
@@ -525,7 +525,7 @@ Reaction
 Invade / Tech
 \`\`\`
 
-Action economy remains Frame Helm-owned.
+Action economy remains Frame Conn-owned.
 
 —
 
@@ -549,7 +549,7 @@ Do not create a system-specific frequency implementation.
 
 Native SystemFlow contains explicit TODOs for save targets/rolls.
 
-Frame Helm must handle:
+Frame Conn must handle:
 
 \`\`\`text
 target acquisition
@@ -584,7 +584,7 @@ For save AoEs:
 \`\`\`text
 native template/targeting
 +
-Frame Helm save loop
+Frame Conn save loop
 \`\`\`
 
 —
@@ -610,7 +610,7 @@ Do not rely on ActivationFlow TODOs.
 
 Generic mine placement/trigger/damage is not complete natively.
 
-Frame Helm must provide:
+Frame Conn must provide:
 
 \`\`\`text
 placement
@@ -682,7 +682,7 @@ System-granted Protocols should use shared Protocol timing.
 
 Native ActivationFlow handles item/resource mechanics.
 
-Frame Helm handles timing/action economy.
+Frame Conn handles timing/action economy.
 
 —
 
@@ -702,13 +702,13 @@ range[]
 
 Use structured data.
 
-Targeting legality remains Frame Helm-owned where native Flow does not enforce it.
+Targeting legality remains Frame Conn-owned where native Flow does not enforce it.
 
 —
 
 # 36. Targeting / LOS
 
-Frame Helm must validate where required:
+Frame Conn must validate where required:
 
 \`\`\`text
 Range
@@ -758,7 +758,7 @@ resolve system
 → choose native execution route
 → native flow
 → special consequence strategy
-→ consume Frame Helm frequency if applicable
+→ consume Frame Conn frequency if applicable
 → refresh
 \`\`\`
 
@@ -779,12 +779,12 @@ generic USE effect
 → native SystemFlow
 
 deployable
-→ Frame Helm deployable layer + native Deployable Actor
+→ Frame Conn deployable layer + native Deployable Actor
 \`\`\`
 
 —
 
-# 40. Native vs Frame Helm Ownership
+# 40. Native vs Frame Conn Ownership
 
 ## Native Lancer
 
@@ -808,7 +808,7 @@ Deployable Actors
 chat presentation
 \`\`\`
 
-## Frame Helm
+## Frame Conn
 
 \`\`\`text
 action economy
@@ -863,7 +863,7 @@ bespoke system effect execution
 - [ ] structured Reaction registered.
 - [ ] Tech Attack delegates to TechAttackFlow.
 - [ ] Tech Attack uses E-Defense.
-- [ ] system frequency enforced by Frame Helm.
+- [ ] system frequency enforced by Frame Conn.
 - [ ] native Counter value persists.
 - [ ] generic effect still prints to chat.
 - [ ] unknown system remains usable natively.
@@ -908,15 +908,15 @@ Generic system effect text is not a mechanical interpreter.
 
 **Invariant 6**
 
-ActionData frequency requires shared Frame Helm runtime tracking.
+ActionData frequency requires shared Frame Conn runtime tracking.
 
 **Invariant 7**
 
-Native counters are storage; Frame Helm supplies missing counter semantics.
+Native counters are storage; Frame Conn supplies missing counter semantics.
 
 **Invariant 8**
 
-Deployable definitions/Actors are native, but placement and operation are largely Frame Helm responsibilities.
+Deployable definitions/Actors are native, but placement and operation are largely Frame Conn responsibilities.
 
 **Invariant 9**
 
@@ -958,10 +958,10 @@ NATIVE MECH SYSTEM
 │       └── native ActivationFlow
 │
 ├── DEPLOYABLE
-│   └── Frame Helm placement/operation
+│   └── Frame Conn placement/operation
 │       └── native Deployable Actor
 │
-└── FRAME HELM RUNTIME
+└── FRAME CONN RUNTIME
     ├── action economy
     ├── frequency
     ├── targeting
@@ -975,7 +975,7 @@ NATIVE MECH SYSTEM
 
 Critical rule:
 
-**Use native Lancer for mounted-system data, SP/AI accounting, destroyed/Limited/Self-Heat state, structured actions, and Tech Attack execution. Frame Helm fills the missing runtime: action economy, frequency, targeting, saves, deployables, and bespoke system effects.**
+**Use native Lancer for mounted-system data, SP/AI accounting, destroyed/Limited/Self-Heat state, structured actions, and Tech Attack execution. Frame Conn fills the missing runtime: action economy, frequency, targeting, saves, deployables, and bespoke system effects.**
 `;
 
 fs.writeFileSync(“mounted-systems.md”, content, “utf8”);

@@ -18,7 +18,7 @@
  * - action-economy-transaction
  * - execution_transaction/execution-transaction
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - registers action economy behavior into execution_transaction/
  * - validates economy before targeting/execution
  * - preserves pre-execution ActionEconomySnapshot by executionId
@@ -87,7 +87,7 @@ import {
    MODULE IDENTITY
    ============================================================ */
 export const ACTION_ECONOMY_HOOKS_MODULE_ID =
-  "lancer-frame-helm.action-economy-hooks";
+  "lancer-frame-conn.action-economy-hooks";
 export const ACTION_ECONOMY_HOOKS_MODULE_VERSION =
   1;
 /* ============================================================
@@ -1080,10 +1080,10 @@ export function getActionEconomyHookDiagnostics() {
  * → cleanup
  */
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * feature_turn/
  * -------------

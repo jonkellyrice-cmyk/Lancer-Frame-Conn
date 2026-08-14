@@ -20,7 +20,7 @@
  * - native-items
  * - native-rolls
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumed by native-adapter.js
  * - consumed by execution_transaction/*
  * - consumed by semantic_execution_context/*
@@ -1250,7 +1250,7 @@ export async function executeNativeTechAttack({
  * tech_flow.begin() // NOT awaited
  * return false
  *
- * Directly using ActivationFlow here would therefore make Frame Helm see
+ * Directly using ActivationFlow here would therefore make Frame Conn see
  * the parent flow's false result without access to the delegated
  * TechAttackFlow result.
  *
@@ -1560,7 +1560,7 @@ export async function executeNativeSystemUse({
  * from Frame.system.core_system and passes it to CoreActiveFlow.
  *
  * Reproduce that exact native construction here so the completed Flow
- * remains available to Frame Helm.
+ * remains available to Frame Conn.
  *
  * Native CoreActiveFlow owns:
  *
@@ -2067,7 +2067,7 @@ export function getNativeAttackHitResults(
  * This DOES NOT mean every weapon attack should automatically roll
  * damage; native Lancer currently separates attack and damage UI.
  *
- * Use only where Frame Helm's semantic action explicitly intends to
+ * Use only where Frame Conn's semantic action explicitly intends to
  * continue immediately into native DamageRollFlow.
  */
 export async function executeNativeWeaponAttackAndDamage({
@@ -2342,11 +2342,11 @@ export function didNativeExecutionAbort(
  */
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * foundry-integration-feature.js
  * ------------------------------
@@ -2516,7 +2516,7 @@ export function didNativeExecutionAbort(
  * chat scraping.
  *
  * INVARIANT 12
- * Native Flow resource mutations must not be repeated by Frame Helm.
+ * Native Flow resource mutations must not be repeated by Frame Conn.
  *
  * INVARIANT 13
  * Action economy is not implied by native Flow completion.

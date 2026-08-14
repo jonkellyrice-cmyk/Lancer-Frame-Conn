@@ -19,7 +19,7 @@
  * - lifecycle-dispatcher
  * - semantic_event_bus/semantic-event-bus
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - subscribes to semantic_event_bus lifecycle events
  * - translates semantic events into LifecycleContext
  * - delegates lifecycle work to lifecycle-dispatcher.js
@@ -84,7 +84,7 @@ import {
    ============================================================ */
 
 export const LIFECYCLE_HOOKS_MODULE_ID =
-  "lancer-frame-helm.lifecycle-hooks";
+  "lancer-frame-conn.lifecycle-hooks";
 
 export const LIFECYCLE_HOOKS_MODULE_VERSION =
   1;
@@ -1199,7 +1199,7 @@ export function getLifecycleHookDiagnostics() {
  * short-rest.completed and full-repair.completed should be emitted only
  * after the underlying rest/repair mechanic has successfully completed.
  *
- * lifecycle_service then handles Frame Helm-owned resets/expirations.
+ * lifecycle_service then handles Frame Conn-owned resets/expirations.
  *
  * Native-owned resets remain native-authority and are not duplicated.
  */
@@ -1305,11 +1305,11 @@ export function getLifecycleHookDiagnostics() {
  */
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * semantic_event_bus/
  * -------------------

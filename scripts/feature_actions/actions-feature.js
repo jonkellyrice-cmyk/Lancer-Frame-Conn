@@ -8,15 +8,15 @@
 
 /**
  * ============================================================
- * FRAME HELM -- ACTIONS FEATURE
+ * FRAME CONN -- ACTIONS FEATURE
  * ============================================================
  *
  * ROLE:
- *   Owns Frame Helm's universal action catalog and action
+ *   Owns Frame Conn's universal action catalog and action
  *   registry domain.
  *
  * RESPONSIBILITIES:
- *   - Own the Frame Helm action registry implementation.
+ *   - Own the Frame Conn action registry implementation.
  *   - Own universal action-category declarations.
  *   - Own universal action declarations.
  *   - Normalize registered categories and actions.
@@ -52,11 +52,11 @@
  *      └── exposes action-catalog capability
  *      │
  *      ▼
- *   dependent Frame Helm features/runtime
+ *   dependent Frame Conn features/runtime
  *
  * TRANSITIONAL INTEGRATION CONTRACT:
  *
- *   lancer-frame-helm.js remains the authoritative runtime and
+ *   lancer-frame-conn.js remains the authoritative runtime and
  *   orchestration surface.
  *
  *   During the current decomposition phase, Foundry startup must
@@ -65,9 +65,9 @@
  *   Therefore this feature DOES NOT initialize its action catalog
  *   through the feature registry's asynchronous lifecycle runner.
  *
- *   lancer-frame-helm.js should continue calling:
+ *   lancer-frame-conn.js should continue calling:
  *
- *     initializeFrameHelmActionRegistry()
+ *     initializeFrameConnActionRegistry()
  *
  *   synchronously from its existing init hook.
  *
@@ -96,24 +96,24 @@
 
 
 import {
-  defineFrameHelmActionCategory,
-  defineFrameHelmMovementAction,
-  defineFrameHelmQuickAction,
-  defineFrameHelmFullAction,
-  defineFrameHelmSpecialAction,
-  defineFrameHelmReaction,
-  defineFrameHelmTargetRequirement,
-  defineFrameHelmMechSkillMetadata,
-  defineFrameHelmRequiresFlightCapabilityMetadata,
-  defineFrameHelmRequiresTeleportCapabilityMetadata,
-  defineFrameHelmHideRequirementMetadata,
-  defineFrameHelmRequiresFullActionSystemMetadata,
-  defineFrameHelmMountDismountModesMetadata,
-  defineFrameHelmOverchargeMetadata
+  defineFrameConnActionCategory,
+  defineFrameConnMovementAction,
+  defineFrameConnQuickAction,
+  defineFrameConnFullAction,
+  defineFrameConnSpecialAction,
+  defineFrameConnReaction,
+  defineFrameConnTargetRequirement,
+  defineFrameConnMechSkillMetadata,
+  defineFrameConnRequiresFlightCapabilityMetadata,
+  defineFrameConnRequiresTeleportCapabilityMetadata,
+  defineFrameConnHideRequirementMetadata,
+  defineFrameConnRequiresFullActionSystemMetadata,
+  defineFrameConnMountDismountModesMetadata,
+  defineFrameConnOverchargeMetadata
 } from "../dsl.js";
 
 import {
-  defineFrameHelmFeature
+  defineFrameConnFeature
 } from "../feature-contract.js";
 
 
@@ -122,7 +122,7 @@ import {
    ============================================================ */
 
 const MODULE_TITLE =
-  "Lancer: Frame Helm";
+  "Frame Conn";
 
 
 /* ============================================================
@@ -130,14 +130,14 @@ const MODULE_TITLE =
    ============================================================ */
 
 /**
- * Canonical registry implementation for Frame Helm action
+ * Canonical registry implementation for Frame Conn action
  * categories and actions.
  *
  * This registry owns catalog structure only.
  *
  * It does not determine whether an action is legal during a turn.
  */
-export class FrameHelmActionRegistry {
+export class FrameConnActionRegistry {
   constructor() {
     this.actions =
       new Map();
@@ -160,7 +160,7 @@ export class FrameHelmActionRegistry {
         "object"
     ) {
       throw new TypeError(
-        "Frame Helm categories must be objects."
+        "Frame Conn categories must be objects."
       );
     }
 
@@ -171,7 +171,7 @@ export class FrameHelmActionRegistry {
 
     if (!id) {
       throw new Error(
-        "Frame Helm categories require a non-empty id."
+        "Frame Conn categories require a non-empty id."
       );
     }
 
@@ -179,7 +179,7 @@ export class FrameHelmActionRegistry {
       this.categories.has(id)
     ) {
       throw new Error(
-        `Frame Helm category already registered: ${id}`
+        `Frame Conn category already registered: ${id}`
       );
     }
 
@@ -239,7 +239,7 @@ export class FrameHelmActionRegistry {
         "object"
     ) {
       throw new TypeError(
-        "Frame Helm actions must be objects."
+        "Frame Conn actions must be objects."
       );
     }
 
@@ -255,13 +255,13 @@ export class FrameHelmActionRegistry {
 
     if (!id) {
       throw new Error(
-        "Frame Helm actions require a non-empty id."
+        "Frame Conn actions require a non-empty id."
       );
     }
 
     if (!category) {
       throw new Error(
-        `Frame Helm action ${id} requires a category.`
+        `Frame Conn action ${id} requires a category.`
       );
     }
 
@@ -271,7 +271,7 @@ export class FrameHelmActionRegistry {
       )
     ) {
       throw new Error(
-        `Frame Helm action ${id} references unknown category: ${category}`
+        `Frame Conn action ${id} references unknown category: ${category}`
       );
     }
 
@@ -279,7 +279,7 @@ export class FrameHelmActionRegistry {
       this.actions.has(id)
     ) {
       throw new Error(
-        `Frame Helm action already registered: ${id}`
+        `Frame Conn action already registered: ${id}`
       );
     }
 
@@ -409,7 +409,7 @@ export class FrameHelmActionRegistry {
       )
     ) {
       throw new TypeError(
-        "Frame Helm registerMany requires an array."
+        "Frame Conn registerMany requires an array."
       );
     }
 
@@ -615,8 +615,8 @@ export class FrameHelmActionRegistry {
  *
  * Transitional direct imports are retained below.
  */
-export const frameHelmActionRegistry =
-  new FrameHelmActionRegistry();
+export const frameConnActionRegistry =
+  new FrameConnActionRegistry();
 
 
 /* ============================================================
@@ -625,7 +625,7 @@ export const frameHelmActionRegistry =
 
 function registerUniversalActionCategories() {
   [
-    defineFrameHelmActionCategory({
+    defineFrameConnActionCategory({
       id:
         "movement",
 
@@ -642,7 +642,7 @@ function registerUniversalActionCategories() {
         "fas fa-person-running"
     }),
 
-    defineFrameHelmActionCategory({
+    defineFrameConnActionCategory({
       id:
         "quick",
 
@@ -659,7 +659,7 @@ function registerUniversalActionCategories() {
         "fas fa-bolt"
     }),
 
-    defineFrameHelmActionCategory({
+    defineFrameConnActionCategory({
       id:
         "full",
 
@@ -676,7 +676,7 @@ function registerUniversalActionCategories() {
         "fas fa-hourglass"
     }),
 
-    defineFrameHelmActionCategory({
+    defineFrameConnActionCategory({
       id:
         "special",
 
@@ -693,7 +693,7 @@ function registerUniversalActionCategories() {
         "fas fa-star"
     }),
 
-    defineFrameHelmActionCategory({
+    defineFrameConnActionCategory({
       id:
         "reaction",
 
@@ -710,7 +710,7 @@ function registerUniversalActionCategories() {
         "fas fa-reply"
     }),
 
-    defineFrameHelmActionCategory({
+    defineFrameConnActionCategory({
       id:
         "protocol",
 
@@ -728,7 +728,7 @@ function registerUniversalActionCategories() {
     })
   ].forEach(
     category => {
-      frameHelmActionRegistry
+      frameConnActionRegistry
         .registerCategory(
           category
         );
@@ -742,13 +742,13 @@ function registerUniversalActionCategories() {
    ============================================================ */
 
 function registerUniversalActions() {
-  frameHelmActionRegistry
+  frameConnActionRegistry
     .registerMany([
       /* --------------------------------------------------------
          Movement
          -------------------------------------------------------- */
 
-      defineFrameHelmMovementAction({
+      defineFrameConnMovementAction({
         id:
           "movement.standard",
 
@@ -768,7 +768,7 @@ function registerUniversalActions() {
           "standard"
       }),
 
-      defineFrameHelmMovementAction({
+      defineFrameConnMovementAction({
         id:
           "movement.jump",
 
@@ -794,7 +794,7 @@ function registerUniversalActions() {
           "jump"
       }),
 
-      defineFrameHelmMovementAction({
+      defineFrameConnMovementAction({
         id:
           "movement.climb",
 
@@ -820,7 +820,7 @@ function registerUniversalActions() {
           "climb"
       }),
 
-      defineFrameHelmMovementAction({
+      defineFrameConnMovementAction({
         id:
           "movement.fly",
 
@@ -846,10 +846,10 @@ function registerUniversalActions() {
           "flight",
 
         metadata:
-          defineFrameHelmRequiresFlightCapabilityMetadata()
+          defineFrameConnRequiresFlightCapabilityMetadata()
       }),
 
-      defineFrameHelmMovementAction({
+      defineFrameConnMovementAction({
         id:
           "movement.teleport",
 
@@ -875,7 +875,7 @@ function registerUniversalActions() {
           "teleport",
 
         metadata:
-          defineFrameHelmRequiresTeleportCapabilityMetadata()
+          defineFrameConnRequiresTeleportCapabilityMetadata()
       }),
 
 
@@ -883,7 +883,7 @@ function registerUniversalActions() {
          Quick actions
          -------------------------------------------------------- */
 
-      defineFrameHelmQuickAction({
+      defineFrameConnQuickAction({
         id:
           "quick.skirmish",
 
@@ -899,12 +899,12 @@ function registerUniversalActions() {
         icon:
           "fas fa-crosshairs",
 
-        ...defineFrameHelmTargetRequirement(
+        ...defineFrameConnTargetRequirement(
           "attack"
         )
       }),
 
-      defineFrameHelmQuickAction({
+      defineFrameConnQuickAction({
         id:
           "quick.boost",
 
@@ -924,7 +924,7 @@ function registerUniversalActions() {
           "boost"
       }),
 
-      defineFrameHelmQuickAction({
+      defineFrameConnQuickAction({
         id:
           "quick.grapple",
 
@@ -940,12 +940,12 @@ function registerUniversalActions() {
         icon:
           "fas fa-hand-fist",
 
-        ...defineFrameHelmTargetRequirement(
+        ...defineFrameConnTargetRequirement(
           "adjacent-character"
         )
       }),
 
-      defineFrameHelmQuickAction({
+      defineFrameConnQuickAction({
         id:
           "quick.hide",
 
@@ -962,10 +962,10 @@ function registerUniversalActions() {
           "fas fa-user-ninja",
 
         metadata:
-          defineFrameHelmHideRequirementMetadata()
+          defineFrameConnHideRequirementMetadata()
       }),
 
-      defineFrameHelmQuickAction({
+      defineFrameConnQuickAction({
         id:
           "quick.quick-tech",
 
@@ -985,7 +985,7 @@ function registerUniversalActions() {
           "different-child-per-use"
       }),
 
-      defineFrameHelmQuickAction({
+      defineFrameConnQuickAction({
         id:
           "quick.quick-tech.bolster",
 
@@ -1004,12 +1004,12 @@ function registerUniversalActions() {
         icon:
           "fas fa-shield-plus",
 
-        ...defineFrameHelmTargetRequirement(
+        ...defineFrameConnTargetRequirement(
           "character-in-sensors"
         )
       }),
 
-      defineFrameHelmQuickAction({
+      defineFrameConnQuickAction({
         id:
           "quick.quick-tech.scan",
 
@@ -1028,12 +1028,12 @@ function registerUniversalActions() {
         icon:
           "fas fa-radar",
 
-        ...defineFrameHelmTargetRequirement(
+        ...defineFrameConnTargetRequirement(
           "character-or-object-in-sensors"
         )
       }),
 
-      defineFrameHelmQuickAction({
+      defineFrameConnQuickAction({
         id:
           "quick.quick-tech.lock-on",
 
@@ -1052,12 +1052,12 @@ function registerUniversalActions() {
         icon:
           "fas fa-bullseye",
 
-        ...defineFrameHelmTargetRequirement(
+        ...defineFrameConnTargetRequirement(
           "character-in-sensors"
         )
       }),
 
-      defineFrameHelmQuickAction({
+      defineFrameConnQuickAction({
         id:
           "quick.quick-tech.invade",
 
@@ -1076,12 +1076,12 @@ function registerUniversalActions() {
         icon:
           "fas fa-virus",
 
-        ...defineFrameHelmTargetRequirement(
+        ...defineFrameConnTargetRequirement(
           "character-in-sensors"
         )
       }),
 
-      defineFrameHelmQuickAction({
+      defineFrameConnQuickAction({
         id:
           "quick.quick-tech.invade.fragment-signal",
 
@@ -1100,12 +1100,12 @@ function registerUniversalActions() {
         icon:
           "fas fa-signal",
 
-        ...defineFrameHelmTargetRequirement(
+        ...defineFrameConnTargetRequirement(
           "character-in-sensors"
         )
       }),
 
-      defineFrameHelmQuickAction({
+      defineFrameConnQuickAction({
         id:
           "quick.ram",
 
@@ -1121,12 +1121,12 @@ function registerUniversalActions() {
         icon:
           "fas fa-people-arrows-left-right",
 
-        ...defineFrameHelmTargetRequirement(
+        ...defineFrameConnTargetRequirement(
           "adjacent-character"
         )
       }),
 
-      defineFrameHelmQuickAction({
+      defineFrameConnQuickAction({
         id:
           "quick.search",
 
@@ -1142,12 +1142,12 @@ function registerUniversalActions() {
         icon:
           "fas fa-magnifying-glass",
 
-        ...defineFrameHelmTargetRequirement(
+        ...defineFrameConnTargetRequirement(
           "suspected-hidden-character"
         )
       }),
 
-      defineFrameHelmQuickAction({
+      defineFrameConnQuickAction({
         id:
           "quick.prepare",
 
@@ -1164,7 +1164,7 @@ function registerUniversalActions() {
           "fas fa-clock"
       }),
 
-      defineFrameHelmQuickAction({
+      defineFrameConnQuickAction({
         id:
           "quick.shut-down",
 
@@ -1181,7 +1181,7 @@ function registerUniversalActions() {
           "fas fa-power-off"
       }),
 
-      defineFrameHelmQuickAction({
+      defineFrameConnQuickAction({
         id:
           "quick.self-destruct",
 
@@ -1203,7 +1203,7 @@ function registerUniversalActions() {
          Full actions
          -------------------------------------------------------- */
 
-      defineFrameHelmFullAction({
+      defineFrameConnFullAction({
         id:
           "full.barrage",
 
@@ -1219,12 +1219,12 @@ function registerUniversalActions() {
         icon:
           "fas fa-gun",
 
-        ...defineFrameHelmTargetRequirement(
+        ...defineFrameConnTargetRequirement(
           "attack"
         )
       }),
 
-      defineFrameHelmFullAction({
+      defineFrameConnFullAction({
         id:
           "full.disengage",
 
@@ -1241,7 +1241,7 @@ function registerUniversalActions() {
           "fas fa-person-walking-arrow-right"
       }),
 
-      defineFrameHelmFullAction({
+      defineFrameConnFullAction({
         id:
           "full.full-tech",
 
@@ -1261,7 +1261,7 @@ function registerUniversalActions() {
           "full-tech-selection"
       }),
 
-      defineFrameHelmFullAction({
+      defineFrameConnFullAction({
         id:
           "full.improvised-attack",
 
@@ -1277,12 +1277,12 @@ function registerUniversalActions() {
         icon:
           "fas fa-hammer",
 
-        ...defineFrameHelmTargetRequirement(
+        ...defineFrameConnTargetRequirement(
           "adjacent-character"
         )
       }),
 
-      defineFrameHelmFullAction({
+      defineFrameConnFullAction({
         id:
           "full.stabilize",
 
@@ -1299,7 +1299,7 @@ function registerUniversalActions() {
           "fas fa-screwdriver-wrench"
       }),
 
-      defineFrameHelmFullAction({
+      defineFrameConnFullAction({
         id:
           "full.activate",
 
@@ -1316,10 +1316,10 @@ function registerUniversalActions() {
           "fas fa-gears",
 
         metadata:
-          defineFrameHelmRequiresFullActionSystemMetadata()
+          defineFrameConnRequiresFullActionSystemMetadata()
       }),
 
-      defineFrameHelmFullAction({
+      defineFrameConnFullAction({
         id:
           "full.boot-up",
 
@@ -1336,7 +1336,7 @@ function registerUniversalActions() {
           "fas fa-toggle-on"
       }),
 
-      defineFrameHelmFullAction({
+      defineFrameConnFullAction({
         id:
           "full.mount-dismount",
 
@@ -1353,10 +1353,10 @@ function registerUniversalActions() {
           "fas fa-person-arrow-up-from-line",
 
         metadata:
-          defineFrameHelmMountDismountModesMetadata()
+          defineFrameConnMountDismountModesMetadata()
       }),
 
-      defineFrameHelmFullAction({
+      defineFrameConnFullAction({
         id:
           "full.skill-check",
 
@@ -1373,7 +1373,7 @@ function registerUniversalActions() {
           "fas fa-dice-d20"
       }),
 
-      defineFrameHelmFullAction({
+      defineFrameConnFullAction({
         id:
           "full.skill-check.hull",
 
@@ -1396,7 +1396,7 @@ function registerUniversalActions() {
           "full.skill-check",
 
         metadata:
-          defineFrameHelmMechSkillMetadata({
+          defineFrameConnMechSkillMetadata({
             statPath:
               "hull",
 
@@ -1405,7 +1405,7 @@ function registerUniversalActions() {
           })
       }),
 
-      defineFrameHelmFullAction({
+      defineFrameConnFullAction({
         id:
           "full.skill-check.agi",
 
@@ -1428,7 +1428,7 @@ function registerUniversalActions() {
           "full.skill-check",
 
         metadata:
-          defineFrameHelmMechSkillMetadata({
+          defineFrameConnMechSkillMetadata({
             statPath:
               "agi",
 
@@ -1437,7 +1437,7 @@ function registerUniversalActions() {
           })
       }),
 
-      defineFrameHelmFullAction({
+      defineFrameConnFullAction({
         id:
           "full.skill-check.sys",
 
@@ -1460,7 +1460,7 @@ function registerUniversalActions() {
           "full.skill-check",
 
         metadata:
-          defineFrameHelmMechSkillMetadata({
+          defineFrameConnMechSkillMetadata({
             statPath:
               "sys",
 
@@ -1469,7 +1469,7 @@ function registerUniversalActions() {
           })
       }),
 
-      defineFrameHelmFullAction({
+      defineFrameConnFullAction({
         id:
           "full.skill-check.eng",
 
@@ -1492,7 +1492,7 @@ function registerUniversalActions() {
           "full.skill-check",
 
         metadata:
-          defineFrameHelmMechSkillMetadata({
+          defineFrameConnMechSkillMetadata({
             statPath:
               "eng",
 
@@ -1506,7 +1506,7 @@ function registerUniversalActions() {
          Special actions
          -------------------------------------------------------- */
 
-      defineFrameHelmSpecialAction({
+      defineFrameConnSpecialAction({
         id:
           "special.overcharge",
 
@@ -1526,10 +1526,10 @@ function registerUniversalActions() {
           "fas fa-temperature-high",
 
         metadata:
-          defineFrameHelmOverchargeMetadata()
+          defineFrameConnOverchargeMetadata()
       }),
 
-      defineFrameHelmSpecialAction({
+      defineFrameConnSpecialAction({
         id:
           "special.end-turn",
 
@@ -1557,7 +1557,7 @@ function registerUniversalActions() {
          Reactions
          -------------------------------------------------------- */
 
-      defineFrameHelmReaction({
+      defineFrameConnReaction({
         id:
           "reaction.brace",
 
@@ -1574,7 +1574,7 @@ function registerUniversalActions() {
           "fas fa-shield-halved"
       }),
 
-      defineFrameHelmReaction({
+      defineFrameConnReaction({
         id:
           "reaction.overwatch",
 
@@ -1590,7 +1590,7 @@ function registerUniversalActions() {
         icon:
           "fas fa-eye",
 
-        ...defineFrameHelmTargetRequirement(
+        ...defineFrameConnTargetRequirement(
           "hostile-in-threat"
         )
       })
@@ -1609,11 +1609,11 @@ function registerUniversalActions() {
  *
  * This function intentionally remains synchronous.
  *
- * lancer-frame-helm.js should continue invoking it directly from
+ * lancer-frame-conn.js should continue invoking it directly from
  * Foundry's init hook during the transitional extraction phase.
  */
-function initializeFrameHelmActionRegistry() {
-  frameHelmActionRegistry
+function initializeFrameConnActionRegistry() {
+  frameConnActionRegistry
     .clear();
 
   registerUniversalActionCategories();
@@ -1621,10 +1621,10 @@ function initializeFrameHelmActionRegistry() {
   registerUniversalActions();
 
   console.log(
-    `${MODULE_TITLE} | Registered ${frameHelmActionRegistry.actions.size} universal actions.`
+    `${MODULE_TITLE} | Registered ${frameConnActionRegistry.actions.size} universal actions.`
   );
 
-  return frameHelmActionRegistry;
+  return frameConnActionRegistry;
 }
 
 
@@ -1644,8 +1644,8 @@ function initializeFrameHelmActionRegistry() {
  * rather than placed in lifecycle.initialize so existing Foundry
  * startup ordering remains synchronous.
  */
-export const frameHelmActionsFeature =
-  defineFrameHelmFeature({
+export const frameConnActionsFeature =
+  defineFrameConnFeature({
     id:
       "actions",
 
@@ -1666,21 +1666,21 @@ export const frameHelmActionsFeature =
 
     commands: {
       initialize:
-        initializeFrameHelmActionRegistry,
+        initializeFrameConnActionRegistry,
 
       clear:
         () =>
-          frameHelmActionRegistry
+          frameConnActionRegistry
             .clear(),
 
       register:
         action =>
-          frameHelmActionRegistry
+          frameConnActionRegistry
             .register(action),
 
       registerCategory:
         category =>
-          frameHelmActionRegistry
+          frameConnActionRegistry
             .registerCategory(
               category
             )
@@ -1689,22 +1689,22 @@ export const frameHelmActionsFeature =
     queries: {
       get:
         id =>
-          frameHelmActionRegistry
+          frameConnActionRegistry
             .get(id),
 
       getCategory:
         id =>
-          frameHelmActionRegistry
+          frameConnActionRegistry
             .getCategory(id),
 
       has:
         id =>
-          frameHelmActionRegistry
+          frameConnActionRegistry
             .has(id),
 
       list:
         options =>
-          frameHelmActionRegistry
+          frameConnActionRegistry
             .list(options),
 
       roots:
@@ -1712,7 +1712,7 @@ export const frameHelmActionsFeature =
           category,
           options
         ) =>
-          frameHelmActionRegistry
+          frameConnActionRegistry
             .roots(
               category,
               options
@@ -1723,7 +1723,7 @@ export const frameHelmActionsFeature =
           parentId,
           options
         ) =>
-          frameHelmActionRegistry
+          frameConnActionRegistry
             .childrenOf(
               parentId,
               options
@@ -1731,14 +1731,14 @@ export const frameHelmActionsFeature =
 
       categories:
         options =>
-          frameHelmActionRegistry
+          frameConnActionRegistry
             .listCategories(
               options
             ),
 
       snapshot:
         () =>
-          frameHelmActionRegistry
+          frameConnActionRegistry
             .toJSON()
     },
 
@@ -1748,34 +1748,34 @@ export const frameHelmActionsFeature =
 
     api: {
       registry:
-        frameHelmActionRegistry,
+        frameConnActionRegistry,
 
       initialize:
-        initializeFrameHelmActionRegistry,
+        initializeFrameConnActionRegistry,
 
       clear:
         () =>
-          frameHelmActionRegistry
+          frameConnActionRegistry
             .clear(),
 
       get:
         id =>
-          frameHelmActionRegistry
+          frameConnActionRegistry
             .get(id),
 
       getCategory:
         id =>
-          frameHelmActionRegistry
+          frameConnActionRegistry
             .getCategory(id),
 
       has:
         id =>
-          frameHelmActionRegistry
+          frameConnActionRegistry
             .has(id),
 
       list:
         options =>
-          frameHelmActionRegistry
+          frameConnActionRegistry
             .list(options),
 
       roots:
@@ -1783,7 +1783,7 @@ export const frameHelmActionsFeature =
           category,
           options
         ) =>
-          frameHelmActionRegistry
+          frameConnActionRegistry
             .roots(
               category,
               options
@@ -1794,7 +1794,7 @@ export const frameHelmActionsFeature =
           parentId,
           options
         ) =>
-          frameHelmActionRegistry
+          frameConnActionRegistry
             .childrenOf(
               parentId,
               options
@@ -1802,26 +1802,26 @@ export const frameHelmActionsFeature =
 
       categories:
         options =>
-          frameHelmActionRegistry
+          frameConnActionRegistry
             .listCategories(
               options
             ),
 
       register:
         action =>
-          frameHelmActionRegistry
+          frameConnActionRegistry
             .register(action),
 
       registerCategory:
         category =>
-          frameHelmActionRegistry
+          frameConnActionRegistry
             .registerCategory(
               category
             ),
 
       snapshot:
         () =>
-          frameHelmActionRegistry
+          frameConnActionRegistry
             .toJSON()
     },
 
@@ -1830,7 +1830,7 @@ export const frameHelmActionsFeature =
         "Universal Actions",
 
       description:
-        "Owns Frame Helm's universal action definitions, categories, and canonical action registry.",
+        "Owns Frame Conn's universal action definitions, categories, and canonical action registry.",
 
       extractedFrom:
         "scripts/runtime-orchestrator.js",
@@ -1852,12 +1852,12 @@ export const frameHelmActionsFeature =
  * These named exports preserve a low-risk migration path for the
  * primary runtime and the next extracted features.
  *
- * lancer-frame-helm.js can immediately replace its former local
+ * lancer-frame-conn.js can immediately replace its former local
  * action implementation with:
  *
  *   import {
- *     frameHelmActionRegistry,
- *     initializeFrameHelmActionRegistry
+ *     frameConnActionRegistry,
+ *     initializeFrameConnActionRegistry
  *   } from "./actions-feature.js";
  *
  * Later extracted features should preferably consume
@@ -1865,7 +1865,7 @@ export const frameHelmActionsFeature =
  * once the composition graph is fully established.
  */
 export {
-  initializeFrameHelmActionRegistry,
+  initializeFrameConnActionRegistry,
   registerUniversalActionCategories,
   registerUniversalActions
 };

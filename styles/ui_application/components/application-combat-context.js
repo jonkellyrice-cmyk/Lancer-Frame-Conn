@@ -10,7 +10,7 @@
  * exists only so manual Begin Turn Plan behavior remains intact
  * without referencing the removed monolithic runtime symbol.
  */
-function getFrameHelmApplicationCombatContext(
+function getFrameConnApplicationCombatContext(
   combat = game.combat
 ) {
   const combatant =
@@ -83,5 +83,5 @@ function getFrameHelmApplicationCombatContext(
    ============================================================ */
 
 export {
-  getFrameHelmApplicationCombatContext
+  getFrameConnApplicationCombatContext
 };

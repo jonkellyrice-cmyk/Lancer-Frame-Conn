@@ -8,11 +8,11 @@
 
 **Native semantic recognition of Boost:** Found.
 
-**Frame Helm implementation status:** Frame Helm should own Boost execution using its existing Turn and Movement domains.
+**Frame Conn implementation status:** Frame Conn should own Boost execution using its existing Turn and Movement domains.
 
 ## Purpose
 
-This document records the native Foundry Lancer findings relevant to the universal **Boost** Quick Action and defines the intended Frame Helm implementation boundary.
+This document records the native Foundry Lancer findings relevant to the universal **Boost** Quick Action and defines the intended Frame Conn implementation boundary.
 
 The repository search did not reveal a dedicated executable Boost flow such as:
 
@@ -32,7 +32,7 @@ This means native content can refer to Boost as an event or rules location even 
 
 Therefore:
 
-> Frame Helm should implement the universal Boost action itself.
+> Frame Conn should implement the universal Boost action itself.
 
 while:
 
@@ -81,7 +81,7 @@ A repository search did not identify:
 - a dedicated actor Boost execution method
 - a dedicated native universal Boost action handler
 
-Therefore there is no native high-level Boost execution flow for Frame Helm to delegate to.
+Therefore there is no native high-level Boost execution flow for Frame Conn to delegate to.
 
 —
 
@@ -105,7 +105,7 @@ or:
 
 or other Boost-related interactions.
 
-Therefore Frame Helm should not treat Boost merely as:
+Therefore Frame Conn should not treat Boost merely as:
 
 `reset movement`
 
@@ -117,7 +117,7 @@ It should also preserve Boost as a meaningful action event for future rules inte
 
 The intended ownership split is:
 
-**FRAME HELM OWNS:**
+**FRAME CONN OWNS:**
 
 - Boost action commitment;
 - Quick Action expenditure;
@@ -139,9 +139,9 @@ The intended ownership split is:
 
 —
 
-# 5. Existing Frame Helm Movement Support
+# 5. Existing Frame Conn Movement Support
 
-Frame Helm already contains movement-state behavior appropriate for Boost.
+Frame Conn already contains movement-state behavior appropriate for Boost.
 
 Relevant existing concepts include:
 
@@ -163,13 +163,13 @@ The Turn state also records used actions, including:
 
 `quick.boost`
 
-Therefore Boost can integrate naturally into the existing Frame Helm Turn + Movement architecture rather than requiring a new standalone rules engine.
+Therefore Boost can integrate naturally into the existing Frame Conn Turn + Movement architecture rather than requiring a new standalone rules engine.
 
 —
 
 # 6. Existing Boost Tracking
 
-Frame Helm already exposes concepts equivalent to:
+Frame Conn already exposes concepts equivalent to:
 
 `movementBoostEntries()`
 
@@ -211,7 +211,7 @@ and grant:
 Conceptually:
 
 Player commits Boost
-→ Frame Helm validates Quick Action availability
+→ Frame Conn validates Quick Action availability
 → commit `quick.boost`
 → Quick Action budget decreases
 → Movement feature opens/refills one Speed-sized movement allowance
@@ -248,7 +248,7 @@ The exact icon belongs to the UI layer.
 
 # 9. Commit vs Execute
 
-Frame Helm should preserve the distinction between:
+Frame Conn should preserve the distinction between:
 
 **committing Boost**
 
@@ -269,7 +269,7 @@ Execute:
 → emit Boost event
 → refresh movement presentation
 
-If Frame Helm ultimately treats movement execution as immediate upon commitment, this distinction can be simplified.
+If Frame Conn ultimately treats movement execution as immediate upon commitment, this distinction can be simplified.
 
 But the Turn and committed-plan architecture should remain authoritative.
 
@@ -277,17 +277,17 @@ But the Turn and committed-plan architecture should remain authoritative.
 
 # 10. Proposed Initial Boost Flow
 
-The initial Frame Helm flow should be:
+The initial Frame Conn flow should be:
 
 Player commits Boost
 → Boost appears in Committed Plan
 → player executes Boost
-→ Frame Helm confirms Boost has not already been executed
-→ Frame Helm validates active Turn
-→ Frame Helm records/uses `quick.boost`
+→ Frame Conn confirms Boost has not already been executed
+→ Frame Conn validates active Turn
+→ Frame Conn records/uses `quick.boost`
 → Movement state opens/refills another Speed-sized movement allowance
 → Boost event/history recorded
-→ Frame Helm movement UI refreshes
+→ Frame Conn movement UI refreshes
 → player continues movement
 
 No native Lancer flow needs to be invoked.
@@ -296,7 +296,7 @@ No native Lancer flow needs to be invoked.
 
 # 11. Movement Pool Behavior
 
-After Boost executes, Frame Helm should make another movement pool equal to the actor’s Speed available.
+After Boost executes, Frame Conn should make another movement pool equal to the actor’s Speed available.
 
 Conceptually:
 
@@ -320,7 +320,7 @@ New movement pool:
 
 Player can now move up to 4 more.
 
-The existing Frame Helm movement model already represents this kind of refill through:
+The existing Frame Conn movement model already represents this kind of refill through:
 
 `refreshMovementFromBoost()`
 
@@ -328,7 +328,7 @@ The existing Frame Helm movement model already represents this kind of refill th
 
 # 12. Automatic Movement Integration
 
-Frame Helm already contains logic capable of detecting when token movement exceeds the current legal movement allowance.
+Frame Conn already contains logic capable of detecting when token movement exceeds the current legal movement allowance.
 
 Existing concepts include:
 
@@ -338,7 +338,7 @@ and:
 
 `trackTokenMovement()`
 
-This allows Frame Helm to infer:
+This allows Frame Conn to infer:
 
 the player moved beyond standard Speed
 → a Boost is required
@@ -356,7 +356,7 @@ and:
 
 **Movement-driven automatic Boost accounting**
 
-Player physically moves past the standard allowance and Frame Helm automatically recognizes the required Boost.
+Player physically moves past the standard allowance and Frame Conn automatically recognizes the required Boost.
 
 —
 
@@ -366,7 +366,7 @@ When tracked movement first exceeds:
 
 `Speed`
 
-Frame Helm may automatically attempt to commit:
+Frame Conn may automatically attempt to commit:
 
 `quick.boost`
 
@@ -389,7 +389,7 @@ This existing behavior should remain compatible with the committed-plan architec
 
 Boost may also be performed using the Quick Action granted by Overcharge.
 
-Frame Helm already distinguishes this case.
+Frame Conn already distinguishes this case.
 
 Conceptually:
 
@@ -450,7 +450,7 @@ Because native Lancer recognizes:
 
 `boost`
 
-as a semantic/synergy location, Frame Helm should eventually emit or expose a meaningful Boost execution event.
+as a semantic/synergy location, Frame Conn should eventually emit or expose a meaningful Boost execution event.
 
 Conceptually:
 
@@ -466,7 +466,7 @@ The exact event architecture should be determined later.
 
 Do not invent native hooks that do not exist.
 
-This is a Frame Helm integration concept.
+This is a Frame Conn integration concept.
 
 —
 
@@ -493,7 +493,7 @@ These may:
 - consume resources;
 - grant additional actions.
 
-Therefore Boost should remain a first-class semantic event in Frame Helm.
+Therefore Boost should remain a first-class semantic event in Frame Conn.
 
 —
 
@@ -503,13 +503,13 @@ If actor-owned native content exposes structured synergy information indicating:
 
 `boost`
 
-Frame Helm should prefer that structured native information.
+Frame Conn should prefer that structured native information.
 
 Preferred hierarchy:
 
 1. native structured synergy/action metadata;
 2. native action data;
-3. explicit Frame Helm adapter;
+3. explicit Frame Conn adapter;
 4. prose parsing only if unavoidable.
 
 This is particularly important for future “when you Boost” automation.
@@ -518,7 +518,7 @@ This is particularly important for future “when you Boost” automation.
 
 # 19. Interaction With Protocol
 
-Movement normally closes the start-of-turn Protocol window in the current Frame Helm Turn state.
+Movement normally closes the start-of-turn Protocol window in the current Frame Conn Turn state.
 
 Boost itself is also a non-Protocol action and should occur after the player has either:
 
@@ -548,7 +548,7 @@ Boost through Overcharge
 
 is allowed because Overcharge permits repeating an action.
 
-The existing Frame Helm duplicate-action and Overcharge architecture already supports this distinction.
+The existing Frame Conn duplicate-action and Overcharge architecture already supports this distinction.
 
 —
 
@@ -568,7 +568,7 @@ Boost does not itself move the token.
 
 It grants the ability to move again up to Speed.
 
-Therefore Frame Helm should distinguish:
+Therefore Frame Conn should distinguish:
 
 Boost execution
 → movement allowance becomes available
@@ -604,7 +604,7 @@ Boost should not directly fabricate movement segments.
 
 # 24. Elevation Movement
 
-Frame Helm already intends to treat vertical/elevation movement as movement expenditure where appropriate.
+Frame Conn already intends to treat vertical/elevation movement as movement expenditure where appropriate.
 
 Boost simply grants another Speed-sized movement allowance.
 
@@ -690,7 +690,7 @@ Once the movement allowance is granted, Boost can generally be considered execut
 
 Boost itself does not appear to require native item resource mutation.
 
-The primary mutations are Frame Helm state:
+The primary mutations are Frame Conn state:
 
 - Quick Action expenditure;
 - used-action record;
@@ -730,13 +730,13 @@ Do not duplicate Overcharge Heat in Boost execution.
 
 # 31. Native-System Boundary
 
-Because no dedicated native Boost flow was found, Frame Helm does not need to call into a nonexistent native execution function.
+Because no dedicated native Boost flow was found, Frame Conn does not need to call into a nonexistent native execution function.
 
 The preferred architecture is:
 
-Frame Helm Turn feature
+Frame Conn Turn feature
 → validate/use `quick.boost`
-→ Frame Helm Movement state
+→ Frame Conn Movement state
 → grant/reset Speed-sized movement allowance
 → action-trigger integration
 → movement UI refresh
@@ -751,7 +751,7 @@ and native content metadata.
 
 # 32. Shared Action Execution Architecture
 
-Boost should still participate in the general Frame Helm action execution framework.
+Boost should still participate in the general Frame Conn action execution framework.
 
 Conceptually:
 
@@ -779,7 +779,7 @@ action category:
 `quick`
 
 execution strategy:
-`frame-helm-movement`
+`frame-conn-movement`
 
 This name is illustrative only.
 
@@ -793,9 +793,9 @@ The repository search did not reveal a native:
 
 `BoostFlow`
 
-Therefore Frame Helm should not create code which pretends to delegate to one.
+Therefore Frame Conn should not create code which pretends to delegate to one.
 
-Instead, Frame Helm should explicitly own the missing universal Boost behavior while preserving native semantic data.
+Instead, Frame Conn should explicitly own the missing universal Boost behavior while preserving native semantic data.
 
 —
 
@@ -909,7 +909,7 @@ BOOST
 │
 ├── no native BoostFlow found
 │
-├── Frame Helm-owned execution
+├── Frame Conn-owned execution
 │
 ├── uses actor Speed
 │
@@ -926,11 +926,11 @@ BOOST
 └── emits/preserves Boost semantic identity
     └── future “when you Boost” effects
 
-This is the current working architecture for Boost in Frame Helm.
+This is the current working architecture for Boost in Frame Conn.
 
 The critical ownership boundary is:
 
-FRAME HELM
+FRAME CONN
 → executes the universal Boost action
 → manages Turn expenditure
 → grants movement allowance

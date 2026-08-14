@@ -3,14 +3,14 @@
    ============================================================ */
 
 import {
-  getFrameHelmApplicationActionRegistry,
-  getFrameHelmApplicationTurnState,
-  getFrameHelmApplicationTurnStateManager,
-  executeFrameHelmApplicationActionRoll
+  getFrameConnApplicationActionRegistry,
+  getFrameConnApplicationTurnState,
+  getFrameConnApplicationTurnStateManager,
+  executeFrameConnApplicationActionRoll
 } from "./application-runtime-bindings.js";
 
 import {
-  getFrameHelmApplicationCombatContext
+  getFrameConnApplicationCombatContext
 } from "./application-combat-context.js";
 
 
@@ -22,7 +22,7 @@ function ensureTurnPlan(
   application
 ) {
   const existingState =
-    getFrameHelmApplicationTurnState();
+    getFrameConnApplicationTurnState();
 
   if (
     existingState &&
@@ -44,13 +44,13 @@ function ensureTurnPlan(
   }
 
   const turnManager =
-    getFrameHelmApplicationTurnStateManager();
+    getFrameConnApplicationTurnStateManager();
 
   if (
     !turnManager
   ) {
     ui.notifications.error(
-      "Frame Helm could not resolve the Turn state manager."
+      "Frame Conn could not resolve the Turn state manager."
     );
     return null;
   }
@@ -60,7 +60,7 @@ function ensureTurnPlan(
 
   const combatContext =
     combat?.started
-      ? getFrameHelmApplicationCombatContext(
+      ? getFrameConnApplicationCombatContext(
           combat
         )
       : {};
@@ -127,17 +127,17 @@ function resetTurnPlan(
     application.getControlledToken();
 
   const previousState =
-    getFrameHelmApplicationTurnState();
+    getFrameConnApplicationTurnState();
 
   const turnManager =
-    getFrameHelmApplicationTurnStateManager();
+    getFrameConnApplicationTurnStateManager();
 
 
   if (
     !turnManager
   ) {
     ui.notifications.error(
-      "Frame Helm could not resolve the Turn state manager."
+      "Frame Conn could not resolve the Turn state manager."
     );
 
     return;
@@ -189,7 +189,7 @@ function resetTurnPlan(
   );
 
   ui.notifications.info(
-    "Frame Helm turn plan reset."
+    "Frame Conn turn plan reset."
   );
 }
 
@@ -203,7 +203,7 @@ function commitMovementAction(
   actionId
 ) {
   const registry =
-    getFrameHelmApplicationActionRegistry();
+    getFrameConnApplicationActionRegistry();
 
   const action =
     registry.get(
@@ -211,7 +211,7 @@ function commitMovementAction(
     );
 
   let state =
-    getFrameHelmApplicationTurnState();
+    getFrameConnApplicationTurnState();
 
 
   if (
@@ -278,7 +278,7 @@ function executeFullAction(
   actionId
 ) {
   const registry =
-    getFrameHelmApplicationActionRegistry();
+    getFrameConnApplicationActionRegistry();
 
   const action =
     registry.get(
@@ -286,7 +286,7 @@ function executeFullAction(
     );
 
   let state =
-    getFrameHelmApplicationTurnState();
+    getFrameConnApplicationTurnState();
 
 
   if (
@@ -351,7 +351,7 @@ function executeQuickAction(
   useOvercharge = false
 ) {
   const registry =
-    getFrameHelmApplicationActionRegistry();
+    getFrameConnApplicationActionRegistry();
 
   const action =
     registry.get(
@@ -359,7 +359,7 @@ function executeQuickAction(
     );
 
   let state =
-    getFrameHelmApplicationTurnState();
+    getFrameConnApplicationTurnState();
 
 
   if (
@@ -429,7 +429,7 @@ function executeQuickAction(
         null
       ) {
         ui.notifications.warn(
-          "Boost was recorded, but Frame Helm cannot refresh movement until the unit's Speed is entered."
+          "Boost was recorded, but Frame Conn cannot refresh movement until the unit's Speed is entered."
         );
       }
     }
@@ -487,7 +487,7 @@ async function executeCommittedAction(
   actionId = null
 ) {
   const state =
-    getFrameHelmApplicationTurnState();
+    getFrameConnApplicationTurnState();
 
 
   if (
@@ -566,7 +566,7 @@ async function executeCommittedAction(
 
 
   const registry =
-    getFrameHelmApplicationActionRegistry();
+    getFrameConnApplicationActionRegistry();
 
   const action =
     registry.get(
@@ -578,7 +578,7 @@ async function executeCommittedAction(
     !action
   ) {
     ui.notifications.error(
-      `Unknown Frame Helm action: ${committedActionIdValue}`
+      `Unknown Frame Conn action: ${committedActionIdValue}`
     );
 
     application.render(
@@ -609,7 +609,7 @@ async function executeCommittedAction(
 
 
   try {
-    await executeFrameHelmApplicationActionRoll(
+    await executeFrameConnApplicationActionRoll(
       actor,
       action
     );
@@ -644,7 +644,7 @@ async function executeCommittedAction(
   ) {
     ui.notifications.warn(
       error?.message ??
-      "Frame Helm could not execute the committed action."
+      "Frame Conn could not execute the committed action."
     );
   }
 }
@@ -659,13 +659,13 @@ function onCommand(
   command
 ) {
   const registry =
-    getFrameHelmApplicationActionRegistry();
+    getFrameConnApplicationActionRegistry();
 
   const state =
-    getFrameHelmApplicationTurnState();
+    getFrameConnApplicationTurnState();
 
   const turnManager =
-    getFrameHelmApplicationTurnStateManager();
+    getFrameConnApplicationTurnStateManager();
 
 
   if (
@@ -764,7 +764,7 @@ function onCommand(
   ) {
     const input =
       application.element.find(
-        "[data-frame-helm-speed-input]"
+        "[data-frame-conn-speed-input]"
       )[
         0
       ];
@@ -963,7 +963,7 @@ function onCommand(
     );
 
     ui.notifications.info(
-      "Frame Helm turn plan ended."
+      "Frame Conn turn plan ended."
     );
   }
 }
@@ -978,7 +978,7 @@ function onActionSelected(
   actionId
 ) {
   const registry =
-    getFrameHelmApplicationActionRegistry();
+    getFrameConnApplicationActionRegistry();
 
   const action =
     registry.get(
@@ -990,7 +990,7 @@ function onActionSelected(
     !action
   ) {
     ui.notifications.error(
-      `Unknown Frame Helm action: ${actionId}`
+      `Unknown Frame Conn action: ${actionId}`
     );
 
     return;

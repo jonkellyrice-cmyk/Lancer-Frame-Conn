@@ -19,7 +19,7 @@
  * - action_economy/action-economy
  * - resource_service/resource-service
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumes LifecycleContext from lifecycle-hooks.js
  * - consumes lifecycle-managed entries from lifecycle-state.js
  * - delegates action-economy resets/end-state to action_economy/
@@ -106,7 +106,7 @@ import {
    MODULE IDENTITY
    ============================================================ */
 export const LIFECYCLE_DISPATCHER_MODULE_ID =
-  "lancer-frame-helm.lifecycle-dispatcher";
+  "lancer-frame-conn.lifecycle-dispatcher";
 export const LIFECYCLE_DISPATCHER_MODULE_VERSION =
   1;
 /* ============================================================
@@ -349,7 +349,7 @@ function createLifecycleResourceDescriptor(
         descriptor.authority ===
         LIFECYCLE_AUTHORITY.NATIVE
           ? "native"
-          : "frame-helm",
+          : "frame-conn",
       actorUuid:
         descriptor.actorUuid ??
         lifecycleContext
@@ -499,10 +499,10 @@ async function executeResourceLifecycleOperation(
         resourceDescriptor,
         {
           before,
-          frameHelmWriter:
+          frameConnWriter:
             context
               ?.metadata
-              ?.frameHelmResourceWriter ??
+              ?.frameConnResourceWriter ??
             null
         }
       );
@@ -1320,7 +1320,7 @@ export async function dispatchLifecycleBoundary(
  *
  * means:
  *
- * Frame Helm does NOT:
+ * Frame Conn does NOT:
  *
  * remove
  * restore
@@ -1345,9 +1345,9 @@ export async function dispatchLifecycleBoundary(
  *
  * FULL_REPAIR_COMPLETED may match:
  *
- * Frame Helm frequency resources
+ * Frame Conn frequency resources
  * supplemental trait/talent/core bonus charges
- * other Frame Helm reset descriptors
+ * other Frame Conn reset descriptors
  *
  * Native Limited/Core Energy resets should remain native-authority unless
  * the native system trace establishes a missing runtime path.
@@ -1479,10 +1479,10 @@ export function getLifecycleDispatcherDiagnostics() {
   });
 }
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * lifecycle-state.js
  * ------------------
@@ -1553,7 +1553,7 @@ export function getLifecycleDispatcherDiagnostics() {
  * Status/condition/effect operations delegate through injected adapters.
  *
  * INVARIANT 6
- * Native authority never causes duplicate Frame Helm mutation.
+ * Native authority never causes duplicate Frame Conn mutation.
  *
  * INVARIANT 7
  * Successful lifecycle handling marks the lifecycle entry terminal.

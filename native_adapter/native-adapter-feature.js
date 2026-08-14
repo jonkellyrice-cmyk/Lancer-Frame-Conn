@@ -9,8 +9,8 @@
  * @file
  * @path native_adapter/native-adapter-feature.js
  * @module native-adapter-feature
- * @layer frame-helm-runtime-feature
- * @responsibility expose-native-adapter-through-the-canonical-frame-helm-feature-contract
+ * @layer frame-conn-runtime-feature
+ * @responsibility expose-native-adapter-through-the-canonical-frame-conn-feature-contract
  * @public-boundary true
  * @side-effects delegated-native-foundry-lancer-execution
  *
@@ -27,7 +27,7 @@
  * runtime-orchestrator.js
  *
  * THIS FILE OWNS:
- * - canonical Frame Helm Native Adapter feature definition
+ * - canonical Frame Conn Native Adapter feature definition
  * - native capability declaration
  * - registry-facing native resolution/execution API
  * - native runtime readiness diagnostics
@@ -55,7 +55,7 @@
    ============================================================ */
 
 import {
-  defineFrameHelmFeature
+  defineFrameConnFeature
 } from "../scripts/feature-contract.js";
 
 import * as nativeAdapterRuntime from
@@ -65,7 +65,7 @@ import * as nativeAdapterRuntime from
    FEATURE DIAGNOSTICS
    ============================================================ */
 
-function getFrameHelmNativeAdapterDiagnostics() {
+function getFrameConnNativeAdapterDiagnostics() {
   return Object.freeze({
     serviceId:
       nativeAdapterRuntime.NATIVE_ADAPTER_ID ??
@@ -91,8 +91,8 @@ function getFrameHelmNativeAdapterDiagnostics() {
  * scripts/feature-registry.js remains the application-wide registration
  * boundary.
  */
-export const frameHelmNativeAdapterFeature =
-  defineFrameHelmFeature({
+export const frameConnNativeAdapterFeature =
+  defineFrameConnFeature({
     id:
       "native-adapter",
 
@@ -191,7 +191,7 @@ export const frameHelmNativeAdapterFeature =
         nativeAdapterRuntime.isNativeAdapterRuntimeReady,
 
       diagnostics:
-        getFrameHelmNativeAdapterDiagnostics
+        getFrameConnNativeAdapterDiagnostics
     },
 
     hooks: {},
@@ -203,7 +203,7 @@ export const frameHelmNativeAdapterFeature =
         nativeAdapterRuntime.nativeAdapter,
 
       diagnostics:
-        getFrameHelmNativeAdapterDiagnostics,
+        getFrameConnNativeAdapterDiagnostics,
 
       hasCapability:
         nativeAdapterRuntime.hasNativeAdapterCapability,
@@ -304,7 +304,7 @@ export const frameHelmNativeAdapterFeature =
         "Native Adapter",
 
       description:
-        "Exposes the stable Frame Helm-facing boundary over native Foundry Lancer resolution, rolls, resources, status, combat, and execution.",
+        "Exposes the stable Frame Conn-facing boundary over native Foundry Lancer resolution, rolls, resources, status, combat, and execution.",
 
       serviceBoundary:
         "native_adapter/native-adapter.js",
@@ -325,5 +325,5 @@ export const frameHelmNativeAdapterFeature =
    ============================================================ */
 
 export {
-  getFrameHelmNativeAdapterDiagnostics
+  getFrameConnNativeAdapterDiagnostics
 };

@@ -12,19 +12,19 @@ function renderCategoryMenu(
           const unavailableClass =
             data.hasTurnState &&
             !category.hasAvailableAction
-              ? " frame-helm-category-unavailable"
+              ? " frame-conn-category-unavailable"
               : "";
 
 
           return `
             <button
               type="button"
-              class="frame-helm-category-button${unavailableClass}"
-              data-frame-helm-category="${foundry.utils.escapeHTML(category.id)}"
+              class="frame-conn-category-button${unavailableClass}"
+              data-frame-conn-category="${foundry.utils.escapeHTML(category.id)}"
             >
               <i class="${foundry.utils.escapeHTML(category.icon)}"></i>
 
-              <span class="frame-helm-category-copy">
+              <span class="frame-conn-category-copy">
                 <strong>
                   ${foundry.utils.escapeHTML(category.label)}
                 </strong>
@@ -34,7 +34,7 @@ function renderCategoryMenu(
                 </small>
               </span>
 
-              <i class="fas fa-chevron-right frame-helm-category-arrow"></i>
+              <i class="fas fa-chevron-right frame-conn-category-arrow"></i>
             </button>
           `;
         }
@@ -45,14 +45,14 @@ function renderCategoryMenu(
 
 
   return `
-    <section class="frame-helm-action-panel">
-      <div class="frame-helm-section-heading">
+    <section class="frame-conn-action-panel">
+      <div class="frame-conn-section-heading">
         <span>
           Choose an action type
         </span>
       </div>
 
-      <div class="frame-helm-category-list">
+      <div class="frame-conn-category-list">
         ${buttons}
       </div>
     </section>
@@ -81,7 +81,7 @@ function renderGenericCategoryPanel(
             action.allowed
               ? ""
               : `
-                <span class="frame-helm-action-reason">
+                <span class="frame-conn-action-reason">
                   ${foundry.utils.escapeHTML(action.unavailableReason)}
                 </span>
               `;
@@ -90,13 +90,13 @@ function renderGenericCategoryPanel(
           return `
             <button
               type="button"
-              class="frame-helm-action-button"
-              data-frame-helm-action="${foundry.utils.escapeHTML(action.id)}"
+              class="frame-conn-action-button"
+              data-frame-conn-action="${foundry.utils.escapeHTML(action.id)}"
               ${disabledAttribute}
             >
               <i class="${foundry.utils.escapeHTML(action.icon)}"></i>
 
-              <span class="frame-helm-action-copy">
+              <span class="frame-conn-action-copy">
                 <strong>${foundry.utils.escapeHTML(action.label)}</strong>
                 <small>${foundry.utils.escapeHTML(action.shortDescription)}</small>
                 ${unavailableText}
@@ -114,7 +114,7 @@ function renderGenericCategoryPanel(
     category.hasActions
       ? ""
       : `
-        <div class="frame-helm-no-actions">
+        <div class="frame-conn-no-actions">
           <i class="fas fa-circle-info"></i>
 
           <p>
@@ -125,12 +125,12 @@ function renderGenericCategoryPanel(
 
 
   return `
-    <section class="frame-helm-action-panel">
-      <div class="frame-helm-section-heading frame-helm-section-heading-with-back">
+    <section class="frame-conn-action-panel">
+      <div class="frame-conn-section-heading frame-conn-section-heading-with-back">
         <button
           type="button"
-          class="frame-helm-back-button"
-          data-frame-helm-command="back"
+          class="frame-conn-back-button"
+          data-frame-conn-command="back"
           aria-label="Back to action categories"
         >
           <i class="fas fa-arrow-left"></i>
@@ -147,7 +147,7 @@ function renderGenericCategoryPanel(
         </div>
       </div>
 
-      <div class="frame-helm-action-list">
+      <div class="frame-conn-action-list">
         ${actionButtons}
         ${emptyMessage}
       </div>

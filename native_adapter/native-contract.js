@@ -10,11 +10,11 @@
  * @path main/native_adapter/native-contract.js
  * @module native-contract
  * @layer native-adapter-contract
- * @responsibility define-stable-frame-helm-facing-contracts-for-native-lancer-integration
+ * @responsibility define-stable-frame-conn-facing-contracts-for-native-lancer-integration
  * @public-boundary true
  * @side-effects none
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumed by native_adapter/*
  * - consumed by execution_transaction/*
  * - consumed by semantic_execution_context/*
@@ -23,7 +23,7 @@
  * - consumed indirectly by runtime-orchestrator.js
  *
  * EXISTING ARCHITECTURE PRESERVED:
- * - feature-contract.js remains the higher-level Frame Helm feature/action contract
+ * - feature-contract.js remains the higher-level Frame Conn feature/action contract
  * - feature-registry.js and feature-registry-core.js remain feature-definition registries
  * - runtime-orchestrator.js remains the high-level runtime coordinator
  * - foundry-integration-feature.js remains existing integration code until migrated/delegated
@@ -41,7 +41,7 @@
  *
  * EDIT CONTRACT:
  * - keep contracts independent of current Lancer implementation internals
- * - preserve stable Frame Helm-facing shapes
+ * - preserve stable Frame Conn-facing shapes
  * - do not import Foundry or Lancer runtime modules
  * - do not perform document resolution or mutation
  */
@@ -264,7 +264,7 @@ export function createNativeItemReference({
  *   associated Mech actor when relevant.
  *
  * This context intentionally does not determine controller mode.
- * NHP controller state belongs to higher Frame Helm runtime.
+ * NHP controller state belongs to higher Frame Conn runtime.
  */
 export function createNativeActorContext({
   actor,
@@ -368,7 +368,7 @@ export function createNativeTargetReference({
 /**
  * Native mounts are nested mech loadout data and do not have stable UUIDs.
  *
- * A Frame Helm mount reference therefore preserves:
+ * A Frame Conn mount reference therefore preserves:
  * - owning mech UUID;
  * - current mount index;
  * - type/bracing snapshot;
@@ -1034,11 +1034,11 @@ export function assertNativeItemReference(value) {
 }
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * feature-contract.js
  * -------------------
@@ -1057,7 +1057,7 @@ export function assertNativeItemReference(value) {
  *
  * feature-registry.js / feature-registry-core.js
  * ------------------------------------------------
- * Continue to define/register Frame Helm-visible features.
+ * Continue to define/register Frame Conn-visible features.
  *
  * Native references created here may be attached to runtime-discovered
  * registry entries, but this file does not perform registry discovery.
@@ -1130,7 +1130,7 @@ export function assertNativeItemReference(value) {
  *
  * INVARIANT 1
  * Native runtime objects may enter the adapter through `native`/`raw`,
- * but higher Frame Helm layers should prefer normalized fields.
+ * but higher Frame Conn layers should prefer normalized fields.
  *
  * INVARIANT 2
  * This file contains no Foundry or Lancer imports.
@@ -1160,6 +1160,6 @@ export function assertNativeItemReference(value) {
  * Raw native state is escape-hatch/debug data, not the primary public API.
  *
  * INVARIANT 10
- * Missing Lancer mechanics belong above this contract in Frame Helm
+ * Missing Lancer mechanics belong above this contract in Frame Conn
  * runtime/orchestration services, not inside native-contract.js.
  */

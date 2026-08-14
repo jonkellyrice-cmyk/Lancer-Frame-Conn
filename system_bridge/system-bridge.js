@@ -9,7 +9,7 @@
  * @path main/system_bridge/system-bridge.js
  * @module system-bridge
  * @layer system-bridge-public-boundary
- * @responsibility expose-one-stable-frame-helm-facing-system-bridge-api
+ * @responsibility expose-one-stable-frame-conn-facing-system-bridge-api
  * @public-boundary true
  * @side-effects delegated-through-augmentation-registration-and-source-resolution
  *
@@ -19,8 +19,8 @@
  * - system-bridge-resolver
  * - system-bridge-composer
  *
- * EXISTING FRAME HELM INTEGRATION:
- * - existing Frame Helm registry is supplied through the resolver adapter
+ * EXISTING FRAME CONN INTEGRATION:
+ * - existing Frame Conn registry is supplied through the resolver adapter
  * - actor_owned_feature_registry/ is consumed by resolver internally
  * - augmentation registry supplies missing runtime semantics
  * - composed runtime descriptors feed semantic_execution_context/
@@ -45,7 +45,7 @@
  * - diagnostics
  *
  * THIS FILE DOES NOT OWN:
- * - existing Frame Helm registry implementation
+ * - existing Frame Conn registry implementation
  * - actor-owned feature discovery
  * - native execution
  * - resource mutation
@@ -76,7 +76,7 @@ import * as composer from
    MODULE IDENTITY
    ============================================================ */
 export const SYSTEM_BRIDGE_MODULE_ID =
-  "lancer-frame-helm.system-bridge";
+  "lancer-frame-conn.system-bridge";
 export const SYSTEM_BRIDGE_MODULE_VERSION =
   1;
 /* ============================================================
@@ -602,11 +602,11 @@ export function getSerializableSystemBridgeAugmentationRegistry() {
     .getSerializableSystemBridgeAugmentationRegistry();
 }
 /* ============================================================
-   EXISTING FRAME HELM REGISTRY ADAPTER
+   EXISTING FRAME CONN REGISTRY ADAPTER
    ============================================================ */
 /**
  * Runtime composition supplies the adapter that knows the real shape of the
- * existing Frame Helm registry.
+ * existing Frame Conn registry.
  *
  * The bridge itself therefore does not require the existing registry to be
  * refactored into the new foundational architecture.
@@ -1059,10 +1059,10 @@ export function getSystemBridgeDiagnostics() {
   });
 }
 /* ============================================================
-   FRAME HELM RUNTIME COMPOSITION
+   FRAME CONN RUNTIME COMPOSITION
    ============================================================ */
 /**
- * @section frame-helm-runtime-composition
+ * @section frame-conn-runtime-composition
  *
  * Recommended runtime setup:
  *
@@ -1070,7 +1070,7 @@ export function getSystemBridgeDiagnostics() {
  *
  * 2. Configure actor_owned_feature_registry discovery adapter separately.
  *
- * 3. Configure existing Frame Helm registry lookup:
+ * 3. Configure existing Frame Conn registry lookup:
  *
  *    setSystemBridgeExistingRegistryResolverAdapter(...)
  *
@@ -1100,7 +1100,7 @@ export function getSystemBridgeDiagnostics() {
 /**
  * @section existing-registry-adapter-boundary
  *
- * The existing Frame Helm registry predates the foundational architecture.
+ * The existing Frame Conn registry predates the foundational architecture.
  *
  * The resolver adapter is intentionally narrow:
  *
@@ -1310,7 +1310,7 @@ export function getSystemBridgeDiagnostics() {
 /**
  * @section system-bridge-data-flow
  *
- *                     existing Frame Helm registry
+ *                     existing Frame Conn registry
  *                                │
  *                                │ resolver adapter
  *                                ▼
@@ -1356,13 +1356,13 @@ export function getSystemBridgeDiagnostics() {
  *
  * RULE 1
  *
- * Higher Frame Helm runtime code should prefer importing system-bridge.js
+ * Higher Frame Conn runtime code should prefer importing system-bridge.js
  * rather than bridge implementation siblings.
  *
  *
  * RULE 2
  *
- * Existing Frame Helm registry remains unchanged unless a separate verified
+ * Existing Frame Conn registry remains unchanged unless a separate verified
  * reason requires modification.
  *
  *
@@ -1445,12 +1445,12 @@ export function getSystemBridgeDiagnostics() {
  * → existing registry construction
  */
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
- * existing Frame Helm registry
+ * existing Frame Conn registry
  * ----------------------------
  *
  * Stays in its existing format.
@@ -1541,7 +1541,7 @@ export function getSystemBridgeDiagnostics() {
  * Composer owns field-by-field runtime composition.
  *
  * INVARIANT 6
- * Existing Frame Helm registry remains a separate source.
+ * Existing Frame Conn registry remains a separate source.
  *
  * INVARIANT 7
  * Actor-owned feature registry remains a separate source.

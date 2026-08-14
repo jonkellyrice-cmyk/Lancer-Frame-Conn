@@ -3,8 +3,8 @@
    ============================================================ */
 
 import {
-  getFrameHelmApplicationActionRegistry,
-  getFrameHelmApplicationTurnState
+  getFrameConnApplicationActionRegistry,
+  getFrameConnApplicationTurnState
 } from "./application-runtime-bindings.js";
 
 import {
@@ -51,7 +51,7 @@ function getControlledToken() {
 
 function getTurnStateForDisplay() {
   const turnState =
-    getFrameHelmApplicationTurnState();
+    getFrameConnApplicationTurnState();
 
 
   if (
@@ -93,7 +93,7 @@ function actionAvailability(
 
 
   const state =
-    getFrameHelmApplicationTurnState();
+    getFrameConnApplicationTurnState();
 
 
   if (
@@ -146,7 +146,7 @@ function categoryViewModel(
   turnState
 ) {
   const registry =
-    getFrameHelmApplicationActionRegistry();
+    getFrameConnApplicationActionRegistry();
 
 
   const actions =
@@ -215,7 +215,7 @@ function getApplicationViewData(
     );
 
   const registry =
-    getFrameHelmApplicationActionRegistry();
+    getFrameConnApplicationActionRegistry();
 
 
   const allCategories =

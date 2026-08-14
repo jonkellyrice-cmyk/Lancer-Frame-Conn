@@ -18,7 +18,7 @@
  * - execution-context-contract
  * - native-adapter
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumes semantic action definitions from feature-contract.js
  * - consumes registered action identity from
  *   feature-registry.js / feature-registry-core.js
@@ -150,7 +150,7 @@ function normalizeArray(value) {
 /**
  * @section semantic-action-normalization
  *
- * Existing Frame Helm registry/feature definitions may not yet expose one
+ * Existing Frame Conn registry/feature definitions may not yet expose one
  * perfectly uniform shape.
  *
  * Normalize common existing fields here.
@@ -385,7 +385,7 @@ function inferSourceKind({
 /**
  * @section controller-normalization
  *
- * Controller state belongs to higher Frame Helm runtime.
+ * Controller state belongs to higher Frame Conn runtime.
  *
  * Builder accepts it; builder does not infer cascade/autopilot from native
  * AI presence.
@@ -1154,7 +1154,7 @@ function buildExecutionFlags(
  *
  * Input may originate from:
  *
- * - declared universal Frame Helm action
+ * - declared universal Frame Conn action
  * - actor-owned native ActionData
  * - weapon execution
  * - system execution
@@ -2342,11 +2342,11 @@ export function getExecutionContextDiagnostics(
 }
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * feature-contract.js
  * -------------------
@@ -2526,7 +2526,7 @@ export function getExecutionContextDiagnostics(
  * Pilot Weapon executions do not invent Mech mount context.
  *
  * INVARIANT 8
- * Controller mode is supplied by Frame Helm runtime and is not inferred
+ * Controller mode is supplied by Frame Conn runtime and is not inferred
  * from AI installation.
  *
  * INVARIANT 9
@@ -2552,5 +2552,5 @@ export function getExecutionContextDiagnostics(
  *
  * INVARIANT 15
  * Unknown/custom content retains native UUID/LID/action-path identity even
- * when no bespoke Frame Helm strategy exists.
+ * when no bespoke Frame Conn strategy exists.
  */

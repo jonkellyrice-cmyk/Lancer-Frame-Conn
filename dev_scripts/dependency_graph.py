@@ -130,7 +130,7 @@ TEMPLATE_REFERENCE_PATTERN = re.compile(
 )
 
 FEATURE_ID_PATTERN = re.compile(
-    r"defineFrameHelmFeature\s*\(\s*\{.*?\bid\s*:\s*[\"']([^\"']+)[\"']",
+    r"defineFrameConnFeature\s*\(\s*\{.*?\bid\s*:\s*[\"']([^\"']+)[\"']",
     re.DOTALL,
 )
 RUNTIME_ALLOWED_KEYS_PATTERN = re.compile(
@@ -139,7 +139,7 @@ RUNTIME_ALLOWED_KEYS_PATTERN = re.compile(
 )
 STRING_LITERAL_PATTERN = re.compile(r"[\"']([^\"']+)[\"']")
 REGISTRY_API_PATTERN = re.compile(
-    r"const\s+([A-Za-z_$][\w$]*)\s*=\s*frameHelmFeatureRegistry\s*\.\s*getApi\s*\(\s*[\"']([^\"']+)[\"']\s*\)",
+    r"const\s+([A-Za-z_$][\w$]*)\s*=\s*frameConnFeatureRegistry\s*\.\s*getApi\s*\(\s*[\"']([^\"']+)[\"']\s*\)",
     re.DOTALL,
 )
 

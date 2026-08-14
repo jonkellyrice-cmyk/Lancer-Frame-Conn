@@ -19,9 +19,9 @@
  * - actor-owned-feature-discovery
  * - actor-owned-feature-normalizer
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - native_adapter/ supplies discovery through injected discovery adapter
- * - existing Frame Helm action registry remains separate
+ * - existing Frame Conn action registry remains separate
  * - future system_bridge/ consumes this registry as one runtime source
  * - semantic_event_bus/ may later consume normalized trigger declarations
  * - lifecycle_service/ may later consume lifecycle declarations
@@ -59,7 +59,7 @@
  * EDIT CONTRACT:
  * - registry stores normalized descriptors only
  * - refresh replaces actor-scoped state atomically
- * - do not merge existing Frame Helm registry here
+ * - do not merge existing Frame Conn registry here
  * - preserve actor/pilot/mech provenance
  * - no feature-specific rule branches
  */
@@ -90,7 +90,7 @@ import {
    ============================================================ */
 
 export const ACTOR_OWNED_FEATURE_REGISTRY_MODULE_ID =
-  "lancer-frame-helm.actor-owned-feature-registry";
+  "lancer-frame-conn.actor-owned-feature-registry";
 
 export const ACTOR_OWNED_FEATURE_REGISTRY_MODULE_VERSION =
   1;
@@ -1682,7 +1682,7 @@ export function getActorOwnedFeatureRuntimeSummary(
  *
  * Each descriptor still preserves its actual source actor UUID.
  *
- * This allows Frame Helm to present:
+ * This allows Frame Conn to present:
  *
  * pilot actions when dismounted
  * mech actions when mounted
@@ -1691,17 +1691,17 @@ export function getActorOwnedFeatureRuntimeSummary(
  */
 
 /* ============================================================
-   EXISTING FRAME HELM REGISTRY RULE
+   EXISTING FRAME CONN REGISTRY RULE
    ============================================================ */
 
 /**
- * @section existing-frame-helm-registry-rule
+ * @section existing-frame-conn-registry-rule
  *
- * This registry must NOT absorb the existing Frame Helm action registry.
+ * This registry must NOT absorb the existing Frame Conn action registry.
  *
  * Existing registry:
  *
- * declared/global Frame Helm actions
+ * declared/global Frame Conn actions
  *
  * Actor-owned registry:
  *
@@ -1847,7 +1847,7 @@ export function getActorOwnedFeatureRuntimeSummary(
  *
  * Intended:
  *
- * existing Frame Helm registry
+ * existing Frame Conn registry
  *          +
  * actor-owned registry
  *          +
@@ -1914,11 +1914,11 @@ export function getActorOwnedFeatureRegistryDiagnostics() {
 }
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * native_adapter/
  * ---------------
@@ -1938,7 +1938,7 @@ export function getActorOwnedFeatureRegistryDiagnostics() {
  * Produces safe normalized descriptors.
  *
  *
- * existing Frame Helm registry
+ * existing Frame Conn registry
  * ----------------------------
  *
  * Remains separate until system_bridge.
@@ -2020,7 +2020,7 @@ export function getActorOwnedFeatureRegistryDiagnostics() {
  * Action identity remains linked to parent feature.
  *
  * INVARIANT 7
- * Existing Frame Helm registry remains separate.
+ * Existing Frame Conn registry remains separate.
  *
  * INVARIANT 8
  * Registry does not execute feature mechanics.

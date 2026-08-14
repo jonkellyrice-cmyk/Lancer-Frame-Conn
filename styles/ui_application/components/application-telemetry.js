@@ -3,7 +3,7 @@
    ============================================================ */
 
 import {
-  getFrameHelmApplicationTurnState
+  getFrameConnApplicationTurnState
 } from "./application-runtime-bindings.js";
 
 
@@ -347,7 +347,7 @@ function synchronizeTurnSpeed(
     application?.getControlledToken?.()
 ) {
   const state =
-    getFrameHelmApplicationTurnState();
+    getFrameConnApplicationTurnState();
 
 
   const numericSpeed =
@@ -434,24 +434,24 @@ function renderPairedStat({
   maximumValue
 }) {
   return `
-    <div class="frame-helm-stat-cell frame-helm-stat-paired">
-      <span class="frame-helm-stat-label">
+    <div class="frame-conn-stat-cell frame-conn-stat-paired">
+      <span class="frame-conn-stat-label">
         ${foundry.utils.escapeHTML(label)}
       </span>
 
-      <div class="frame-helm-stat-value-group">
+      <div class="frame-conn-stat-value-group">
         <input
           type="number"
           min="0"
           step="1"
           inputmode="numeric"
           value="${currentValue}"
-          data-frame-helm-stat="${foundry.utils.escapeHTML(currentName)}"
+          data-frame-conn-stat="${foundry.utils.escapeHTML(currentName)}"
           aria-label="${foundry.utils.escapeHTML(label)} current"
           readonly
         >
 
-        <span class="frame-helm-stat-divider">/</span>
+        <span class="frame-conn-stat-divider">/</span>
 
         <input
           type="number"
@@ -459,7 +459,7 @@ function renderPairedStat({
           step="1"
           inputmode="numeric"
           value="${maximumValue}"
-          data-frame-helm-stat="${foundry.utils.escapeHTML(maximumName)}"
+          data-frame-conn-stat="${foundry.utils.escapeHTML(maximumName)}"
           aria-label="${foundry.utils.escapeHTML(label)} maximum"
           readonly
         >
@@ -475,8 +475,8 @@ function renderSingleStat({
   value
 }) {
   return `
-    <div class="frame-helm-stat-cell frame-helm-stat-single">
-      <span class="frame-helm-stat-label">
+    <div class="frame-conn-stat-cell frame-conn-stat-single">
+      <span class="frame-conn-stat-label">
         ${foundry.utils.escapeHTML(label)}
       </span>
 
@@ -486,7 +486,7 @@ function renderSingleStat({
         step="1"
         inputmode="numeric"
         value="${value}"
-        data-frame-helm-stat="${foundry.utils.escapeHTML(statName)}"
+        data-frame-conn-stat="${foundry.utils.escapeHTML(statName)}"
         aria-label="${foundry.utils.escapeHTML(label)}"
         readonly
       >
@@ -512,13 +512,13 @@ function renderMechStatsBar(
 
 
   return `
-    <section class="frame-helm-mech-stats-bar">
-      <header class="frame-helm-mech-stats-heading">
+    <section class="frame-conn-mech-stats-bar">
+      <header class="frame-conn-mech-stats-heading">
         <span>&lt;MECH//STATS&gt;</span>
         <small>${foundry.utils.escapeHTML(telemetryLabel)}</small>
       </header>
 
-      <div class="frame-helm-mech-stats-grid">
+      <div class="frame-conn-mech-stats-grid">
         ${renderPairedStat({
           label:
             "HP",
@@ -639,8 +639,8 @@ function renderMechStatsBar(
                   stats.repairsMax
               })
             : `
-              <div class="frame-helm-stat-cell frame-helm-stat-unavailable">
-                <span class="frame-helm-stat-label">
+              <div class="frame-conn-stat-cell frame-conn-stat-unavailable">
+                <span class="frame-conn-stat-label">
                   REP
                 </span>
 

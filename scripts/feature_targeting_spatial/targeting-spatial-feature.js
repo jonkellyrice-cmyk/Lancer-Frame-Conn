@@ -9,8 +9,8 @@
  * @file
  * @path scripts/feature_targeting_spatial/targeting-spatial-feature.js
  * @module targeting-spatial-feature
- * @layer frame-helm-runtime-feature
- * @responsibility expose-targeting-spatial-service-through-the-canonical-frame-helm-feature-contract
+ * @layer frame-conn-runtime-feature
+ * @responsibility expose-targeting-spatial-service-through-the-canonical-frame-conn-feature-contract
  * @public-boundary true
  * @side-effects execution-transaction-hook-registration-through-feature-lifecycle
  *
@@ -27,7 +27,7 @@
  * runtime-orchestrator.js
  *
  * THIS FILE OWNS:
- * - canonical Frame Helm Targeting/Spatial feature definition
+ * - canonical Frame Conn Targeting/Spatial feature definition
  * - targeting/spatial capability declaration
  * - narrow runtime adapter configuration boundary
  * - feature-lifecycle activation/deactivation of execution transaction hooks
@@ -56,7 +56,7 @@
    ============================================================ */
 
 import {
-  defineFrameHelmFeature
+  defineFrameConnFeature
 } from "../feature-contract.js";
 
 import * as targetingSpatialRuntime from
@@ -70,7 +70,7 @@ import * as targetingSpatialRuntime from
  * Targeting/Spatial owns no Foundry/Lancer geometry or selection UI.
  * Those authorities are supplied at application composition time.
  */
-function configureFrameHelmTargetingSpatialRuntime(
+function configureFrameConnTargetingSpatialRuntime(
   bindings = {}
 ) {
   if (
@@ -79,7 +79,7 @@ function configureFrameHelmTargetingSpatialRuntime(
     Array.isArray(bindings)
   ) {
     throw new TypeError(
-      "Frame Helm Targeting/Spatial runtime bindings must be supplied as an object."
+      "Frame Conn Targeting/Spatial runtime bindings must be supplied as an object."
     );
   }
 
@@ -93,7 +93,7 @@ function configureFrameHelmTargetingSpatialRuntime(
   for (const key of Object.keys(bindings)) {
     if (!allowedKeys.has(key)) {
       throw new Error(
-        `Frame Helm Targeting/Spatial received unknown runtime binding: ${key}`
+        `Frame Conn Targeting/Spatial received unknown runtime binding: ${key}`
       );
     }
   }
@@ -134,13 +134,13 @@ function configureFrameHelmTargetingSpatialRuntime(
       );
   }
 
-  return getFrameHelmTargetingSpatialRuntimeBindings();
+  return getFrameConnTargetingSpatialRuntimeBindings();
 }
 
 /**
  * Returns composition status without exposing adapter implementations.
  */
-function getFrameHelmTargetingSpatialRuntimeBindings() {
+function getFrameConnTargetingSpatialRuntimeBindings() {
   return Object.freeze({
     queryAdapter:
       targetingSpatialRuntime
@@ -169,7 +169,7 @@ function getFrameHelmTargetingSpatialRuntimeBindings() {
  * Transaction integration is activated only when the canonical feature
  * registry initializes this feature.
  */
-function initializeFrameHelmTargetingSpatialFeature() {
+function initializeFrameConnTargetingSpatialFeature() {
   return targetingSpatialRuntime
     .registerTargetingSpatialTransactionHooks();
 }
@@ -177,7 +177,7 @@ function initializeFrameHelmTargetingSpatialFeature() {
 /**
  * Transaction hook teardown belongs to feature shutdown.
  */
-function shutdownFrameHelmTargetingSpatialFeature() {
+function shutdownFrameConnTargetingSpatialFeature() {
   return targetingSpatialRuntime
     .unregisterTargetingSpatialTransactionHooks();
 }
@@ -186,10 +186,10 @@ function shutdownFrameHelmTargetingSpatialFeature() {
    FEATURE DIAGNOSTICS
    ============================================================ */
 
-function getFrameHelmTargetingSpatialDiagnostics() {
+function getFrameConnTargetingSpatialDiagnostics() {
   return Object.freeze({
     runtimeBindings:
-      getFrameHelmTargetingSpatialRuntimeBindings(),
+      getFrameConnTargetingSpatialRuntimeBindings(),
 
     service:
       targetingSpatialRuntime
@@ -211,10 +211,10 @@ function getFrameHelmTargetingSpatialDiagnostics() {
  * Required registry-level dependencies are intentionally empty for the
  * current migration state because execution_transaction, system_bridge,
  * native_adapter, and actor_owned_feature_registry are not yet represented
- * as Frame Helm feature definitions.
+ * as Frame Conn feature definitions.
  */
-export const frameHelmTargetingSpatialFeature =
-  defineFrameHelmFeature({
+export const frameConnTargetingSpatialFeature =
+  defineFrameConnFeature({
     id:
       "targeting-spatial",
 
@@ -242,7 +242,7 @@ export const frameHelmTargetingSpatialFeature =
 
     commands: {
       configureRuntime:
-        configureFrameHelmTargetingSpatialRuntime,
+        configureFrameConnTargetingSpatialRuntime,
 
       resolveTargets:
         targetingSpatialRuntime
@@ -319,20 +319,20 @@ export const frameHelmTargetingSpatialFeature =
           .getExecutionTargetingSpatialState,
 
       runtimeBindings:
-        getFrameHelmTargetingSpatialRuntimeBindings,
+        getFrameConnTargetingSpatialRuntimeBindings,
 
       diagnostics:
-        getFrameHelmTargetingSpatialDiagnostics
+        getFrameConnTargetingSpatialDiagnostics
     },
 
     hooks: {},
 
     lifecycle: {
       initialize:
-        initializeFrameHelmTargetingSpatialFeature,
+        initializeFrameConnTargetingSpatialFeature,
 
       shutdown:
-        shutdownFrameHelmTargetingSpatialFeature
+        shutdownFrameConnTargetingSpatialFeature
     },
 
     api: {
@@ -341,13 +341,13 @@ export const frameHelmTargetingSpatialFeature =
           .targetingSpatialService,
 
       configureRuntime:
-        configureFrameHelmTargetingSpatialRuntime,
+        configureFrameConnTargetingSpatialRuntime,
 
       runtimeBindings:
-        getFrameHelmTargetingSpatialRuntimeBindings,
+        getFrameConnTargetingSpatialRuntimeBindings,
 
       diagnostics:
-        getFrameHelmTargetingSpatialDiagnostics,
+        getFrameConnTargetingSpatialDiagnostics,
 
       capabilities:
         targetingSpatialRuntime
@@ -559,7 +559,7 @@ export const frameHelmTargetingSpatialFeature =
         "Targeting / Spatial",
 
       description:
-        "Exposes Frame Helm spatial queries, target acquisition, target validation, and execution-transaction targeting integration through the canonical feature registry.",
+        "Exposes Frame Conn spatial queries, target acquisition, target validation, and execution-transaction targeting integration through the canonical feature registry.",
 
       serviceBoundary:
         "targeting-spatial_service/targeting-spatial-service.js",
@@ -587,9 +587,9 @@ export const frameHelmTargetingSpatialFeature =
    ============================================================ */
 
 export {
-  configureFrameHelmTargetingSpatialRuntime,
-  getFrameHelmTargetingSpatialRuntimeBindings,
-  initializeFrameHelmTargetingSpatialFeature,
-  shutdownFrameHelmTargetingSpatialFeature,
-  getFrameHelmTargetingSpatialDiagnostics
+  configureFrameConnTargetingSpatialRuntime,
+  getFrameConnTargetingSpatialRuntimeBindings,
+  initializeFrameConnTargetingSpatialFeature,
+  shutdownFrameConnTargetingSpatialFeature,
+  getFrameConnTargetingSpatialDiagnostics
 };

@@ -16,11 +16,11 @@
 
 **Native Boot Up executor:** Not found.
 
-**Frame Helm implementation status:** Frame Helm should own Shut Down execution as a Full Action state transition that applies the native Lancer `shutdown` status and any additional confirmed Shut Down consequences, while native Lancer/Foundry remains authoritative for the underlying actor status/effect state.
+**Frame Conn implementation status:** Frame Conn should own Shut Down execution as a Full Action state transition that applies the native Lancer `shutdown` status and any additional confirmed Shut Down consequences, while native Lancer/Foundry remains authoritative for the underlying actor status/effect state.
 
 ## Purpose
 
-This document records the native Foundry Lancer findings relevant to the universal **Shut Down** Full Action and defines the intended Frame Helm integration boundary.
+This document records the native Foundry Lancer findings relevant to the universal **Shut Down** Full Action and defines the intended Frame Conn integration boundary.
 
 Repository investigation did not reveal a dedicated executable Shut Down flow such as:
 
@@ -34,7 +34,7 @@ The native Lancer system does, however, contain a first-class Shutdown state and
 
 Therefore:
 
-> Frame Helm should implement the universal Shut Down action itself.
+> Frame Conn should implement the universal Shut Down action itself.
 
 while:
 
@@ -77,7 +77,7 @@ Repository searching did not identify:
 - dedicated Shut Down app
 - dedicated universal Shut Down runtime executor
 
-Therefore Frame Helm cannot delegate Shut Down to a native action flow.
+Therefore Frame Conn cannot delegate Shut Down to a native action flow.
 
 —
 
@@ -103,7 +103,7 @@ Therefore native Lancer has an authoritative representation for:
 
 `this actor is currently Shut Down`
 
-Frame Helm should use that state rather than inventing a duplicate Frame Helm-only Shutdown flag.
+Frame Conn should use that state rather than inventing a duplicate Frame Conn-only Shutdown flag.
 
 —
 
@@ -123,7 +123,7 @@ and localization presents that status as:
 
 `Shut Down`
 
-Therefore Frame Helm can rely on the native status identity for actor/canvas presentation.
+Therefore Frame Conn can rely on the native status identity for actor/canvas presentation.
 
 —
 
@@ -133,7 +133,7 @@ Shutdown is not merely display text.
 
 It is represented in the actor’s native status model.
 
-Therefore Frame Helm should treat native Shutdown state as the authoritative answer to:
+Therefore Frame Conn should treat native Shutdown state as the authoritative answer to:
 
 `Is this actor currently Shut Down?`
 
@@ -141,7 +141,7 @@ not:
 
 - local UI state;
 - committed-plan state;
-- an independently persisted Frame Helm boolean.
+- an independently persisted Frame Conn boolean.
 
 —
 
@@ -153,7 +153,7 @@ Shut Down
 → apply native `shutdown`
 → complete action
 
-Therefore Frame Helm must perform this state transition explicitly using native status/effect infrastructure.
+Therefore Frame Conn must perform this state transition explicitly using native status/effect infrastructure.
 
 —
 
@@ -177,7 +177,7 @@ along with Foundry status APIs such as:
 
 The exact preferred method for **applying** `shutdown` should be traced before implementation.
 
-Frame Helm should use the highest-level native status helper available rather than manually editing raw status data if possible.
+Frame Conn should use the highest-level native status helper available rather than manually editing raw status data if possible.
 
 —
 
@@ -185,7 +185,7 @@ Frame Helm should use the highest-level native status helper available rather th
 
 The preferred architecture is:
 
-Frame Helm
+Frame Conn
 → native status adapter
 → apply native `shutdown`
 → await authoritative actor mutation
@@ -194,7 +194,7 @@ Frame Helm
 
 rather than:
 
-Frame Helm
+Frame Conn
 → directly set arbitrary raw document internals.
 
 The exact helper signature must be confirmed from the native API.
@@ -207,7 +207,7 @@ Do not invent a helper call without tracing it.
 
 The intended responsibility split is:
 
-**FRAME HELM OWNS:**
+**FRAME CONN OWNS:**
 
 - Shut Down action commitment;
 - Full Action expenditure;
@@ -217,7 +217,7 @@ The intended responsibility split is:
 - any additional deterministic Shut Down consequences;
 - committed-action execution state;
 - authoritative refresh;
-- Frame Helm presentation.
+- Frame Conn presentation.
 
 **NATIVE LANCER / FOUNDRY OWNS:**
 
@@ -232,12 +232,12 @@ The intended responsibility split is:
 
 # 10. Proposed Initial Shut Down Flow
 
-The initial Frame Helm execution should be:
+The initial Frame Conn execution should be:
 
 Player commits Shut Down
 → Shut Down appears in Committed Plan
 → player executes Shut Down
-→ Frame Helm resolves authoritative acting mech
+→ Frame Conn resolves authoritative acting mech
 → validate active Turn
 → validate Full Action
 → confirm actor is not already Shut Down
@@ -246,7 +246,7 @@ Player commits Shut Down
 → await authoritative actor mutation
 → re-read actor state
 → mark committed Shut Down executed
-→ refresh Frame Helm presentation
+→ refresh Frame Conn presentation
 
 No attack roll is inherently required.
 
@@ -380,9 +380,9 @@ Shut Down consumes:
 
 **one Full Action**
 
-Frame Helm Turn state should own that expenditure.
+Frame Conn Turn state should own that expenditure.
 
-The native status application should not independently modify the Frame Helm Full Action budget.
+The native status application should not independently modify the Frame Conn Full Action budget.
 
 Conceptually:
 
@@ -400,7 +400,7 @@ These are separate responsibilities.
 
 # 18. Commit vs Execute
 
-If Frame Helm preserves planning/execution separation:
+If Frame Conn preserves planning/execution separation:
 
 Commit Shut Down:
 → reserve/spend Full Action according to Turn rules
@@ -432,7 +432,7 @@ Do not rely solely on committed-plan snapshot data.
 
 # 20. Authoritative Status Check
 
-Frame Helm should determine Shutdown from native actor state.
+Frame Conn should determine Shutdown from native actor state.
 
 Preferred source:
 
@@ -457,7 +457,7 @@ After applying Shutdown:
 → await the native mutation
 → re-read actor state
 → verify `shutdown` active
-→ update Frame Helm
+→ update Frame Conn
 
 Do not simply assume the state transition succeeded.
 
@@ -482,14 +482,14 @@ The committed action should not be marked fully executed unless the required mut
 
 # 23. Native Status Presentation
 
-Because native Lancer already owns the Shutdown icon/state identity, Frame Helm does not need to fabricate a separate canvas condition.
+Because native Lancer already owns the Shutdown icon/state identity, Frame Conn does not need to fabricate a separate canvas condition.
 
-Frame Helm can derive its UI from:
+Frame Conn can derive its UI from:
 
 native Shutdown active
 → display Shut Down semantic state
 
-This keeps character sheet, token icon, and Frame Helm aligned.
+This keeps character sheet, token icon, and Frame Conn aligned.
 
 —
 
@@ -502,12 +502,12 @@ native:
 
 plus:
 
-Frame Helm:
+Frame Conn:
 `isShutdown = true`
 
 as separate persistent authorities.
 
-If Frame Helm needs cached presentation state, it should always be derived/reconciled from native Shutdown.
+If Frame Conn needs cached presentation state, it should always be derived/reconciled from native Shutdown.
 
 —
 
@@ -517,7 +517,7 @@ Once an actor is Shut Down, other actions may become unavailable or behave diffe
 
 This is not merely a cosmetic status.
 
-Therefore Frame Helm’s general action-legality layer should eventually consume:
+Therefore Frame Conn’s general action-legality layer should eventually consume:
 
 native Shutdown state
 
@@ -547,7 +547,7 @@ This relationship should be derived directly from native actor state.
 
 If an actor is Shut Down at the start of its turn, whether Protocols are available depends on the confirmed tabletop rules.
 
-Frame Helm should not assume ordinary start-of-turn Protocol availability ignores Shutdown.
+Frame Conn should not assume ordinary start-of-turn Protocol availability ignores Shutdown.
 
 This interaction should be encoded in central action legality.
 
@@ -557,7 +557,7 @@ This interaction should be encoded in central action legality.
 
 A Shut Down mech may have movement restrictions or prohibition.
 
-Frame Helm’s Movement feature should eventually consult native Shutdown state before allowing voluntary movement.
+Frame Conn’s Movement feature should eventually consult native Shutdown state before allowing voluntary movement.
 
 Do not implement movement blocking solely through UI disabling if token movement can still occur manually.
 
@@ -765,7 +765,7 @@ This should be centralized rather than repeated across every action implementati
 
 # 41. Semantic Event Architecture
 
-Frame Helm may eventually preserve events conceptually like:
+Frame Conn may eventually preserve events conceptually like:
 
 - Shut Down executed;
 - actor entered Shutdown;
@@ -790,7 +790,7 @@ Do not invent native hooks.
 The intended dependency direction is:
 
 Committed Shut Down
-→ Frame Helm execution strategy
+→ Frame Conn execution strategy
 → authoritative actor resolution
 → Full Action validation
 → native status adapter
@@ -807,7 +807,7 @@ There is no native ShutDownFlow in the middle.
 
 No native dedicated Shut Down Flow was found.
 
-Frame Helm may have an internal Shut Down execution service, but documentation/code should clearly identify it as Frame Helm-owned orchestration.
+Frame Conn may have an internal Shut Down execution service, but documentation/code should clearly identify it as Frame Conn-owned orchestration.
 
 The native boundary is:
 
@@ -827,7 +827,7 @@ Initial implementation should be deliberately small:
 6. Await mutation.
 7. Verify native Shutdown active.
 8. Mark committed action executed.
-9. Refresh Frame Helm.
+9. Refresh Frame Conn.
 10. Let central legality systems respond to native Shutdown.
 
 Then add any additional confirmed tabletop consequences.
@@ -860,7 +860,7 @@ Afterward:
 - [ ] Verify Shutdown active.
 - [ ] Apply additional confirmed Shut Down consequences.
 - [ ] Mark committed Shut Down executed.
-- [ ] Refresh Frame Helm presentation.
+- [ ] Refresh Frame Conn presentation.
 - [ ] Feed Shutdown state into central action legality.
 - [ ] Feed Shutdown state into Movement legality.
 - [ ] Feed Shutdown state into Reaction legality.
@@ -878,7 +878,7 @@ Basic execution:
 - [ ] no target required.
 - [ ] native Shutdown status applied.
 - [ ] native status icon appears.
-- [ ] Frame Helm updates from authoritative state.
+- [ ] Frame Conn updates from authoritative state.
 - [ ] action marked executed exactly once.
 
 Invalid cases:
@@ -902,9 +902,9 @@ Interaction:
 
 Persistence:
 
-- [ ] Shutdown survives Frame Helm rerender.
+- [ ] Shutdown survives Frame Conn rerender.
 - [ ] Shutdown survives application close/reopen.
-- [ ] native character sheet and Frame Helm agree on state.
+- [ ] native character sheet and Frame Conn agree on state.
 
 —
 
@@ -932,11 +932,11 @@ Native Lancer already owns the `shutdown` status/state.
 
 **Invariant 6**
 
-Frame Helm should apply native Shutdown rather than create a duplicate persistent state.
+Frame Conn should apply native Shutdown rather than create a duplicate persistent state.
 
 **Invariant 7**
 
-Turn Full Action expenditure remains owned by Frame Helm Turn state.
+Turn Full Action expenditure remains owned by Frame Conn Turn state.
 
 **Invariant 8**
 
@@ -948,7 +948,7 @@ Boot Up and Shut Down should share the same lower-level Shutdown-state adapter.
 
 **Invariant 10**
 
-Frame Helm should re-read authoritative actor state after mutation.
+Frame Conn should re-read authoritative actor state after mutation.
 
 **Invariant 11**
 
@@ -972,7 +972,7 @@ SHUT DOWN
 │
 ├── no native ShutDownFlow found
 │
-├── Frame Helm owns:
+├── Frame Conn owns:
 │   ├── Full Action expenditure
 │   ├── legality
 │   ├── authoritative actor resolution
@@ -1000,8 +1000,8 @@ SHUT DOWN
 
 The critical architectural rule is:
 
-**Shut Down is a Frame Helm-owned action that transitions the actor into a native Lancer-owned Shutdown state.**
+**Shut Down is a Frame Conn-owned action that transitions the actor into a native Lancer-owned Shutdown state.**
 
-Frame Helm should own the action.
+Frame Conn should own the action.
 
 Native Lancer should own the condition.

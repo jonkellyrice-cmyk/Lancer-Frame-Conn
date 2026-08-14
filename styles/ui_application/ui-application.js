@@ -8,11 +8,11 @@
 
 /**
  * ============================================================
- * FRAME HELM UI FEATURE -- APPLICATION
+ * FRAME CONN UI FEATURE -- APPLICATION
  * ============================================================
  *
  * ROLE:
- *   Stable public composition surface for Frame Helm's primary
+ *   Stable public composition surface for Frame Conn's primary
  *   Foundry Application UI and application-window lifecycle.
  *
  * PURPOSE:
@@ -25,7 +25,7 @@
  *   - Preserve existing provided capabilities.
  *   - Preserve existing public API names.
  *   - Preserve transitional named exports.
- *   - Preserve FrameHelmApplication as the stable Application class.
+ *   - Preserve FrameConnApplication as the stable Application class.
  */
 
 
@@ -34,7 +34,7 @@
    ============================================================ */
 
 import {
-  defineFrameHelmFeature
+  defineFrameConnFeature
 } from "../../scripts/feature-contract.js";
 
 
@@ -43,12 +43,12 @@ import {
    ============================================================ */
 
 import {
-  configureFrameHelmApplicationRuntime,
-  getFrameHelmApplicationRuntimeBindings,
-  getFrameHelmApplicationActionRegistry,
-  getFrameHelmApplicationTurnState,
-  getFrameHelmApplicationTurnStateManager,
-  executeFrameHelmApplicationActionRoll
+  configureFrameConnApplicationRuntime,
+  getFrameConnApplicationRuntimeBindings,
+  getFrameConnApplicationActionRegistry,
+  getFrameConnApplicationTurnState,
+  getFrameConnApplicationTurnStateManager,
+  executeFrameConnApplicationActionRoll
 } from "./components/application-runtime-bindings.js";
 
 
@@ -57,7 +57,7 @@ import {
    ============================================================ */
 
 import {
-  getFrameHelmApplicationCombatContext
+  getFrameConnApplicationCombatContext
 } from "./components/application-combat-context.js";
 
 
@@ -94,7 +94,7 @@ import {
    ============================================================ */
 
 import {
-  buildFrameHelmTurnCommittedPlanPresentation
+  buildFrameConnTurnCommittedPlanPresentation
 } from "../ui_turn/ui-turn.js";
 
 
@@ -152,7 +152,7 @@ import {
    ============================================================ */
 
 import {
-  activateFrameHelmApplicationListeners
+  activateFrameConnApplicationListeners
 } from "./components/application-listeners.js";
 
 import {
@@ -173,17 +173,17 @@ import {
    ============================================================ */
 
 import {
-  configureFrameHelmApplicationLifecycle,
-  getFrameHelmApplication,
-  peekFrameHelmApplication,
-  isFrameHelmApplicationRendered,
-  renderFrameHelmApplication,
-  openFrameHelmApplication,
-  closeFrameHelmApplication,
-  getDisplayedFrameHelmToken,
-  frameHelmApplicationDisplaysActor,
-  handleFrameHelmApplicationControlToken,
-  handleFrameHelmApplicationDeleteToken
+  configureFrameConnApplicationLifecycle,
+  getFrameConnApplication,
+  peekFrameConnApplication,
+  isFrameConnApplicationRendered,
+  renderFrameConnApplication,
+  openFrameConnApplication,
+  closeFrameConnApplication,
+  getDisplayedFrameConnToken,
+  frameConnApplicationDisplaysActor,
+  handleFrameConnApplicationControlToken,
+  handleFrameConnApplicationDeleteToken
 } from "./components/application-lifecycle.js";
 
 
@@ -192,17 +192,17 @@ import {
    ============================================================ */
 
 const MODULE_ID =
-  "lancer-frame-helm";
+  "lancer-frame-conn";
 
 const MODULE_TITLE =
   "Frame Conn";
 
 
 /* ============================================================
-   Frame Helm Application
+   Frame Conn Application
    ============================================================ */
 
-export class FrameHelmApplication
+export class FrameConnApplication
   extends Application {
 
   static get defaultOptions() {
@@ -210,13 +210,13 @@ export class FrameHelmApplication
       super.defaultOptions,
       {
         id:
-          "lancer-frame-helm",
+          "lancer-frame-conn",
 
         title:
           MODULE_TITLE,
 
         classes: [
-          "lancer-frame-helm"
+          "lancer-frame-conn"
         ],
 
         width:
@@ -280,7 +280,7 @@ export class FrameHelmApplication
       buttons.some(
         button =>
           button.class ===
-          "frame-helm-minimize"
+          "frame-conn-minimize"
       );
 
     if (
@@ -291,7 +291,7 @@ export class FrameHelmApplication
           "Minimize",
 
         class:
-          "frame-helm-minimize",
+          "frame-conn-minimize",
 
         icon:
           "fas fa-minus",
@@ -417,7 +417,7 @@ export class FrameHelmApplication
       ...data,
 
       committedPlan:
-        buildFrameHelmTurnCommittedPlanPresentation()
+        buildFrameConnTurnCommittedPlanPresentation()
     };
   }
 
@@ -642,7 +642,7 @@ export class FrameHelmApplication
       html
     );
 
-    activateFrameHelmApplicationListeners(
+    activateFrameConnApplicationListeners(
       this,
       html
     );
@@ -743,10 +743,10 @@ export class FrameHelmApplication
    Application lifecycle composition
    ============================================================ */
 
-configureFrameHelmApplicationLifecycle({
+configureFrameConnApplicationLifecycle({
   createApplication:
     () =>
-      new FrameHelmApplication(),
+      new FrameConnApplication(),
 
   moduleId:
     MODULE_ID,
@@ -760,8 +760,8 @@ configureFrameHelmApplicationLifecycle({
    Application feature definition
    ============================================================ */
 
-export const frameHelmApplicationUiFeature =
-  defineFrameHelmFeature({
+export const frameConnApplicationUiFeature =
+  defineFrameConnFeature({
     id:
       "ui-application",
 
@@ -787,86 +787,86 @@ export const frameHelmApplicationUiFeature =
 
     commands: {
       configureRuntime:
-        configureFrameHelmApplicationRuntime,
+        configureFrameConnApplicationRuntime,
 
       open:
-        openFrameHelmApplication,
+        openFrameConnApplication,
 
       close:
-        closeFrameHelmApplication,
+        closeFrameConnApplication,
 
       render:
-        renderFrameHelmApplication
+        renderFrameConnApplication
     },
 
     queries: {
       getApplication:
-        getFrameHelmApplication,
+        getFrameConnApplication,
 
       peekApplication:
-        peekFrameHelmApplication,
+        peekFrameConnApplication,
 
       isRendered:
-        isFrameHelmApplicationRendered,
+        isFrameConnApplicationRendered,
 
       getDisplayedToken:
-        getDisplayedFrameHelmToken,
+        getDisplayedFrameConnToken,
 
       displaysActor:
-        frameHelmApplicationDisplaysActor,
+        frameConnApplicationDisplaysActor,
 
       runtimeBindings:
-        getFrameHelmApplicationRuntimeBindings
+        getFrameConnApplicationRuntimeBindings
     },
 
     hooks: {
       controlToken:
-        handleFrameHelmApplicationControlToken,
+        handleFrameConnApplicationControlToken,
 
       deleteToken:
-        handleFrameHelmApplicationDeleteToken
+        handleFrameConnApplicationDeleteToken
     },
 
     lifecycle: {},
 
     api: {
       configureRuntime:
-        configureFrameHelmApplicationRuntime,
+        configureFrameConnApplicationRuntime,
 
       getApplication:
-        getFrameHelmApplication,
+        getFrameConnApplication,
 
       peekApplication:
-        peekFrameHelmApplication,
+        peekFrameConnApplication,
 
       open:
-        openFrameHelmApplication,
+        openFrameConnApplication,
 
       close:
-        closeFrameHelmApplication,
+        closeFrameConnApplication,
 
       render:
-        renderFrameHelmApplication,
+        renderFrameConnApplication,
 
       isRendered:
-        isFrameHelmApplicationRendered,
+        isFrameConnApplicationRendered,
 
       getDisplayedToken:
-        getDisplayedFrameHelmToken,
+        getDisplayedFrameConnToken,
 
       displaysActor:
-        frameHelmApplicationDisplaysActor,
+        frameConnApplicationDisplaysActor,
 
       runtimeBindings:
-        getFrameHelmApplicationRuntimeBindings
+        getFrameConnApplicationRuntimeBindings
     },
 
     metadata: {
       label:
-        "Frame Helm Application UI",
+        "Frame Conn Application UI",
 
       description:
-        "Owns the primary Frame Helm Foundry Application, its window lifecycle, rendering surface, and displayed-token identity.",
+        "Owns the primary Frame Conn Foundry Application, its window lifecycle, rendering surface, and displayed-token identity.",
 
       extractedFrom:
         "scripts/runtime-orchestrator.js",
@@ -891,33 +891,33 @@ export const frameHelmApplicationUiFeature =
    ============================================================ */
 
 export {
-  configureFrameHelmApplicationRuntime,
+  configureFrameConnApplicationRuntime,
 
-  getFrameHelmApplicationRuntimeBindings,
+  getFrameConnApplicationRuntimeBindings,
 
-  getFrameHelmApplicationActionRegistry,
+  getFrameConnApplicationActionRegistry,
 
-  getFrameHelmApplicationTurnState,
+  getFrameConnApplicationTurnState,
 
-  getFrameHelmApplicationTurnStateManager,
+  getFrameConnApplicationTurnStateManager,
 
-  executeFrameHelmApplicationActionRoll,
+  executeFrameConnApplicationActionRoll,
 
-  getFrameHelmApplicationCombatContext,
+  getFrameConnApplicationCombatContext,
 
-  getFrameHelmApplication,
+  getFrameConnApplication,
 
-  peekFrameHelmApplication,
+  peekFrameConnApplication,
 
-  isFrameHelmApplicationRendered,
+  isFrameConnApplicationRendered,
 
-  renderFrameHelmApplication,
+  renderFrameConnApplication,
 
-  openFrameHelmApplication,
+  openFrameConnApplication,
 
-  closeFrameHelmApplication,
+  closeFrameConnApplication,
 
-  getDisplayedFrameHelmToken,
+  getDisplayedFrameConnToken,
 
-  frameHelmApplicationDisplaysActor
+  frameConnApplicationDisplaysActor
 };

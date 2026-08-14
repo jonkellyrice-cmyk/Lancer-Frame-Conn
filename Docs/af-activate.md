@@ -5,7 +5,7 @@
 
 **Native flow located and traced.**
 
-This document records the stock Foundry Lancer system’s execution architecture for item-based **Activate** actions and identifies the intended Frame Helm integration boundary.
+This document records the stock Foundry Lancer system’s execution architecture for item-based **Activate** actions and identifies the intended Frame Conn integration boundary.
 
 The important discovery is that Activate is not merely a chat-card action.
 
@@ -19,7 +19,7 @@ The native Lancer system has a structured item-action execution pipeline built a
 - native flow steps for validation, resource consumption, heat, and chat output
 - delegation into other native flows such as `TechAttackFlow`
 
-Frame Helm should preserve and reuse this native execution path wherever possible rather than reimplementing Lancer’s item activation logic.
+Frame Conn should preserve and reuse this native execution path wherever possible rather than reimplementing Lancer’s item activation logic.
 
 
 —
@@ -128,7 +128,7 @@ For an ordinary item action, the sheet ultimately invokes:
 
     item.beginActivationFlow(path);
 
-This is the important native execution entry point for Frame Helm.
+This is the important native execution entry point for Frame Conn.
 
 
 —
@@ -139,11 +139,11 @@ The preferred native boundary is:
 
     LancerItem.beginActivationFlow(path)
 
-Frame Helm should prefer calling this entry point over reproducing the actor-sheet click handler.
+Frame Conn should prefer calling this entry point over reproducing the actor-sheet click handler.
 
 Conceptually:
 
-    Frame Helm
+    Frame Conn
         ↓
     resolve authoritative LancerItem
         ↓
@@ -151,7 +151,7 @@ Conceptually:
         ↓
     stock Lancer execution
 
-This keeps Frame Helm as an alternate command/presentation layer over the existing Lancer system rather than creating a parallel implementation of Lancer’s item rules.
+This keeps Frame Conn as an alternate command/presentation layer over the existing Lancer system rather than creating a parallel implementation of Lancer’s item rules.
 
 
 —
@@ -280,7 +280,7 @@ For example:
     action path:
     system.actions.1
 
-Frame Helm should preserve this information rather than attempting to reconstruct the action later from its display label.
+Frame Conn should preserve this information rather than attempting to reconstruct the action later from its display label.
 
 
 —
@@ -307,7 +307,7 @@ Relevant fields include:
     damage
     range
 
-This is extremely important for future Frame Helm automation.
+This is extremely important for future Frame Conn automation.
 
 An item action is not merely:
 
@@ -339,9 +339,9 @@ Therefore generic item activation cannot safely be modeled as exclusively a Full
 
 —
 
-# 11. Architectural Consequence for Frame Helm
+# 11. Architectural Consequence for Frame Conn
 
-Frame Helm currently conceptualizes an action such as:
+Frame Conn currently conceptualizes an action such as:
 
     full.activate
 
@@ -371,7 +371,7 @@ from:
 
 The shared discovery system finds executable actor-owned actions.
 
-The native `ActionData.activation` value determines where those actions belong in Frame Helm’s action interface.
+The native `ActionData.activation` value determines where those actions belong in Frame Conn’s action interface.
 
 
 —
@@ -430,7 +430,7 @@ Therefore:
     TechAttackFlow   Continue ordinary
                      ActivationFlow
 
-Frame Helm should preserve this native delegation.
+Frame Conn should preserve this native delegation.
 
 
 —
@@ -443,7 +443,7 @@ The native activation pipeline contains:
 
 This allows the Lancer system to prevent or otherwise handle activation of an item whose current state makes activation invalid.
 
-Frame Helm should not independently duplicate this validation unless a presentation-level preflight check is useful.
+Frame Conn should not independently duplicate this validation unless a presentation-level preflight check is useful.
 
 The native flow remains authoritative.
 
@@ -479,7 +479,7 @@ Conceptually:
       // Native failure handling
     }
 
-This means Frame Helm should **not** independently decrement Limited uses when native activation already owns that behavior.
+This means Frame Conn should **not** independently decrement Limited uses when native activation already owns that behavior.
 
 
 —
@@ -495,9 +495,9 @@ The native item utility flow also participates in state associated with things s
 
 The exact behavior depends upon the item’s native type and state.
 
-The architectural rule for Frame Helm should be:
+The architectural rule for Frame Conn should be:
 
-> If native Lancer execution already owns an item’s resource/state transition, Frame Helm delegates that transition to native Lancer rather than duplicating it.
+> If native Lancer execution already owns an item’s resource/state transition, Frame Conn delegates that transition to native Lancer rather than duplicating it.
 
 
 —
@@ -544,7 +544,7 @@ Conceptually:
         self_heat
     });
 
-Therefore Frame Helm should not separately add self heat when native activation has already performed it.
+Therefore Frame Conn should not separately add self heat when native activation has already performed it.
 
 
 —
@@ -583,7 +583,7 @@ Examples include concepts such as:
 
 Therefore the native architecture is intentionally incomplete for arbitrary rules text.
 
-This produces three broad categories for Frame Helm.
+This produces three broad categories for Frame Conn.
 
 
 —
@@ -592,7 +592,7 @@ This produces three broad categories for Frame Helm.
 
 Some actions may be executable almost entirely through existing native flows.
 
-Frame Helm should:
+Frame Conn should:
 
     collect player intent
             ↓
@@ -602,12 +602,12 @@ Frame Helm should:
             ↓
     allow native Lancer to finish execution
 
-No Frame Helm mechanical implementation should be added where native Lancer already performs the complete operation.
+No Frame Conn mechanical implementation should be added where native Lancer already performs the complete operation.
 
 
 —
 
-# 21. Category B — Native Execution + Frame Helm Supplemental Automation
+# 21. Category B — Native Execution + Frame Conn Supplemental Automation
 
 Some actions may use native activation for:
 
@@ -622,13 +622,13 @@ but still require additional deterministic mechanical consequences.
 
 For these:
 
-    Frame Helm command
+    Frame Conn command
             ↓
     native activation
             ↓
     native execution reaches its existing boundary
             ↓
-    Frame Helm supplemental rule adapter
+    Frame Conn supplemental rule adapter
             ↓
     additional deterministic consequence
 
@@ -658,7 +658,7 @@ Known example:
             ↓
     TechAttackFlow
 
-Frame Helm should allow native Lancer to perform this delegation rather than attempting to determine the entire downstream execution chain itself.
+Frame Conn should allow native Lancer to perform this delegation rather than attempting to determine the entire downstream execution chain itself.
 
 
 —
@@ -694,7 +694,7 @@ Do not implement Core Power execution by assuming it is equivalent to generic Ac
 
 —
 
-# 24. Relationship to Frame Helm Turn State
+# 24. Relationship to Frame Conn Turn State
 
 A particularly important native TODO exists around action expenditure.
 
@@ -704,13 +704,13 @@ The native Activation flow contains an unresolved concept equivalent to:
 
 This means native item activation does not currently own all player-turn economy bookkeeping.
 
-That aligns well with Frame Helm’s architecture.
+That aligns well with Frame Conn’s architecture.
 
-Frame Helm already owns player-facing Turn planning and expenditure.
+Frame Conn already owns player-facing Turn planning and expenditure.
 
 Therefore responsibility should remain approximately:
 
-    Frame Helm Turn feature
+    Frame Conn Turn feature
         owns:
           Quick Action budget
           Full Action budget
@@ -734,7 +734,7 @@ The two systems should cooperate rather than duplicate one another.
 
 —
 
-# 25. Proposed Frame Helm Action Identity
+# 25. Proposed Frame Conn Action Identity
 
 A committed actor-owned action should eventually retain enough information to execute the exact native action later.
 
@@ -758,16 +758,16 @@ A conceptual identity might contain:
 
 This is conceptual only.
 
-The exact Frame Helm data contract should be determined during implementation rather than copied blindly from this research document.
+The exact Frame Conn data contract should be determined during implementation rather than copied blindly from this research document.
 
 
 —
 
-# 26. Proposed Frame Helm Discovery Flow
+# 26. Proposed Frame Conn Discovery Flow
 
 The eventual discovery architecture should approximately be:
 
-    Frame Helm actor
+    Frame Conn actor
             ↓
     inspect actor-owned executable sources
             ↓
@@ -787,7 +787,7 @@ The eventual discovery architecture should approximately be:
     Invade
     etc.
             ↓
-    surface action in appropriate Frame Helm UI
+    surface action in appropriate Frame Conn UI
 
 This discovery mechanism may eventually be shared across:
 
@@ -808,7 +808,7 @@ Once an item action has been selected and committed:
 
     Player selects action
             ↓
-    Frame Helm records exact native identity
+    Frame Conn records exact native identity
             ↓
     Committed Plan card created
             ↓
@@ -816,7 +816,7 @@ Once an item action has been selected and committed:
             ↓
     Player clicks execution control
             ↓
-    Frame Helm validates current committed-action state
+    Frame Conn validates current committed-action state
             ↓
     Resolve authoritative actor/item
             ↓
@@ -826,7 +826,7 @@ Once an item action has been selected and committed:
             ↓
     Native Lancer performs available automation
             ↓
-    Frame Helm supplemental adapter runs only
+    Frame Conn supplemental adapter runs only
     if required
             ↓
     Committed action marked executed
@@ -840,7 +840,7 @@ Once an item action has been selected and committed:
 
 Targeting should occur before execution when the selected action actually requires a target.
 
-The intended Frame Helm interaction is:
+The intended Frame Conn interaction is:
 
     Click execution icon
             ↓
@@ -858,13 +858,13 @@ The intended Frame Helm interaction is:
             ↓
     Continue execution
 
-However Frame Helm must not assume every Activate action requires a target.
+However Frame Conn must not assume every Activate action requires a target.
 
 Target requirements must eventually come from:
 
     native structured data,
     known action-flow semantics,
-    or a Frame Helm rule adapter
+    or a Frame Conn rule adapter
 
 depending on what the native system exposes.
 
@@ -873,15 +873,15 @@ depending on what the native system exposes.
 
 # 29. Native Adapter Boundary
 
-Frame Helm should eventually expose a dedicated native-system adapter rather than allowing arbitrary UI modules to call Lancer internals directly.
+Frame Conn should eventually expose a dedicated native-system adapter rather than allowing arbitrary UI modules to call Lancer internals directly.
 
 Conceptually:
 
     UI
      ↓
-    Frame Helm action execution
+    Frame Conn action execution
      ↓
-    Frame Helm native Lancer adapter
+    Frame Conn native Lancer adapter
      ↓
     LancerItem.beginActivationFlow(...)
      ↓
@@ -901,24 +901,24 @@ could internally resolve the native item and call:
 
     item.beginActivationFlow(actionPath);
 
-The public Frame Helm feature should depend upon our adapter contract rather than scattering direct native-system calls throughout the UI.
+The public Frame Conn feature should depend upon our adapter contract rather than scattering direct native-system calls throughout the UI.
 
 
 —
 
 # 30. Important Architectural Rule
 
-Frame Helm is an alternate **player-facing command and presentation layer** over the native Lancer system.
+Frame Conn is an alternate **player-facing command and presentation layer** over the native Lancer system.
 
 Therefore the preferred integration order is:
 
-    Frame Helm UI/button
+    Frame Conn UI/button
             ↓
-    Frame Helm event handler
+    Frame Conn event handler
             ↓
-    Frame Helm action execution service
+    Frame Conn action execution service
             ↓
-    Frame Helm native-system adapter
+    Frame Conn native-system adapter
             ↓
     native Lancer actor/item entry point
             ↓
@@ -928,14 +928,14 @@ Therefore the preferred integration order is:
             ↓
     Foundry document mutations / chat
 
-Do not replace a lower layer merely because Frame Helm presents a different upper layer.
+Do not replace a lower layer merely because Frame Conn presents a different upper layer.
 
 
 —
 
 # 31. Do Not Reimplement These Without Cause
 
-Based on the traced Activate flow, Frame Helm should not independently recreate:
+Based on the traced Activate flow, Frame Conn should not independently recreate:
 
     LancerItem action resolution
     Destroyed-item checks
@@ -965,7 +965,7 @@ Because native `ActionData` already contains fields such as:
     damage
     range
 
-Frame Helm should prefer native structured information over parsing prose.
+Frame Conn should prefer native structured information over parsing prose.
 
 Rules-text parsing should be a last resort.
 
@@ -975,7 +975,7 @@ Preferred hierarchy:
 
     2. Native Lancer execution flow
 
-    3. Explicit Frame Helm rule adapter
+    3. Explicit Frame Conn rule adapter
 
     4. Rules-text interpretation only where unavoidable
 
@@ -1051,7 +1051,7 @@ Before implementation, investigate the following.
 
 - [ ] Determine whether native flow state exposes targets in a reusable form.
 
-- [ ] Determine whether `damage` and `range` in `ActionData` are sufficient for supplemental Frame Helm automation.
+- [ ] Determine whether `damage` and `range` in `ActionData` are sufficient for supplemental Frame Conn automation.
 
 - [ ] Determine how Saves associated with item actions are represented.
 
@@ -1070,7 +1070,7 @@ Before implementation, investigate the following.
 
 # 35. Implementation TODO
 
-Implementation should begin only after the current Frame Helm organizational refactor is complete.
+Implementation should begin only after the current Frame Conn organizational refactor is complete.
 
 The relevant large feature/UI domains should first be decomposed into smaller internal components while preserving their existing authoritative public-facing feature boundaries.
 
@@ -1084,7 +1084,7 @@ Relevant refactor targets include:
 
 After that refactor:
 
-- [ ] Add native item-action discovery to the appropriate Frame Helm feature boundary.
+- [ ] Add native item-action discovery to the appropriate Frame Conn feature boundary.
 
 - [ ] Keep action discovery independent from UI rendering.
 
@@ -1094,7 +1094,7 @@ After that refactor:
 
 - [ ] Preserve native activation type.
 
-- [ ] Route discovered actions into the appropriate Frame Helm action category.
+- [ ] Route discovered actions into the appropriate Frame Conn action category.
 
 - [ ] Add committed-plan execution identity.
 
@@ -1104,7 +1104,7 @@ After that refactor:
 
 - [ ] Add target acquisition when required.
 
-- [ ] Route native execution through a dedicated Frame Helm Lancer-system adapter.
+- [ ] Route native execution through a dedicated Frame Conn Lancer-system adapter.
 
 - [ ] Invoke `LancerItem.beginActivationFlow(actionPath)` for ordinary native item actions.
 
@@ -1114,11 +1114,11 @@ After that refactor:
 
 - [ ] Allow native resource/state mutation to complete before supplemental automation.
 
-- [ ] Add supplemental Frame Helm mechanical adapters only where native execution demonstrably stops short of a deterministic mechanical consequence.
+- [ ] Add supplemental Frame Conn mechanical adapters only where native execution demonstrably stops short of a deterministic mechanical consequence.
 
 - [ ] Automatically apply or remove statuses/conditions when a researched action deterministically requires that consequence and native Lancer does not already do so.
 
-- [ ] Keep Frame Helm’s Turn feature authoritative for Frame Helm’s player-facing action-budget and committed-plan state.
+- [ ] Keep Frame Conn’s Turn feature authoritative for Frame Conn’s player-facing action-budget and committed-plan state.
 
 - [ ] Avoid duplicating native Lancer resource consumption.
 
@@ -1128,9 +1128,9 @@ After that refactor:
 
 - [ ] Avoid parsing prose where native structured data provides the required information.
 
-- [ ] Smoke-test native execution from Frame Helm against execution from the stock Lancer character sheet.
+- [ ] Smoke-test native execution from Frame Conn against execution from the stock Lancer character sheet.
 
-- [ ] Verify that identical native actions produce equivalent authoritative document mutations regardless of whether they were initiated from the stock sheet or Frame Helm.
+- [ ] Verify that identical native actions produce equivalent authoritative document mutations regardless of whether they were initiated from the stock sheet or Frame Conn.
 
 
 —
@@ -1141,7 +1141,7 @@ The long-term target is:
 
     PLAYER
       ↓
-    FRAME HELM
+    FRAME CONN
       ↓
     Action discovery
       ↓
@@ -1163,10 +1163,10 @@ The long-term target is:
       ↓
     Authoritative Foundry mutations
       ↓
-    Supplemental Frame Helm automation
+    Supplemental Frame Conn automation
     only where necessary
       ↓
-    Frame Helm Turn-state reconciliation
+    Frame Conn Turn-state reconciliation
       ↓
     Updated player-facing presentation
 
@@ -1175,7 +1175,7 @@ The long-term target is:
 
 # 37. Core Principle
 
-Frame Helm should not become a second implementation of Lancer.
+Frame Conn should not become a second implementation of Lancer.
 
 It should become a better player-facing way to operate the existing implementation.
 
@@ -1203,4 +1203,4 @@ and the native execution architecture beneath it is:
             ↓
     native chat output
 
-Frame Helm should build above and around that execution path rather than replacing it.
+Frame Conn should build above and around that execution path rather than replacing it.

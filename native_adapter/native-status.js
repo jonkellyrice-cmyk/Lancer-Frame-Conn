@@ -15,7 +15,7 @@
  *
  * @depends-on native-contract, native-actors
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumed by native-adapter.js
  * - consumed by lifecycle_service/*
  * - consumed by semantic_execution_context/*
@@ -795,7 +795,7 @@ export async function getNativeStatusSnapshot(
 /**
  * @section native-status-ids
  *
- * These constants cover stock IDs heavily used by Frame Helm.
+ * These constants cover stock IDs heavily used by Frame Conn.
  *
  * Runtime definition lookup remains CONFIG.statusEffects authority.
  */
@@ -864,7 +864,7 @@ export const NATIVE_STATUS_ID = Object.freeze({
  *
  * Standard Foundry status toggles are actor/status based.
  *
- * They do NOT by themselves model Frame Helm semantic ownership such as:
+ * They do NOT by themselves model Frame Conn semantic ownership such as:
  *
  * "Impaired from Jockey Distract until end of target's next turn"
  *
@@ -885,7 +885,7 @@ export const NATIVE_STATUS_ID = Object.freeze({
  *
  * IMPORTANT:
  *
- * Do not remove a shared status merely because one Frame Helm source
+ * Do not remove a shared status merely because one Frame Conn source
  * expires if another valid source still requires the same status.
  *
  * Source aggregation/reference counting belongs above this adapter.
@@ -920,7 +920,7 @@ export const NATIVE_STATUS_ID = Object.freeze({
  * @section status-immunity-boundary
  *
  * Native toggleStatusEffect() does not constitute a generalized
- * Frame Helm condition-immunity engine.
+ * Frame Conn condition-immunity engine.
  *
  * Before applying rule-generated statuses:
  *
@@ -936,10 +936,10 @@ export const NATIVE_STATUS_ID = Object.freeze({
  * Immunity logic does not belong inside this native mutation adapter.
  */
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * foundry-integration-feature.js
  * ------------------------------
@@ -1056,7 +1056,7 @@ export const NATIVE_STATUS_ID = Object.freeze({
  * explicitly legal higher-level rule.
  *
  * INVARIANT 10
- * Frame Helm source ownership must be tracked above this adapter so one
+ * Frame Conn source ownership must be tracked above this adapter so one
  * source expiry does not incorrectly remove a status still required by
  * another source.
  *

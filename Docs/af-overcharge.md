@@ -14,21 +14,21 @@
 
 **Native actor-side Overcharge progression/state:** Found.
 
-**Existing Frame Helm Overcharge implementation:** Found.
+**Existing Frame Conn Overcharge implementation:** Found.
 
-**Existing Frame Helm native Overcharge invocation:** Found.
+**Existing Frame Conn native Overcharge invocation:** Found.
 
-**Frame Helm implementation status:** Frame Helm should preserve its existing player-facing Overcharge turn-economy and planning behavior while delegating the actual Overcharge mechanical resolution to native `actor.beginOverchargeFlow()`.
+**Frame Conn implementation status:** Frame Conn should preserve its existing player-facing Overcharge turn-economy and planning behavior while delegating the actual Overcharge mechanical resolution to native `actor.beginOverchargeFlow()`.
 
 ## Purpose
 
-This document records the native Foundry Lancer findings relevant to **Overcharge** and defines the intended Frame Helm integration boundary.
+This document records the native Foundry Lancer findings relevant to **Overcharge** and defines the intended Frame Conn integration boundary.
 
 Overcharge differs from ordinary Quick, Full, Free, and Reaction actions.
 
 It is a special once-per-turn mechanic that allows the pilot to gain an additional Quick Action at the cost of Heat.
 
-Frame Helm already implements Overcharge as part of its turn/action-planning model.
+Frame Conn already implements Overcharge as part of its turn/action-planning model.
 
 Repository investigation confirms that native Lancer also exposes an actual Overcharge execution entry point:
 
@@ -36,13 +36,13 @@ Repository investigation confirms that native Lancer also exposes an actual Over
 
 Therefore:
 
-> Frame Helm should retain ownership of Overcharge as a player-facing turn-economy operation.
+> Frame Conn should retain ownership of Overcharge as a player-facing turn-economy operation.
 
 while:
 
 > Native Lancer should own the actor-side mechanical resolution of Overcharge, especially Heat and escalating Overcharge progression.
 
-The goal is not to discard the existing Frame Helm implementation.
+The goal is not to discard the existing Frame Conn implementation.
 
 The goal is to move the mechanical portion behind the correct native boundary.
 
@@ -105,13 +105,13 @@ once per turn
 
 The once-per-turn restriction is part of the player-facing turn economy.
 
-Frame Helm already tracks the actor’s current turn and committed actions.
+Frame Conn already tracks the actor’s current turn and committed actions.
 
-Therefore Frame Helm should remain responsible for:
+Therefore Frame Conn should remain responsible for:
 
 `Has this actor already Overcharged this turn?`
 
-Native actor Overcharge progression and Frame Helm per-turn Overcharge availability are related but not identical concepts.
+Native actor Overcharge progression and Frame Conn per-turn Overcharge availability are related but not identical concepts.
 
 —
 
@@ -131,13 +131,13 @@ actor
 → Heat/progression mutation
 → native output
 
-Frame Helm should invoke this rather than independently reproducing Overcharge Heat mechanics.
+Frame Conn should invoke this rather than independently reproducing Overcharge Heat mechanics.
 
 —
 
-# 5. Existing Frame Helm Native Invocation
+# 5. Existing Frame Conn Native Invocation
 
-Existing Frame Helm execution work already recognizes:
+Existing Frame Conn execution work already recognizes:
 
 `special.overcharge`
 
@@ -152,13 +152,13 @@ The executor then delegates to:
 
 `actor.beginOverchargeFlow()`
 
-This confirms that Frame Helm is already partially aligned with the desired native integration boundary.
+This confirms that Frame Conn is already partially aligned with the desired native integration boundary.
 
 —
 
-# 6. Existing Frame Helm Overcharge Planning
+# 6. Existing Frame Conn Overcharge Planning
 
-Frame Helm also already understands Overcharge as a source of an additional Quick Action.
+Frame Conn also already understands Overcharge as a source of an additional Quick Action.
 
 Committed actions can preserve an Overcharge source identity.
 
@@ -174,7 +174,7 @@ Quick Action
 
 This distinction should remain.
 
-The native Overcharge flow should not replace Frame Helm’s plan representation.
+The native Overcharge flow should not replace Frame Conn’s plan representation.
 
 —
 
@@ -184,7 +184,7 @@ Native Lancer should own the actual Overcharge mechanical cost.
 
 This includes the escalating Heat progression associated with repeated Overcharges across the mission.
 
-Frame Helm should not maintain a second independent implementation of this progression.
+Frame Conn should not maintain a second independent implementation of this progression.
 
 —
 
@@ -206,7 +206,7 @@ Fourth and subsequent Overcharges:
 
 The native Overcharge flow should be treated as authoritative for determining and applying the current Overcharge cost.
 
-Frame Helm should not calculate this progression independently once native integration is active.
+Frame Conn should not calculate this progression independently once native integration is active.
 
 —
 
@@ -225,14 +225,14 @@ It may interact with:
 - native character-sheet behavior;
 - special actor-owned effects.
 
-If Frame Helm maintains a separate Overcharge progression, the two systems can drift.
+If Frame Conn maintains a separate Overcharge progression, the two systems can drift.
 
 Therefore:
 
 native actor state
 → authoritative Overcharge progression
 
-Frame Helm
+Frame Conn
 → authoritative current-turn Overcharge usage.
 
 —
@@ -264,13 +264,13 @@ used this turn
 
 Native Lancer should own the first.
 
-Frame Helm Turn state should own the second.
+Frame Conn Turn state should own the second.
 
 —
 
-# 11. Frame Helm Should Not Replace Native Progression
+# 11. Frame Conn Should Not Replace Native Progression
 
-If Frame Helm currently calculates:
+If Frame Conn currently calculates:
 
 `1`
 
@@ -284,7 +284,7 @@ it should eventually stop doing so as the authoritative mechanical path.
 
 Instead:
 
-Frame Helm
+Frame Conn
 → invoke native Overcharge
 
 Native Lancer
@@ -295,11 +295,11 @@ Native Lancer
 
 —
 
-# 12. Frame Helm Still Needs Overcharge Knowledge
+# 12. Frame Conn Still Needs Overcharge Knowledge
 
-Delegating mechanical resolution does not mean Frame Helm can treat Overcharge as an opaque button.
+Delegating mechanical resolution does not mean Frame Conn can treat Overcharge as an opaque button.
 
-Frame Helm still needs to know:
+Frame Conn still needs to know:
 
 - Overcharge exists;
 - it is once per turn;
@@ -308,13 +308,13 @@ Frame Helm still needs to know:
 - which committed Quick Action came from Overcharge;
 - whether the Overcharge-granted action remains available.
 
-Therefore the existing Frame Helm turn model remains necessary.
+Therefore the existing Frame Conn turn model remains necessary.
 
 —
 
 # 13. Proposed Responsibility Split
 
-**FRAME HELM OWNS:**
+**FRAME CONN OWNS:**
 
 - Overcharge player-facing control;
 - once-per-turn legality;
@@ -378,13 +378,13 @@ The granted Quick Action should preserve:
 
 or equivalent structured metadata.
 
-This lets Frame Helm distinguish it from the actor’s ordinary Quick Actions.
+This lets Frame Conn distinguish it from the actor’s ordinary Quick Actions.
 
 —
 
 # 16. Overcharge Mechanical Execution Timing
 
-Frame Helm should resolve native Overcharge before treating the extra Quick Action as mechanically available for execution.
+Frame Conn should resolve native Overcharge before treating the extra Quick Action as mechanically available for execution.
 
 Conceptually:
 
@@ -396,13 +396,13 @@ player chooses Overcharge
 → grant additional Quick Action
 → player may commit/execute that Quick Action
 
-This prevents Frame Helm from granting the extra action if native Overcharge resolution fails or is cancelled.
+This prevents Frame Conn from granting the extra action if native Overcharge resolution fails or is cancelled.
 
 —
 
 # 17. Planning vs Mechanical Execution
 
-Frame Helm may allow the player to plan:
+Frame Conn may allow the player to plan:
 
 Overcharge
 → Quick Action
@@ -433,7 +433,7 @@ If:
 
 fails, errors, or is cancelled:
 
-Frame Helm should not falsely mark Overcharge mechanically complete.
+Frame Conn should not falsely mark Overcharge mechanically complete.
 
 Likewise, it should not permanently grant the additional Quick Action unless the Overcharge resolution succeeded.
 
@@ -443,33 +443,33 @@ Exact cancellation semantics should be confirmed from the native flow.
 
 # 19. Heat Must Not Be Applied Twice
 
-Once Frame Helm delegates to native Overcharge:
+Once Frame Conn delegates to native Overcharge:
 
-Frame Helm must not also apply its own Overcharge Heat.
+Frame Conn must not also apply its own Overcharge Heat.
 
 Wrong:
 
-Frame Helm calculates 1d6 Heat
+Frame Conn calculates 1d6 Heat
 → applies Heat
 → calls native Overcharge
 → native applies 1d6 Heat again
 
 Correct:
 
-Frame Helm validates Overcharge
+Frame Conn validates Overcharge
 → native Overcharge resolves Heat exactly once.
 
 —
 
 # 20. Progression Must Not Advance Twice
 
-Likewise, Frame Helm must not independently increment native-equivalent Overcharge progression.
+Likewise, Frame Conn must not independently increment native-equivalent Overcharge progression.
 
 Native flow should be the sole actor-side authority.
 
 Otherwise:
 
-Frame Helm tier advances
+Frame Conn tier advances
 
 and:
 
@@ -481,7 +481,7 @@ could cause the actor to skip Heat tiers.
 
 # 21. Current-Turn Flag Is Different
 
-Frame Helm’s:
+Frame Conn’s:
 
 `overchargeUsedThisTurn`
 
@@ -503,7 +503,7 @@ This state should reset according to the Turn lifecycle.
 
 At the appropriate start of the actor’s next turn:
 
-Frame Helm should reset:
+Frame Conn should reset:
 
 current-turn Overcharge availability
 
@@ -518,7 +518,7 @@ Turn 1:
 → native tier advances
 
 Turn 2:
-→ Frame Helm allows Overcharge again
+→ Frame Conn allows Overcharge again
 → native progression remains advanced
 → next native Overcharge uses next Heat tier.
 
@@ -528,11 +528,11 @@ Turn 2:
 
 Overcharge progression may reset through Full Repair according to Lancer rules/native implementation.
 
-Frame Helm should not independently reset mission-scale Overcharge progression.
+Frame Conn should not independently reset mission-scale Overcharge progression.
 
 If native Full Repair owns that mutation:
 
-Frame Helm should simply re-read authoritative actor state afterward.
+Frame Conn should simply re-read authoritative actor state afterward.
 
 —
 
@@ -544,7 +544,7 @@ That may trigger Overheat behavior.
 
 This is another strong reason to delegate actor-side Overcharge mechanics to native Lancer.
 
-Frame Helm should not independently implement:
+Frame Conn should not independently implement:
 
 Overcharge Heat
 → check Heat Capacity
@@ -567,7 +567,7 @@ through Heat/Overheat rules.
 
 These consequences belong downstream of native Heat resolution.
 
-Frame Helm should not special-case them inside its Overcharge turn-economy code.
+Frame Conn should not special-case them inside its Overcharge turn-economy code.
 
 —
 
@@ -589,7 +589,7 @@ Instead:
 Overcharge
 → creates one additional Quick Action opportunity.
 
-This distinction should remain explicit in Frame Helm Turn state.
+This distinction should remain explicit in Frame Conn Turn state.
 
 —
 
@@ -605,7 +605,7 @@ Overcharge for an additional Quick Action
 
 subject to normal rules.
 
-Therefore Frame Helm’s turn model should allow:
+Therefore Frame Conn’s turn model should allow:
 
 Full
 +
@@ -631,7 +631,7 @@ Overcharge Quick
 
 is a valid conceptual action-economy shape where otherwise legal.
 
-Frame Helm should represent the Overcharge-granted Quick independently from the normal two Quick Actions.
+Frame Conn should represent the Overcharge-granted Quick independently from the normal two Quick Actions.
 
 —
 
@@ -657,7 +657,7 @@ The granted resource is specifically:
 
 one Quick Action.
 
-Frame Helm’s resource model should preserve that distinction.
+Frame Conn’s resource model should preserve that distinction.
 
 —
 
@@ -704,7 +704,7 @@ Standard Move
 
 if duplicate-action rules or a special Free Action permit the relevant repetition.
 
-Frame Helm should evaluate Boost legality through the normal action system.
+Frame Conn should evaluate Boost legality through the normal action system.
 
 Overcharge only supplies the additional Quick Action resource.
 
@@ -808,7 +808,7 @@ Do not encode this only inside the Overcharge native adapter.
 
 # 43. Native Semantic Identity
 
-Frame Helm should preserve Overcharge as a distinct semantic action identity.
+Frame Conn should preserve Overcharge as a distinct semantic action identity.
 
 Relevant conceptual identity:
 
@@ -845,9 +845,9 @@ Do not infer Overcharge origin later from display text.
 
 —
 
-# 45. Existing Frame Helm Logic Should Be Refactored, Not Deleted
+# 45. Existing Frame Conn Logic Should Be Refactored, Not Deleted
 
-Because Frame Helm already implements Overcharge, the integration task is primarily a responsibility refactor.
+Because Frame Conn already implements Overcharge, the integration task is primarily a responsibility refactor.
 
 Keep:
 
@@ -884,7 +884,7 @@ Overcharge UI
 → authoritative actor
 → `actor.beginOverchargeFlow()`
 
-This isolates native Lancer API knowledge from Frame Helm presentation.
+This isolates native Lancer API knowledge from Frame Conn presentation.
 
 —
 
@@ -900,7 +900,7 @@ which internally delegates to:
 
 Exact naming is illustrative only.
 
-The important part is that Frame Helm does not reproduce native Heat mechanics around that call.
+The important part is that Frame Conn does not reproduce native Heat mechanics around that call.
 
 —
 
@@ -908,7 +908,7 @@ The important part is that Frame Helm does not reproduce native Heat mechanics a
 
 At execution time:
 
-Frame Helm should resolve the current authoritative actor.
+Frame Conn should resolve the current authoritative actor.
 
 Do not rely solely on a stale actor object captured when Overcharge was planned.
 
@@ -925,7 +925,7 @@ This ensures native Overcharge operates on current:
 
 After native Overcharge completes:
 
-Frame Helm should re-read:
+Frame Conn should re-read:
 
 - Heat;
 - Heat Capacity;
@@ -948,7 +948,7 @@ If the native Overcharge flow produces chat output or native UI:
 
 preserve it initially.
 
-Frame Helm does not need to duplicate the Overcharge Heat result in another chat card unless its own action-history presentation requires a concise summary.
+Frame Conn does not need to duplicate the Overcharge Heat result in another chat card unless its own action-history presentation requires a concise summary.
 
 —
 
@@ -956,7 +956,7 @@ Frame Helm does not need to duplicate the Overcharge Heat result in another chat
 
 The safest initial execution ordering is:
 
-validate Frame Helm once-per-turn legality
+validate Frame Conn once-per-turn legality
 → resolve authoritative actor
 → call native Overcharge
 → await native resolution
@@ -979,7 +979,7 @@ player plans:
 → Overcharge
 → Skirmish
 
-Frame Helm can represent this future sequence.
+Frame Conn can represent this future sequence.
 
 But execution dependency should remain:
 
@@ -1039,7 +1039,7 @@ The action does not use a d20 check.
 
 Overcharge requires no target.
 
-Frame Helm should not:
+Frame Conn should not:
 
 - enter target-selection mode;
 - require selected token;
@@ -1069,7 +1069,7 @@ This is particularly important because native execution has persistent mechanica
 
 # 58. Race Conditions
 
-Frame Helm should protect against:
+Frame Conn should protect against:
 
 double-click
 → two simultaneous `beginOverchargeFlow()` calls
@@ -1093,7 +1093,7 @@ executing
 
 Repository implementation should be traced to determine whether native OverchargeFlow can be cancelled before mutation.
 
-Frame Helm should distinguish:
+Frame Conn should distinguish:
 
 flow invoked
 
@@ -1109,19 +1109,19 @@ Do not mark the parent action executed merely because the native method was call
 
 After a native Full Repair:
 
-Frame Helm should not retain stale assumptions about Overcharge progression.
+Frame Conn should not retain stale assumptions about Overcharge progression.
 
 Re-read the actor.
 
 Native Lancer should remain authoritative for mission-scale Overcharge state.
 
-Frame Helm’s current-turn Overcharge flag is separate and should follow Turn lifecycle.
+Frame Conn’s current-turn Overcharge flag is separate and should follow Turn lifecycle.
 
 —
 
 # 61. Actor Replacement / Rebind
 
-If Frame Helm switches controlled mechs:
+If Frame Conn switches controlled mechs:
 
 Overcharge progression must come from the newly authoritative actor.
 
@@ -1135,7 +1135,7 @@ Likewise, current-turn availability should be associated with the correct actor/
 
 Each mech has its own native Overcharge progression.
 
-Frame Helm should never maintain one global Overcharge tier for the client/player.
+Frame Conn should never maintain one global Overcharge tier for the client/player.
 
 The native actor naturally solves this.
 
@@ -1147,7 +1147,7 @@ Current-turn Overcharge usage should likewise be keyed to the acting actor/comba
 
 The once-per-turn Overcharge restriction depends on turn lifecycle.
 
-Frame Helm should reset current-turn Overcharge availability when the relevant actor begins a new turn.
+Frame Conn should reset current-turn Overcharge availability when the relevant actor begins a new turn.
 
 Do not reset mission-scale progression.
 
@@ -1155,13 +1155,13 @@ Do not reset mission-scale progression.
 
 # 64. Outside Combat
 
-If Frame Helm supports action planning outside Foundry Combat:
+If Frame Conn supports action planning outside Foundry Combat:
 
-Overcharge once-per-turn semantics need a clear Frame Helm Turn boundary.
+Overcharge once-per-turn semantics need a clear Frame Conn Turn boundary.
 
 Do not use real-world time.
 
-The existing Frame Helm Turn model should remain the authority for the player-facing once-per-turn restriction.
+The existing Frame Conn Turn model should remain the authority for the player-facing once-per-turn restriction.
 
 —
 
@@ -1171,7 +1171,7 @@ The desired architecture is:
 
 OVERCHARGE
 │
-├── Frame Helm Turn system
+├── Frame Conn Turn system
 │   ├── once-per-turn legality
 │   ├── plan representation
 │   ├── execution dependency
@@ -1193,7 +1193,7 @@ This is the critical ownership split.
 
 Because native `beginOverchargeFlow()` exists:
 
-Frame Helm should not retain a second authoritative implementation of:
+Frame Conn should not retain a second authoritative implementation of:
 
 - Overcharge tier;
 - Heat formula;
@@ -1208,7 +1208,7 @@ Any remaining custom implementation should be treated as transitional code to re
 
 OVERCHARGE
 → player commits/plans Overcharge
-→ Frame Helm verifies not already used this turn
+→ Frame Conn verifies not already used this turn
 → resolve authoritative mech
 → execute
 → lock execution
@@ -1220,7 +1220,7 @@ OVERCHARGE
 → advance native progression
 → resolve native downstream consequences
 → await completion
-→ Frame Helm re-reads actor
+→ Frame Conn re-reads actor
 → mark Overcharge used this turn
 → grant one additional Quick Action
 → mark committed Overcharge executed
@@ -1238,7 +1238,7 @@ OVERCHARGE QUICK ACTION
 
 # 68. Existing Implementation Refactor TODO
 
-- [ ] Locate all current Frame Helm Overcharge state.
+- [ ] Locate all current Frame Conn Overcharge state.
 - [ ] Separate current-turn usage from mission-scale progression.
 - [ ] Keep current-turn `used` state.
 - [ ] Keep additional Quick Action resource.
@@ -1304,7 +1304,7 @@ Afterward:
 - [ ] Mark committed Overcharge executed.
 - [ ] Prevent duplicate execution.
 - [ ] Add parent/child dependency for Overcharge-funded Quick Action.
-- [ ] Refresh Frame Helm telemetry and Turn UI.
+- [ ] Refresh Frame Conn telemetry and Turn UI.
 
 —
 
@@ -1318,7 +1318,7 @@ Basic:
 - [ ] native Overcharge flow launches.
 - [ ] native Heat applied exactly once.
 - [ ] native progression advances exactly once.
-- [ ] Frame Helm grants exactly one Quick Action.
+- [ ] Frame Conn grants exactly one Quick Action.
 - [ ] Overcharge becomes unavailable for remainder of turn.
 
 Progression:
@@ -1327,7 +1327,7 @@ Progression:
 - [ ] second mission Overcharge uses native 1d3 tier.
 - [ ] third uses native 1d6 tier.
 - [ ] fourth+ uses native 1d6+4 tier.
-- [ ] Frame Helm does not independently advance tiers.
+- [ ] Frame Conn does not independently advance tiers.
 - [ ] Full Repair/native reset reconciles correctly.
 
 Turn lifecycle:
@@ -1359,7 +1359,7 @@ Heat/reactor:
 - [ ] native Heat telemetry refreshes.
 - [ ] Overheat interaction remains native.
 - [ ] Stress/reactor consequences refresh correctly.
-- [ ] no Frame Helm double-Heat occurs.
+- [ ] no Frame Conn double-Heat occurs.
 
 —
 
@@ -1391,11 +1391,11 @@ Native Lancer should own Overcharge Heat formula, roll, and mutation.
 
 **Invariant 7**
 
-Frame Helm should own current-turn Overcharge availability.
+Frame Conn should own current-turn Overcharge availability.
 
 **Invariant 8**
 
-Frame Helm should own the additional Quick Action resource.
+Frame Conn should own the additional Quick Action resource.
 
 **Invariant 9**
 
@@ -1403,11 +1403,11 @@ Mission-scale progression and current-turn usage are separate states.
 
 **Invariant 10**
 
-Frame Helm must not apply Heat in addition to native Overcharge.
+Frame Conn must not apply Heat in addition to native Overcharge.
 
 **Invariant 11**
 
-Frame Helm must not advance native-equivalent Overcharge progression independently.
+Frame Conn must not advance native-equivalent Overcharge progression independently.
 
 **Invariant 12**
 
@@ -1435,7 +1435,7 @@ OVERCHARGE
 │
 ├── no d20 check
 │
-├── Frame Helm
+├── Frame Conn
 │   │
 │   ├── current-turn availability
 │   ├── plan/commitment
@@ -1453,7 +1453,7 @@ OVERCHARGE
 │       ├── advance native progression
 │       └── resolve downstream actor consequences
 │
-├── Frame Helm refresh
+├── Frame Conn refresh
 │   ├── authoritative Heat
 │   ├── Stress/reactor state
 │   └── native Overcharge progression
@@ -1470,6 +1470,6 @@ OVERCHARGE
 
 The critical architectural rule is:
 
-**Frame Helm owns what Overcharge does to the player’s turn; native Lancer owns what Overcharge does to the mech.**
+**Frame Conn owns what Overcharge does to the player’s turn; native Lancer owns what Overcharge does to the mech.**
 
-The existing Frame Helm Overcharge implementation should therefore be refactored around the native flow rather than discarded.
+The existing Frame Conn Overcharge implementation should therefore be refactored around the native flow rather than discarded.

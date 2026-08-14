@@ -17,9 +17,9 @@
  * @depends-on
  * - system-bridge-contract
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumes SystemBridgeResolutionResult from system-bridge-resolver.js
- * - preserves existing Frame Helm registry data as one source
+ * - preserves existing Frame Conn registry data as one source
  * - preserves actor-owned/native data as one source
  * - applies matching curated augmentation data
  * - produces runtime descriptors for semantic_execution_context/
@@ -100,7 +100,7 @@ import {
    ============================================================ */
 
 export const SYSTEM_BRIDGE_COMPOSER_MODULE_ID =
-  "lancer-frame-helm.system-bridge-composer";
+  "lancer-frame-conn.system-bridge-composer";
 
 export const SYSTEM_BRIDGE_COMPOSER_MODULE_VERSION =
   1;
@@ -1924,7 +1924,7 @@ function composePresentation(
   /*
    * Presentation is intentionally treated differently:
    *
-   * existing Frame Helm registry is presentation-oriented and therefore
+   * existing Frame Conn registry is presentation-oriented and therefore
    * should normally retain its label/category/icon while actor-owned/native
    * data fills missing descriptive identity.
    */
@@ -3772,7 +3772,7 @@ export function didSystemBridgeCompositionFail(
  *
  * but native execution remains the primary native path.
  *
- * This keeps Frame Helm as an alternate command/presentation layer over the
+ * This keeps Frame Conn as an alternate command/presentation layer over the
  * native Foundry Lancer system rather than a replacement rules engine.
  */
 
@@ -3812,7 +3812,7 @@ export function didSystemBridgeCompositionFail(
 /**
  * @section presentation-rule
  *
- * Existing Frame Helm registry is presentation-oriented.
+ * Existing Frame Conn registry is presentation-oriented.
  *
  * Its explicit:
  *
@@ -4105,13 +4105,13 @@ export function getSystemBridgeComposerDiagnostics() {
 }
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
- * existing Frame Helm registry
+ * existing Frame Conn registry
  * ----------------------------
  *
  * Primarily contributes:
@@ -4211,7 +4211,7 @@ export function getSystemBridgeComposerDiagnostics() {
  * Composition is field-by-field.
  *
  * INVARIANT 3
- * Existing Frame Helm registry remains presentation/action metadata source.
+ * Existing Frame Conn registry remains presentation/action metadata source.
  *
  * INVARIANT 4
  * Actor-owned structured/native data remains runtime/native provenance

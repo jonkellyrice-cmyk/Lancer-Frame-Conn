@@ -10,7 +10,7 @@
  * @path main/native_adapter/native-adapter.js
  * @module native-adapter
  * @layer native-adapter-public-boundary
- * @responsibility expose-one-stable-frame-helm-facing-boundary-over-native-lancer-runtime
+ * @responsibility expose-one-stable-frame-conn-facing-boundary-over-native-lancer-runtime
  * @public-boundary true
  * @side-effects delegated-only
  *
@@ -25,7 +25,7 @@
  * - native-combat
  * - native-execution
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - intended replacement boundary for direct native calls currently
  *   scattered through foundry-integration-feature.js and feature code
  * - consumed by execution_transaction/*
@@ -45,7 +45,7 @@
  *
  * THIS FILE OWNS:
  * - composition of native adapter submodules
- * - stable namespace exported to the rest of Frame Helm
+ * - stable namespace exported to the rest of Frame Conn
  * - adapter capability inspection
  * - migration-safe public access to native primitives
  *
@@ -96,7 +96,7 @@ import * as execution from "./native-execution.js";
  */
 
 export const NATIVE_ADAPTER_ID =
-  "lancer-frame-helm.native-adapter";
+  "lancer-frame-conn.native-adapter";
 
 export const NATIVE_ADAPTER_VERSION =
   1;
@@ -154,7 +154,7 @@ export const NATIVE_ADAPTER_CAPABILITY =
 /**
  * @section public-adapter-namespace
  *
- * Higher Frame Helm layers should prefer:
+ * Higher Frame Conn layers should prefer:
  *
  * nativeAdapter.actors.*
  * nativeAdapter.items.*
@@ -316,19 +316,19 @@ export function isNativeAdapterRuntimeReady() {
 export function assertNativeAdapterRuntimeReady() {
   if (!isFoundryRuntimeAvailable()) {
     throw new Error(
-      "Frame Helm native adapter requires Foundry runtime."
+      "Frame Conn native adapter requires Foundry runtime."
     );
   }
 
   if (!isLancerRuntimeAvailable()) {
     throw new Error(
-      "Frame Helm native adapter requires the Lancer system runtime."
+      "Frame Conn native adapter requires the Lancer system runtime."
     );
   }
 
   if (!isNativeFlowRegistryAvailable()) {
     throw new Error(
-      "Frame Helm native adapter requires game.lancer.flows."
+      "Frame Conn native adapter requires game.lancer.flows."
     );
   }
 
@@ -710,11 +710,11 @@ export function getNativeAdapterDiagnostics() {
 }
 
 /* ============================================================
-   EXISTING FRAME HELM MIGRATION NOTES
+   EXISTING FRAME CONN MIGRATION NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-migration-notes
+ * @section existing-frame-conn-migration-notes
  *
  * foundry-integration-feature.js
  * ------------------------------
@@ -806,7 +806,7 @@ export function getNativeAdapterDiagnostics() {
  * nativeAdapter.loadout
  * + nativeAdapter.items
  * → discover actor-owned native Items/ActionData
- * → normalize into shared Frame Helm runtime action catalog
+ * → normalize into shared Frame Conn runtime action catalog
  *
  *
  * resource_service/
@@ -867,7 +867,7 @@ export function getNativeAdapterDiagnostics() {
  *
  * RULE 1
  *
- * Higher Frame Helm runtime code should import native-adapter.js instead
+ * Higher Frame Conn runtime code should import native-adapter.js instead
  * of individual native-* modules unless there is a strong internal reason.
  *
  *
@@ -962,7 +962,7 @@ export function getNativeAdapterDiagnostics() {
  * @section boundary-invariants
  *
  * INVARIANT 1
- * native-adapter.js is the primary public Frame Helm boundary to native
+ * native-adapter.js is the primary public Frame Conn boundary to native
  * Lancer runtime.
  *
  * INVARIANT 2

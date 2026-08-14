@@ -10,7 +10,7 @@
  * @path main/execution_transaction/execution-transaction-runner.js
  * @module execution-transaction-runner
  * @layer execution-transaction-runtime
- * @responsibility sequence-canonical-frame-helm-execution-lifecycle
+ * @responsibility sequence-canonical-frame-conn-execution-lifecycle
  * @public-boundary false
  * @side-effects delegated-through-injected-callbacks-and-hooks
  *
@@ -18,7 +18,7 @@
  * - execution-transaction-contract
  * - semantic_execution_context/execution-context
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - called by future execution-transaction.js public façade
  * - called indirectly by runtime-orchestrator.js
  * - receives ExecutionContext from semantic_execution_context/
@@ -3111,11 +3111,11 @@ export function getExecutionTransactionDiagnostics() {
 }
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * runtime-orchestrator.js
  * -----------------------
@@ -3321,7 +3321,7 @@ export function getExecutionTransactionDiagnostics() {
  * WHY COMMIT AFTER RESOLUTION
  * ---------------------------
  *
- * Deferred Frame Helm-owned resources should not be consumed merely
+ * Deferred Frame Conn-owned resources should not be consumed merely
  * because:
  *
  * - a target picker opened

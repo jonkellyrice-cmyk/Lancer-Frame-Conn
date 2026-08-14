@@ -1,5 +1,5 @@
-cat > frame-helm-app-errors-and-bridge-reconciliation.md <<‘EOF’
-# Lancer Frame Helm — Application Errors and Bridge Reconciliation Report
+cat > frame-conn-app-errors-and-bridge-reconciliation.md <<‘EOF’
+# Frame Conn — Application Errors and Bridge Reconciliation Report
 
 Repository audited: Lancer-Frame-Helm-main.zip
 Audit date: 2026-08-11
@@ -15,13 +15,13 @@ Intended dependency direction:
             ↓
     native_adapter
             ↓
-    Frame Helm foundational services
+    Frame Conn foundational services
             ↓
     system_bridge
             ↓
     existing feature/runtime presentation layers
 
-The bridge must compose existing Frame Helm registry data, actor-owned/native feature data, and supplemental augmentation data.
+The bridge must compose existing Frame Conn registry data, actor-owned/native feature data, and supplemental augmentation data.
 
 The bridge must not become a second implementation of the Foundry Lancer rules engine.
 
@@ -174,7 +174,7 @@ Some audit findings also appear to result from repository-audit parsing or featu
 
 Therefore:
 
-    Do not treat the raw audit error count as the number of Frame Helm runtime defects.
+    Do not treat the raw audit error count as the number of Frame Conn runtime defects.
 
 The bridge should be based on verified source relationships, not raw audit totals.
 
@@ -241,9 +241,9 @@ Lower foundational modules must not import upward into system_bridge.
 
 ## 4. Native adapter reconciliation
 
-native_adapter is the authoritative Frame Helm boundary around actual Foundry Lancer system behavior.
+native_adapter is the authoritative Frame Conn boundary around actual Foundry Lancer system behavior.
 
-It exists specifically so higher Frame Helm architecture does not invent or duplicate native Lancer APIs.
+It exists specifically so higher Frame Conn architecture does not invent or duplicate native Lancer APIs.
 
 The native adapter package established support around areas including:
 
@@ -637,7 +637,7 @@ Conceptual meaning:
     UNKNOWN
         Structured/native evidence is insufficient to safely classify execution.
 
-A later supplemental/bridge-derived status may exist where Frame Helm itself supplies the missing implementation.
+A later supplemental/bridge-derived status may exist where Frame Conn itself supplies the missing implementation.
 
 Bridge rule:
 
@@ -673,13 +673,13 @@ The bridge’s augmentation system is the correct place to add known missing sem
 
 —
 
-## 15. Existing Frame Helm registry reconciliation
+## 15. Existing Frame Conn registry reconciliation
 
-The existing Frame Helm registry and actor-owned feature registry are intentionally different sources.
+The existing Frame Conn registry and actor-owned feature registry are intentionally different sources.
 
-Existing Frame Helm registry:
+Existing Frame Conn registry:
 
-    declared/global Frame Helm actions
+    declared/global Frame Conn actions
     universal actions
     registry-defined presentation/action information
 
@@ -697,7 +697,7 @@ These should not be collapsed into one foundational registry.
 
 Instead:
 
-    existing Frame Helm registry
+    existing Frame Conn registry
             +
     actor-owned feature registry
             +
@@ -711,7 +711,7 @@ This preserves the existing module architecture while allowing missing runtime i
 
 ## 16. System bridge architectural purpose
 
-The system bridge exists because the current Frame Helm registry does not necessarily contain every field required by the foundational runtime services.
+The system bridge exists because the current Frame Conn registry does not necessarily contain every field required by the foundational runtime services.
 
 Refactoring every existing registry entry to contain all runtime metadata would unnecessarily couple old presentation/action definitions to the new runtime architecture.
 
@@ -835,7 +835,7 @@ Recommended authority precedence:
 
     1. confirmed native execution truth
     2. structured actor-owned/native data
-    3. explicit existing Frame Helm registry data
+    3. explicit existing Frame Conn registry data
     4. explicit curated augmentation
     5. unknown
 
@@ -1112,7 +1112,7 @@ This separation should remain intact.
 
 An action may require a target but have none selected.
 
-Frame Helm’s intended behavior includes prompting for target selection when required.
+Frame Conn’s intended behavior includes prompting for target selection when required.
 
 The bridge should describe target requirements.
 
@@ -1144,7 +1144,7 @@ Preferred flow:
 
 ## 30. Native chat/roll preservation
 
-A major Frame Helm requirement is that actions executed from the Helm behave like actions executed from the native character sheet.
+A major Frame Conn requirement is that actions executed from the Helm behave like actions executed from the native character sheet.
 
 Therefore:
 
@@ -1192,7 +1192,7 @@ This keeps actor-owned discovery reusable and prevents a registry ↔ bridge cyc
 
 ## 32. Existing registry circularity rule
 
-The existing Frame Helm registry should remain independently constructible.
+The existing Frame Conn registry should remain independently constructible.
 
 It must not require system_bridge merely to register its existing action definitions.
 
@@ -1263,7 +1263,7 @@ Before system-bridge-contract.js:
     [ ] Preserve exact current repository paths.
     [ ] Treat native_adapter as native Lancer authority.
     [ ] Treat foundational service contracts as runtime authority.
-    [ ] Preserve existing Frame Helm registry.
+    [ ] Preserve existing Frame Conn registry.
     [ ] Preserve actor-owned feature registry separately.
     [ ] Define explicit augmentation provenance.
     [ ] Define missing-information-only augmentation behavior.
@@ -1330,7 +1330,7 @@ After the five bridge files are written:
 
     4. Verify actor_owned_feature_registry remains independent of system_bridge.
 
-    5. Verify existing Frame Helm registry remains independently constructible.
+    5. Verify existing Frame Conn registry remains independently constructible.
 
     6. Verify native execution references survive bridge composition.
 
@@ -1385,7 +1385,7 @@ The foundational architecture now has a clear separation of concerns:
     actor_owned_feature_registry
         Actual actor-owned feature discovery and normalized indexing.
 
-    existing Frame Helm registry
+    existing Frame Conn registry
         Existing declared/global Helm action information.
 
     system_bridge
@@ -1407,7 +1407,7 @@ The central design principle remains:
 
 The system bridge exists to answer:
 
-    “Given this Frame Helm action or actor-owned feature, what complete runtime
+    “Given this Frame Conn action or actor-owned feature, what complete runtime
     description do the foundational services need in order to execute it
     correctly?”
 
@@ -1417,6 +1417,6 @@ It does not answer:
 
 Native Lancer remains authoritative wherever native execution exists.
 
-Frame Helm augmentation exists only to provide the semantic/runtime information that the native system or existing Frame Helm registry does not already expose in the form required by the new foundational architecture.
+Frame Conn augmentation exists only to provide the semantic/runtime information that the native system or existing Frame Conn registry does not already expose in the form required by the new foundational architecture.
 
 EOF

@@ -22,7 +22,7 @@ Git records
 
 ## Relationship to the existing Python FilePatcher
 
-Lancer Frame Helm already has the larger local FilePatcher under `dev_scripts/`:
+Frame Conn already has the larger local FilePatcher under `dev_scripts/`:
 
 ```bash
 npm run patch
@@ -215,4 +215,4 @@ The remote agent therefore performs only a small API write; deterministic code o
 
 ## Repository-specific validation
 
-This Lancer Frame Helm repo does not currently expose the same TypeScript typecheck and integration-test npm scripts as the agentic project where this workflow was first hardened. The generic workflow therefore validates the FilePatcher syntax and Git diff before committing. When deterministic Lancer-specific validation commands are added, put them before `Commit verified patch`; any failure will then prevent the source commit.
+This Frame Conn repo does not currently expose the same TypeScript typecheck and integration-test npm scripts as the agentic project where this workflow was first hardened. The generic workflow therefore validates the FilePatcher syntax and Git diff before committing. When deterministic Lancer-specific validation commands are added, put them before `Commit verified patch`; any failure will then prevent the source commit.

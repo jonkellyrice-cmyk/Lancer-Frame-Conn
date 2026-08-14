@@ -16,7 +16,7 @@
  * @depends-on
  * - execution-transaction-contract
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumed by execution-transaction.js
  * - consumed by runtime-orchestrator.js through execution_transaction/
  * - attachment point for action_economy/*
@@ -172,7 +172,7 @@ function freezeArray(value) {
 function generateHookId() {
   registrationCounter += 1;
   return (
-    `fh-hook-${Date.now()}-` +
+    `fc-hook-${Date.now()}-` +
     `${registrationCounter}-` +
     Math.random()
       .toString(36)
@@ -1606,7 +1606,7 @@ export function replaceTransactionContext(
  * → validate required resources
  *
  * BEFORE_COMMIT
- * → consume deferred Frame Helm-owned resources
+ * → consume deferred Frame Conn-owned resources
  * → verify native-consumed resources
  *
  * AFTER_COMMIT
@@ -1813,10 +1813,10 @@ export function replaceTransactionContext(
  * )
  */
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * runtime-orchestrator.js
  * -----------------------
@@ -2012,6 +2012,6 @@ export function getExecutionTransactionHookDiagnostics() {
  * native_adapter does not depend on this module.
  *
  * INVARIANT 15
- * Existing Frame Helm architecture should migrate into stable hook stages
+ * Existing Frame Conn architecture should migrate into stable hook stages
  * rather than accumulating direct cross-feature calls.
  */

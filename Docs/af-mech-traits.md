@@ -53,13 +53,13 @@ const content = String.raw`# Lancer Mech Frame Traits — Native Repository Inte
 
 **Native action-economy deduction through ActivationFlow:** Not implemented.
 
-**Frame Helm requirement:** Discover structured Frame traits and their actions from the equipped Frame, preserve native bonuses and generic ActivationFlow execution where useful, and provide the missing generalized usage-frequency, action-economy, effect-lifecycle, and special-rule orchestration.
+**Frame Conn requirement:** Discover structured Frame traits and their actions from the equipped Frame, preserve native bonuses and generic ActivationFlow execution where useful, and provide the missing generalized usage-frequency, action-economy, effect-lifecycle, and special-rule orchestration.
 
 —
 
 # 1. Purpose
 
-This document records the native Foundry Lancer architecture for mech Frame traits and identifies the mechanical gaps Frame Helm must fill.
+This document records the native Foundry Lancer architecture for mech Frame traits and identifies the mechanical gaps Frame Conn must fill.
 
 Frame traits are not merely descriptive text.
 
@@ -73,13 +73,13 @@ The native Frame schema allows traits to contain structured:
 - synergies;
 - usage/duration metadata.
 
-Therefore Frame Helm should treat mech traits as a first-class actor-owned feature source.
+Therefore Frame Conn should treat mech traits as a first-class actor-owned feature source.
 
 The central finding is:
 
 > Native Lancer models Frame traits richly, but does not provide a dedicated TraitFlow or a general runtime tracker for ActionData frequency.
 
-This means traits such as the Everest’s Initiative can already tell Frame Helm that they grant a Free Action with a 1/scene frequency, but native Foundry does not appear to remember that the action has already been used.
+This means traits such as the Everest’s Initiative can already tell Frame Conn that they grant a Free Action with a 1/scene frequency, but native Foundry does not appear to remember that the action has already been used.
 
 —
 
@@ -153,7 +153,7 @@ traits: data.traits?.map(t => ({
 }))
 \`\`\`
 
-Therefore Frame Helm should prefer structured trait data over parsing trait prose.
+Therefore Frame Conn should prefer structured trait data over parsing trait prose.
 
 —
 
@@ -188,7 +188,7 @@ The Frame item collects structured:
 
 from its traits.
 
-Therefore Frame Helm should not manually reproduce structured trait bonuses.
+Therefore Frame Conn should not manually reproduce structured trait bonuses.
 
 Correct:
 
@@ -202,13 +202,13 @@ trait defines structured bonus
 
 Wrong:
 
-Frame Helm manually applies trait bonus
+Frame Conn manually applies trait bonus
 +
 native Frame bonus machinery applies same structured bonus.
 
 Correct:
 
-Frame Helm preserves native trait state
+Frame Conn preserves native trait state
 → native bonus machinery remains authoritative.
 
 Only add custom automation where the trait’s effect is not represented structurally.
@@ -265,7 +265,7 @@ enum Frequency {
 }
 \`\`\`
 
-This is highly valuable for Frame Helm.
+This is highly valuable for Frame Conn.
 
 —
 
@@ -279,7 +279,7 @@ and its ActionData frequency is:
 
 \`Frequency.Scene\`
 
-Frame Helm should use the structured frequency.
+Frame Conn should use the structured frequency.
 
 Do not derive frequency by searching the description for:
 
@@ -376,7 +376,7 @@ An action with:
 
 does not appear to receive equivalent native runtime tracking.
 
-Frame Helm needs to preserve this distinction.
+Frame Conn needs to preserve this distinction.
 
 —
 
@@ -425,7 +425,7 @@ It does not:
 
 # 16. Trait Chat Is Not Trait Execution
 
-Frame Helm should not treat:
+Frame Conn should not treat:
 
 SimpleTextFlow
 
@@ -464,7 +464,7 @@ A trait action can conceptually have an exact path such as:
 
 \`system.traits.0.actions.0\`
 
-Frame Helm should preserve that exact path.
+Frame Conn should preserve that exact path.
 
 Do not reconstruct trait action identity from:
 
@@ -488,7 +488,7 @@ Frame trait
 → generic ActivationFlow
 → native checks/mutations/chat where supported.
 
-Frame Helm should reuse this native path rather than replacing it unnecessarily.
+Frame Conn should reuse this native path rather than replacing it unnecessarily.
 
 —
 
@@ -500,7 +500,7 @@ It can provide generic activation behavior, but it does not inherently understan
 
 “Take any Quick Action as a Free Action.”
 
-Therefore Frame Helm needs source-specific execution strategies for special trait semantics.
+Therefore Frame Conn needs source-specific execution strategies for special trait semantics.
 
 —
 
@@ -517,7 +517,7 @@ This may identify the action as:
 - Reaction;
 - other native categories.
 
-Frame Helm should use the structured activation type for action-category placement.
+Frame Conn should use the structured activation type for action-category placement.
 
 Do not parse it from prose where structured data exists.
 
@@ -566,7 +566,7 @@ TRAIT EFFECT USE/DURATION
 \`trait.use\`
 → lifecycle/duration associated with the trait effect.
 
-Frame Helm should model these separately.
+Frame Conn should model these separately.
 
 —
 
@@ -591,7 +591,7 @@ are useful structured information, but do not appear to provide complete runtime
 
 # 25. Generalized Actor-Owned Usage Tracking
 
-Frame Helm should not create a separate frequency engine solely for Frame traits.
+Frame Conn should not create a separate frequency engine solely for Frame traits.
 
 ActionData frequency is shared across actor-owned feature sources.
 
@@ -658,7 +658,7 @@ For:
 
 \`1/turn\`
 
-Frame Helm should prevent additional uses during the same applicable turn after successful consumption.
+Frame Conn should prevent additional uses during the same applicable turn after successful consumption.
 
 The use becomes available again according to Lancer turn semantics.
 
@@ -672,7 +672,7 @@ For:
 
 \`1/round\`
 
-Frame Helm should prevent additional uses during the current round.
+Frame Conn should prevent additional uses during the current round.
 
 The use becomes available when the next round begins.
 
@@ -686,7 +686,7 @@ For:
 
 \`1/scene\`
 
-Frame Helm must persist the consumed state for the current scene/encounter scope.
+Frame Conn must persist the consumed state for the current scene/encounter scope.
 
 The action should remain unavailable until the relevant scene lifecycle resets it.
 
@@ -700,7 +700,7 @@ The native enum also recognizes:
 
 \`1/encounter\`.
 
-Frame Helm should preserve it as its own frequency value even if scene and encounter often coincide operationally.
+Frame Conn should preserve it as its own frequency value even if scene and encounter often coincide operationally.
 
 Do not collapse distinct native values prematurely.
 
@@ -741,7 +741,7 @@ Do not consume merely because:
 - begins targeting;
 - cancels execution.
 
-This mirrors the committed-action execution principles used elsewhere in Frame Helm.
+This mirrors the committed-action execution principles used elsewhere in Frame Conn.
 
 —
 
@@ -749,7 +749,7 @@ This mirrors the committed-action execution principles used elsewhere in Frame H
 
 If a trait delegates to a native Flow and that Flow fails or is cancelled before mechanical resolution:
 
-Frame Helm should not falsely consume the frequency use.
+Frame Conn should not falsely consume the frequency use.
 
 Execution completion should be explicit.
 
@@ -806,9 +806,9 @@ Frame traits can contain structured:
 
 \`counters[]\`.
 
-These should be traced separately before inventing duplicate Frame Helm counter state.
+These should be traced separately before inventing duplicate Frame Conn counter state.
 
-If native counters already provide persistent mutable state, Frame Helm should reuse them where they match the trait mechanic.
+If native counters already provide persistent mutable state, Frame Conn should reuse them where they match the trait mechanic.
 
 —
 
@@ -832,7 +832,7 @@ Frame traits may contain:
 
 These may grant weapons, systems, or other equipment.
 
-Frame Helm’s actor-owned feature discovery should preserve the trait as the source of that integrated equipment.
+Frame Conn’s actor-owned feature discovery should preserve the trait as the source of that integrated equipment.
 
 Do not create disconnected duplicate equipment semantics.
 
@@ -863,7 +863,7 @@ These may encode structured interactions with:
 - movement;
 - other systems.
 
-Frame Helm should preserve these structures for later rules integration.
+Frame Conn should preserve these structures for later rules integration.
 
 —
 
@@ -909,7 +909,7 @@ It grants a temporary execution privilege:
 choose any Quick Action
 → execute it as a Free Action.
 
-Therefore its Frame Helm flow must support a child-action selection.
+Therefore its Frame Conn flow must support a child-action selection.
 
 —
 
@@ -930,7 +930,7 @@ INITIATIVE
 → preserve all other selected-action restrictions
 → selected action succeeds
 → consume Initiative’s 1/scene use
-→ refresh Frame Helm.
+→ refresh Frame Conn.
 
 —
 
@@ -985,7 +985,7 @@ The child Quick Action remains the underlying action for ordinary duplicate-acti
 
 The Free Action conversion changes action cost, not action identity.
 
-This should use Frame Helm’s centralized action-legality system.
+This should use Frame Conn’s centralized action-legality system.
 
 —
 
@@ -1063,7 +1063,7 @@ Their state must remain separate.
 
 # 55. Generalized Granted-Action Architecture
 
-Initiative suggests Frame Helm should support an execution concept such as:
+Initiative suggests Frame Conn should support an execution concept such as:
 
 GrantedActionWindow
 
@@ -1103,7 +1103,7 @@ This keeps Quick Action implementations reusable.
 
 # 57. Trait Frequency UI
 
-Frame Helm should expose frequency clearly.
+Frame Conn should expose frequency clearly.
 
 Examples:
 
@@ -1129,7 +1129,7 @@ USED.
 
 The trait source data should remain unchanged.
 
-Frame Helm usage state should be separate runtime state keyed to the action/source.
+Frame Conn usage state should be separate runtime state keyed to the action/source.
 
 —
 
@@ -1137,7 +1137,7 @@ Frame Helm usage state should be separate runtime state keyed to the action/sour
 
 When a valid scene/encounter lifecycle reset occurs:
 
-Frame Helm should clear consumed:
+Frame Conn should clear consumed:
 
 1/scene
 
@@ -1235,7 +1235,7 @@ A trait may also create an effect lasting:
 
 This is separate from frequency.
 
-Frame Helm should use a generalized effect-lifecycle subsystem rather than embedding timers into every trait adapter.
+Frame Conn should use a generalized effect-lifecycle subsystem rather than embedding timers into every trait adapter.
 
 —
 
@@ -1257,7 +1257,7 @@ Free
 effect duration:
 Next Turn.
 
-Frame Helm must track both:
+Frame Conn must track both:
 
 scene use consumed
 +
@@ -1281,7 +1281,7 @@ A temporary activated bonus requires source-specific structured evidence or an e
 
 # 67. Trait Action Discovery
 
-Frame Helm should inspect every equipped Frame trait.
+Frame Conn should inspect every equipped Frame trait.
 
 For each trait:
 
@@ -1350,7 +1350,7 @@ At execution, re-resolve against current Frame state.
 
 # 71. Actor Rebind
 
-When Frame Helm changes controlled mech:
+When Frame Conn changes controlled mech:
 
 trait discovery and usage presentation must rebind to the new actor.
 
@@ -1376,13 +1376,13 @@ Usage state tied to the old Frame should not accidentally attach to the new Fram
 
 Changing Frame naturally changes native trait bonuses through the Frame item.
 
-Frame Helm should refresh actor state rather than manually attempting to transfer trait bonuses.
+Frame Conn should refresh actor state rather than manually attempting to transfer trait bonuses.
 
 —
 
 # 74. Trait Action Economy
 
-Frame Helm owns action-economy expenditure because generic ActivationFlow does not fully deduct actions.
+Frame Conn owns action-economy expenditure because generic ActivationFlow does not fully deduct actions.
 
 Therefore a normal trait action must validate/spend:
 
@@ -1534,7 +1534,7 @@ Preserve:
 
 # 85. Trait Counters and UI
 
-If native trait counters are mutable and player-facing, Frame Helm may expose them.
+If native trait counters are mutable and player-facing, Frame Conn may expose them.
 
 However, first trace:
 
@@ -1583,7 +1583,7 @@ Avoid implementing isolated synergy checks in individual buttons.
 
 # 89. Generic Frequency Tracker Ownership
 
-A central Frame Helm service should own:
+A central Frame Conn service should own:
 
 - frequency availability;
 - consumption;
@@ -1659,7 +1659,7 @@ Scene/mission scopes need broader lifecycle handling.
 
 Usage state should survive:
 
-- Frame Helm closing/reopening;
+- Frame Conn closing/reopening;
 - browser refresh;
 - ordinary Foundry rerenders.
 
@@ -1677,7 +1677,7 @@ Runtime usage belongs to the actor/session/module state associated with that act
 
 —
 
-# 96. Native vs Frame Helm State
+# 96. Native vs Frame Conn State
 
 Use native state whenever native state already exists.
 
@@ -1693,7 +1693,7 @@ Core Active
 → native \`actor.system.core_active\`.
 
 ActionData 1/scene usage
-→ Frame Helm tracker because equivalent native runtime state was not found.
+→ Frame Conn tracker because equivalent native runtime state was not found.
 
 —
 
@@ -1749,7 +1749,7 @@ trait action selected
 → consume frequency
 → create temporary lifecycle state if required
 → native/supplemental chat output
-→ refresh Frame Helm.
+→ refresh Frame Conn.
 
 —
 
@@ -1757,7 +1757,7 @@ trait action selected
 
 For an ordinary structured trait action whose mechanics are adequately handled by native ActivationFlow:
 
-Frame Helm
+Frame Conn
 → validate action economy
 → validate frequency
 → invoke:
@@ -1774,7 +1774,7 @@ This maximizes native-system reuse.
 
 For a trait whose rules are not implemented by ActivationFlow:
 
-Frame Helm
+Frame Conn
 → validate action economy
 → validate frequency
 → execute source-specific composition of shared mechanics
@@ -1789,7 +1789,7 @@ Native chat presentation may still be reused where helpful.
 
 For a purely passive/descriptive trait:
 
-Frame Helm may expose:
+Frame Conn may expose:
 
 “Show in Chat”
 
@@ -1805,13 +1805,13 @@ for mechanically actionable trait features.
 
 # 103. Action Presentation
 
-Trait actions should appear in Frame Helm alongside other actions according to their activation category.
+Trait actions should appear in Frame Conn alongside other actions according to their activation category.
 
 The user should not need to remember that an action originated in:
 
 Frame → Trait → ActionData.
 
-Frame Helm can show the source while placing the action where it is usable.
+Frame Conn can show the source while placing the action where it is usable.
 
 —
 
@@ -1843,9 +1843,9 @@ Only executable/granted actions should enter action execution UI.
 
 # 106. Automatic Passive Effects
 
-A passive trait whose structured bonuses are already native should require no Frame Helm execution button.
+A passive trait whose structured bonuses are already native should require no Frame Conn execution button.
 
-Frame Helm should not force active interaction for mechanics native Lancer already applies automatically.
+Frame Conn should not force active interaction for mechanics native Lancer already applies automatically.
 
 —
 
@@ -1855,7 +1855,7 @@ Some passive traits may trigger automatically when a condition occurs.
 
 These are distinct from manually activated actions.
 
-Frame Helm may eventually need:
+Frame Conn may eventually need:
 
 - trigger detection;
 - prompt;
@@ -1900,7 +1900,7 @@ before offering/resolving the effect.
 
 # 110. Trait Usage and Undo
 
-If Frame Helm eventually supports undo/reversal:
+If Frame Conn eventually supports undo/reversal:
 
 frequency restoration must be coordinated with mechanical rollback.
 
@@ -1953,7 +1953,7 @@ Stable source identifiers should be preferred wherever available.
 
 # 114. Generic Actor-Owned Feature Principle
 
-Frame traits reinforce a broader Frame Helm architecture:
+Frame traits reinforce a broader Frame Conn architecture:
 
 actor-owned features
 → normalize structured actions
@@ -2036,7 +2036,7 @@ This should also apply to:
 - [ ] Preserve child’s own resources/frequency.
 - [ ] Consume Initiative only after successful child execution.
 - [ ] Reset Initiative at correct scene boundary.
-- [ ] Show USED state in Frame Helm.
+- [ ] Show USED state in Frame Conn.
 
 —
 
@@ -2059,7 +2059,7 @@ This should also apply to:
 
 - [ ] equip Frame with passive structured trait bonus.
 - [ ] native bonus applies.
-- [ ] Frame Helm does not duplicate it.
+- [ ] Frame Conn does not duplicate it.
 - [ ] trait description remains viewable.
 - [ ] no unnecessary execute button appears.
 
@@ -2117,7 +2117,7 @@ This should also apply to:
 - [ ] round does not restore it.
 - [ ] scene does not restore it.
 - [ ] appropriate mission reset restores it.
-- [ ] state survives Frame Helm rerender/reopen.
+- [ ] state survives Frame Conn rerender/reopen.
 
 —
 
@@ -2184,7 +2184,7 @@ Native trait chat presentation is not mechanical trait execution.
 
 **Invariant 9**
 
-Frame Helm should provide generalized ActionData frequency tracking rather than one tracker per feature family.
+Frame Conn should provide generalized ActionData frequency tracking rather than one tracker per feature family.
 
 **Invariant 10**
 
@@ -2204,7 +2204,7 @@ Usage frequency and effect duration require separate lifecycle handling.
 
 **Invariant 14**
 
-Special trait mechanics should compose shared Frame Helm/native action systems.
+Special trait mechanics should compose shared Frame Conn/native action systems.
 
 **Invariant 15**
 
@@ -2216,7 +2216,7 @@ Trait usage should be consumed only after successful mechanical execution accord
 
 **Invariant 17**
 
-Native state should be reused wherever it already exists; Frame Helm tracking should fill only the missing runtime state.
+Native state should be reused wherever it already exists; Frame Conn tracking should fill only the missing runtime state.
 
 —
 
@@ -2246,7 +2246,7 @@ MECH
         │   │   ├── detail
         │   │   └── other structured mechanics
         │   │
-        │   └── FRAME HELM ACTOR-OWNED ACTION REGISTRY
+        │   └── FRAME CONN ACTOR-OWNED ACTION REGISTRY
         │       ├── preserve source Frame
         │       ├── preserve trait identity
         │       ├── preserve exact action path
@@ -2260,7 +2260,7 @@ MECH
         │       ├── native resource behavior where implemented
         │       └── native chat output
         │
-        ├── FRAME HELM FREQUENCY TRACKER
+        ├── FRAME CONN FREQUENCY TRACKER
         │   ├── unlimited
         │   ├── 1/turn
         │   ├── 1/round
@@ -2268,7 +2268,7 @@ MECH
         │   ├── 1/encounter
         │   └── 1/mission
         │
-        ├── FRAME HELM EFFECT LIFECYCLE
+        ├── FRAME CONN EFFECT LIFECYCLE
         │   ├── Turn
         │   ├── Next Turn
         │   ├── Round
@@ -2290,7 +2290,7 @@ MECH
 
 The critical architectural rule is:
 
-**Native Lancer already gives Frame Helm the authoritative Frame trait definitions, structured bonuses, structured actions, activation types, frequency metadata, counters, deployables, integrated equipment, and synergies. Frame Helm should not recreate those definitions. Its job is to supply the runtime layer the native repository lacks: generalized frequency tracking, effect lifecycle, action-economy integration, and source-specific orchestration for traits such as Everest Initiative.**
+**Native Lancer already gives Frame Conn the authoritative Frame trait definitions, structured bonuses, structured actions, activation types, frequency metadata, counters, deployables, integrated equipment, and synergies. Frame Conn should not recreate those definitions. Its job is to supply the runtime layer the native repository lacks: generalized frequency tracking, effect lifecycle, action-economy integration, and source-specific orchestration for traits such as Everest Initiative.**
 `;
 
 fs.writeFileSync(“mech-traits.md”, content, “utf8”);

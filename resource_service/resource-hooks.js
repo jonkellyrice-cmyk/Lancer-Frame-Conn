@@ -18,14 +18,14 @@
  * - resource-transaction
  * - execution_transaction/execution-transaction
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - registers resource behavior into execution_transaction/
  * - validates execution resources before targeting/execution
  * - preserves pre-execution ResourceTransactionSnapshot by executionId
  * - verifies native-consumed resources after execution
- * - commits deferred Frame Helm resources during transaction commit
+ * - commits deferred Frame Conn resources during transaction commit
  * - accepts supplemental declarations from future feature_runtime_bridge/
- * - accepts Frame Helm persistence writer from future supplemental-state
+ * - accepts Frame Conn persistence writer from future supplemental-state
  *   storage
  *
  * EXISTING ARCHITECTURE PRESERVED:
@@ -90,7 +90,7 @@ import {
    MODULE IDENTITY
    ============================================================ */
 export const RESOURCE_HOOKS_MODULE_ID =
-  "lancer-frame-helm.resource-hooks";
+  "lancer-frame-conn.resource-hooks";
 export const RESOURCE_HOOKS_MODULE_VERSION =
   1;
 /* ============================================================
@@ -176,7 +176,7 @@ const RESOURCE_TRANSACTION_STATE =
  * without rewriting the existing registry.
  *
  *
- * frameHelmWriter:
+ * frameConnWriter:
  *
  * async ({
  *   context,
@@ -190,7 +190,7 @@ const RESOURCE_TRANSACTION_STATE =
  */
 let resourceDeclarationResolver =
   null;
-let frameHelmResourceWriter =
+let frameConnResourceWriter =
   null;
 /* ============================================================
    PRIVATE HELPERS
@@ -309,12 +309,12 @@ export function getResourceDeclarationResolver() {
   return resourceDeclarationResolver;
 }
 /* ============================================================
-   FRAME HELM RESOURCE WRITER
+   FRAME CONN RESOURCE WRITER
    ============================================================ */
 /**
- * @section frame-helm-resource-writer
+ * @section frame-conn-resource-writer
  */
-export function setFrameHelmResourceWriter(
+export function setFrameConnResourceWriter(
   writer
 ) {
   if (
@@ -322,15 +322,15 @@ export function setFrameHelmResourceWriter(
     typeof writer !== "function"
   ) {
     throw new TypeError(
-      "Frame Helm resource writer must be function or null."
+      "Frame Conn resource writer must be function or null."
     );
   }
-  frameHelmResourceWriter =
+  frameConnResourceWriter =
     writer;
   return true;
 }
-export function getFrameHelmResourceWriter() {
-  return frameHelmResourceWriter;
+export function getFrameConnResourceWriter() {
+  return frameConnResourceWriter;
 }
 /* ============================================================
    SUPPLEMENTAL DECLARATION RESOLUTION
@@ -527,7 +527,7 @@ export async function runResourcePreValidationHook(
  * Therefore this is the safe point to:
  *
  * - verify native-consumed resources
- * - consume deferred Frame Helm resources
+ * - consume deferred Frame Conn resources
  */
 export async function runResourceBeforeCommitHook(
   payload
@@ -582,8 +582,8 @@ export async function runResourceBeforeCommitHook(
         payload.context,
         state.resourceSnapshot,
         {
-          frameHelmWriter:
-            frameHelmResourceWriter
+          frameConnWriter:
+            frameConnResourceWriter
         }
       );
   } catch (error) {
@@ -1011,8 +1011,8 @@ export function getResourceHookDiagnostics() {
     declarationResolverConfigured:
       typeof resourceDeclarationResolver ===
       "function",
-    frameHelmWriterConfigured:
-      typeof frameHelmResourceWriter ===
+    frameConnWriterConfigured:
+      typeof frameConnResourceWriter ===
       "function",
     activeExecutionCount:
       RESOURCE_TRANSACTION_STATE.size,
@@ -1061,11 +1061,11 @@ export function getResourceHookDiagnostics() {
 /**
  * @section supplemental-persistence-integration-notes
  *
- * Frame Helm-owned frequency/counter state needs persistent backing.
+ * Frame Conn-owned frequency/counter state needs persistent backing.
  *
  * Future runtime composition:
  *
- * setFrameHelmResourceWriter(
+ * setFrameConnResourceWriter(
  *   request =>
  *     supplementalStateRepository
  *       .writeResource(request)
@@ -1155,7 +1155,7 @@ export function getResourceHookDiagnostics() {
  * decrement/unload/spend a second time
  *
  *
- * NATIVE COUNTER + FRAME HELM SEMANTICS
+ * NATIVE COUNTER + FRAME CONN SEMANTICS
  * -------------------------------------
  *
  * ResourceDescriptor may specify:
@@ -1167,10 +1167,10 @@ export function getResourceHookDiagnostics() {
  * native_adapter during commit.
  */
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * runtime-orchestrator.js
  * -----------------------
@@ -1254,7 +1254,7 @@ export function getResourceHookDiagnostics() {
  *
  * configure supplemental resource writer
  *
- * setFrameHelmResourceWriter(...)
+ * setFrameConnResourceWriter(...)
  *
  * registerResourceTransactionHooks()
  *
@@ -1297,7 +1297,7 @@ export function getResourceHookDiagnostics() {
  * than hardcoded registry refactors.
  *
  * INVARIANT 9
- * Supplemental persistence is injected through Frame Helm writer rather
+ * Supplemental persistence is injected through Frame Conn writer rather
  * than hardcoded Foundry storage paths.
  *
  * INVARIANT 10

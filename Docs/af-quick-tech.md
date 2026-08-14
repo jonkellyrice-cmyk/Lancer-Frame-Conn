@@ -18,7 +18,7 @@ There is no evidence that all Quick Tech actions resolve through a common `Quick
 
 Instead, the individual universal Quick Tech actions use different execution architectures.
 
-Frame Helm should therefore treat Quick Tech as a selection/dispatch category and delegate each selected option to its appropriate native or Frame Helm-owned execution strategy.
+Frame Conn should therefore treat Quick Tech as a selection/dispatch category and delegate each selected option to its appropriate native or Frame Conn-owned execution strategy.
 
 —
 
@@ -30,14 +30,14 @@ A Quick Tech action and a Tech Attack are not synonymous.
 
 The four universal Quick Tech options demonstrate this clearly:
 
-| Quick Tech | Tech Attack? | Dedicated Native Flow? | Frame Helm Strategy |
+| Quick Tech | Tech Attack? | Dedicated Native Flow? | Frame Conn Strategy |
 |—|—:|—:|—|
-| Bolster | No | No flow found | Frame Helm implementation |
-| Lock On | No | No application flow found | Frame Helm applies native condition |
+| Bolster | No | No flow found | Frame Conn implementation |
+| Lock On | No | No application flow found | Frame Conn applies native condition |
 | Scan | No | Yes — `ScanFlow` | Delegate to native flow |
 | Invade | Yes | Yes — `TechAttackFlow` | Delegate to native flow |
 
-Therefore Frame Helm should NOT implement a generic execution assumption such as:
+Therefore Frame Conn should NOT implement a generic execution assumption such as:
 
 Quick Tech
     ↓
@@ -60,10 +60,10 @@ Conceptually:
 Quick Tech
 │
 ├── Bolster
-│   └── Frame Helm-owned implementation
+│   └── Frame Conn-owned implementation
 │
 ├── Lock On
-│   └── Frame Helm applies native Lancer condition
+│   └── Frame Conn applies native Lancer condition
 │
 ├── Scan
 │   └── native ScanFlow
@@ -71,7 +71,7 @@ Quick Tech
 └── Invade
     └── native TechAttackFlow
 
-This distinction should remain explicit in the Frame Helm action architecture.
+This distinction should remain explicit in the Frame Conn action architecture.
 
 —
 
@@ -132,9 +132,9 @@ and resolution against E-Defense.
 
 Bolster is not an attack.
 
-## Frame Helm Integration
+## Frame Conn Integration
 
-Bolster therefore requires a Frame Helm-owned action implementation.
+Bolster therefore requires a Frame Conn-owned action implementation.
 
 High-level architecture:
 
@@ -154,9 +154,9 @@ Spend Quick Action
     ↓
 Produce appropriate chat/UI feedback
     ↓
-Refresh Frame Helm presentation
+Refresh Frame Conn presentation
 
-Where native Foundry/Lancer primitives exist for individual pieces of this process, Frame Helm should reuse them rather than recreating those lower-level systems.
+Where native Foundry/Lancer primitives exist for individual pieces of this process, Frame Conn should reuse them rather than recreating those lower-level systems.
 
 ## Integration Classification
 
@@ -166,7 +166,7 @@ PARTIAL
 NATIVE ACTION FLOW:
 NONE FOUND
 
-FRAME HELM EXECUTION:
+FRAME CONN EXECUTION:
 REQUIRED
 
 —
@@ -219,7 +219,7 @@ lockon
 
 with the corresponding Lock On condition icon.
 
-Therefore Frame Helm should use the native Lancer representation of Lock On rather than inventing a parallel Frame Helm-only status.
+Therefore Frame Conn should use the native Lancer representation of Lock On rather than inventing a parallel Frame Conn-only status.
 
 —
 
@@ -267,9 +267,9 @@ Therefore Lock On is already integrated into native attack resolution.
 
 —
 
-# 5. Frame Helm Lock On Boundary
+# 5. Frame Conn Lock On Boundary
 
-Frame Helm should implement only the missing application side of the universal Quick Tech action.
+Frame Conn should implement only the missing application side of the universal Quick Tech action.
 
 Desired architecture:
 
@@ -277,7 +277,7 @@ Committed Quick Tech: Lock On
     ↓
 Execute
     ↓
-Enter Frame Helm target-selection mode
+Enter Frame Conn target-selection mode
     ↓
 Select valid character within Sensors
     ↓
@@ -289,11 +289,11 @@ Spend Quick Action
     ↓
 Produce appropriate feedback
     ↓
-Refresh Frame Helm
+Refresh Frame Conn
 
 After the native Lock On condition has been applied:
 
-FRAME HELM STOPS
+FRAME CONN STOPS
 
 The native Lancer system should remain authoritative for:
 
@@ -305,7 +305,7 @@ removing Lock On after consumption
 
 This gives us a clean integration boundary:
 
-FRAME HELM
+FRAME CONN
     ↓
 performs universal Quick Tech: Lock On
     ↓
@@ -329,7 +329,7 @@ YES
 NATIVE ATTACK CONSUMPTION:
 YES
 
-FRAME HELM EXECUTION:
+FRAME CONN EXECUTION:
 APPLICATION SIDE REQUIRED
 
 —
@@ -367,9 +367,9 @@ Scan has its own action-specific workflow.
 
 —
 
-# 7. Frame Helm Scan Integration
+# 7. Frame Conn Scan Integration
 
-Frame Helm should preserve native Scan behavior rather than recreate it.
+Frame Conn should preserve native Scan behavior rather than recreate it.
 
 Desired architecture:
 
@@ -391,11 +391,11 @@ createScanJournal
     ↓
 native Scan output
     ↓
-Frame Helm updates turn/action state
+Frame Conn updates turn/action state
 
 The exact public/native entry point should be preferred over directly invoking internal flow steps.
 
-Frame Helm should follow the normal integration rule:
+Frame Conn should follow the normal integration rule:
 
 stock UI/button
     ↓
@@ -417,7 +417,7 @@ YES
 NATIVE ACTION FLOW:
 ScanFlow
 
-FRAME HELM EXECUTION:
+FRAME CONN EXECUTION:
 DELEGATE TO NATIVE ENTRY POINT
 
 —
@@ -510,11 +510,11 @@ Lock On interaction
 attack output
 Tech Attack effects
 
-Frame Helm should not duplicate those systems when the native Lancer execution path already provides them.
+Frame Conn should not duplicate those systems when the native Lancer execution path already provides them.
 
 —
 
-# 10. Frame Helm Invade Integration
+# 10. Frame Conn Invade Integration
 
 Desired architecture:
 
@@ -534,17 +534,17 @@ native attack resolution
     ↓
 native effects/output
     ↓
-Frame Helm updates action state
+Frame Conn updates action state
 
-As Frame Helm becomes more automated, the presentation layer may eventually bypass native popups while continuing to use native mechanics underneath where practical.
+As Frame Conn becomes more automated, the presentation layer may eventually bypass native popups while continuing to use native mechanics underneath where practical.
 
-The eventual desired Frame Helm experience is:
+The eventual desired Frame Conn experience is:
 
 Click execute
     ↓
 select target if necessary
     ↓
-Frame Helm derives known modifiers
+Frame Conn derives known modifiers
     ↓
 native-compatible attack resolution
     ↓
@@ -562,14 +562,14 @@ YES
 NATIVE ACTION FLOW:
 TechAttackFlow
 
-FRAME HELM EXECUTION:
+FRAME CONN EXECUTION:
 DELEGATE TO NATIVE ENTRY POINT
 
 —
 
 # 11. Combined Quick Tech Dispatch Architecture
 
-Frame Helm should represent Quick Tech as an action category whose selected action determines execution behavior.
+Frame Conn should represent Quick Tech as an action category whose selected action determines execution behavior.
 
 Recommended conceptual dispatch:
 
@@ -580,10 +580,10 @@ selected option
 ┌───────────────────────────────────────────────┐
 │                                               │
 │  BOLSTER                                      │
-│      Frame Helm-owned implementation          │
+│      Frame Conn-owned implementation          │
 │                                               │
 │  LOCK ON                                      │
-│      Frame Helm target selection              │
+│      Frame Conn target selection              │
 │      + native lockon condition application    │
 │                                               │
 │  SCAN                                         │
@@ -596,7 +596,7 @@ selected option
 │                                               │
 └───────────────────────────────────────────────┘
 
-This means the Frame Helm action registry may classify all four under:
+This means the Frame Conn action registry may classify all four under:
 
 Quick Tech
 
@@ -617,7 +617,7 @@ action:
     bolster
 
 execution strategy:
-    frame-helm
+    frame-conn
 
 —
 
@@ -652,7 +652,7 @@ action:
 execution strategy:
     native-tech-attack
 
-The precise implementation should conform to the existing Frame Helm feature/action registry architecture rather than introducing these exact names merely for convenience.
+The precise implementation should conform to the existing Frame Conn feature/action registry architecture rather than introducing these exact names merely for convenience.
 
 —
 
@@ -679,7 +679,7 @@ Whereas:
 Tech Attack
 ScanFlow
 native condition application
-Frame Helm-owned effect
+Frame Conn-owned effect
 
 answer:
 
@@ -687,13 +687,13 @@ How does this particular action resolve?
 
 Those are separate dimensions.
 
-Frame Helm should model them separately.
+Frame Conn should model them separately.
 
 —
 
 # 14. Targeting Implications
 
-All four Quick Tech actions should eventually participate in Frame Helm’s player-first targeting architecture where targeting is required.
+All four Quick Tech actions should eventually participate in Frame Conn’s player-first targeting architecture where targeting is required.
 
 General desired pattern:
 
@@ -731,7 +731,7 @@ The specific target rules differ between Bolster, Lock On, Scan, and Invade and 
 
 # 15. Native-System Boundary
 
-Frame Helm is an alternate player-facing command and presentation layer over the native Foundry Lancer system.
+Frame Conn is an alternate player-facing command and presentation layer over the native Foundry Lancer system.
 
 Therefore:
 
@@ -739,7 +739,7 @@ USE NATIVE EXECUTION WHERE IT EXISTS.
 
 SUPPLEMENT NATIVE EXECUTION WHERE IT IS INCOMPLETE.
 
-IMPLEMENT FRAME HELM BEHAVIOR ONLY WHERE THE NATIVE SYSTEM
+IMPLEMENT FRAME CONN BEHAVIOR ONLY WHERE THE NATIVE SYSTEM
 DOES NOT PROVIDE THE REQUIRED PLAYER-FACING MECHANICAL ACTION.
 
 Applied to universal Quick Tech:
@@ -779,8 +779,8 @@ Invade
 - Exact native helper best suited for applying the Lock On condition.
 - Whether the stock system exposes a reusable lower-level Bolster effect helper despite lacking a complete Bolster action flow.
 - Exact range and target validation helpers reusable for each universal Quick Tech.
-- Exact chat-card behavior appropriate for Frame Helm-owned Bolster and Lock On execution.
-- Whether native action-cost bookkeeping exists independently of the specific flows or should remain entirely under Frame Helm’s Turn feature.
+- Exact chat-card behavior appropriate for Frame Conn-owned Bolster and Lock On execution.
+- Whether native action-cost bookkeeping exists independently of the specific flows or should remain entirely under Frame Conn’s Turn feature.
 
 —
 
@@ -798,9 +798,9 @@ Invade
 - [ ] Determine native Sensors-range utilities applicable to Quick Tech.
 - [ ] Determine how Scan selects/validates its target.
 - [ ] Determine how Invade selects/validates its target.
-- [ ] Determine whether Lock On and Bolster should use the same Frame Helm target-selection adapter.
-- [ ] Determine appropriate native chat output primitives for Frame Helm-owned Quick Tech execution.
-- [ ] Record all discovered native entry points before implementing the Frame Helm Quick Tech dispatcher.
+- [ ] Determine whether Lock On and Bolster should use the same Frame Conn target-selection adapter.
+- [ ] Determine appropriate native chat output primitives for Frame Conn-owned Quick Tech execution.
+- [ ] Record all discovered native entry points before implementing the Frame Conn Quick Tech dispatcher.
 
 —
 
@@ -813,7 +813,7 @@ UNIVERSAL QUICK TECH
 │   ├── Quick Tech
 │   ├── not a Tech Attack
 │   ├── no dedicated native flow found
-│   └── Frame Helm implementation required
+│   └── Frame Conn implementation required
 │
 ├── LOCK ON
 │   │
@@ -848,5 +848,5 @@ UNIVERSAL QUICK TECH
         ├── update action/item state
         └── print native Tech Attack output
 
-This is the current authoritative working model for universal Quick Tech integration into Frame Helm.
+This is the current authoritative working model for universal Quick Tech integration into Frame Conn.
 EOF

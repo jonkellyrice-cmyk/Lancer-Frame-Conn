@@ -9,12 +9,12 @@
 
 /**
  * ============================================================
- * FRAME HELM UI FEATURE -- MOVEMENT
+ * FRAME CONN UI FEATURE -- MOVEMENT
  * ============================================================
  *
  * ROLE:
  *   Provides the executable presentation adapter between the
- *   Frame Helm Movement domain, authoritative Turn movement state,
+ *   Frame Conn Movement domain, authoritative Turn movement state,
  *   and the primary Application UI.
  *
  * PURPOSE:
@@ -106,7 +106,7 @@
  *                  │
  *                  │ DOM / Foundry Application rendering
  *                  ▼
- *          Frame Helm window
+ *          Frame Conn window
  *
  * STYLESHEET RELATIONSHIP:
  *
@@ -164,7 +164,7 @@
    ============================================================ */
 
 import {
-  defineFrameHelmFeature
+  defineFrameConnFeature
 } from "../../scripts/feature-contract.js";
 
 
@@ -190,7 +190,7 @@ const MOVEMENT_UI_FEATURE_ID =
  * ui-application.js and movement accounting are still being
  * decomposed.
  */
-const frameHelmMovementUiRuntimeBindings = {
+const frameConnMovementUiRuntimeBindings = {
   getMovementApi:
     null,
 
@@ -205,7 +205,7 @@ const frameHelmMovementUiRuntimeBindings = {
 /**
  * Configure transitional Movement UI dependencies.
  */
-function configureFrameHelmMovementUiRuntime(
+function configureFrameConnMovementUiRuntime(
   bindings = {}
 ) {
   if (
@@ -214,7 +214,7 @@ function configureFrameHelmMovementUiRuntime(
       "object"
   ) {
     throw new TypeError(
-      "Frame Helm Movement UI runtime bindings must be supplied as an object."
+      "Frame Conn Movement UI runtime bindings must be supplied as an object."
     );
   }
 
@@ -222,7 +222,7 @@ function configureFrameHelmMovementUiRuntime(
   const allowedKeys =
     new Set(
       Object.keys(
-        frameHelmMovementUiRuntimeBindings
+        frameConnMovementUiRuntimeBindings
       )
     );
 
@@ -242,7 +242,7 @@ function configureFrameHelmMovementUiRuntime(
       )
     ) {
       throw new Error(
-        `Frame Helm Movement UI received unknown runtime binding: ${key}`
+        `Frame Conn Movement UI received unknown runtime binding: ${key}`
       );
     }
 
@@ -253,19 +253,19 @@ function configureFrameHelmMovementUiRuntime(
         "function"
     ) {
       throw new TypeError(
-        `Frame Helm Movement UI runtime binding "${key}" must be a function or null.`
+        `Frame Conn Movement UI runtime binding "${key}" must be a function or null.`
       );
     }
 
 
-    frameHelmMovementUiRuntimeBindings[
+    frameConnMovementUiRuntimeBindings[
       key
     ] = value;
   }
 
 
   return (
-    getFrameHelmMovementUiRuntimeBindings()
+    getFrameConnMovementUiRuntimeBindings()
   );
 }
 
@@ -273,20 +273,20 @@ function configureFrameHelmMovementUiRuntime(
 /**
  * Returns binding availability without exposing bound functions.
  */
-function getFrameHelmMovementUiRuntimeBindings() {
+function getFrameConnMovementUiRuntimeBindings() {
   return Object.freeze({
     movement:
-      typeof frameHelmMovementUiRuntimeBindings
+      typeof frameConnMovementUiRuntimeBindings
         .getMovementApi ===
         "function",
 
     turn:
-      typeof frameHelmMovementUiRuntimeBindings
+      typeof frameConnMovementUiRuntimeBindings
         .getTurnApi ===
         "function",
 
     applicationRendering:
-      typeof frameHelmMovementUiRuntimeBindings
+      typeof frameConnMovementUiRuntimeBindings
         .renderApplication ===
         "function"
   });
@@ -300,9 +300,9 @@ function getFrameHelmMovementUiRuntimeBindings() {
 /**
  * Resolve the authoritative Movement feature API.
  */
-function getFrameHelmMovementUiMovementApi() {
+function getFrameConnMovementUiMovementApi() {
   const movementApi =
-    frameHelmMovementUiRuntimeBindings
+    frameConnMovementUiRuntimeBindings
       .getMovementApi?.();
 
 
@@ -310,7 +310,7 @@ function getFrameHelmMovementUiMovementApi() {
     !movementApi
   ) {
     throw new Error(
-      "Frame Helm Movement UI could not resolve the Movement feature API."
+      "Frame Conn Movement UI could not resolve the Movement feature API."
     );
   }
 
@@ -325,9 +325,9 @@ function getFrameHelmMovementUiMovementApi() {
  * Movement accounting remains there during the current
  * transitional extraction.
  */
-function getFrameHelmMovementUiTurnApi() {
+function getFrameConnMovementUiTurnApi() {
   const turnApi =
-    frameHelmMovementUiRuntimeBindings
+    frameConnMovementUiRuntimeBindings
       .getTurnApi?.();
 
 
@@ -335,7 +335,7 @@ function getFrameHelmMovementUiTurnApi() {
     !turnApi
   ) {
     throw new Error(
-      "Frame Helm Movement UI could not resolve the Turn feature API."
+      "Frame Conn Movement UI could not resolve the Turn feature API."
     );
   }
 
@@ -349,11 +349,11 @@ function getFrameHelmMovementUiTurnApi() {
  *
  * ui-movement.js does not own application rendering.
  */
-function renderFrameHelmMovementUiApplication(
+function renderFrameConnMovementUiApplication(
   force = false
 ) {
   return (
-    frameHelmMovementUiRuntimeBindings
+    frameConnMovementUiRuntimeBindings
       .renderApplication?.(
         Boolean(
           force
@@ -371,9 +371,9 @@ function renderFrameHelmMovementUiApplication(
 /**
  * Resolve the authoritative current Turn state.
  */
-function getFrameHelmMovementUiCurrentTurnState() {
+function getFrameConnMovementUiCurrentTurnState() {
   const turnApi =
-    getFrameHelmMovementUiTurnApi();
+    getFrameConnMovementUiTurnApi();
 
 
   return (
@@ -387,9 +387,9 @@ function getFrameHelmMovementUiCurrentTurnState() {
 /**
  * Resolve a presentation-safe Turn snapshot.
  */
-function getFrameHelmMovementUiTurnSnapshot() {
+function getFrameConnMovementUiTurnSnapshot() {
   const turnApi =
-    getFrameHelmMovementUiTurnApi();
+    getFrameConnMovementUiTurnApi();
 
 
   if (
@@ -426,9 +426,9 @@ function getFrameHelmMovementUiTurnSnapshot() {
  * Resolve the movement state from the authoritative Turn
  * snapshot.
  */
-function getFrameHelmMovementUiState() {
+function getFrameConnMovementUiState() {
   const snapshot =
-    getFrameHelmMovementUiTurnSnapshot();
+    getFrameConnMovementUiTurnSnapshot();
 
 
   return (
@@ -445,7 +445,7 @@ function getFrameHelmMovementUiState() {
 /**
  * Normalize a numeric value for presentation.
  */
-function frameHelmMovementUiNumber(
+function frameConnMovementUiNumber(
   value,
   fallback = 0
 ) {
@@ -468,14 +468,14 @@ function frameHelmMovementUiNumber(
 /**
  * Normalize a non-negative numeric movement value.
  */
-function frameHelmMovementUiNonNegativeNumber(
+function frameConnMovementUiNonNegativeNumber(
   value,
   fallback = 0
 ) {
   return (
     Math.max(
       0,
-      frameHelmMovementUiNumber(
+      frameConnMovementUiNumber(
         value,
         fallback
       )
@@ -487,7 +487,7 @@ function frameHelmMovementUiNonNegativeNumber(
 /**
  * Convert a nullable value into a stable display string.
  */
-function frameHelmMovementUiDisplayValue(
+function frameConnMovementUiDisplayValue(
   value,
   fallback = "--"
 ) {
@@ -510,7 +510,7 @@ function frameHelmMovementUiDisplayValue(
  * Formats movement-distance values without introducing needless
  * trailing decimal zeroes.
  */
-function frameHelmMovementUiDistanceLabel(
+function frameConnMovementUiDistanceLabel(
   value,
   fallback = "--"
 ) {
@@ -559,9 +559,9 @@ function frameHelmMovementUiDistanceLabel(
  * Converts authoritative movement-accounting state into the
  * primary Movement budget presentation model.
  */
-function buildFrameHelmMovementBudgetPresentation(
+function buildFrameConnMovementBudgetPresentation(
   snapshot =
-    getFrameHelmMovementUiTurnSnapshot()
+    getFrameConnMovementUiTurnSnapshot()
 ) {
   const movement =
     snapshot?.movement ??
@@ -612,13 +612,13 @@ function buildFrameHelmMovementBudgetPresentation(
     movement.maximum ===
       undefined
       ? null
-      : frameHelmMovementUiNonNegativeNumber(
+      : frameConnMovementUiNonNegativeNumber(
           movement.maximum
         );
 
 
   const spent =
-    frameHelmMovementUiNonNegativeNumber(
+    frameConnMovementUiNonNegativeNumber(
       movement.spent
     );
 
@@ -629,7 +629,7 @@ function buildFrameHelmMovementBudgetPresentation(
     movement.remaining ===
       undefined
       ? null
-      : frameHelmMovementUiNonNegativeNumber(
+      : frameConnMovementUiNonNegativeNumber(
           movement.remaining
         );
 
@@ -693,18 +693,18 @@ function buildFrameHelmMovementBudgetPresentation(
     completed,
 
     maximumLabel:
-      frameHelmMovementUiDistanceLabel(
+      frameConnMovementUiDistanceLabel(
         maximum
       ),
 
     spentLabel:
-      frameHelmMovementUiDistanceLabel(
+      frameConnMovementUiDistanceLabel(
         spent,
         "0"
       ),
 
     remainingLabel:
-      frameHelmMovementUiDistanceLabel(
+      frameConnMovementUiDistanceLabel(
         remaining
       ),
 
@@ -721,9 +721,9 @@ function buildFrameHelmMovementBudgetPresentation(
  * Builds the accounting representation of standard movement,
  * normal Boost movement, and Overcharge Boost movement.
  */
-function buildFrameHelmMovementPoolsPresentation(
+function buildFrameConnMovementPoolsPresentation(
   snapshot =
-    getFrameHelmMovementUiTurnSnapshot()
+    getFrameConnMovementUiTurnSnapshot()
 ) {
   const movement =
     snapshot?.movement ??
@@ -736,25 +736,25 @@ function buildFrameHelmMovementPoolsPresentation(
     movement.maximum ===
       undefined
       ? null
-      : frameHelmMovementUiNonNegativeNumber(
+      : frameConnMovementUiNonNegativeNumber(
           movement.maximum
         );
 
 
   const standardUsed =
-    frameHelmMovementUiNonNegativeNumber(
+    frameConnMovementUiNonNegativeNumber(
       movement.standardUsed
     );
 
 
   const boostUsed =
-    frameHelmMovementUiNonNegativeNumber(
+    frameConnMovementUiNonNegativeNumber(
       movement.boostUsed
     );
 
 
   const overchargeBoostUsed =
-    frameHelmMovementUiNonNegativeNumber(
+    frameConnMovementUiNonNegativeNumber(
       movement
         .overchargeBoostUsed
     );
@@ -770,13 +770,13 @@ function buildFrameHelmMovementPoolsPresentation(
       maximum,
 
       usedLabel:
-        frameHelmMovementUiDistanceLabel(
+        frameConnMovementUiDistanceLabel(
           standardUsed,
           "0"
         ),
 
       maximumLabel:
-        frameHelmMovementUiDistanceLabel(
+        frameConnMovementUiDistanceLabel(
           maximum
         ),
 
@@ -799,13 +799,13 @@ function buildFrameHelmMovementPoolsPresentation(
       maximum,
 
       usedLabel:
-        frameHelmMovementUiDistanceLabel(
+        frameConnMovementUiDistanceLabel(
           boostUsed,
           "0"
         ),
 
       maximumLabel:
-        frameHelmMovementUiDistanceLabel(
+        frameConnMovementUiDistanceLabel(
           maximum
         ),
 
@@ -829,13 +829,13 @@ function buildFrameHelmMovementPoolsPresentation(
         maximum,
 
         usedLabel:
-          frameHelmMovementUiDistanceLabel(
+          frameConnMovementUiDistanceLabel(
             overchargeBoostUsed,
             "0"
           ),
 
         maximumLabel:
-          frameHelmMovementUiDistanceLabel(
+          frameConnMovementUiDistanceLabel(
             maximum
           ),
 
@@ -862,9 +862,9 @@ function buildFrameHelmMovementPoolsPresentation(
 /**
  * Produces total tracked and excess movement presentation state.
  */
-function buildFrameHelmMovementTrackingPresentation(
+function buildFrameConnMovementTrackingPresentation(
   snapshot =
-    getFrameHelmMovementUiTurnSnapshot()
+    getFrameConnMovementUiTurnSnapshot()
 ) {
   const movement =
     snapshot?.movement ??
@@ -872,13 +872,13 @@ function buildFrameHelmMovementTrackingPresentation(
 
 
   const totalTracked =
-    frameHelmMovementUiNonNegativeNumber(
+    frameConnMovementUiNonNegativeNumber(
       movement.totalTracked
     );
 
 
   const excess =
-    frameHelmMovementUiNonNegativeNumber(
+    frameConnMovementUiNonNegativeNumber(
       movement.excess
     );
 
@@ -887,7 +887,7 @@ function buildFrameHelmMovementTrackingPresentation(
     totalTracked,
 
     totalTrackedLabel:
-      frameHelmMovementUiDistanceLabel(
+      frameConnMovementUiDistanceLabel(
         totalTracked,
         "0"
       ),
@@ -895,7 +895,7 @@ function buildFrameHelmMovementTrackingPresentation(
     excess,
 
     excessLabel:
-      frameHelmMovementUiDistanceLabel(
+      frameConnMovementUiDistanceLabel(
         excess,
         "0"
       ),
@@ -924,12 +924,12 @@ function buildFrameHelmMovementTrackingPresentation(
  * Convert one authoritative movement segment into a stable
  * presentation row.
  */
-function buildFrameHelmMovementSegmentPresentation(
+function buildFrameConnMovementSegmentPresentation(
   segment,
   index = 0
 ) {
   const distance =
-    frameHelmMovementUiNonNegativeNumber(
+    frameConnMovementUiNonNegativeNumber(
       segment?.distance
     );
 
@@ -996,7 +996,7 @@ function buildFrameHelmMovementSegmentPresentation(
     distance,
 
     distanceLabel:
-      frameHelmMovementUiDistanceLabel(
+      frameConnMovementUiDistanceLabel(
         distance,
         "0"
       ),
@@ -1030,11 +1030,11 @@ function buildFrameHelmMovementSegmentPresentation(
     hasElevationChange,
 
     classNames: [
-      "frame-helm-movement-segment",
+      "frame-conn-movement-segment",
 
-      `frame-helm-movement-segment-${kind}`,
+      `frame-conn-movement-segment-${kind}`,
 
-      `frame-helm-movement-method-${method}`
+      `frame-conn-movement-method-${method}`
     ]
       .filter(
         Boolean
@@ -1049,9 +1049,9 @@ function buildFrameHelmMovementSegmentPresentation(
 /**
  * Produces the complete Movement segment presentation list.
  */
-function buildFrameHelmMovementSegmentsPresentation(
+function buildFrameConnMovementSegmentsPresentation(
   snapshot =
-    getFrameHelmMovementUiTurnSnapshot()
+    getFrameConnMovementUiTurnSnapshot()
 ) {
   const segments =
     Array.isArray(
@@ -1071,7 +1071,7 @@ function buildFrameHelmMovementSegmentsPresentation(
         segment,
         index
       ) =>
-        buildFrameHelmMovementSegmentPresentation(
+        buildFrameConnMovementSegmentPresentation(
           segment,
           index
         )
@@ -1114,20 +1114,20 @@ function buildFrameHelmMovementSegmentsPresentation(
 
 /**
  * Produces the movement ledger currently shown by the primary
- * Frame Helm UI.
+ * Frame Conn UI.
  */
-function buildFrameHelmMovementLedgerPresentation(
+function buildFrameConnMovementLedgerPresentation(
   snapshot =
-    getFrameHelmMovementUiTurnSnapshot()
+    getFrameConnMovementUiTurnSnapshot()
 ) {
   const pools =
-    buildFrameHelmMovementPoolsPresentation(
+    buildFrameConnMovementPoolsPresentation(
       snapshot
     );
 
 
   const tracking =
-    buildFrameHelmMovementTrackingPresentation(
+    buildFrameConnMovementTrackingPresentation(
       snapshot
     );
 
@@ -1184,9 +1184,9 @@ function buildFrameHelmMovementLedgerPresentation(
  *
  * Gameplay movement mode selection continues to belong elsewhere.
  */
-function buildFrameHelmMovementModePresentation(
+function buildFrameConnMovementModePresentation(
   snapshot =
-    getFrameHelmMovementUiTurnSnapshot()
+    getFrameConnMovementUiTurnSnapshot()
 ) {
   const segments =
     Array.isArray(
@@ -1257,18 +1257,18 @@ function buildFrameHelmMovementModePresentation(
 /**
  * Produces the overall semantic Movement presentation state.
  */
-function buildFrameHelmMovementStatusPresentation(
+function buildFrameConnMovementStatusPresentation(
   snapshot =
-    getFrameHelmMovementUiTurnSnapshot()
+    getFrameConnMovementUiTurnSnapshot()
 ) {
   const budget =
-    buildFrameHelmMovementBudgetPresentation(
+    buildFrameConnMovementBudgetPresentation(
       snapshot
     );
 
 
   const tracking =
-    buildFrameHelmMovementTrackingPresentation(
+    buildFrameConnMovementTrackingPresentation(
       snapshot
     );
 
@@ -1329,48 +1329,48 @@ function buildFrameHelmMovementStatusPresentation(
  * ui-movement.css may consume these classes without knowing about
  * the underlying Turn state representation.
  */
-function buildFrameHelmMovementUiClasses(
+function buildFrameConnMovementUiClasses(
   snapshot =
-    getFrameHelmMovementUiTurnSnapshot()
+    getFrameConnMovementUiTurnSnapshot()
 ) {
   const budget =
-    buildFrameHelmMovementBudgetPresentation(
+    buildFrameConnMovementBudgetPresentation(
       snapshot
     );
 
 
   const tracking =
-    buildFrameHelmMovementTrackingPresentation(
+    buildFrameConnMovementTrackingPresentation(
       snapshot
     );
 
 
   const mode =
-    buildFrameHelmMovementModePresentation(
+    buildFrameConnMovementModePresentation(
       snapshot
     );
 
 
   return Object.freeze([
-    "frame-helm-movement",
+    "frame-conn-movement",
 
     snapshot &&
     !snapshot.ended
-      ? "frame-helm-movement-active"
-      : "frame-helm-movement-inactive",
+      ? "frame-conn-movement-active"
+      : "frame-conn-movement-inactive",
 
-    `frame-helm-movement-budget-${budget.state}`,
+    `frame-conn-movement-budget-${budget.state}`,
 
-    `frame-helm-movement-tracking-${tracking.state}`,
+    `frame-conn-movement-tracking-${tracking.state}`,
 
-    `frame-helm-movement-mode-${mode.kind}`,
+    `frame-conn-movement-mode-${mode.kind}`,
 
     budget.completed
-      ? "frame-helm-movement-completed"
+      ? "frame-conn-movement-completed"
       : null,
 
     tracking.hasExcess
-      ? "frame-helm-movement-excess-active"
+      ? "frame-conn-movement-excess-active"
       : null
   ]
     .filter(
@@ -1388,30 +1388,30 @@ function buildFrameHelmMovementUiClasses(
  * Produces semantic data attributes suitable for a Movement-owned
  * DOM root.
  */
-function buildFrameHelmMovementUiDataAttributes(
+function buildFrameConnMovementUiDataAttributes(
   snapshot =
-    getFrameHelmMovementUiTurnSnapshot()
+    getFrameConnMovementUiTurnSnapshot()
 ) {
   const budget =
-    buildFrameHelmMovementBudgetPresentation(
+    buildFrameConnMovementBudgetPresentation(
       snapshot
     );
 
 
   const tracking =
-    buildFrameHelmMovementTrackingPresentation(
+    buildFrameConnMovementTrackingPresentation(
       snapshot
     );
 
 
   const mode =
-    buildFrameHelmMovementModePresentation(
+    buildFrameConnMovementModePresentation(
       snapshot
     );
 
 
   return Object.freeze({
-    "data-frame-helm-movement":
+    "data-frame-conn-movement":
       snapshot &&
       !snapshot.ended
         ? "active"
@@ -1455,9 +1455,9 @@ function buildFrameHelmMovementUiDataAttributes(
 /**
  * Resolve Movement feature diagnostics when available.
  */
-function getFrameHelmMovementUiDomainDiagnostics() {
+function getFrameConnMovementUiDomainDiagnostics() {
   const movementApi =
-    getFrameHelmMovementUiMovementApi();
+    getFrameConnMovementUiMovementApi();
 
 
   return (
@@ -1471,30 +1471,30 @@ function getFrameHelmMovementUiDomainDiagnostics() {
 /**
  * Provides presentation-focused diagnostics.
  */
-function getFrameHelmMovementUiDiagnostics() {
+function getFrameConnMovementUiDiagnostics() {
   const snapshot =
-    getFrameHelmMovementUiTurnSnapshot();
+    getFrameConnMovementUiTurnSnapshot();
 
 
   return Object.freeze({
     runtimeBindings:
-      getFrameHelmMovementUiRuntimeBindings(),
+      getFrameConnMovementUiRuntimeBindings(),
 
     movementDomain:
-      getFrameHelmMovementUiDomainDiagnostics(),
+      getFrameConnMovementUiDomainDiagnostics(),
 
     status:
-      buildFrameHelmMovementStatusPresentation(
+      buildFrameConnMovementStatusPresentation(
         snapshot
       ),
 
     budget:
-      buildFrameHelmMovementBudgetPresentation(
+      buildFrameConnMovementBudgetPresentation(
         snapshot
       ),
 
     tracking:
-      buildFrameHelmMovementTrackingPresentation(
+      buildFrameConnMovementTrackingPresentation(
         snapshot
       ),
 
@@ -1521,9 +1521,9 @@ function getFrameHelmMovementUiDiagnostics() {
  * Canonical Movement presentation model consumed by application
  * rendering.
  */
-function buildFrameHelmMovementUiModel() {
+function buildFrameConnMovementUiModel() {
   const snapshot =
-    getFrameHelmMovementUiTurnSnapshot();
+    getFrameConnMovementUiTurnSnapshot();
 
 
   return Object.freeze({
@@ -1538,52 +1538,52 @@ function buildFrameHelmMovementUiModel() {
       null,
 
     speedLabel:
-      frameHelmMovementUiDisplayValue(
+      frameConnMovementUiDisplayValue(
         snapshot?.speed
       ),
 
     budget:
-      buildFrameHelmMovementBudgetPresentation(
+      buildFrameConnMovementBudgetPresentation(
         snapshot
       ),
 
     pools:
-      buildFrameHelmMovementPoolsPresentation(
+      buildFrameConnMovementPoolsPresentation(
         snapshot
       ),
 
     tracking:
-      buildFrameHelmMovementTrackingPresentation(
+      buildFrameConnMovementTrackingPresentation(
         snapshot
       ),
 
     ledger:
-      buildFrameHelmMovementLedgerPresentation(
+      buildFrameConnMovementLedgerPresentation(
         snapshot
       ),
 
     segments:
-      buildFrameHelmMovementSegmentsPresentation(
+      buildFrameConnMovementSegmentsPresentation(
         snapshot
       ),
 
     mode:
-      buildFrameHelmMovementModePresentation(
+      buildFrameConnMovementModePresentation(
         snapshot
       ),
 
     status:
-      buildFrameHelmMovementStatusPresentation(
+      buildFrameConnMovementStatusPresentation(
         snapshot
       ),
 
     classes:
-      buildFrameHelmMovementUiClasses(
+      buildFrameConnMovementUiClasses(
         snapshot
       ),
 
     attributes:
-      buildFrameHelmMovementUiDataAttributes(
+      buildFrameConnMovementUiDataAttributes(
         snapshot
       )
   });
@@ -1600,9 +1600,9 @@ function buildFrameHelmMovementUiModel() {
  * Its only command beyond runtime configuration is an explicit
  * request for the Application UI to re-render.
  */
-function refreshFrameHelmMovementUi() {
+function refreshFrameConnMovementUi() {
   return (
-    renderFrameHelmMovementUiApplication(
+    renderFrameConnMovementUiApplication(
       false
     )
   );
@@ -1631,8 +1631,8 @@ function refreshFrameHelmMovementUi() {
  *
  *   styles/ui-registry.css
  */
-export const frameHelmMovementUiFeature =
-  defineFrameHelmFeature({
+export const frameConnMovementUiFeature =
+  defineFrameConnFeature({
     id:
       MOVEMENT_UI_FEATURE_ID,
 
@@ -1666,57 +1666,57 @@ export const frameHelmMovementUiFeature =
 
     commands: {
       configureRuntime:
-        configureFrameHelmMovementUiRuntime,
+        configureFrameConnMovementUiRuntime,
 
       refresh:
-        refreshFrameHelmMovementUi
+        refreshFrameConnMovementUi
     },
 
     queries: {
       currentTurnState:
-        getFrameHelmMovementUiCurrentTurnState,
+        getFrameConnMovementUiCurrentTurnState,
 
       turnSnapshot:
-        getFrameHelmMovementUiTurnSnapshot,
+        getFrameConnMovementUiTurnSnapshot,
 
       movementState:
-        getFrameHelmMovementUiState,
+        getFrameConnMovementUiState,
 
       model:
-        buildFrameHelmMovementUiModel,
+        buildFrameConnMovementUiModel,
 
       budget:
-        buildFrameHelmMovementBudgetPresentation,
+        buildFrameConnMovementBudgetPresentation,
 
       pools:
-        buildFrameHelmMovementPoolsPresentation,
+        buildFrameConnMovementPoolsPresentation,
 
       tracking:
-        buildFrameHelmMovementTrackingPresentation,
+        buildFrameConnMovementTrackingPresentation,
 
       ledger:
-        buildFrameHelmMovementLedgerPresentation,
+        buildFrameConnMovementLedgerPresentation,
 
       segments:
-        buildFrameHelmMovementSegmentsPresentation,
+        buildFrameConnMovementSegmentsPresentation,
 
       mode:
-        buildFrameHelmMovementModePresentation,
+        buildFrameConnMovementModePresentation,
 
       status:
-        buildFrameHelmMovementStatusPresentation,
+        buildFrameConnMovementStatusPresentation,
 
       classes:
-        buildFrameHelmMovementUiClasses,
+        buildFrameConnMovementUiClasses,
 
       attributes:
-        buildFrameHelmMovementUiDataAttributes,
+        buildFrameConnMovementUiDataAttributes,
 
       diagnostics:
-        getFrameHelmMovementUiDiagnostics,
+        getFrameConnMovementUiDiagnostics,
 
       runtimeBindings:
-        getFrameHelmMovementUiRuntimeBindings
+        getFrameConnMovementUiRuntimeBindings
     },
 
     hooks: {},
@@ -1725,63 +1725,63 @@ export const frameHelmMovementUiFeature =
 
     api: {
       configureRuntime:
-        configureFrameHelmMovementUiRuntime,
+        configureFrameConnMovementUiRuntime,
 
       refresh:
-        refreshFrameHelmMovementUi,
+        refreshFrameConnMovementUi,
 
       getCurrentTurnState:
-        getFrameHelmMovementUiCurrentTurnState,
+        getFrameConnMovementUiCurrentTurnState,
 
       getTurnSnapshot:
-        getFrameHelmMovementUiTurnSnapshot,
+        getFrameConnMovementUiTurnSnapshot,
 
       getMovementState:
-        getFrameHelmMovementUiState,
+        getFrameConnMovementUiState,
 
       getModel:
-        buildFrameHelmMovementUiModel,
+        buildFrameConnMovementUiModel,
 
       getBudget:
-        buildFrameHelmMovementBudgetPresentation,
+        buildFrameConnMovementBudgetPresentation,
 
       getPools:
-        buildFrameHelmMovementPoolsPresentation,
+        buildFrameConnMovementPoolsPresentation,
 
       getTracking:
-        buildFrameHelmMovementTrackingPresentation,
+        buildFrameConnMovementTrackingPresentation,
 
       getLedger:
-        buildFrameHelmMovementLedgerPresentation,
+        buildFrameConnMovementLedgerPresentation,
 
       getSegments:
-        buildFrameHelmMovementSegmentsPresentation,
+        buildFrameConnMovementSegmentsPresentation,
 
       getMode:
-        buildFrameHelmMovementModePresentation,
+        buildFrameConnMovementModePresentation,
 
       getStatus:
-        buildFrameHelmMovementStatusPresentation,
+        buildFrameConnMovementStatusPresentation,
 
       getClasses:
-        buildFrameHelmMovementUiClasses,
+        buildFrameConnMovementUiClasses,
 
       getAttributes:
-        buildFrameHelmMovementUiDataAttributes,
+        buildFrameConnMovementUiDataAttributes,
 
       diagnostics:
-        getFrameHelmMovementUiDiagnostics,
+        getFrameConnMovementUiDiagnostics,
 
       runtimeBindings:
-        getFrameHelmMovementUiRuntimeBindings
+        getFrameConnMovementUiRuntimeBindings
     },
 
     metadata: {
       label:
-        "Frame Helm Movement UI",
+        "Frame Conn Movement UI",
 
       description:
-        "Adapts Movement integration and authoritative Turn movement accounting into presentation models consumed by the Frame Helm Application UI.",
+        "Adapts Movement integration and authoritative Turn movement accounting into presentation models consumed by the Frame Conn Application UI.",
 
       domainFeature:
         "scripts/movement-feature.js",
@@ -1828,58 +1828,58 @@ export const frameHelmMovementUiFeature =
  * registered UI feature APIs.
  *
  * New cross-feature consumers should preferably resolve this
- * feature through frameHelmFeatureRegistry.
+ * feature through frameConnFeatureRegistry.
  */
 export {
-  configureFrameHelmMovementUiRuntime,
+  configureFrameConnMovementUiRuntime,
 
-  getFrameHelmMovementUiRuntimeBindings,
+  getFrameConnMovementUiRuntimeBindings,
 
-  getFrameHelmMovementUiMovementApi,
+  getFrameConnMovementUiMovementApi,
 
-  getFrameHelmMovementUiTurnApi,
+  getFrameConnMovementUiTurnApi,
 
-  renderFrameHelmMovementUiApplication,
+  renderFrameConnMovementUiApplication,
 
-  getFrameHelmMovementUiCurrentTurnState,
+  getFrameConnMovementUiCurrentTurnState,
 
-  getFrameHelmMovementUiTurnSnapshot,
+  getFrameConnMovementUiTurnSnapshot,
 
-  getFrameHelmMovementUiState,
+  getFrameConnMovementUiState,
 
-  frameHelmMovementUiNumber,
+  frameConnMovementUiNumber,
 
-  frameHelmMovementUiNonNegativeNumber,
+  frameConnMovementUiNonNegativeNumber,
 
-  frameHelmMovementUiDisplayValue,
+  frameConnMovementUiDisplayValue,
 
-  frameHelmMovementUiDistanceLabel,
+  frameConnMovementUiDistanceLabel,
 
-  buildFrameHelmMovementBudgetPresentation,
+  buildFrameConnMovementBudgetPresentation,
 
-  buildFrameHelmMovementPoolsPresentation,
+  buildFrameConnMovementPoolsPresentation,
 
-  buildFrameHelmMovementTrackingPresentation,
+  buildFrameConnMovementTrackingPresentation,
 
-  buildFrameHelmMovementSegmentPresentation,
+  buildFrameConnMovementSegmentPresentation,
 
-  buildFrameHelmMovementSegmentsPresentation,
+  buildFrameConnMovementSegmentsPresentation,
 
-  buildFrameHelmMovementLedgerPresentation,
+  buildFrameConnMovementLedgerPresentation,
 
-  buildFrameHelmMovementModePresentation,
+  buildFrameConnMovementModePresentation,
 
-  buildFrameHelmMovementStatusPresentation,
+  buildFrameConnMovementStatusPresentation,
 
-  buildFrameHelmMovementUiClasses,
+  buildFrameConnMovementUiClasses,
 
-  buildFrameHelmMovementUiDataAttributes,
+  buildFrameConnMovementUiDataAttributes,
 
-  getFrameHelmMovementUiDomainDiagnostics,
+  getFrameConnMovementUiDomainDiagnostics,
 
-  getFrameHelmMovementUiDiagnostics,
+  getFrameConnMovementUiDiagnostics,
 
-  buildFrameHelmMovementUiModel,
+  buildFrameConnMovementUiModel,
 
-  refreshFrameHelmMovementUi
+  refreshFrameConnMovementUi
 };

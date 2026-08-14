@@ -9,7 +9,7 @@
  * @path main/semantic_event_bus/semantic-event-contract.js
  * @module semantic-event-contract
  * @layer semantic-event-bus-contract
- * @responsibility define-stable-frame-helm-semantic-event-shapes-and-event-vocabulary
+ * @responsibility define-stable-frame-conn-semantic-event-shapes-and-event-vocabulary
  * @public-boundary true
  * @side-effects none
  *
@@ -23,7 +23,7 @@
  * - actor_owned_feature_registry/*
  * - future system_bridge/*
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - execution_transaction/ supplies execution lifecycle boundaries
  * - semantic_execution_context/ supplies execution/source/actor lineage
  * - resource_service/ may emit resource semantic events
@@ -485,7 +485,7 @@ function createEventId() {
       .randomUUID();
   }
   return (
-    `fh-event-${Date.now()}-` +
+    `fc-event-${Date.now()}-` +
     Math.random()
       .toString(36)
       .slice(2)
@@ -1660,10 +1660,10 @@ export function createExecutionPartialEvent(
  * without collapsing event and execution identities.
  */
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * execution_transaction/
  * ----------------------

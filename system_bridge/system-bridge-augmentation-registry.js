@@ -17,9 +17,9 @@
  * @depends-on
  * - system-bridge-contract
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - stores only supplemental runtime metadata
- * - existing Frame Helm registry remains unchanged
+ * - existing Frame Conn registry remains unchanged
  * - actor_owned_feature_registry/ remains unchanged
  * - system-bridge-resolver.js queries this registry during source resolution
  * - system-bridge-composer.js decides whether matched augmentation fields are
@@ -72,7 +72,7 @@ import {
    ============================================================ */
 
 export const SYSTEM_BRIDGE_AUGMENTATION_REGISTRY_MODULE_ID =
-  "lancer-frame-helm.system-bridge-augmentation-registry";
+  "lancer-frame-conn.system-bridge-augmentation-registry";
 
 export const SYSTEM_BRIDGE_AUGMENTATION_REGISTRY_MODULE_VERSION =
   1;
@@ -2034,7 +2034,7 @@ export function getSerializableSystemBridgeAugmentationRegistry() {
 /**
  * @section existing-registry-rule
  *
- * Universal/existing Frame Helm actions may be matched by:
+ * Universal/existing Frame Conn actions may be matched by:
  *
  * registryId
  *
@@ -2093,7 +2093,7 @@ export function getSerializableSystemBridgeAugmentationRegistry() {
 /**
  * @section execution-data-rule
  *
- * augmentation.patch.execution may identify supplemental Frame Helm
+ * augmentation.patch.execution may identify supplemental Frame Conn
  * execution behavior.
  *
  * It must not store arbitrary runtime closures/functions.
@@ -2103,7 +2103,7 @@ export function getSerializableSystemBridgeAugmentationRegistry() {
  * Example:
  *
  * supplementalExecutionId:
- * "frame-helm.weapon-special.nanite-rupture"
+ * "frame-conn.weapon-special.nanite-rupture"
  */
 
 /* ============================================================
@@ -2202,13 +2202,13 @@ export function getSystemBridgeAugmentationRegistryDiagnostics() {
 }
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
- * existing Frame Helm registry
+ * existing Frame Conn registry
  * ----------------------------
  *
  * Remains untouched.
@@ -2281,7 +2281,7 @@ export function getSystemBridgeAugmentationRegistryDiagnostics() {
  * system-bridge-augmentation-registry.js stores supplemental data only.
  *
  * INVARIANT 2
- * Augmentation registration never mutates existing Frame Helm registry
+ * Augmentation registration never mutates existing Frame Conn registry
  * entries.
  *
  * INVARIANT 3

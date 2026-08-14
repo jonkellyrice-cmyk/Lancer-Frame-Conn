@@ -16,7 +16,7 @@
  *
  * @depends-on native-contract
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - extends/generalizes item access currently performed through
  *   foundry-integration-feature.js and feature-specific code
  * - consumed by native-adapter.js
@@ -29,7 +29,7 @@
  * EXISTING ARCHITECTURE PRESERVED:
  * - feature-contract.js remains semantic feature/action authority
  * - feature-registry.js / feature-registry-core.js remain declared
- *   Frame Helm feature registries
+ *   Frame Conn feature registries
  * - runtime-orchestrator.js remains high-level coordinator
  * - native-contract.js remains the stable outward contract
  *
@@ -1892,11 +1892,11 @@ export function getNativeItemAvailabilitySnapshot(
 }
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * foundry-integration-feature.js
  * ------------------------------
@@ -1918,7 +1918,7 @@ export function getNativeItemAvailabilitySnapshot(
  *
  * feature-registry.js / feature-registry-core.js
  * ------------------------------------------------
- * Remain the declared Frame Helm registry.
+ * Remain the declared Frame Conn registry.
  *
  * actor_owned_feature_registry/
  * should use native-items.js to discover runtime Item features such as:
@@ -1930,7 +1930,7 @@ export function getNativeItemAvailabilitySnapshot(
  * - Weapon actions
  *
  * It then normalizes those into the same runtime action catalog used by
- * declared Frame Helm features.
+ * declared Frame Conn features.
  *
  *
  * runtime-orchestrator.js
@@ -2039,7 +2039,7 @@ export function getNativeItemAvailabilitySnapshot(
  * Native Flow execution belongs in native-execution.js.
  *
  * INVARIANT 13
- * Unknown/custom LCP Items remain readable even without a Frame Helm
+ * Unknown/custom LCP Items remain readable even without a Frame Conn
  * bespoke execution strategy.
  *
  * INVARIANT 14

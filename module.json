@@ -1,5 +1,5 @@
 {
-  "id": "lancer-frame-helm",
+  "id": "lancer-frame-conn",
   "title": "Frame Conn",
   "description": "A tactical action-selection HUD for Lancer mech and NPC turns.",
   "version": "0.9.3",

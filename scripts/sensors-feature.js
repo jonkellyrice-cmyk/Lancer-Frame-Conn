@@ -8,11 +8,11 @@
 
 /**
  * ============================================================
- * FRAME HELM -- SENSOR CONTACTS FEATURE
+ * FRAME CONN -- SENSOR CONTACTS FEATURE
  * ============================================================
  *
  * ROLE:
- *   Owns Frame Helm's sensor-contact gameplay/domain behavior.
+ *   Owns Frame Conn's sensor-contact gameplay/domain behavior.
  *
  * RESPONSIBILITIES:
  *   - Determine the current sensor-source token.
@@ -32,7 +32,7 @@
  *   - Sensor-contact typography.
  *   - Sensor-contact marker geometry.
  *   - Canvas presentation-layer lifecycle.
- *   - Frame Helm application rendering.
+ *   - Frame Conn application rendering.
  *   - Actor telemetry synchronization.
  *   - Turn state.
  *   - Movement tracking.
@@ -68,13 +68,13 @@
  */
 
 import {
-  defineFrameHelmFeature
+  defineFrameConnFeature
 } from "./feature-contract.js";
 
 import {
-  renderFrameHelmSensorContacts,
-  destroyFrameHelmSensorContacts,
-  getFrameHelmSensorLayer
+  renderFrameConnSensorContacts,
+  destroyFrameConnSensorContacts,
+  getFrameConnSensorLayer
 } from "../styles/ui-sensors.js";
 
 
@@ -83,14 +83,14 @@ import {
    ============================================================ */
 
 const MODULE_TITLE =
-  "Lancer: Frame Helm";
+  "Frame Conn";
 
 
 /* ============================================================
    Sensor-distance measurement
    ============================================================ */
 
-function frameHelmSensorDistance(
+function frameConnSensorDistance(
   sourceToken,
   targetToken
 ) {
@@ -201,7 +201,7 @@ function frameHelmSensorDistance(
    Sensor-source resolution
    ============================================================ */
 
-function frameHelmSensorSourceToken() {
+function frameConnSensorSourceToken() {
   const controlled =
     canvas?.tokens?.controlled ??
     [];
@@ -232,9 +232,9 @@ function frameHelmSensorSourceToken() {
  * The Sensors domain decides WHO qualifies as a contact.
  * The Sensors UI decides HOW that contact looks.
  */
-function getFrameHelmSensorContacts() {
+function getFrameConnSensorContacts() {
   const sourceToken =
-    frameHelmSensorSourceToken();
+    frameConnSensorSourceToken();
 
   const sensorRange =
     Number(
@@ -277,7 +277,7 @@ function getFrameHelmSensorContacts() {
     }
 
     const distance =
-      frameHelmSensorDistance(
+      frameConnSensorDistance(
         sourceToken,
         token
       );
@@ -331,19 +331,19 @@ function getFrameHelmSensorContacts() {
 /**
  * Coordinates domain discovery with UI rendering.
  */
-function refreshFrameHelmSensorContacts() {
+function refreshFrameConnSensorContacts() {
   if (
     !canvas?.ready ||
     !canvas?.interface
   ) {
-    destroyFrameHelmSensorContacts();
+    destroyFrameConnSensorContacts();
     return;
   }
 
   const contacts =
-    getFrameHelmSensorContacts();
+    getFrameConnSensorContacts();
 
-  renderFrameHelmSensorContacts(
+  renderFrameConnSensorContacts(
     contacts
   );
 }
@@ -353,38 +353,38 @@ function refreshFrameHelmSensorContacts() {
    Sensor-domain Foundry hook handlers
    ============================================================ */
 
-function handleFrameHelmCanvasReady() {
-  refreshFrameHelmSensorContacts();
+function handleFrameConnCanvasReady() {
+  refreshFrameConnSensorContacts();
 }
 
 
-function handleFrameHelmCanvasPan() {
-  refreshFrameHelmSensorContacts();
+function handleFrameConnCanvasPan() {
+  refreshFrameConnSensorContacts();
 }
 
 
-function handleFrameHelmCreateToken() {
-  refreshFrameHelmSensorContacts();
+function handleFrameConnCreateToken() {
+  refreshFrameConnSensorContacts();
 }
 
 
-function handleFrameHelmDeleteToken() {
-  refreshFrameHelmSensorContacts();
+function handleFrameConnDeleteToken() {
+  refreshFrameConnSensorContacts();
 }
 
 
-function handleFrameHelmRefreshToken() {
-  refreshFrameHelmSensorContacts();
+function handleFrameConnRefreshToken() {
+  refreshFrameConnSensorContacts();
 }
 
 
-function handleFrameHelmSightRefresh() {
-  refreshFrameHelmSensorContacts();
+function handleFrameConnSightRefresh() {
+  refreshFrameConnSensorContacts();
 }
 
 
-function handleFrameHelmControlToken() {
-  refreshFrameHelmSensorContacts();
+function handleFrameConnControlToken() {
+  refreshFrameConnSensorContacts();
 }
 
 
@@ -392,8 +392,8 @@ function handleFrameHelmControlToken() {
    Sensor feature definition
    ============================================================ */
 
-export const frameHelmSensorsFeature =
-  defineFrameHelmFeature({
+export const frameConnSensorsFeature =
+  defineFrameConnFeature({
     id:
       "sensors",
 
@@ -414,69 +414,69 @@ export const frameHelmSensorsFeature =
 
     commands: {
       refresh:
-        refreshFrameHelmSensorContacts,
+        refreshFrameConnSensorContacts,
 
       destroy:
-        destroyFrameHelmSensorContacts
+        destroyFrameConnSensorContacts
     },
 
     queries: {
       getLayer:
-        getFrameHelmSensorLayer,
+        getFrameConnSensorLayer,
 
       getSourceToken:
-        frameHelmSensorSourceToken,
+        frameConnSensorSourceToken,
 
       getContacts:
-        getFrameHelmSensorContacts,
+        getFrameConnSensorContacts,
 
       distance:
-        frameHelmSensorDistance
+        frameConnSensorDistance
     },
 
     hooks: {
       canvasReady:
-        handleFrameHelmCanvasReady,
+        handleFrameConnCanvasReady,
 
       canvasPan:
-        handleFrameHelmCanvasPan,
+        handleFrameConnCanvasPan,
 
       createToken:
-        handleFrameHelmCreateToken,
+        handleFrameConnCreateToken,
 
       deleteToken:
-        handleFrameHelmDeleteToken,
+        handleFrameConnDeleteToken,
 
       refreshToken:
-        handleFrameHelmRefreshToken,
+        handleFrameConnRefreshToken,
 
       sightRefresh:
-        handleFrameHelmSightRefresh,
+        handleFrameConnSightRefresh,
 
       controlToken:
-        handleFrameHelmControlToken
+        handleFrameConnControlToken
     },
 
     lifecycle: {},
 
     api: {
       refresh:
-        refreshFrameHelmSensorContacts,
+        refreshFrameConnSensorContacts,
 
       destroy:
-        destroyFrameHelmSensorContacts,
+        destroyFrameConnSensorContacts,
 
       getLayer:
-        getFrameHelmSensorLayer,
+        getFrameConnSensorLayer,
 
       getSourceToken:
-        frameHelmSensorSourceToken,
+        frameConnSensorSourceToken,
 
       getContacts:
-        getFrameHelmSensorContacts,
+        getFrameConnSensorContacts,
 
       distance:
-        frameHelmSensorDistance
+        frameConnSensorDistance
     },
 
     metadata: {
@@ -506,9 +506,9 @@ export const frameHelmSensorsFeature =
    ============================================================ */
 
 export {
-  refreshFrameHelmSensorContacts,
-  destroyFrameHelmSensorContacts as frameHelmDestroySensorLayer,
-  frameHelmSensorDistance,
-  frameHelmSensorSourceToken,
-  getFrameHelmSensorContacts
+  refreshFrameConnSensorContacts,
+  destroyFrameConnSensorContacts as frameConnDestroySensorLayer,
+  frameConnSensorDistance,
+  frameConnSensorSourceToken,
+  getFrameConnSensorContacts
 };

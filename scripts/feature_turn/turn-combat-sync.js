@@ -9,11 +9,11 @@
 
 /**
  * ============================================================
- * FRAME HELM TURN -- COMBAT SYNCHRONIZATION
+ * FRAME CONN TURN -- COMBAT SYNCHRONIZATION
  * ============================================================
  *
  * ROLE:
- *   Owns synchronization between the canonical Frame Helm Turn
+ *   Owns synchronization between the canonical Frame Conn Turn
  *   state and Foundry's active Combat state.
  *
  * PURPOSE:
@@ -25,14 +25,14 @@
  * OWNS:
  *   - Active Foundry combat-turn context resolution.
  *   - Combat/Turn identity comparison.
- *   - Frame Helm Turn synchronization with active combat.
+ *   - Frame Conn Turn synchronization with active combat.
  *   - Combat-start handling.
  *   - Combat-update handling.
  *   - Combat-deletion handling.
  *
  * DOES NOT OWN:
- *   - FrameHelmTurnState.
- *   - FrameHelmTurnStateManager implementation.
+ *   - FrameConnTurnState.
+ *   - FrameConnTurnStateManager implementation.
  *   - Canonical Turn-manager construction.
  *   - Turn runtime bindings.
  *   - Action registry ownership.
@@ -49,7 +49,7 @@
  *        ▼
  *   turn-state-manager.js
  *        │
- *        │ frameHelmTurnState
+ *        │ frameConnTurnState
  *        ▼
  *   turn-combat-sync.js
  *        │
@@ -69,25 +69,25 @@
  *     Hooks.on(...)
  *
  *   Hook installation remains owned by the canonical
- *   FrameHelmFeatureRegistry.
+ *   FrameConnFeatureRegistry.
  *
  *   turn-feature.js should expose these handlers through its
  *   feature definition:
  *
  *     hooks: {
  *       combatStart:
- *         handleFrameHelmCombatStart,
+ *         handleFrameConnCombatStart,
  *
  *       updateCombat:
- *         handleFrameHelmCombatUpdate,
+ *         handleFrameConnCombatUpdate,
  *
  *       deleteCombat:
- *         handleFrameHelmCombatDelete
+ *         handleFrameConnCombatDelete
  *     }
  *
  * SYNCHRONIZATION CONTRACT:
  *
- *   Frame Helm creates a new Turn state when any canonical combat
+ *   Frame Conn creates a new Turn state when any canonical combat
  *   identity field changes:
  *
  *     - combat id
@@ -96,10 +96,10 @@
  *     - turn
  *
  *   If the active combat identity has not changed, the existing
- *   FrameHelmTurnState remains authoritative.
+ *   FrameConnTurnState remains authoritative.
  *
  *   If combat is absent, stopped, or has no active combatant, the
- *   canonical Frame Helm Turn state is cleared.
+ *   canonical Frame Conn Turn state is cleared.
  */
 
 
@@ -108,7 +108,7 @@
    ============================================================ */
 
 import {
-  frameHelmTurnState
+  frameConnTurnState
 } from "./turn-state-manager.js";
 
 
@@ -117,11 +117,11 @@ import {
    ============================================================ */
 
 /**
- * Produces the canonical Frame Helm context for the currently
+ * Produces the canonical Frame Conn context for the currently
  * active Foundry combat turn.
  *
  * The returned object contains only the identity and initial state
- * required to construct/synchronize a FrameHelmTurnState.
+ * required to construct/synchronize a FrameConnTurnState.
  */
 function activeCombatTurnContext(
   combat = game.combat
@@ -199,7 +199,7 @@ function activeCombatTurnContext(
    ============================================================ */
 
 /**
- * Returns whether the current Frame Helm Turn state already
+ * Returns whether the current Frame Conn Turn state already
  * represents the supplied Foundry combat-turn context.
  *
  * Token and actor identity are intentionally not required for the
@@ -212,7 +212,7 @@ function activeCombatTurnContext(
  *
  * This preserves the existing turn-feature.js behavior.
  */
-function frameHelmTurnMatchesCombatContext(
+function frameConnTurnMatchesCombatContext(
   currentState,
   context
 ) {
@@ -241,24 +241,24 @@ function frameHelmTurnMatchesCombatContext(
    ============================================================ */
 
 /**
- * Synchronizes the canonical Frame Helm Turn manager with a
+ * Synchronizes the canonical Frame Conn Turn manager with a
  * Foundry Combat.
  *
  * Behavior:
  *
  *   no active combat
  *       ↓
- *   clear Frame Helm Turn
+ *   clear Frame Conn Turn
  *
  *
  *   same combat turn
  *       ↓
- *   preserve current Frame Helm Turn
+ *   preserve current Frame Conn Turn
  *
  *
  *   new combat turn
  *       ↓
- *   begin a new Frame Helm Turn using combat context
+ *   begin a new Frame Conn Turn using combat context
  */
 function syncTurnStateToCombat(
   combat = game.combat
@@ -267,7 +267,7 @@ function syncTurnStateToCombat(
     !combat?.started ||
     !combat.combatant
   ) {
-    frameHelmTurnState.clear();
+    frameConnTurnState.clear();
 
 
     return null;
@@ -281,19 +281,19 @@ function syncTurnStateToCombat(
 
 
   if (
-    frameHelmTurnMatchesCombatContext(
-      frameHelmTurnState.current,
+    frameConnTurnMatchesCombatContext(
+      frameConnTurnState.current,
       context
     )
   ) {
     return (
-      frameHelmTurnState.current
+      frameConnTurnState.current
     );
   }
 
 
   return (
-    frameHelmTurnState.beginTurn(
+    frameConnTurnState.beginTurn(
       context
     )
   );
@@ -305,9 +305,9 @@ function syncTurnStateToCombat(
    ============================================================ */
 
 /**
- * Synchronizes Frame Helm immediately when Foundry starts combat.
+ * Synchronizes Frame Conn immediately when Foundry starts combat.
  */
-function handleFrameHelmCombatStart(
+function handleFrameConnCombatStart(
   combat
 ) {
   return (
@@ -329,7 +329,7 @@ function handleFrameHelmCombatStart(
  * Unrelated Combat document updates do not trigger Turn
  * synchronization.
  */
-function handleFrameHelmCombatUpdate(
+function handleFrameConnCombatUpdate(
   combat,
   changes
 ) {
@@ -379,16 +379,16 @@ function handleFrameHelmCombatUpdate(
    ============================================================ */
 
 /**
- * Clears the canonical Frame Helm Turn when the Foundry Combat
+ * Clears the canonical Frame Conn Turn when the Foundry Combat
  * currently represented by that Turn is deleted.
  *
  * Deleting an unrelated Combat leaves the current Turn untouched.
  */
-function handleFrameHelmCombatDelete(
+function handleFrameConnCombatDelete(
   combat
 ) {
   if (
-    frameHelmTurnState
+    frameConnTurnState
       .current
       ?.context
       ?.combatId !==
@@ -399,7 +399,7 @@ function handleFrameHelmCombatDelete(
 
 
   return (
-    frameHelmTurnState.clear()
+    frameConnTurnState.clear()
   );
 }
 
@@ -411,13 +411,13 @@ function handleFrameHelmCombatDelete(
 export {
   activeCombatTurnContext,
 
-  frameHelmTurnMatchesCombatContext,
+  frameConnTurnMatchesCombatContext,
 
   syncTurnStateToCombat,
 
-  handleFrameHelmCombatStart,
+  handleFrameConnCombatStart,
 
-  handleFrameHelmCombatUpdate,
+  handleFrameConnCombatUpdate,
 
-  handleFrameHelmCombatDelete
+  handleFrameConnCombatDelete
 };

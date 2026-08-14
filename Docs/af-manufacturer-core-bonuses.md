@@ -53,13 +53,13 @@ const content = String.raw`# Lancer Core Bonuses — Native Repository Integrati
 
 **Potential bespoke native representation for some loadout-altering Core Bonuses:** Found in surrounding loadout/import architecture and requires source-specific tracing.
 
-**Frame Helm requirement:** Treat Core Bonuses as first-class Pilot-owned feature sources. Preserve all native structured bonuses/actions/counters/synergies/integrated/deployable data, reuse native bonus and ActivationFlow infrastructure where it works, and supply the missing generalized frequency, trigger, lifecycle, granted-action, persistent configuration, and source-specific runtime behavior.
+**Frame Conn requirement:** Treat Core Bonuses as first-class Pilot-owned feature sources. Preserve all native structured bonuses/actions/counters/synergies/integrated/deployable data, reuse native bonus and ActivationFlow infrastructure where it works, and supply the missing generalized frequency, trigger, lifecycle, granted-action, persistent configuration, and source-specific runtime behavior.
 
 —
 
 # 1. Purpose
 
-This document records the native Foundry Lancer architecture for Pilot Core Bonuses and defines the intended Frame Helm integration boundary.
+This document records the native Foundry Lancer architecture for Pilot Core Bonuses and defines the intended Frame Conn integration boundary.
 
 Core Bonuses are not merely passive text.
 
@@ -83,7 +83,7 @@ The central finding is:
 
 Therefore:
 
-> Frame Helm should not recreate Core Bonus definitions. It should operationalize the structured data the native system already has and supply only the missing runtime layer.
+> Frame Conn should not recreate Core Bonus definitions. It should operationalize the structured data the native system already has and supply only the missing runtime layer.
 
 —
 
@@ -98,7 +98,7 @@ PILOT
 
 The Pilot actor’s actual Core Bonus items are authoritative.
 
-Frame Helm should not create duplicate module-local Core Bonus definitions.
+Frame Conn should not create duplicate module-local Core Bonus definitions.
 
 —
 
@@ -180,7 +180,7 @@ system: {
 }
 \`\`\`
 
-Frame Helm should strongly prefer this structured data over prose parsing.
+Frame Conn should strongly prefer this structured data over prose parsing.
 
 —
 
@@ -224,7 +224,7 @@ Neurolink Targeting
 
 If the imported Core Bonus encodes these as BonusData:
 
-Frame Helm should not manually reproduce them.
+Frame Conn should not manually reproduce them.
 
 —
 
@@ -232,7 +232,7 @@ Frame Helm should not manually reproduce them.
 
 Wrong:
 
-Frame Helm reads:
+Frame Conn reads:
 “+2 Evasion”
 
 → manually alters Evasion
@@ -246,7 +246,7 @@ Correct:
 
 native BonusData remains authoritative.
 
-Frame Helm only supplements rules not already represented/consumed structurally.
+Frame Conn only supplements rules not already represented/consumed structurally.
 
 —
 
@@ -293,7 +293,7 @@ It does not normally expose the rich underlying:
 - deployables;
 - integrated items.
 
-Frame Helm can substantially improve usability merely by surfacing the already-existing structured mechanics.
+Frame Conn can substantially improve usability merely by surfacing the already-existing structured mechanics.
 
 —
 
@@ -339,7 +339,7 @@ It does not:
 
 # 13. Core Bonus Chat Is Not Core Bonus Execution
 
-Frame Helm should preserve the distinction between:
+Frame Conn should preserve the distinction between:
 
 Show in Chat
 
@@ -371,7 +371,7 @@ Therefore a Core Bonus can structurally grant:
 - Tech actions;
 - other supported activation types.
 
-Frame Helm should discover these actions.
+Frame Conn should discover these actions.
 
 —
 
@@ -379,7 +379,7 @@ Frame Helm should discover these actions.
 
 Where a structured Core Bonus action is adequately handled by generic native ActivationFlow:
 
-Frame Helm can conceptually invoke:
+Frame Conn can conceptually invoke:
 
 \`coreBonus.beginActivationFlow(“system.actions.0”)\`.
 
@@ -414,7 +414,7 @@ Possible structured values include:
 - 1/Encounter;
 - 1/Mission.
 
-This should feed the same generalized Frame Helm frequency tracker used by:
+This should feed the same generalized Frame Conn frequency tracker used by:
 
 - Frame Traits;
 - Talents;
@@ -433,7 +433,7 @@ Therefore:
 
 does not itself guarantee that native Foundry prevents a second activation in the same round.
 
-Frame Helm must supply that missing use-tracking layer.
+Frame Conn must supply that missing use-tracking layer.
 
 —
 
@@ -453,7 +453,7 @@ Reaction:
 1/round:
 → source-use limitation.
 
-Frame Helm must validate both independently.
+Frame Conn must validate both independently.
 
 —
 
@@ -485,7 +485,7 @@ Because Core Bonuses inherit the shared mechanical item template, they can own m
 
 These use the same native CounterData concept traced for Talents.
 
-Frame Helm should reuse the shared native counter adapter where Core Bonus content uses counters.
+Frame Conn should reuse the shared native counter adapter where Core Bonus content uses counters.
 
 —
 
@@ -495,7 +495,7 @@ If a Core Bonus defines a native counter:
 
 use it.
 
-Do not create duplicate Frame Helm state merely because the Core Bonus needs a resource.
+Do not create duplicate Frame Conn state merely because the Core Bonus needs a resource.
 
 Suggested resource hierarchy:
 
@@ -503,7 +503,7 @@ Suggested resource hierarchy:
 2. native CounterData;
 3. ActionData frequency;
 4. native status/effect;
-5. supplemental Frame Helm state only when none of those model the mechanic.
+5. supplemental Frame Conn state only when none of those model the mechanic.
 
 —
 
@@ -523,7 +523,7 @@ These may encode structured interaction with:
 - movement;
 - other semantic locations.
 
-Frame Helm should preserve synergies in feature normalization.
+Frame Conn should preserve synergies in feature normalization.
 
 —
 
@@ -539,7 +539,7 @@ structured synergy
 → consume natively where an existing native subsystem already recognizes it
 
 otherwise:
-→ Frame Helm trigger/event layer supplies missing orchestration.
+→ Frame Conn trigger/event layer supplies missing orchestration.
 
 —
 
@@ -551,7 +551,7 @@ Core Bonuses can contain:
 
 Unlike Talent integrated entries, these are top-level Core Bonus data and therefore easier to discover directly.
 
-Frame Helm should preserve source lineage when exposing integrated equipment.
+Frame Conn should preserve source lineage when exposing integrated equipment.
 
 —
 
@@ -561,7 +561,7 @@ Generic native document utilities inspect integrated item references.
 
 Therefore Core Bonus-integrated equipment has meaningful native plumbing.
 
-Frame Helm should not automatically duplicate integrated gear.
+Frame Conn should not automatically duplicate integrated gear.
 
 First resolve whether the native actor/loadout already contains or derives it.
 
@@ -573,7 +573,7 @@ Core Bonuses can contain:
 
 \`system.deployables[]\`.
 
-Frame Helm should reuse native deployable representation and eventual deployable placement flows where available.
+Frame Conn should reuse native deployable representation and eventual deployable placement flows where available.
 
 Do not create Core Bonus-specific token-placement mechanics.
 
@@ -583,7 +583,7 @@ Do not create Core Bonus-specific token-placement mechanics.
 
 Core Bonuses can contain structured tags.
 
-These should remain available to native or Frame Helm rules resolution where relevant.
+These should remain available to native or Frame Conn rules resolution where relevant.
 
 Do not discard tags during normalization.
 
@@ -634,7 +634,7 @@ Examples include:
 
 These are different from normal combat-time action execution.
 
-Frame Helm needs a reusable feature-configuration layer.
+Frame Conn needs a reusable feature-configuration layer.
 
 —
 
@@ -749,7 +749,7 @@ Improved Armament changes the mech’s mount configuration.
 
 The native loadout/import architecture contains concepts related to special mount alterations.
 
-Therefore this Core Bonus should receive a dedicated source-level trace before Frame Helm attempts to implement it independently.
+Therefore this Core Bonus should receive a dedicated source-level trace before Frame Conn attempts to implement it independently.
 
 —
 
@@ -784,7 +784,7 @@ For Core Bonuses that change:
 - integrated mount;
 - weapon installation;
 
-Frame Helm should prefer native loadout fields/helpers if they exist.
+Frame Conn should prefer native loadout fields/helpers if they exist.
 
 Do not model these as combat-time status effects.
 
@@ -823,7 +823,7 @@ Do not recreate Stabilize.
 
 # 44. Adaptive Reactor Requires Flow Result Context
 
-Frame Helm needs enough semantic information from Stabilize to know:
+Frame Conn needs enough semantic information from Stabilize to know:
 
 - Stabilize executed;
 - Cool selected;
@@ -849,7 +849,7 @@ These two halves belong to different subsystems.
 
 The Engineering Accuracy portion should use native BonusData if encoded structurally.
 
-Frame Helm should not duplicate it.
+Frame Conn should not duplicate it.
 
 —
 
@@ -903,7 +903,7 @@ Before implementation:
 - determine whether native Overcharge already recognizes this bonus.
 
 If yes:
-→ Frame Helm does nothing beyond preserving native data.
+→ Frame Conn does nothing beyond preserving native data.
 
 If no:
 → supplement native Overcharge adapter with Core Bonus-derived cap.
@@ -930,7 +930,7 @@ do not manually alter item maxima.
 
 If it does not:
 
-Frame Helm should modify effective Limited maximum through the native item/loadout adapter, not create a parallel charge counter.
+Frame Conn should modify effective Limited maximum through the native item/loadout adapter, not create a parallel charge counter.
 
 —
 
@@ -986,7 +986,7 @@ These again belong to different layers.
 
 The Heat Cap increase should be native BonusData if structurally encoded.
 
-Frame Helm should leave it alone if native bonus machinery already applies it.
+Frame Conn should leave it alone if native bonus machinery already applies it.
 
 —
 
@@ -1200,7 +1200,7 @@ This is the easy case:
 
 native BonusData.
 
-No active Frame Helm behavior should be added if already structured.
+No active Frame Conn behavior should be added if already structured.
 
 —
 
@@ -1243,7 +1243,7 @@ next turn start:
 
 Native Invisible handles attack miss chance.
 
-Frame Helm owns lifecycle.
+Frame Conn owns lifecycle.
 
 —
 
@@ -1259,7 +1259,7 @@ If native structured Synergy/BonusData already handles it:
 
 reuse native.
 
-Otherwise Frame Helm supplies a Boost modifier.
+Otherwise Frame Conn supplies a Boost modifier.
 
 —
 
@@ -1304,7 +1304,7 @@ This affects:
 
 Native bonus/loadout data may cover Size.
 
-Frame Helm rules layer may need to enforce the immunity/forced-movement components.
+Frame Conn rules layer may need to enforce the immunity/forced-movement components.
 
 —
 
@@ -1409,7 +1409,7 @@ CoreActiveFlow succeeds
    native d20 roll
    if 20:
       core_energy = 1
-→ native/Frame Helm chat result.
+→ native/Frame Conn chat result.
 
 Do not replace CoreActiveFlow.
 
@@ -1417,7 +1417,7 @@ Do not replace CoreActiveFlow.
 
 # 85. Core Bonus Event Hooks
 
-The examples establish several high-value semantic events Frame Helm should eventually expose:
+The examples establish several high-value semantic events Frame Conn should eventually expose:
 
 - Overcharge completed;
 - Stabilize completed with selected option;
@@ -1486,7 +1486,7 @@ Scopes include:
 
 # 89. Triggered Feature Usage Identity
 
-For a Core Bonus with an implicit triggered feature not represented as a direct ActionData entry, Frame Helm may need a stable synthetic runtime key.
+For a Core Bonus with an implicit triggered feature not represented as a direct ActionData entry, Frame Conn may need a stable synthetic runtime key.
 
 Conceptually:
 
@@ -1504,7 +1504,7 @@ Do not key merely by display string.
 
 # 90. Core Bonus Action Discovery
 
-Frame Helm should inspect every owned Core Bonus for:
+Frame Conn should inspect every owned Core Bonus for:
 
 - actions[];
 - bonuses[];
@@ -1714,7 +1714,7 @@ Examples may include:
 - superheavy mounting;
 - mount replacement.
 
-Frame Helm must distinguish:
+Frame Conn must distinguish:
 
 definition source
 
@@ -1760,7 +1760,7 @@ Examples:
 
 If native BonusData works:
 
-Frame Helm should merely present/reference them.
+Frame Conn should merely present/reference them.
 
 —
 
@@ -1788,7 +1788,7 @@ Example:
 Adaptive Reactor:
 “you may spend 2 Repairs...”
 
-Frame Helm should prompt rather than automatically spend resources.
+Frame Conn should prompt rather than automatically spend resources.
 
 —
 
@@ -1804,7 +1804,7 @@ Source-specific rule determines optional vs automatic.
 
 # 110. Persistent Configured Core Bonuses
 
-Selected-mount/weapon effects should be visible in Frame Helm configuration/state.
+Selected-mount/weapon effects should be visible in Frame Conn configuration/state.
 
 Example:
 
@@ -1826,7 +1826,7 @@ If loadout changes:
 - selected weapon may be removed;
 - selected item UUID may become invalid.
 
-Frame Helm should revalidate configured Core Bonus targets.
+Frame Conn should revalidate configured Core Bonus targets.
 
 Do not silently apply a bonus to the wrong replacement item.
 
@@ -1870,7 +1870,7 @@ Exact schema is illustrative.
 
 The native bonus engine already understands how Pilot-owned Core Bonus BonusData affects the relevant Mech calculations.
 
-Frame Helm should leverage that rather than copying bonus values onto the Mech document.
+Frame Conn should leverage that rather than copying bonus values onto the Mech document.
 
 —
 
@@ -1880,7 +1880,7 @@ Core Bonuses are acquired through Pilot advancement/license rules.
 
 The owned Core Bonus item is sufficient runtime evidence that the Pilot has the feature.
 
-Frame Helm does not need to revalidate manufacturer-license eligibility during ordinary combat use.
+Frame Conn does not need to revalidate manufacturer-license eligibility during ordinary combat use.
 
 —
 
@@ -1910,7 +1910,7 @@ This same runtime should serve:
 
 # 117. Native State First Principle
 
-Before adding Frame Helm state for a Core Bonus mechanic, search for:
+Before adding Frame Conn state for a Core Bonus mechanic, search for:
 
 - native BonusData;
 - native CounterData;
@@ -2137,7 +2137,7 @@ Only create supplemental state where native state does not exist.
 
 - [ ] owned Core Bonus discovered.
 - [ ] static BonusData applies natively.
-- [ ] Frame Helm does not duplicate it.
+- [ ] Frame Conn does not duplicate it.
 - [ ] Core Bonus appears in feature presentation.
 - [ ] Show in Chat uses native SimpleTextFlow if desired.
 
@@ -2162,7 +2162,7 @@ Only create supplemental state where native state does not exist.
 - [ ] current/min/max values correct.
 - [ ] mutation persists.
 - [ ] UI refreshes.
-- [ ] no duplicate Frame Helm resource created.
+- [ ] no duplicate Frame Conn resource created.
 
 —
 
@@ -2331,7 +2331,7 @@ Core Bonus source data, action economy, frequency, resources, configuration, and
 
 **Invariant 18**
 
-Frame Helm should operationalize native Core Bonus data, not create a parallel Core Bonus rules database.
+Frame Conn should operationalize native Core Bonus data, not create a parallel Core Bonus rules database.
 
 —
 
@@ -2364,7 +2364,7 @@ PILOT
     │   └── SimpleTextFlow
     │       └── effect text only
     │
-    ├── FRAME HELM ACTOR-OWNED FEATURE REGISTRY
+    ├── FRAME CONN ACTOR-OWNED FEATURE REGISTRY
     │   ├── source Pilot
     │   ├── Core Bonus UUID
     │   ├── structured actions
@@ -2374,7 +2374,7 @@ PILOT
     │   ├── integrated/deployables
     │   └── execution strategy
     │
-    ├── FRAME HELM SHARED RUNTIME
+    ├── FRAME CONN SHARED RUNTIME
     │   ├── frequency tracker
     │   │   ├── 1/turn
     │   │   ├── 1/round
@@ -2443,7 +2443,7 @@ PILOT
 
 The critical architectural rule is:
 
-**Core Bonuses are not missing from native Lancer; their definitions and much of their structured mechanical data are already there. What is missing is the generalized runtime that makes the conditional parts come alive. Frame Helm should preserve native static bonuses and item state, then supply frequency tracking, semantic triggers, temporary-effect lifecycle, persistent configuration, granted actions, and source-specific orchestration using the same shared actor-owned feature framework already needed by Mech Traits and Pilot Talents.**
+**Core Bonuses are not missing from native Lancer; their definitions and much of their structured mechanical data are already there. What is missing is the generalized runtime that makes the conditional parts come alive. Frame Conn should preserve native static bonuses and item state, then supply frequency tracking, semantic triggers, temporary-effect lifecycle, persistent configuration, granted actions, and source-specific orchestration using the same shared actor-owned feature framework already needed by Mech Traits and Pilot Talents.**
 `;
 
 fs.writeFileSync(“core-bonuses.md”, content, “utf8”);

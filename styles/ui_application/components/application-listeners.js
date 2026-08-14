@@ -3,26 +3,26 @@
    ============================================================ */
 
 /**
- * Bind Frame Helm Application DOM listeners.
+ * Bind Frame Conn Application DOM listeners.
  *
- * The stable FrameHelmApplication surface remains responsible for
+ * The stable FrameConnApplication surface remains responsible for
  * calling super.activateListeners(html) before delegating here.
- * This component owns only Frame Helm-specific event routing and
+ * This component owns only Frame Conn-specific event routing and
  * delegates behavior back to the application instance.
  */
-function activateFrameHelmApplicationListeners(
+function activateFrameConnApplicationListeners(
   application,
   html
 ) {
   html.find(
-    "[data-frame-helm-category]"
+    "[data-frame-conn-category]"
   ).on(
     "click",
     event => {
       const categoryId =
         event.currentTarget
           .dataset
-          .frameHelmCategory ??
+          .frameConnCategory ??
         null;
 
 
@@ -59,14 +59,14 @@ function activateFrameHelmApplicationListeners(
 
 
   html.find(
-    "[data-frame-helm-action]"
+    "[data-frame-conn-action]"
   ).on(
     "click",
     event => {
       const actionId =
         event.currentTarget
           .dataset
-          .frameHelmAction;
+          .frameConnAction;
 
 
       application.onActionSelected(
@@ -77,14 +77,14 @@ function activateFrameHelmApplicationListeners(
 
 
   html.find(
-    "[data-frame-helm-movement-mode]"
+    "[data-frame-conn-movement-mode]"
   ).on(
     "click",
     event => {
       const actionId =
         event.currentTarget
           .dataset
-          .frameHelmMovementMode ??
+          .frameConnMovementMode ??
         null;
 
 
@@ -96,14 +96,14 @@ function activateFrameHelmApplicationListeners(
 
 
   html.find(
-    "[data-frame-helm-quick-action]"
+    "[data-frame-conn-quick-action]"
   ).on(
     "click",
     event => {
       application.selectedQuickActionId =
         event.currentTarget
           .dataset
-          .frameHelmQuickAction ??
+          .frameConnQuickAction ??
         null;
 
 
@@ -115,20 +115,20 @@ function activateFrameHelmApplicationListeners(
 
 
   html.find(
-    "[data-frame-helm-quick-execute]"
+    "[data-frame-conn-quick-execute]"
   ).on(
     "click",
     event => {
       const actionId =
         event.currentTarget
           .dataset
-          .frameHelmActionId;
+          .frameConnActionId;
 
 
       const source =
         event.currentTarget
           .dataset
-          .frameHelmQuickExecute;
+          .frameConnQuickExecute;
 
 
       application.executeQuickAction(
@@ -141,14 +141,14 @@ function activateFrameHelmApplicationListeners(
 
 
   html.find(
-    "[data-frame-helm-full-action]"
+    "[data-frame-conn-full-action]"
   ).on(
     "click",
     event => {
       application.selectedFullActionId =
         event.currentTarget
           .dataset
-          .frameHelmFullAction ??
+          .frameConnFullAction ??
         null;
 
 
@@ -160,14 +160,14 @@ function activateFrameHelmApplicationListeners(
 
 
   html.find(
-    "[data-frame-helm-full-execute]"
+    "[data-frame-conn-full-execute]"
   ).on(
     "click",
     event => {
       const actionId =
         event.currentTarget
           .dataset
-          .frameHelmFullExecute;
+          .frameConnFullExecute;
 
 
       application.executeFullAction(
@@ -178,21 +178,21 @@ function activateFrameHelmApplicationListeners(
 
 
   html.find(
-    "[data-frame-helm-committed-execute]"
+    "[data-frame-conn-committed-execute]"
   ).on(
     "click",
     event => {
       const committedActionId =
         event.currentTarget
           .dataset
-          .frameHelmCommittedExecute ??
+          .frameConnCommittedExecute ??
         null;
 
 
       const actionId =
         event.currentTarget
           .dataset
-          .frameHelmActionId ??
+          .frameConnActionId ??
         null;
 
 
@@ -205,14 +205,14 @@ function activateFrameHelmApplicationListeners(
 
 
   html.find(
-    "[data-frame-helm-command]"
+    "[data-frame-conn-command]"
   ).on(
     "click",
     event => {
       const command =
         event.currentTarget
           .dataset
-          .frameHelmCommand;
+          .frameConnCommand;
 
 
       application.onCommand(
@@ -228,5 +228,5 @@ function activateFrameHelmApplicationListeners(
    ============================================================ */
 
 export {
-  activateFrameHelmApplicationListeners
+  activateFrameConnApplicationListeners
 };

@@ -9,12 +9,12 @@
 
 /**
  * ============================================================
- * FRAME HELM TURN -- STATE MANAGER
+ * FRAME CONN TURN -- STATE MANAGER
  * ============================================================
  *
  * ROLE:
- *   Owns the canonical Frame Helm Turn-state manager and the
- *   lifecycle of the currently-active FrameHelmTurnState.
+ *   Owns the canonical Frame Conn Turn-state manager and the
+ *   lifecycle of the currently-active FrameConnTurnState.
  *
  * PURPOSE:
  *   Separate Turn-state instance ownership and lifecycle
@@ -26,7 +26,7 @@
  *     - feature declaration
  *
  * OWNS:
- *   - FrameHelmTurnStateManager.
+ *   - FrameConnTurnStateManager.
  *   - Canonical current Turn-state ownership.
  *   - Turn-state construction.
  *   - Begin-turn lifecycle.
@@ -38,7 +38,7 @@
  *     transitions.
  *
  * DOES NOT OWN:
- *   - FrameHelmTurnState implementation.
+ *   - FrameConnTurnState implementation.
  *   - Action legality.
  *   - Action registry access.
  *   - Movement-state implementation.
@@ -73,16 +73,16 @@
  *
  *   This file owns the SINGLE canonical manager instance:
  *
- *     frameHelmTurnState
+ *     frameConnTurnState
  *
  *   Consumers must not create competing
- *   FrameHelmTurnStateManager instances.
+ *   FrameConnTurnStateManager instances.
  *
  * CURRENT API EXPECTATION:
  *
  *   turn-commands.js imports:
  *
- *     frameHelmTurnState
+ *     frameConnTurnState
  *
  *   and expects it to expose:
  *
@@ -101,7 +101,7 @@
    ============================================================ */
 
 import {
-  FrameHelmTurnState
+  FrameConnTurnState
 } from "./turn-state.js";
 
 
@@ -110,7 +110,7 @@ import {
    ============================================================ */
 
 import {
-  renderFrameHelmTurnApplication
+  renderFrameConnTurnApplication
 } from "./turn-runtime-bindings.js";
 
 
@@ -119,19 +119,19 @@ import {
    ============================================================ */
 
 const MODULE_TITLE =
-  "Lancer: Frame Helm";
+  "Frame Conn";
 
 
 /* ============================================================
-   Frame Helm Turn-state manager
+   Frame Conn Turn-state manager
    ============================================================ */
 
-export class FrameHelmTurnStateManager {
+export class FrameConnTurnStateManager {
   constructor() {
     /**
-     * The currently-active Frame Helm Turn state.
+     * The currently-active Frame Conn Turn state.
      *
-     * null means no Frame Helm Turn plan currently exists.
+     * null means no Frame Conn Turn plan currently exists.
      */
     this.current =
       null;
@@ -143,7 +143,7 @@ export class FrameHelmTurnStateManager {
      ========================================================== */
 
   /**
-   * Creates a new canonical FrameHelmTurnState.
+   * Creates a new canonical FrameConnTurnState.
    *
    * Any previously-active state is replaced.
    */
@@ -151,7 +151,7 @@ export class FrameHelmTurnStateManager {
     context = {}
   ) {
     this.current =
-      new FrameHelmTurnState(
+      new FrameConnTurnState(
         context
       );
 
@@ -282,7 +282,7 @@ export class FrameHelmTurnStateManager {
    */
   renderApplication() {
     return (
-      renderFrameHelmTurnApplication()
+      renderFrameConnTurnApplication()
     );
   }
 }
@@ -293,7 +293,7 @@ export class FrameHelmTurnStateManager {
    ============================================================ */
 
 /**
- * Single canonical Frame Helm Turn-state manager.
+ * Single canonical Frame Conn Turn-state manager.
  *
  * This instance is imported by:
  *
@@ -303,5 +303,5 @@ export class FrameHelmTurnStateManager {
  *
  * All Turn-state lifecycle must converge on this instance.
  */
-export const frameHelmTurnState =
-  new FrameHelmTurnStateManager();
+export const frameConnTurnState =
+  new FrameConnTurnStateManager();

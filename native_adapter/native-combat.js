@@ -16,7 +16,7 @@
  *
  * @depends-on native-contract, native-actors
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumed by native-adapter.js
  * - consumed by native-execution.js
  * - consumed by execution_transaction/*
@@ -297,7 +297,7 @@ export function createNativeAppliedDamage({
 }
 
 /**
- * Accept native DamageType-keyed or Frame Helm lowercase-keyed values.
+ * Accept native DamageType-keyed or Frame Conn lowercase-keyed values.
  */
 export function normalizeNativeAppliedDamage(
   damage
@@ -1015,7 +1015,7 @@ export const NATIVE_DAMAGE_MULTIPLE = Object.freeze({
  * paracausal=true
  * → bypasses the ordinary Armor/Resistance/Shredded reduction block
  *
- * Do not reproduce these transformations in Frame Helm.
+ * Do not reproduce these transformations in Frame Conn.
  */
 
 /* ============================================================
@@ -1044,7 +1044,7 @@ export const NATIVE_DAMAGE_MULTIPLE = Object.freeze({
  * - duplicate native consumption
  * - incorrectly treat source Self Heat as target damage semantics
  *
- * Frame Helm uses applyNativeHeat() only for resolved target-Heat effects
+ * Frame Conn uses applyNativeHeat() only for resolved target-Heat effects
  * that native source execution did not already apply.
  */
 
@@ -1281,11 +1281,11 @@ export function didNativeBurnIncrease(
 }
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * foundry-integration-feature.js
  * ------------------------------
@@ -1354,7 +1354,7 @@ export function didNativeBurnIncrease(
  * applyNativeKineticDamage()
  * applyNativeHeat()
  *
- * after Frame Helm resolves the Jockey option.
+ * after Frame Conn resolves the Jockey option.
  *
  *
  * semantic_event_bus/
@@ -1374,7 +1374,7 @@ export function didNativeBurnIncrease(
  * ----------------------
  * This adapter's native mutation is part of mechanical execution.
  *
- * Deferred Frame Helm-owned frequency/counter resources should commit
+ * Deferred Frame Conn-owned frequency/counter resources should commit
  * only after this operation succeeds where the source rule requires it.
  */
 

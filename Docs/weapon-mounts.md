@@ -58,13 +58,13 @@ const content = String.raw`# Lancer Weapon Mounts — Native Repository Integrat
 
 **Native same-target-per-mount enforcement:** Not found.
 
-**Frame Helm requirement:** Reuse native Lancer mount/loadout topology, validation, bracing, weapon/mod references, and Core Bonus loadout state. Add the missing combat-semantic layer that selects mounts for Skirmish/Barrage, preserves mount grouping, supplies mount context to downstream modifiers, and expands selected mounts into native weapon attack executions.
+**Frame Conn requirement:** Reuse native Lancer mount/loadout topology, validation, bracing, weapon/mod references, and Core Bonus loadout state. Add the missing combat-semantic layer that selects mounts for Skirmish/Barrage, preserves mount grouping, supplies mount context to downstream modifiers, and expands selected mounts into native weapon attack executions.
 
 —
 
 # 1. Purpose
 
-This document records the native Foundry Lancer architecture for mech weapon mounts and defines the intended Frame Helm integration boundary.
+This document records the native Foundry Lancer architecture for mech weapon mounts and defines the intended Frame Conn integration boundary.
 
 Weapon mounts are not merely visual groupings on the character sheet.
 
@@ -101,7 +101,7 @@ They do not preserve the fact that:
 
 Therefore:
 
-> Frame Helm should not rebuild the native loadout model. It should bridge native mount state into combat execution.
+> Frame Conn should not rebuild the native loadout model. It should bridge native mount state into combat execution.
 
 —
 
@@ -191,7 +191,7 @@ enum MountType {
 }
 \`\`\`
 
-Frame Helm should preserve the native type values rather than maintain a second independent mount taxonomy.
+Frame Conn should preserve the native type values rather than maintain a second independent mount taxonomy.
 
 —
 
@@ -231,7 +231,7 @@ enum FittingSize {
 }
 \`\`\`
 
-Therefore Frame Helm should distinguish:
+Therefore Frame Conn should distinguish:
 
 MOUNT TYPE
 → topology of the mount
@@ -270,7 +270,7 @@ Native Lancer uses a helper conceptually equivalent to:
 
 to determine the slots for a mount.
 
-This means Frame Helm does not need to reconstruct slot topology from tabletop prose.
+This means Frame Conn does not need to reconstruct slot topology from tabletop prose.
 
 —
 
@@ -305,7 +305,7 @@ Native fitting hierarchy allows:
 - Main;
 - Auxiliary.
 
-Frame Helm should read the actual installed weapon rather than hardcode eligibility during attack selection.
+Frame Conn should read the actual installed weapon rather than hardcode eligibility during attack selection.
 
 —
 
@@ -377,7 +377,7 @@ either:
 or:
 → up to two Auxiliary.
 
-Frame Helm should preserve this native topology.
+Frame Conn should preserve this native topology.
 
 —
 
@@ -435,7 +435,7 @@ This is useful internally/import-wise, but ordinary Superheavy tabletop mounting
 - one mount containing the Superheavy weapon;
 - another mount marked bracing.
 
-Frame Helm should therefore inspect actual loadout state rather than assume every Superheavy weapon lives on a MountType.Superheavy object.
+Frame Conn should therefore inspect actual loadout state rather than assume every Superheavy weapon lives on a MountType.Superheavy object.
 
 —
 
@@ -524,7 +524,7 @@ Integrated fitting has the highest permissive fitting capacity.
 
 This supports native Integrated weapons without normal size restrictions.
 
-Frame Helm should not apply ordinary fitting logic to Integrated slots independently.
+Frame Conn should not apply ordinary fitting logic to Integrated slots independently.
 
 —
 
@@ -541,7 +541,7 @@ Validation checks:
 - Superheavy bracing requirements;
 - other mount-state errors.
 
-Frame Helm should reuse this native validation before presenting mounts as mechanically executable.
+Frame Conn should reuse this native validation before presenting mounts as mechanically executable.
 
 —
 
@@ -591,7 +591,7 @@ drop accepted
 
 —
 
-# 29. Frame Helm Must Not Assume Installed Means Legal
+# 29. Frame Conn Must Not Assume Installed Means Legal
 
 A weapon appearing inside a mount is not sufficient evidence that:
 
@@ -625,7 +625,7 @@ The loadout helper provides:
 
 This rebuilds the mech’s weapon mounts from authoritative Frame/loadout/Core Bonus data.
 
-Frame Helm should not duplicate this mount-generation logic.
+Frame Conn should not duplicate this mount-generation logic.
 
 —
 
@@ -643,11 +643,11 @@ Mount reset conceptually creates:
 
 for each Frame mount.
 
-This gives Frame Helm already-materialized native mount topology.
+This gives Frame Conn already-materialized native mount topology.
 
 —
 
-# 33. Frame Helm Should Consume Final Actor Loadout
+# 33. Frame Conn Should Consume Final Actor Loadout
 
 The correct source for combat is:
 
@@ -693,7 +693,7 @@ This means integrated Frame weapons can be discovered through the same mount arr
 
 Native Superheavy validation excludes a Superheavy weapon from normal bracing requirements when it is integrated through the Frame Core System.
 
-Therefore Frame Helm should not independently require bracing for every Superheavy-sized weapon.
+Therefore Frame Conn should not independently require bracing for every Superheavy-sized weapon.
 
 Reuse native validation.
 
@@ -729,7 +729,7 @@ Therefore a braced mount is explicit native loadout state.
 
 —
 
-# 39. Frame Helm Should Read Bracing Directly
+# 39. Frame Conn Should Read Bracing Directly
 
 Do not infer:
 
@@ -768,13 +768,13 @@ Validation only requires:
 
 at least one bracing mount.
 
-Therefore Frame Helm cannot rely on a native partner UUID.
+Therefore Frame Conn cannot rely on a native partner UUID.
 
 —
 
 # 42. Superheavy Combat Interpretation
 
-For combat, Frame Helm should treat a valid Superheavy configuration as:
+For combat, Frame Conn should treat a valid Superheavy configuration as:
 
 one Superheavy weapon execution
 +
@@ -788,7 +788,7 @@ The Barrage parent action should not ask the player to attack separately with th
 
 Officially a Superheavy weapon is fired through Barrage.
 
-Frame Helm should:
+Frame Conn should:
 
 - detect the Superheavy weapon;
 - verify native mount/loadout validity;
@@ -824,7 +824,7 @@ Foundry import normalizes these into:
 
 \`system.loadout.weapon_mounts[].slots[]\`.
 
-Frame Helm should only consume the normalized Foundry loadout.
+Frame Conn should only consume the normalized Foundry loadout.
 
 —
 
@@ -832,7 +832,7 @@ Frame Helm should only consume the normalized Foundry loadout.
 
 The importer folds COMP/CON’s secondary/extra weapon slots into the ordinary native mount slot array.
 
-Therefore Frame Helm does not need special handling for:
+Therefore Frame Conn does not need special handling for:
 
 \`extra[]\`.
 
@@ -911,7 +911,7 @@ cannot safely be stored as:
 
 forever without reconciliation.
 
-A robust Frame Helm configuration should preserve additional mount signature information.
+A robust Frame Conn configuration should preserve additional mount signature information.
 
 —
 
@@ -975,7 +975,7 @@ weapon_mounts
 
 plus systems and other equipment.
 
-Frame Helm can use this native structure for actor-owned feature discovery.
+Frame Conn can use this native structure for actor-owned feature discovery.
 
 —
 
@@ -997,7 +997,7 @@ Mount reset checks for:
 
 If applicable, native Lancer adds an additional mount to the final mount topology.
 
-Therefore Frame Helm should use the resulting loadout rather than independently add a mount.
+Therefore Frame Conn should use the resulting loadout rather than independently add a mount.
 
 —
 
@@ -1015,7 +1015,7 @@ additional Flexible mount.
 
 This is a real repo/tabletop discrepancy.
 
-Frame Helm should not silently rewrite the actor loadout during combat.
+Frame Conn should not silently rewrite the actor loadout during combat.
 
 The discrepancy should be handled deliberately in a future compatibility/rules-correction decision.
 
@@ -1057,7 +1057,7 @@ It inserts an:
 
 mount into the mech loadout.
 
-Therefore Frame Helm should not independently create that mount.
+Therefore Frame Conn should not independently create that mount.
 
 —
 
@@ -1067,7 +1067,7 @@ The Core Bonus creates the mount topology natively.
 
 The exact installed Auxiliary weapon still belongs to loadout configuration.
 
-Frame Helm should read the final installed weapon from the Integrated mount.
+Frame Conn should read the final installed weapon from the Integrated mount.
 
 —
 
@@ -1129,7 +1129,7 @@ WeaponAttackFlow does not carry:
 - bracing partner;
 - mount-level configured Core Bonus target.
 
-Therefore Frame Helm must add this contextual layer before invoking native weapon attacks.
+Therefore Frame Conn must add this contextual layer before invoking native weapon attacks.
 
 —
 
@@ -1143,7 +1143,7 @@ Example:
 
 Auto-Stabilizing Hardpoints.
 
-Therefore Frame Helm’s attack execution context should preserve mount identity even if native WeaponAttackFlow itself does not.
+Therefore Frame Conn’s attack execution context should preserve mount identity even if native WeaponAttackFlow itself does not.
 
 —
 
@@ -1175,7 +1175,7 @@ Skirmish mechanically selects:
 
 one mount.
 
-Therefore Frame Helm should not present Skirmish as merely:
+Therefore Frame Conn should not present Skirmish as merely:
 
 choose one weapon.
 
@@ -1190,7 +1190,7 @@ No native dedicated flow was found that:
 - expands it into its weapons;
 - enforces same-target grouping.
 
-Frame Helm must own this parent orchestration.
+Frame Conn must own this parent orchestration.
 
 —
 
@@ -1246,7 +1246,7 @@ Skirmish:
 → one target;
 → both weapons attack the same target.
 
-This same-target rule belongs to Frame Helm’s mount parent context.
+This same-target rule belongs to Frame Conn’s mount parent context.
 
 —
 
@@ -1270,7 +1270,7 @@ or:
 
 two Aux.
 
-Frame Helm should read occupied slots rather than separately derive this from MountType.
+Frame Conn should read occupied slots rather than separately derive this from MountType.
 
 —
 
@@ -1306,7 +1306,7 @@ two mounts
 
 and attacks with the weapons on them.
 
-Therefore Frame Helm needs a mount-aware Barrage parent execution model.
+Therefore Frame Conn needs a mount-aware Barrage parent execution model.
 
 —
 
@@ -1319,7 +1319,7 @@ No native flow was found that:
 - expands mounts into their weapons;
 - handles Superheavy replacement semantics.
 
-Frame Helm must own this orchestration.
+Frame Conn must own this orchestration.
 
 —
 
@@ -1348,7 +1348,7 @@ Mount B may target:
 
 Target B.
 
-Frame Helm should preserve target per mount.
+Frame Conn should preserve target per mount.
 
 Do not create one global Barrage target.
 
@@ -1366,7 +1366,7 @@ Mount A’s chosen target.
 
 This rule is not enforced by native WeaponAttackFlow because mount identity has already been lost.
 
-Frame Helm must enforce it before individual attacks begin.
+Frame Conn must enforce it before individual attacks begin.
 
 —
 
@@ -1428,7 +1428,7 @@ Aux weapon
 
 the exact tabletop interaction between the mount’s required same target and the AoE expansion should be preserved carefully.
 
-Frame Helm should distinguish:
+Frame Conn should distinguish:
 
 mount’s declared primary target/context
 
@@ -1464,7 +1464,7 @@ native Foundry represents the second mount as:
 
 bracing.
 
-Therefore Frame Helm should use native final loadout state rather than reconstruct the pairing from tabletop rules.
+Therefore Frame Conn should use native final loadout state rather than reconstruct the pairing from tabletop rules.
 
 —
 
@@ -1474,7 +1474,7 @@ Integrated mounts are present in the same native loadout array.
 
 Whether a specific Integrated weapon can be selected normally by Skirmish/Barrage depends on that weapon’s rules.
 
-Frame Helm should inspect:
+Frame Conn should inspect:
 
 - weapon properties;
 - integrated source;
@@ -1492,7 +1492,7 @@ weapon attack context should preserve the slot’s mod Item.
 
 Native weapon calculations may already derive mod effects through item relations.
 
-Frame Helm should not manually duplicate mod effects.
+Frame Conn should not manually duplicate mod effects.
 
 —
 
@@ -1502,7 +1502,7 @@ Auto-Stabilizing Hardpoints and similar effects require knowing:
 
 the weapon’s current mount.
 
-Frame Helm should provide mount context to its modifier/event layer before native attack roll calculation.
+Frame Conn should provide mount context to its modifier/event layer before native attack roll calculation.
 
 —
 
@@ -1540,7 +1540,7 @@ weapons on that mount becoming destroyed.
 
 Weapons themselves contain native destroyed state.
 
-Frame Helm should inspect weapon validity when presenting executable mount weapons.
+Frame Conn should inspect weapon validity when presenting executable mount weapons.
 
 A mount with only destroyed weapons may be functionally unusable even though the mount structure remains.
 
@@ -1565,7 +1565,7 @@ Do not invent mount.destroyed.
 
 An empty valid mount is not mechanically useful for Skirmish/Barrage.
 
-Frame Helm should generally filter it from executable mount choices.
+Frame Conn should generally filter it from executable mount choices.
 
 However, keep it visible in loadout/configuration contexts.
 
@@ -1585,7 +1585,7 @@ and no weapon slots.
 
 # 98. Invalid Mounts
 
-A mount failing native validation should not execute normally through Frame Helm.
+A mount failing native validation should not execute normally through Frame Conn.
 
 The UI should surface:
 
@@ -1600,7 +1600,7 @@ Do not silently “fix” the player’s loadout during combat.
 
 Useful validation points:
 
-- Frame Helm open/refresh;
+- Frame Conn open/refresh;
 - loadout change;
 - before Skirmish;
 - before Barrage;
@@ -1612,7 +1612,7 @@ Execution-time validation protects against stale UI state.
 
 # 100. Mount Selection UI
 
-Frame Helm can present each mount as one tactical unit.
+Frame Conn can present each mount as one tactical unit.
 
 Conceptually:
 
@@ -1674,7 +1674,7 @@ SUPERHEAVY
   Requires/uses Bracing Mount
 \`\`\`
 
-Frame Helm can derive this from:
+Frame Conn can derive this from:
 
 weapon size
 +
@@ -1707,7 +1707,7 @@ For resetting/rebuilding:
 
 the native Frame mount list is authoritative.
 
-Frame Helm should call/use native loadout helpers rather than performing its own rebuild.
+Frame Conn should call/use native loadout helpers rather than performing its own rebuild.
 
 —
 
@@ -1721,7 +1721,7 @@ mount replacement.
 
 But combat should read the resulting actor loadout.
 
-Do not reapply the Core Bonus every time Frame Helm renders.
+Do not reapply the Core Bonus every time Frame Conn renders.
 
 —
 
@@ -1819,7 +1819,7 @@ include its native Item identity in the attack execution context.
 
 # 114. Shared Actor-Owned Feature Runtime Integration
 
-Weapon mounts intersect with several existing Frame Helm feature systems.
+Weapon mounts intersect with several existing Frame Conn feature systems.
 
 Examples:
 
@@ -1855,7 +1855,7 @@ A mounted weapon’s source lineage may be:
 - Talent integrated;
 - Core Power integrated.
 
-Frame Helm should preserve source identity where available, but the attack itself should still use the native embedded weapon item.
+Frame Conn should preserve source identity where available, but the attack itself should still use the native embedded weapon item.
 
 —
 
@@ -1875,7 +1875,7 @@ Do not create duplicate ephemeral weapon definitions from the granting feature.
 
 When a Skirmish/Barrage plan is committed:
 
-Frame Helm may preserve:
+Frame Conn may preserve:
 
 - mount reference/signature;
 - target UUID;
@@ -1941,7 +1941,7 @@ Do not mark parent action complete after only the first weapon.
 
 If a child weapon attack is cancelled:
 
-Frame Helm needs a clear parent-action policy.
+Frame Conn needs a clear parent-action policy.
 
 Potential choices depend on when tabletop action cost is considered committed.
 
@@ -1953,7 +1953,7 @@ This should align with the broader committed-action execution model.
 
 For mounts with multiple weapons:
 
-Frame Helm may resolve child weapon attacks in slot order unless a rule requires player ordering.
+Frame Conn may resolve child weapon attacks in slot order unless a rule requires player ordering.
 
 This matters when the first attack creates a condition that affects the second.
 
@@ -2064,7 +2064,7 @@ The mount system provides the target object those bonuses need.
 
 Because the repo implementation currently adds a Main mount while tabletop text says Flexible:
 
-Frame Helm should record this discrepancy.
+Frame Conn should record this discrepancy.
 
 Potential future policies:
 
@@ -2082,7 +2082,7 @@ Native mount reset appears to choose an eligible mount programmatically.
 
 If tabletop rules require explicit player choice:
 
-Frame Helm may eventually need to preserve/configure that choice rather than accept whichever mount native reset selected.
+Frame Conn may eventually need to preserve/configure that choice rather than accept whichever mount native reset selected.
 
 This requires a focused loadout configuration trace.
 
@@ -2092,7 +2092,7 @@ This requires a focused loadout configuration trace.
 
 The native Integrated mount exists.
 
-Frame Helm still needs to know which Auxiliary weapon the player selected for the bonus.
+Frame Conn still needs to know which Auxiliary weapon the player selected for the bonus.
 
 If the native loadout already contains it:
 
@@ -2106,7 +2106,7 @@ Do not ask again during combat.
 
 Because COMP/CON import and native reset behavior may differ:
 
-Frame Helm should avoid calling resetMounts casually on actors using Superheavy Mounting until the behavior is fully traced.
+Frame Conn should avoid calling resetMounts casually on actors using Superheavy Mounting until the behavior is fully traced.
 
 —
 
@@ -2126,7 +2126,7 @@ Do not invent a second mount persistence format.
 
 # 135. Mount Combat Layer Should Be Read-Mostly
 
-Frame Helm’s combat mount subsystem should mostly:
+Frame Conn’s combat mount subsystem should mostly:
 
 - read mounts;
 - validate mounts;
@@ -2168,12 +2168,12 @@ Exact names are illustrative.
 
 —
 
-# 137. Suggested Frame Helm Mount Combat Layer
+# 137. Suggested Frame Conn Mount Combat Layer
 
 Conceptually:
 
 \`\`\`text
-frame-helm-mount-combat
+frame-conn-mount-combat
 
 getSkirmishEligibleMounts(actor)
 
@@ -2373,7 +2373,7 @@ This keeps native data access separate from combat rules.
 - [ ] mounted weapon resolves associated mod.
 - [ ] mod identity preserved into attack context.
 - [ ] native mod effects remain native.
-- [ ] Frame Helm does not duplicate mod bonuses.
+- [ ] Frame Conn does not duplicate mod bonuses.
 
 —
 
@@ -2382,7 +2382,7 @@ This keeps native data access separate from combat rules.
 - [ ] Improved Armament native mount appears.
 - [ ] Mount Retrofitting native Main/Aux result appears.
 - [ ] Integrated Weapon native Integrated mount appears.
-- [ ] Frame Helm does not add duplicate mounts.
+- [ ] Frame Conn does not add duplicate mounts.
 - [ ] COMP/CON imported bracing persists.
 - [ ] imported special mounts normalize correctly.
 
@@ -2444,7 +2444,7 @@ Native WeaponAttackFlow does not preserve mount identity.
 
 **Invariant 14**
 
-Frame Helm must own mount-aware Skirmish/Barrage parent orchestration.
+Frame Conn must own mount-aware Skirmish/Barrage parent orchestration.
 
 **Invariant 15**
 
@@ -2460,7 +2460,7 @@ Superheavy weapons cannot Skirmish and use Barrage as a special mount/bracing ca
 
 **Invariant 18**
 
-Mount context must survive into Frame Helm’s semantic attack event/modifier layer.
+Mount context must survive into Frame Conn’s semantic attack event/modifier layer.
 
 **Invariant 19**
 
@@ -2468,7 +2468,7 @@ Persistent selected-mount Core Bonus state requires revalidation because native 
 
 **Invariant 20**
 
-Frame Helm should not rebuild or routinely mutate native mount topology during combat.
+Frame Conn should not rebuild or routinely mutate native mount topology during combat.
 
 —
 
@@ -2502,7 +2502,7 @@ MECH
         │   ├── Superheavy bracing
         │   └── Integrated exceptions
         │
-        └── FRAME HELM COMBAT BRIDGE
+        └── FRAME CONN COMBAT BRIDGE
             │
             ├── SKIRMISH
             │   ├── choose one valid mount
@@ -2535,7 +2535,7 @@ MECH
 
 The critical architectural rule is:
 
-**Foundry Lancer already owns the mech’s weapon-mount topology, fitting rules, bracing state, installed weapons/mods, and several Core Bonus loadout transformations. Frame Helm should consume that native loadout as authoritative and add the missing tactical layer: select mounts as the units of Skirmish/Barrage, preserve same-mount target grouping, carry mount identity into attack context, and then delegate each actual weapon attack to the native weapon attack machinery.**
+**Foundry Lancer already owns the mech’s weapon-mount topology, fitting rules, bracing state, installed weapons/mods, and several Core Bonus loadout transformations. Frame Conn should consume that native loadout as authoritative and add the missing tactical layer: select mounts as the units of Skirmish/Barrage, preserve same-mount target grouping, carry mount identity into attack context, and then delegate each actual weapon attack to the native weapon attack machinery.**
 `;
 
 fs.writeFileSync(“weapon-mounts.md”, content, “utf8”);

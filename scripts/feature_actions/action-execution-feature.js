@@ -9,17 +9,17 @@
 
 /**
  * ============================================================
- * FRAME HELM FEATURE -- ACTION EXECUTION
+ * FRAME CONN FEATURE -- ACTION EXECUTION
  * ============================================================
  *
  * ROLE:
- *   Owns Frame Helm's universal-action execution classification
+ *   Owns Frame Conn's universal-action execution classification
  *   and the application-facing execution boundary.
  *
  * PURPOSE:
  *   Keep action classification and legacy actor workflow support
  *   behind one registered feature while progressively routing
- *   actions into the canonical Frame Helm execution spine.
+ *   actions into the canonical Frame Conn execution spine.
  *
  * RESPONSIBILITIES:
  *   - Identify actions which do not require a roll or execution
@@ -33,7 +33,7 @@
  *   - Resolve Overcharge execution.
  *   - Prompt for HULL / AGI / SYS / ENG when an action requires a
  *     chosen mech skill.
- *   - Route migrated actions into the canonical Frame Helm
+ *   - Route migrated actions into the canonical Frame Conn
  *     execution boundary supplied by runtime composition.
  *   - Preserve existing actor workflow delegation for actions not
  *     yet migrated to the canonical execution spine.
@@ -90,7 +90,7 @@
    ============================================================ */
 
 import {
-  defineFrameHelmFeature
+  defineFrameConnFeature
 } from "../feature-contract.js";
 
 
@@ -99,20 +99,20 @@ import {
    ============================================================ */
 
 const MODULE_TITLE =
-  "Lancer: Frame Helm";
+  "Frame Conn";
 
 
 /* ============================================================
    Action Execution -- Runtime bindings
    ============================================================ */
 
-const frameHelmActionExecutionRuntimeBindings = {
+const frameConnActionExecutionRuntimeBindings = {
   executeCanonicalAction:
     null
 };
 
 
-function configureFrameHelmActionExecutionRuntime(
+function configureFrameConnActionExecutionRuntime(
   bindings = {}
 ) {
   if (
@@ -124,7 +124,7 @@ function configureFrameHelmActionExecutionRuntime(
     )
   ) {
     throw new TypeError(
-      "Frame Helm Action Execution runtime bindings must be supplied as an object."
+      "Frame Conn Action Execution runtime bindings must be supplied as an object."
     );
   }
 
@@ -150,7 +150,7 @@ function configureFrameHelmActionExecutionRuntime(
       )
     ) {
       throw new Error(
-        `Frame Helm Action Execution received unknown runtime binding: ${key}`
+        `Frame Conn Action Execution received unknown runtime binding: ${key}`
       );
     }
 
@@ -161,40 +161,40 @@ function configureFrameHelmActionExecutionRuntime(
         "function"
     ) {
       throw new TypeError(
-        `Frame Helm Action Execution runtime binding "${key}" must be a function or null.`
+        `Frame Conn Action Execution runtime binding "${key}" must be a function or null.`
       );
     }
 
 
-    frameHelmActionExecutionRuntimeBindings[
+    frameConnActionExecutionRuntimeBindings[
       key
     ] = value;
   }
 
 
   return (
-    getFrameHelmActionExecutionRuntimeBindings()
+    getFrameConnActionExecutionRuntimeBindings()
   );
 }
 
 
-function getFrameHelmActionExecutionRuntimeBindings() {
+function getFrameConnActionExecutionRuntimeBindings() {
   return Object.freeze({
     executeCanonicalAction:
-      typeof frameHelmActionExecutionRuntimeBindings
+      typeof frameConnActionExecutionRuntimeBindings
         .executeCanonicalAction ===
         "function"
   });
 }
 
 
-async function executeFrameHelmCanonicalAction(
+async function executeFrameConnCanonicalAction(
   actor,
   action,
   executionKind
 ) {
   const executor =
-    frameHelmActionExecutionRuntimeBindings
+    frameConnActionExecutionRuntimeBindings
       .executeCanonicalAction;
 
 
@@ -203,7 +203,7 @@ async function executeFrameHelmCanonicalAction(
     "function"
   ) {
     throw new Error(
-      "Frame Helm canonical action execution has not been configured."
+      "Frame Conn canonical action execution has not been configured."
     );
   }
 
@@ -220,7 +220,7 @@ async function executeFrameHelmCanonicalAction(
    Action Execution -- No-roll actions
    ============================================================ */
 
-export const FRAME_HELM_NO_ROLL_ACTIONS =
+export const FRAME_CONN_NO_ROLL_ACTIONS =
   Object.freeze(
     new Set([
       "movement.standard",
@@ -248,7 +248,7 @@ export const FRAME_HELM_NO_ROLL_ACTIONS =
    Action Execution -- Mech skill choices
    ============================================================ */
 
-export const FRAME_HELM_MECH_STAT_CHOICES =
+export const FRAME_CONN_MECH_STAT_CHOICES =
   Object.freeze([
     Object.freeze({
       path:
@@ -288,7 +288,7 @@ export const FRAME_HELM_MECH_STAT_CHOICES =
    Action Execution -- Classification
    ============================================================ */
 
-function frameHelmActionRequiresNoRoll(
+function frameConnActionRequiresNoRoll(
   actionOrId
 ) {
   const actionId =
@@ -306,7 +306,7 @@ function frameHelmActionRequiresNoRoll(
 
 
   return (
-    FRAME_HELM_NO_ROLL_ACTIONS
+    FRAME_CONN_NO_ROLL_ACTIONS
       .has(
         actionId
       )
@@ -314,12 +314,12 @@ function frameHelmActionRequiresNoRoll(
 }
 
 
-function frameHelmActionExecutionKind(
+function frameConnActionExecutionKind(
   action
 ) {
   if (
     !action ||
-    frameHelmActionRequiresNoRoll(
+    frameConnActionRequiresNoRoll(
       action
     )
   ) {
@@ -391,11 +391,11 @@ function frameHelmActionExecutionKind(
 }
 
 
-function canFrameHelmExecuteAction(
+function canFrameConnExecuteAction(
   action
 ) {
   return (
-    frameHelmActionExecutionKind(
+    frameConnActionExecutionKind(
       action
     ) !==
     null
@@ -407,7 +407,7 @@ function canFrameHelmExecuteAction(
    Action Execution -- Actor validation
    ============================================================ */
 
-function assertFrameHelmActionExecutionActor(
+function assertFrameConnActionExecutionActor(
   actor
 ) {
   if (
@@ -416,7 +416,7 @@ function assertFrameHelmActionExecutionActor(
       "object"
   ) {
     throw new TypeError(
-      "Frame Helm action execution requires a Lancer actor."
+      "Frame Conn action execution requires a Lancer actor."
     );
   }
 
@@ -425,7 +425,7 @@ function assertFrameHelmActionExecutionActor(
 }
 
 
-function assertFrameHelmExecutableAction(
+function assertFrameConnExecutableAction(
   action
 ) {
   if (
@@ -434,7 +434,7 @@ function assertFrameHelmExecutableAction(
       "object"
   ) {
     throw new TypeError(
-      "Frame Helm action execution requires an action definition."
+      "Frame Conn action execution requires an action definition."
     );
   }
 
@@ -446,7 +446,7 @@ function assertFrameHelmExecutableAction(
     ).trim()
   ) {
     throw new Error(
-      "Frame Helm action execution requires an action with an id."
+      "Frame Conn action execution requires an action with an id."
     );
   }
 
@@ -459,10 +459,10 @@ function assertFrameHelmExecutableAction(
    Action Execution -- Mech stat selection
    ============================================================ */
 
-function frameHelmChooseMechStat(
+function frameConnChooseMechStat(
   action
 ) {
-  assertFrameHelmExecutableAction(
+  assertFrameConnExecutableAction(
     action
   );
 
@@ -471,7 +471,7 @@ function frameHelmChooseMechStat(
     resolve => {
       const buttons =
         Object.fromEntries(
-          FRAME_HELM_MECH_STAT_CHOICES
+          FRAME_CONN_MECH_STAT_CHOICES
             .map(
               choice => {
                 return [
@@ -530,7 +530,7 @@ function frameHelmChooseMechStat(
    Action Execution -- Legacy actor workflows
    ============================================================ */
 
-function executeFrameHelmStatAction(
+function executeFrameConnStatAction(
   actor,
   action
 ) {
@@ -558,7 +558,7 @@ function executeFrameHelmStatAction(
 }
 
 
-function executeFrameHelmBasicAttack(
+function executeFrameConnBasicAttack(
   actor,
   action
 ) {
@@ -581,7 +581,7 @@ function executeFrameHelmBasicAttack(
 }
 
 
-function executeFrameHelmBasicTechAttack(
+function executeFrameConnBasicTechAttack(
   actor,
   action
 ) {
@@ -604,7 +604,7 @@ function executeFrameHelmBasicTechAttack(
 }
 
 
-function executeFrameHelmScan(
+function executeFrameConnScan(
   actor
 ) {
   if (
@@ -624,7 +624,7 @@ function executeFrameHelmScan(
 }
 
 
-function executeFrameHelmStabilize(
+function executeFrameConnStabilize(
   actor
 ) {
   if (
@@ -644,7 +644,7 @@ function executeFrameHelmStabilize(
 }
 
 
-function executeFrameHelmOvercharge(
+function executeFrameConnOvercharge(
   actor
 ) {
   if (
@@ -664,12 +664,12 @@ function executeFrameHelmOvercharge(
 }
 
 
-async function executeFrameHelmChosenStatAction(
+async function executeFrameConnChosenStatAction(
   actor,
   action
 ) {
   const selectedStat =
-    await frameHelmChooseMechStat(
+    await frameConnChooseMechStat(
       action
     );
 
@@ -708,22 +708,22 @@ async function executeFrameHelmChosenStatAction(
    Action Execution -- Execution routing
    ============================================================ */
 
-async function frameHelmExecuteActionRoll(
+async function frameConnExecuteActionRoll(
   actor,
   action
 ) {
-  assertFrameHelmActionExecutionActor(
+  assertFrameConnActionExecutionActor(
     actor
   );
 
 
-  assertFrameHelmExecutableAction(
+  assertFrameConnExecutableAction(
     action
   );
 
 
   const kind =
-    frameHelmActionExecutionKind(
+    frameConnActionExecutionKind(
       action
     );
 
@@ -739,7 +739,7 @@ async function frameHelmExecuteActionRoll(
 
   /**
    * Improvised Attack is the first universal action migrated to
-   * the canonical Frame Helm execution spine.
+   * the canonical Frame Conn execution spine.
    *
    * All cross-cutting execution concerns remain outside this
    * feature and are supplied through runtime composition.
@@ -748,7 +748,7 @@ async function frameHelmExecuteActionRoll(
     action.id ===
     "full.improvised-attack"
   ) {
-    return executeFrameHelmCanonicalAction(
+    return executeFrameConnCanonicalAction(
       actor,
       action,
       kind
@@ -761,7 +761,7 @@ async function frameHelmExecuteActionRoll(
       "stat"
   ) {
     return (
-      executeFrameHelmStatAction(
+      executeFrameConnStatAction(
         actor,
         action
       )
@@ -774,7 +774,7 @@ async function frameHelmExecuteActionRoll(
       "basic-attack"
   ) {
     return (
-      executeFrameHelmBasicAttack(
+      executeFrameConnBasicAttack(
         actor,
         action
       )
@@ -787,7 +787,7 @@ async function frameHelmExecuteActionRoll(
       "basic-tech-attack"
   ) {
     return (
-      executeFrameHelmBasicTechAttack(
+      executeFrameConnBasicTechAttack(
         actor,
         action
       )
@@ -800,7 +800,7 @@ async function frameHelmExecuteActionRoll(
       "scan"
   ) {
     return (
-      executeFrameHelmScan(
+      executeFrameConnScan(
         actor
       )
     );
@@ -812,7 +812,7 @@ async function frameHelmExecuteActionRoll(
       "stabilize"
   ) {
     return (
-      executeFrameHelmStabilize(
+      executeFrameConnStabilize(
         actor
       )
     );
@@ -824,7 +824,7 @@ async function frameHelmExecuteActionRoll(
       "overcharge"
   ) {
     return (
-      executeFrameHelmOvercharge(
+      executeFrameConnOvercharge(
         actor
       )
     );
@@ -832,7 +832,7 @@ async function frameHelmExecuteActionRoll(
 
 
   return (
-    executeFrameHelmChosenStatAction(
+    executeFrameConnChosenStatAction(
       actor,
       action
     )
@@ -844,7 +844,7 @@ async function frameHelmExecuteActionRoll(
    Action Execution -- Diagnostics
    ============================================================ */
 
-function getFrameHelmActionExecutionDiagnostics(
+function getFrameConnActionExecutionDiagnostics(
   action
 ) {
   const actionId =
@@ -853,7 +853,7 @@ function getFrameHelmActionExecutionDiagnostics(
 
 
   const kind =
-    frameHelmActionExecutionKind(
+    frameConnActionExecutionKind(
       action
     );
 
@@ -866,7 +866,7 @@ function getFrameHelmActionExecutionDiagnostics(
       null,
 
     noRoll:
-      frameHelmActionRequiresNoRoll(
+      frameConnActionRequiresNoRoll(
         action
       ),
 
@@ -882,7 +882,7 @@ function getFrameHelmActionExecutionDiagnostics(
       "full.improvised-attack",
 
     runtimeBindings:
-      getFrameHelmActionExecutionRuntimeBindings(),
+      getFrameConnActionExecutionRuntimeBindings(),
 
     statPath:
       action?.metadata
@@ -901,8 +901,8 @@ function getFrameHelmActionExecutionDiagnostics(
    Action Execution feature definition
    ============================================================ */
 
-export const frameHelmActionExecutionFeature =
-  defineFrameHelmFeature({
+export const frameConnActionExecutionFeature =
+  defineFrameConnFeature({
     id:
       "action-execution",
 
@@ -928,30 +928,30 @@ export const frameHelmActionExecutionFeature =
 
     commands: {
       configureRuntime:
-        configureFrameHelmActionExecutionRuntime,
+        configureFrameConnActionExecutionRuntime,
 
       execute:
-        frameHelmExecuteActionRoll,
+        frameConnExecuteActionRoll,
 
       chooseMechStat:
-        frameHelmChooseMechStat
+        frameConnChooseMechStat
     },
 
     queries: {
       requiresNoRoll:
-        frameHelmActionRequiresNoRoll,
+        frameConnActionRequiresNoRoll,
 
       executionKind:
-        frameHelmActionExecutionKind,
+        frameConnActionExecutionKind,
 
       canExecute:
-        canFrameHelmExecuteAction,
+        canFrameConnExecuteAction,
 
       runtimeBindings:
-        getFrameHelmActionExecutionRuntimeBindings,
+        getFrameConnActionExecutionRuntimeBindings,
 
       diagnostics:
-        getFrameHelmActionExecutionDiagnostics
+        getFrameConnActionExecutionDiagnostics
     },
 
     hooks: {},
@@ -960,37 +960,37 @@ export const frameHelmActionExecutionFeature =
 
     api: {
       configureRuntime:
-        configureFrameHelmActionExecutionRuntime,
+        configureFrameConnActionExecutionRuntime,
 
       execute:
-        frameHelmExecuteActionRoll,
+        frameConnExecuteActionRoll,
 
       executeActionRoll:
-        frameHelmExecuteActionRoll,
+        frameConnExecuteActionRoll,
 
       chooseMechStat:
-        frameHelmChooseMechStat,
+        frameConnChooseMechStat,
 
       requiresNoRoll:
-        frameHelmActionRequiresNoRoll,
+        frameConnActionRequiresNoRoll,
 
       executionKind:
-        frameHelmActionExecutionKind,
+        frameConnActionExecutionKind,
 
       canExecute:
-        canFrameHelmExecuteAction,
+        canFrameConnExecuteAction,
 
       runtimeBindings:
-        getFrameHelmActionExecutionRuntimeBindings,
+        getFrameConnActionExecutionRuntimeBindings,
 
       diagnostics:
-        getFrameHelmActionExecutionDiagnostics,
+        getFrameConnActionExecutionDiagnostics,
 
       noRollActions:
-        FRAME_HELM_NO_ROLL_ACTIONS,
+        FRAME_CONN_NO_ROLL_ACTIONS,
 
       mechStatChoices:
-        FRAME_HELM_MECH_STAT_CHOICES
+        FRAME_CONN_MECH_STAT_CHOICES
     },
 
     metadata: {
@@ -998,7 +998,7 @@ export const frameHelmActionExecutionFeature =
         "Action Execution",
 
       description:
-        "Owns Frame Helm universal-action execution classification and routes migrated actions into the canonical execution spine while preserving legacy actor workflows during migration.",
+        "Owns Frame Conn universal-action execution classification and routes migrated actions into the canonical execution spine while preserving legacy actor workflows during migration.",
 
       applicationConsumer:
         "styles/ui_application/ui-application.js",
@@ -1026,39 +1026,39 @@ export const frameHelmActionExecutionFeature =
    ============================================================ */
 
 export {
-  configureFrameHelmActionExecutionRuntime,
+  configureFrameConnActionExecutionRuntime,
 
-  getFrameHelmActionExecutionRuntimeBindings,
+  getFrameConnActionExecutionRuntimeBindings,
 
-  executeFrameHelmCanonicalAction,
+  executeFrameConnCanonicalAction,
 
-  frameHelmActionRequiresNoRoll,
+  frameConnActionRequiresNoRoll,
 
-  frameHelmActionExecutionKind,
+  frameConnActionExecutionKind,
 
-  canFrameHelmExecuteAction,
+  canFrameConnExecuteAction,
 
-  assertFrameHelmActionExecutionActor,
+  assertFrameConnActionExecutionActor,
 
-  assertFrameHelmExecutableAction,
+  assertFrameConnExecutableAction,
 
-  frameHelmChooseMechStat,
+  frameConnChooseMechStat,
 
-  executeFrameHelmStatAction,
+  executeFrameConnStatAction,
 
-  executeFrameHelmBasicAttack,
+  executeFrameConnBasicAttack,
 
-  executeFrameHelmBasicTechAttack,
+  executeFrameConnBasicTechAttack,
 
-  executeFrameHelmScan,
+  executeFrameConnScan,
 
-  executeFrameHelmStabilize,
+  executeFrameConnStabilize,
 
-  executeFrameHelmOvercharge,
+  executeFrameConnOvercharge,
 
-  executeFrameHelmChosenStatAction,
+  executeFrameConnChosenStatAction,
 
-  frameHelmExecuteActionRoll,
+  frameConnExecuteActionRoll,
 
-  getFrameHelmActionExecutionDiagnostics
+  getFrameConnActionExecutionDiagnostics
 };

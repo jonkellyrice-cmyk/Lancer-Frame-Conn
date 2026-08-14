@@ -3,11 +3,11 @@
 ## Status
 
 - [x] Native Lancer action flow identified
-- [x] Native Frame Helm execution route identified
+- [x] Native Frame Conn execution route identified
 - [x] Action-cost classification identified
 - [x] Target requirement identified
 - [x] Native attack flow identified
-- [x] Initial Frame Helm integration strategy identified
+- [x] Initial Frame Conn integration strategy identified
 - [ ] Automatic target acquisition implemented
 - [ ] Automatic attack modifiers implemented
 - [ ] Automatic hit determination implemented
@@ -26,11 +26,11 @@ Improvised Attack
 
 Full Action
 
-## Frame Helm Action ID
+## Frame Conn Action ID
 
 `full.improvised-attack`
 
-## Frame Helm Execution Kind
+## Frame Conn Execution Kind
 
 `basic-attack`
 
@@ -38,20 +38,20 @@ Full Action
 
 Yes.
 
-Improvised Attack is useful as an early action-flow integration target because it is an attack, but unlike Skirmish and Barrage it does not require Frame Helm to first solve weapon-mount selection.
+Improvised Attack is useful as an early action-flow integration target because it is an attack, but unlike Skirmish and Barrage it does not require Frame Conn to first solve weapon-mount selection.
 
 The acting mech’s equipped weapon mounts therefore do not need to be understood in order to invoke the native Improvised Attack flow.
 
 
 # 2. Why This Flow Matters
 
-Improvised Attack gives Frame Helm a relatively simple example of the general attack-execution pipeline.
+Improvised Attack gives Frame Conn a relatively simple example of the general attack-execution pipeline.
 
 The important architecture is:
 
 Player
   ↓
-Frame Helm committed plan
+Frame Conn committed plan
   ↓
 Improvised Attack entry
   ↓
@@ -59,7 +59,7 @@ Execute button / d20 control
   ↓
 Target acquisition
   ↓
-Frame Helm action execution
+Frame Conn action execution
   ↓
 Native Lancer attack flow
   ↓
@@ -72,9 +72,9 @@ Future automated resolution
 This gives us a useful foundation before handling the substantially more complicated weapon-mount behavior required by Skirmish and Barrage.
 
 
-# 3. Existing Frame Helm Action Mapping
+# 3. Existing Frame Conn Action Mapping
 
-Frame Helm currently maps:
+Frame Conn currently maps:
 
 `full.improvised-attack`
 
@@ -95,17 +95,17 @@ This does NOT mean all of those actions ultimately have identical execution requ
 In particular, Skirmish and Barrage require weapon-mount selection and therefore need additional native-flow research before their final implementations can be designed.
 
 
-# 4. Existing Frame Helm Execution Entry Point
+# 4. Existing Frame Conn Execution Entry Point
 
-The currently identified Frame Helm execution entry point is:
+The currently identified Frame Conn execution entry point is:
 
-`frameHelmExecuteActionRoll(actor, action)`
+`frameConnExecuteActionRoll(actor, action)`
 
 For an action whose execution kind is:
 
 `basic-attack`
 
-Frame Helm dispatches into the Lancer actor through:
+Frame Conn dispatches into the Lancer actor through:
 
 `actor.beginBasicAttackFlow(action.label)`
 
@@ -115,18 +115,18 @@ Therefore the current Improvised Attack execution route is conceptually:
   ↓
 `basic-attack`
   ↓
-`frameHelmExecuteActionRoll(actor, action)`
+`frameConnExecuteActionRoll(actor, action)`
   ↓
 `actor.beginBasicAttackFlow(action.label)`
   ↓
 native Lancer attack flow
 
-This is important because Frame Helm should reuse the Lancer system’s existing execution machinery wherever that machinery already exists rather than reimplementing Lancer attack resolution from scratch.
+This is important because Frame Conn should reuse the Lancer system’s existing execution machinery wherever that machinery already exists rather than reimplementing Lancer attack resolution from scratch.
 
 
 # 5. Actor Resolution
 
-Frame Helm already knows which mech the Helm belongs to.
+Frame Conn already knows which mech the Helm belongs to.
 
 The same actor association currently used for information such as:
 
@@ -136,11 +136,11 @@ The same actor association currently used for information such as:
 
 should provide the actor used for action execution.
 
-The intended execution call therefore operates on the authoritative Lancer actor belonging to the currently active Frame Helm unit.
+The intended execution call therefore operates on the authoritative Lancer actor belonging to the currently active Frame Conn unit.
 
 Conceptually:
 
-Frame Helm
+Frame Conn
   ↓
 active / controlled unit
   ↓
@@ -184,29 +184,29 @@ The desired initial flow is:
 
 1. Player commits Improvised Attack.
 
-2. Frame Helm creates the committed-action entry.
+2. Frame Conn creates the committed-action entry.
 
 3. The entry displays its d20 execution button.
 
 4. Player clicks the d20 button.
 
-5. Frame Helm verifies that the action requires a target.
+5. Frame Conn verifies that the action requires a target.
 
-6. If no valid target is currently selected, Frame Helm enters target-selection mode.
+6. If no valid target is currently selected, Frame Conn enters target-selection mode.
 
 7. The player selects the intended target in Foundry.
 
-8. Frame Helm resolves the acting Lancer actor.
+8. Frame Conn resolves the acting Lancer actor.
 
-9. Frame Helm invokes:
+9. Frame Conn invokes:
 
-   `frameHelmExecuteActionRoll(actor, action)`
+   `frameConnExecuteActionRoll(actor, action)`
 
 10. The execution layer identifies the action as:
 
     `basic-attack`
 
-11. Frame Helm invokes:
+11. Frame Conn invokes:
 
     `actor.beginBasicAttackFlow(action.label)`
 
@@ -216,14 +216,14 @@ The desired initial flow is:
 
 14. Lancer performs its normal roll / chat behavior.
 
-15. Frame Helm marks the committed action as executed.
+15. Frame Conn marks the committed action as executed.
 
 
 # 8. Target Acquisition
 
 Improvised Attack requires a target.
 
-The intended Frame Helm behavior is NOT simply to fail with a message saying that no target was selected.
+The intended Frame Conn behavior is NOT simply to fail with a message saying that no target was selected.
 
 Instead:
 
@@ -262,14 +262,14 @@ The currently desired first-stage implementation deliberately retains Lancer’s
 
 That popup already represents system-native attack resolution behavior and allows the player to configure the attack using Lancer’s existing mechanisms.
 
-This is preferable during the first integration stage because it allows Frame Helm to delegate rules behavior to the existing Lancer system while we continue researching the underlying execution APIs.
+This is preferable during the first integration stage because it allows Frame Conn to delegate rules behavior to the existing Lancer system while we continue researching the underlying execution APIs.
 
 
 # 10. Transitional Architecture
 
 The native popup is transitional.
 
-It is NOT the desired final Frame Helm user experience.
+It is NOT the desired final Frame Conn user experience.
 
 The progression should be:
 
@@ -287,7 +287,7 @@ native popup
   ↓
 native roll
 
-## Stage 2 — Frame Helm supplies attack context
+## Stage 2 — Frame Conn supplies attack context
 
 Committed action
   ↓
@@ -295,7 +295,7 @@ d20
   ↓
 target
   ↓
-Frame Helm derives known modifiers
+Frame Conn derives known modifiers
   ↓
 native Lancer roll machinery
   ↓
@@ -342,11 +342,11 @@ The player clicks:
 
 `[d20]`
 
-Frame Helm switches Foundry into target-selection mode.
+Frame Conn switches Foundry into target-selection mode.
 
 The player clicks the target.
 
-From that point onward Frame Helm should perform everything it can determine automatically.
+From that point onward Frame Conn should perform everything it can determine automatically.
 
 Conceptually:
 
@@ -383,11 +383,11 @@ mark committed action executed
 
 # 12. Native-System-First Rule
 
-Frame Helm should not recreate functionality already correctly implemented by the Lancer system.
+Frame Conn should not recreate functionality already correctly implemented by the Lancer system.
 
 Where possible:
 
-Frame Helm
+Frame Conn
   ↓
 orchestrates
   ↓
@@ -407,14 +407,14 @@ This is particularly important for:
 - chat-card behavior
 - system-specific roll semantics
 
-Frame Helm should become an automation and orchestration layer over Lancer rather than a parallel implementation of Lancer.
+Frame Conn should become an automation and orchestration layer over Lancer rather than a parallel implementation of Lancer.
 
 
 # 13. Player-First Automation Boundary
 
-Frame Helm is not intended to become the universal arbiter of every Lancer rule.
+Frame Conn is not intended to become the universal arbiter of every Lancer rule.
 
-However, when Frame Helm executes an action and the resulting game-state consequence is deterministic, Frame Helm should eventually carry that consequence through.
+However, when Frame Conn executes an action and the resulting game-state consequence is deterministic, Frame Conn should eventually carry that consequence through.
 
 For example:
 
@@ -442,7 +442,7 @@ remove condition
 
 The general rule is:
 
-**Frame Helm may defer judgment, but it should not defer deterministic consequences of an action it has already resolved.**
+**Frame Conn may defer judgment, but it should not defer deterministic consequences of an action it has already resolved.**
 
 
 # 14. State Mutations
@@ -497,7 +497,7 @@ perform native action
   ↓
 mark execution state
 
-This distinction is important because Frame Helm’s planning interface intentionally allows the player to establish their turn plan before performing its individual mechanical operations.
+This distinction is important because Frame Conn’s planning interface intentionally allows the player to establish their turn plan before performing its individual mechanical operations.
 
 
 # 16. Relationship to Future Attack Flows
@@ -594,16 +594,16 @@ The remaining decomposition targets are:
 
 The purpose is to establish smaller ownership boundaries before adding the considerably more complicated action-execution infrastructure.
 
-Current Frame Helm behavior after the recent refactor and smoke test should be treated as the behavioral baseline.
+Current Frame Conn behavior after the recent refactor and smoke test should be treated as the behavioral baseline.
 
 
 # 20. Implementation Checklist
 
 ## Existing foundation
 
-- [x] Improvised Attack exists in Frame Helm.
+- [x] Improvised Attack exists in Frame Conn.
 - [x] Improvised Attack is represented as a Full Action.
-- [x] Frame Helm action ID is known.
+- [x] Frame Conn action ID is known.
 - [x] Execution kind is known.
 - [x] Actor-native basic attack entry route is known.
 - [x] Committed actions support execution metadata.
@@ -612,16 +612,16 @@ Current Frame Helm behavior after the recent refactor and smoke test should be t
 ## First implementation stage
 
 - [ ] Finish organizational refactor.
-- [ ] Preserve existing Frame Helm behavior.
+- [ ] Preserve existing Frame Conn behavior.
 - [ ] Verify Improvised Attack action declaration.
 - [ ] Verify `requiresTarget`.
 - [ ] Verify `executionKind`.
 - [ ] Add / preserve d20 control on committed-action card.
-- [ ] Resolve active Frame Helm actor.
+- [ ] Resolve active Frame Conn actor.
 - [ ] Detect currently selected target.
 - [ ] Enter Foundry target-selection mode when necessary.
 - [ ] Resume action after target selection.
-- [ ] Invoke Frame Helm action-execution boundary.
+- [ ] Invoke Frame Conn action-execution boundary.
 - [ ] Delegate to native Lancer basic attack flow.
 - [ ] Allow native Lancer popup to perform configuration.
 - [ ] Allow native Lancer roll / chat flow to complete.
@@ -665,7 +665,7 @@ Current Frame Helm behavior after the recent refactor and smoke test should be t
 - [ ] Apply other deterministic state mutations.
 - [ ] Preserve appropriate Lancer chat output.
 - [ ] Mark committed action executed.
-- [ ] Refresh Frame Helm presentation from authoritative state.
+- [ ] Refresh Frame Conn presentation from authoritative state.
 
 
 # 21. Research Questions
@@ -704,16 +704,16 @@ The next repository pass should answer:
 
 16. What does the native flow return when the player cancels the attack popup?
 
-17. Can Frame Helm provide the attack configuration directly and bypass the popup while still using native Lancer resolution?
+17. Can Frame Conn provide the attack configuration directly and bypass the popup while still using native Lancer resolution?
 
-Those answers should determine how much of the final automated pipeline can be composed from existing Lancer functionality rather than recreated inside Frame Helm.
+Those answers should determine how much of the final automated pipeline can be composed from existing Lancer functionality rather than recreated inside Frame Conn.
 
 
 # 22. Architectural Goal
 
 Improvised Attack should become the first clean reference implementation of:
 
-**Frame Helm action declaration**
+**Frame Conn action declaration**
   ↓
 **Turn commitment**
   ↓
@@ -729,6 +729,6 @@ Improvised Attack should become the first clean reference implementation of:
   ↓
 **Deterministic state mutation**
   ↓
-**Frame Helm state synchronization**
+**Frame Conn state synchronization**
 
 Once that pipeline is stable, other actions should plug into the same execution architecture and provide only the action-specific information and intermediate steps they actually require.

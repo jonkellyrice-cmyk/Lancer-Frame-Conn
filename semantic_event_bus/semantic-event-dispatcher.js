@@ -17,7 +17,7 @@
  * - semantic-event-contract
  * - semantic-event-registry
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumed by semantic-event-hooks.js
  * - consumed by semantic-event-bus.js
  * - dispatches events emitted from execution_transaction/
@@ -88,7 +88,7 @@ import {
    MODULE IDENTITY
    ============================================================ */
 export const SEMANTIC_EVENT_DISPATCHER_MODULE_ID =
-  "lancer-frame-helm.semantic-event-dispatcher";
+  "lancer-frame-conn.semantic-event-dispatcher";
 export const SEMANTIC_EVENT_DISPATCHER_MODULE_VERSION =
   1;
 /* ============================================================
@@ -1180,7 +1180,7 @@ export function didSemanticEventDispatchFail(
  * Example:
  *
  * full-repair.completed
- * → reset relevant Frame Helm resources
+ * → reset relevant Frame Conn resources
  *
  * turn.started
  * → initialize action economy

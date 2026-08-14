@@ -9,7 +9,7 @@
  * @path main/semantic_event_bus/semantic-event-bus.js
  * @module semantic-event-bus
  * @layer semantic-event-bus-public-boundary
- * @responsibility expose-one-stable-frame-helm-facing-semantic-event-bus-api
+ * @responsibility expose-one-stable-frame-conn-facing-semantic-event-bus-api
  * @public-boundary true
  * @side-effects delegated-through-registry-dispatcher-and-transaction-hooks
  *
@@ -19,7 +19,7 @@
  * - semantic-event-dispatcher
  * - semantic-event-hooks
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumed by future lifecycle_service/
  * - consumed by future targeting_spatial_service/
  * - consumed by future actor_owned_feature_registry/
@@ -72,7 +72,7 @@ import * as hooks from "./semantic-event-hooks.js";
    MODULE IDENTITY
    ============================================================ */
 export const SEMANTIC_EVENT_BUS_MODULE_ID =
-  "lancer-frame-helm.semantic-event-bus";
+  "lancer-frame-conn.semantic-event-bus";
 export const SEMANTIC_EVENT_BUS_MODULE_VERSION =
   1;
 /* ============================================================
@@ -1057,10 +1057,10 @@ export function getSemanticEventDispatchDiagnostics(
  * This preserves the same foundational runtime for triggered mechanics.
  */
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * runtime-orchestrator.js
  * -----------------------
@@ -1227,7 +1227,7 @@ export function getSemanticEventDispatchDiagnostics(
  * @section boundary-invariants
  *
  * INVARIANT 1
- * semantic-event-bus.js is the public Frame Helm semantic-event boundary.
+ * semantic-event-bus.js is the public Frame Conn semantic-event boundary.
  *
  * INVARIANT 2
  * Contract owns event shapes/vocabulary.

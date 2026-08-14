@@ -9,21 +9,21 @@
 
 /**
  * ============================================================
- * FRAME HELM FEATURE REGISTRY CORE
+ * FRAME CONN FEATURE REGISTRY CORE
  * ============================================================
  *
  * ROLE:
  *   Provides the reusable implementation mechanics for the
- *   Frame Helm feature registry.
+ *   Frame Conn feature registry.
  *
  * PURPOSE:
- *   Define how Frame Helm feature definitions are registered,
+ *   Define how Frame Conn feature definitions are registered,
  *   indexed, validated, ordered, executed, inspected, and
  *   integrated with Foundry hooks without knowing which concrete
  *   features belong to the application.
  *
  * OWNS:
- *   - FrameHelmFeatureRegistry implementation.
+ *   - FrameConnFeatureRegistry implementation.
  *   - Registry versioning.
  *   - Registry runtime-state constants.
  *   - Feature registration mechanics.
@@ -43,7 +43,7 @@
  *   - Registry reset behavior.
  *
  * DOES NOT OWN:
- *   - Which Frame Helm features are registered.
+ *   - Which Frame Conn features are registered.
  *   - Runtime/domain feature imports.
  *   - Executable UI feature imports.
  *   - Application-wide feature declarations.
@@ -98,11 +98,11 @@
  *
  *   This module answers:
  *
- *     "How does the Frame Helm feature registry work?"
+ *     "How does the Frame Conn feature registry work?"
  *
  *   scripts/feature-registry.js answers:
  *
- *     "Which features are registered in Frame Helm?"
+ *     "Which features are registered in Frame Conn?"
  *
  * STABILITY CONTRACT:
  *
@@ -120,10 +120,10 @@
    ============================================================ */
 
 import {
-  FRAME_HELM_FEATURE_CONTRACT_VERSION,
-  FRAME_HELM_FEATURE_LIFECYCLE_PHASES,
-  assertFrameHelmFeatureDefinition,
-  summarizeFrameHelmFeature
+  FRAME_CONN_FEATURE_CONTRACT_VERSION,
+  FRAME_CONN_FEATURE_LIFECYCLE_PHASES,
+  assertFrameConnFeatureDefinition,
+  summarizeFrameConnFeature
 } from "./feature-contract.js";
 
 
@@ -138,14 +138,14 @@ import {
  * version so registry mechanics may evolve without changing the
  * shape of feature definitions.
  */
-export const FRAME_HELM_FEATURE_REGISTRY_VERSION =
+export const FRAME_CONN_FEATURE_REGISTRY_VERSION =
   1;
 
 
 /**
  * Runtime states tracked for each registered feature.
  */
-export const FRAME_HELM_FEATURE_RUNTIME_STATES =
+export const FRAME_CONN_FEATURE_RUNTIME_STATES =
   Object.freeze({
     REGISTERED:
       "registered",
@@ -171,7 +171,7 @@ export const FRAME_HELM_FEATURE_RUNTIME_STATES =
  * Registry-facing feature ids, capability ids, and lifecycle
  * phases must resolve to non-empty strings.
  */
-function normalizeFrameHelmRegistryIdentifier(
+function normalizeFrameConnRegistryIdentifier(
   value,
   description
 ) {
@@ -207,14 +207,14 @@ function normalizeFrameHelmRegistryIdentifier(
  * Lifecycle state and installed Foundry hook ids belong to the
  * registry runtime instead.
  */
-function createFrameHelmFeatureRuntimeRecord(
+function createFrameConnFeatureRuntimeRecord(
   feature
 ) {
   return {
     feature,
 
     state:
-      FRAME_HELM_FEATURE_RUNTIME_STATES
+      FRAME_CONN_FEATURE_RUNTIME_STATES
         .REGISTERED,
 
     installedHooks:
@@ -235,17 +235,17 @@ function createFrameHelmFeatureRuntimeRecord(
 
 
 /* ============================================================
-   Frame Helm feature registry
+   Frame Conn feature registry
    ============================================================ */
 
 /**
- * Canonical registry implementation used by Frame Helm.
+ * Canonical registry implementation used by Frame Conn.
  *
  * The registry knows how to compose normalized feature
  * definitions but has no knowledge of the concrete application
  * feature list.
  */
-export class FrameHelmFeatureRegistry {
+export class FrameConnFeatureRegistry {
   constructor() {
     /**
      * Registered feature definitions indexed by feature id.
@@ -284,7 +284,7 @@ export class FrameHelmFeatureRegistry {
      ========================================================== */
 
   /**
-   * Registers one normalized Frame Helm feature definition.
+   * Registers one normalized Frame Conn feature definition.
    *
    * Registration:
    *
@@ -304,17 +304,17 @@ export class FrameHelmFeatureRegistry {
   register(
     feature
   ) {
-    assertFrameHelmFeatureDefinition(
+    assertFrameConnFeatureDefinition(
       feature
     );
 
 
     if (
       feature.contractVersion !==
-      FRAME_HELM_FEATURE_CONTRACT_VERSION
+      FRAME_CONN_FEATURE_CONTRACT_VERSION
     ) {
       throw new Error(
-        `Frame Helm feature "${feature.id}" uses unsupported contract version ${feature.contractVersion}.`
+        `Frame Conn feature "${feature.id}" uses unsupported contract version ${feature.contractVersion}.`
       );
     }
 
@@ -325,7 +325,7 @@ export class FrameHelmFeatureRegistry {
       )
     ) {
       throw new Error(
-        `Frame Helm feature already registered: ${feature.id}`
+        `Frame Conn feature already registered: ${feature.id}`
       );
     }
 
@@ -344,7 +344,7 @@ export class FrameHelmFeatureRegistry {
         existingProvider
       ) {
         throw new Error(
-          `Frame Helm capability "${capability}" is already provided by feature "${existingProvider}". Feature "${feature.id}" cannot also provide it.`
+          `Frame Conn capability "${capability}" is already provided by feature "${existingProvider}". Feature "${feature.id}" cannot also provide it.`
         );
       }
     }
@@ -358,7 +358,7 @@ export class FrameHelmFeatureRegistry {
 
     this.runtime.set(
       feature.id,
-      createFrameHelmFeatureRuntimeRecord(
+      createFrameConnFeatureRuntimeRecord(
         feature
       )
     );
@@ -391,7 +391,7 @@ export class FrameHelmFeatureRegistry {
       )
     ) {
       throw new TypeError(
-        "Frame Helm registerMany requires an array of feature definitions."
+        "Frame Conn registerMany requires an array of feature definitions."
       );
     }
 
@@ -418,9 +418,9 @@ export class FrameHelmFeatureRegistry {
     featureId
   ) {
     const id =
-      normalizeFrameHelmRegistryIdentifier(
+      normalizeFrameConnRegistryIdentifier(
         featureId,
-        "Frame Helm feature lookup"
+        "Frame Conn feature lookup"
       );
 
 
@@ -440,9 +440,9 @@ export class FrameHelmFeatureRegistry {
     featureId
   ) {
     const id =
-      normalizeFrameHelmRegistryIdentifier(
+      normalizeFrameConnRegistryIdentifier(
         featureId,
-        "Frame Helm feature lookup"
+        "Frame Conn feature lookup"
       );
 
 
@@ -496,9 +496,9 @@ export class FrameHelmFeatureRegistry {
     capability
   ) {
     const capabilityId =
-      normalizeFrameHelmRegistryIdentifier(
+      normalizeFrameConnRegistryIdentifier(
         capability,
-        "Frame Helm capability lookup"
+        "Frame Conn capability lookup"
       );
 
 
@@ -517,9 +517,9 @@ export class FrameHelmFeatureRegistry {
     capability
   ) {
     const capabilityId =
-      normalizeFrameHelmRegistryIdentifier(
+      normalizeFrameConnRegistryIdentifier(
         capability,
-        "Frame Helm capability lookup"
+        "Frame Conn capability lookup"
       );
 
 
@@ -552,9 +552,9 @@ export class FrameHelmFeatureRegistry {
     capability
   ) {
     const capabilityId =
-      normalizeFrameHelmRegistryIdentifier(
+      normalizeFrameConnRegistryIdentifier(
         capability,
-        "Frame Helm capability lookup"
+        "Frame Conn capability lookup"
       );
 
 
@@ -730,12 +730,12 @@ export class FrameHelmFeatureRegistry {
       !feature
     ) {
       throw new Error(
-        "Cannot inspect dependencies for an unknown Frame Helm feature."
+        "Cannot inspect dependencies for an unknown Frame Conn feature."
       );
     }
 
 
-    assertFrameHelmFeatureDefinition(
+    assertFrameConnFeatureDefinition(
       feature
     );
 
@@ -771,12 +771,12 @@ export class FrameHelmFeatureRegistry {
       !feature
     ) {
       throw new Error(
-        "Cannot inspect optional dependencies for an unknown Frame Helm feature."
+        "Cannot inspect optional dependencies for an unknown Frame Conn feature."
       );
     }
 
 
-    assertFrameHelmFeatureDefinition(
+    assertFrameConnFeatureDefinition(
       feature
     );
 
@@ -812,12 +812,12 @@ export class FrameHelmFeatureRegistry {
       !feature
     ) {
       throw new Error(
-        "Cannot inspect optional dependencies for an unknown Frame Helm feature."
+        "Cannot inspect optional dependencies for an unknown Frame Conn feature."
       );
     }
 
 
-    assertFrameHelmFeatureDefinition(
+    assertFrameConnFeatureDefinition(
       feature
     );
 
@@ -891,7 +891,7 @@ export class FrameHelmFeatureRegistry {
 
 
       throw new Error(
-        `Frame Helm feature dependency validation failed. ${description}`
+        `Frame Conn feature dependency validation failed. ${description}`
       );
     }
 
@@ -941,7 +941,7 @@ export class FrameHelmFeatureRegistry {
           )
         ) {
           throw new Error(
-            `Frame Helm feature dependency cycle detected at "${feature.id}".`
+            `Frame Conn feature dependency cycle detected at "${feature.id}".`
           );
         }
 
@@ -965,7 +965,7 @@ export class FrameHelmFeatureRegistry {
             !provider
           ) {
             throw new Error(
-              `Frame Helm feature "${feature.id}" requires missing capability "${capability}".`
+              `Frame Conn feature "${feature.id}" requires missing capability "${capability}".`
             );
           }
 
@@ -1041,7 +1041,7 @@ export class FrameHelmFeatureRegistry {
       !feature
     ) {
       throw new Error(
-        "Cannot create context for an unknown Frame Helm feature."
+        "Cannot create context for an unknown Frame Conn feature."
       );
     }
 
@@ -1174,25 +1174,25 @@ export class FrameHelmFeatureRegistry {
       !feature
     ) {
       throw new Error(
-        "Cannot run lifecycle for an unknown Frame Helm feature."
+        "Cannot run lifecycle for an unknown Frame Conn feature."
       );
     }
 
 
     const normalizedPhase =
-      normalizeFrameHelmRegistryIdentifier(
+      normalizeFrameConnRegistryIdentifier(
         phase,
-        "Frame Helm lifecycle phase"
+        "Frame Conn lifecycle phase"
       );
 
 
     if (
-      !FRAME_HELM_FEATURE_LIFECYCLE_PHASES.includes(
+      !FRAME_CONN_FEATURE_LIFECYCLE_PHASES.includes(
         normalizedPhase
       )
     ) {
       throw new Error(
-        `Unknown Frame Helm lifecycle phase: ${normalizedPhase}`
+        `Unknown Frame Conn lifecycle phase: ${normalizedPhase}`
       );
     }
 
@@ -1207,7 +1207,7 @@ export class FrameHelmFeatureRegistry {
       !runtime
     ) {
       throw new Error(
-        `Frame Helm feature "${feature.id}" has no runtime record.`
+        `Frame Conn feature "${feature.id}" has no runtime record.`
       );
     }
 
@@ -1280,7 +1280,7 @@ export class FrameHelmFeatureRegistry {
       "initialize"
     ) {
       runtime.state =
-        FRAME_HELM_FEATURE_RUNTIME_STATES
+        FRAME_CONN_FEATURE_RUNTIME_STATES
           .INITIALIZED;
 
 
@@ -1293,7 +1293,7 @@ export class FrameHelmFeatureRegistry {
       "ready"
     ) {
       runtime.state =
-        FRAME_HELM_FEATURE_RUNTIME_STATES
+        FRAME_CONN_FEATURE_RUNTIME_STATES
           .READY;
 
 
@@ -1306,7 +1306,7 @@ export class FrameHelmFeatureRegistry {
       "shutdown"
     ) {
       runtime.state =
-        FRAME_HELM_FEATURE_RUNTIME_STATES
+        FRAME_CONN_FEATURE_RUNTIME_STATES
           .SHUT_DOWN;
     }
   }
@@ -1326,19 +1326,19 @@ export class FrameHelmFeatureRegistry {
     phase
   ) {
     const normalizedPhase =
-      normalizeFrameHelmRegistryIdentifier(
+      normalizeFrameConnRegistryIdentifier(
         phase,
-        "Frame Helm lifecycle phase"
+        "Frame Conn lifecycle phase"
       );
 
 
     if (
-      !FRAME_HELM_FEATURE_LIFECYCLE_PHASES.includes(
+      !FRAME_CONN_FEATURE_LIFECYCLE_PHASES.includes(
         normalizedPhase
       )
     ) {
       throw new Error(
-        `Unknown Frame Helm lifecycle phase: ${normalizedPhase}`
+        `Unknown Frame Conn lifecycle phase: ${normalizedPhase}`
       );
     }
 
@@ -1535,7 +1535,7 @@ export class FrameHelmFeatureRegistry {
           error
         ) {
           console.warn(
-            `Frame Helm | Could not remove hook "${installed.hookName}".`,
+            `Frame Conn | Could not remove hook "${installed.hookName}".`,
             error
           );
         }
@@ -1563,9 +1563,9 @@ export class FrameHelmFeatureRegistry {
     featureId
   ) {
     const id =
-      normalizeFrameHelmRegistryIdentifier(
+      normalizeFrameConnRegistryIdentifier(
         featureId,
-        "Frame Helm feature lookup"
+        "Frame Conn feature lookup"
       );
 
 
@@ -1588,16 +1588,16 @@ export class FrameHelmFeatureRegistry {
     phase
   ) {
     const id =
-      normalizeFrameHelmRegistryIdentifier(
+      normalizeFrameConnRegistryIdentifier(
         featureId,
-        "Frame Helm feature lookup"
+        "Frame Conn feature lookup"
       );
 
 
     const normalizedPhase =
-      normalizeFrameHelmRegistryIdentifier(
+      normalizeFrameConnRegistryIdentifier(
         phase,
-        "Frame Helm lifecycle phase"
+        "Frame Conn lifecycle phase"
       );
 
 
@@ -1628,10 +1628,10 @@ export class FrameHelmFeatureRegistry {
   snapshot() {
     return {
       registryVersion:
-        FRAME_HELM_FEATURE_REGISTRY_VERSION,
+        FRAME_CONN_FEATURE_REGISTRY_VERSION,
 
       contractVersion:
-        FRAME_HELM_FEATURE_CONTRACT_VERSION,
+        FRAME_CONN_FEATURE_CONTRACT_VERSION,
 
       featureCount:
         this.features.size,
@@ -1649,7 +1649,7 @@ export class FrameHelmFeatureRegistry {
 
 
             return {
-              ...summarizeFrameHelmFeature(
+              ...summarizeFrameConnFeature(
                 feature
               ),
 
@@ -1714,7 +1714,7 @@ export class FrameHelmFeatureRegistry {
    *
    * Concrete application features are NOT automatically restored
    * because this core implementation does not know which features
-   * belong to Frame Helm.
+   * belong to Frame Conn.
    */
   clear() {
     this.uninstallHooks();
@@ -1740,11 +1740,11 @@ export class FrameHelmFeatureRegistry {
  * diagnostics.
  *
  * Application composition should normally interact through
- * FrameHelmFeatureRegistry rather than invoking these helpers
+ * FrameConnFeatureRegistry rather than invoking these helpers
  * directly.
  */
 export {
-  normalizeFrameHelmRegistryIdentifier,
+  normalizeFrameConnRegistryIdentifier,
 
-  createFrameHelmFeatureRuntimeRecord
+  createFrameConnFeatureRuntimeRecord
 };

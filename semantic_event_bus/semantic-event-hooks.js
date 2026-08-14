@@ -18,7 +18,7 @@
  * - semantic-event-dispatcher
  * - execution_transaction/execution-transaction
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - observes execution_transaction/ stable hook stages
  * - emits normalized execution lifecycle events
  * - preserves ExecutionContext execution lineage
@@ -93,7 +93,7 @@ import {
    MODULE IDENTITY
    ============================================================ */
 export const SEMANTIC_EVENT_HOOKS_MODULE_ID =
-  "lancer-frame-helm.semantic-event-hooks";
+  "lancer-frame-conn.semantic-event-hooks";
 export const SEMANTIC_EVENT_HOOKS_MODULE_VERSION =
   1;
 /* ============================================================
@@ -1232,10 +1232,10 @@ export function getSemanticEventHookDiagnostics() {
  * Do not register them per action.
  */
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * execution_transaction/
  * ----------------------

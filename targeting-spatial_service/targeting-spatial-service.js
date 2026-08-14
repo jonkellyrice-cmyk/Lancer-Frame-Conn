@@ -10,7 +10,7 @@
  * @path main/targeting_spatial_service/targeting-spatial-service.js
  * @module targeting-spatial-service
  * @layer targeting-spatial-service-public-boundary
- * @responsibility expose-one-stable-frame-helm-facing-targeting-spatial-api
+ * @responsibility expose-one-stable-frame-conn-facing-targeting-spatial-api
  * @public-boundary true
  * @side-effects delegated-through-query-resolver-validator-and-hooks
  *
@@ -21,7 +21,7 @@
  * - targeting-spatial-validator
  * - targeting-spatial-hooks
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumed by runtime-orchestrator.js
  * - consumed by future actor_owned_feature_registry/
  * - consumed by future system_bridge/
@@ -81,7 +81,7 @@ import * as hooks from "./targeting-spatial-hooks.js";
    ============================================================ */
 
 export const TARGETING_SPATIAL_SERVICE_MODULE_ID =
-  "lancer-frame-helm.targeting-spatial-service";
+  "lancer-frame-conn.targeting-spatial-service";
 
 export const TARGETING_SPATIAL_SERVICE_MODULE_VERSION =
   1;
@@ -1327,11 +1327,11 @@ export function getTargetingSpatialServiceDiagnostics() {
  * Sensor-space detection is independent from ordinary Foundry visual
  * visibility.
  *
- * This supports Frame Helm:
+ * This supports Frame Conn:
  *
  * enemy within Sensors
  * + darkness/vision prevents normal rendering
- * → Frame Helm may still show sensor outline/name.
+ * → Frame Conn may still show sensor outline/name.
  *
  * Visual presentation remains UI-owned.
  */
@@ -1499,11 +1499,11 @@ export function getTargetingSpatialServiceDiagnostics() {
  */
 
 /* ============================================================
-   FRAME HELM RUNTIME COMPOSITION
+   FRAME CONN RUNTIME COMPOSITION
    ============================================================ */
 
 /**
- * @section frame-helm-runtime-composition
+ * @section frame-conn-runtime-composition
  *
  * Recommended setup:
  *
@@ -1658,11 +1658,11 @@ export function getTargetingSpatialServiceDiagnostics() {
  */
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * native_adapter/
  * ---------------
@@ -1733,7 +1733,7 @@ export function getTargetingSpatialServiceDiagnostics() {
  * @section boundary-invariants
  *
  * INVARIANT 1
- * targeting-spatial-service.js is the public Frame Helm targeting/spatial
+ * targeting-spatial-service.js is the public Frame Conn targeting/spatial
  * boundary.
  *
  * INVARIANT 2

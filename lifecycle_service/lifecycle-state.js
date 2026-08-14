@@ -9,18 +9,18 @@
  * @path main/lifecycle_service/lifecycle-state.js
  * @module lifecycle-state
  * @layer lifecycle-service-state
- * @responsibility store-normalize-and-query-frame-helm-lifecycle-managed-state
+ * @responsibility store-normalize-and-query-frame-conn-lifecycle-managed-state
  * @public-boundary false
  * @side-effects lifecycle-state-storage-through-injected-adapter
  *
  * @depends-on
  * - lifecycle-contract
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumed by lifecycle-dispatcher.js
  * - consumed indirectly by lifecycle-hooks.js
  * - consumed by lifecycle-service.js
- * - stores Frame Helm lifecycle metadata for:
+ * - stores Frame Conn lifecycle metadata for:
  *   - temporary effects
  *   - expirations
  *   - reset descriptors
@@ -78,7 +78,7 @@ import {
    MODULE IDENTITY
    ============================================================ */
 export const LIFECYCLE_STATE_MODULE_ID =
-  "lancer-frame-helm.lifecycle-state";
+  "lancer-frame-conn.lifecycle-state";
 export const LIFECYCLE_STATE_MODULE_VERSION =
   1;
 /* ============================================================
@@ -128,7 +128,7 @@ export const LIFECYCLE_ENTRY_STATUS =
  *
  * Foundry flags
  * actor document data
- * dedicated Frame Helm runtime persistence
+ * dedicated Frame Conn runtime persistence
  *
  * Storage path does not belong in this module.
  */
@@ -1596,7 +1596,7 @@ export async function getLifecycleStateSnapshot(
  * It does not care whether descriptor originated from:
  *
  * native data
- * current Frame Helm registry
+ * current Frame Conn registry
  * actor-owned feature descriptor
  * augmentation registry
  */
@@ -1626,10 +1626,10 @@ export function getLifecycleStateDiagnostics() {
   });
 }
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * feature_turn/
  * -------------

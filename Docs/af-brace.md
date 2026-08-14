@@ -14,11 +14,11 @@ cat > docs/af-brace.md <<‘EOF’
 
 **Native authoritative damage application boundary:** Found.
 
-**Frame Helm implementation status:** Frame Helm should own the Brace reaction state/timing and feed its defensive consequence into native Lancer damage resolution rather than reimplementing damage math.
+**Frame Conn implementation status:** Frame Conn should own the Brace reaction state/timing and feed its defensive consequence into native Lancer damage resolution rather than reimplementing damage math.
 
 ## Purpose
 
-This document records the native Foundry Lancer findings relevant to the universal **Brace** Reaction and defines the intended Frame Helm integration boundary.
+This document records the native Foundry Lancer findings relevant to the universal **Brace** Reaction and defines the intended Frame Conn integration boundary.
 
 Repository investigation did not reveal a dedicated executable Brace flow such as:
 
@@ -28,7 +28,7 @@ or:
 
 `beginBraceFlow()`
 
-However, the native system contains several important pieces that Frame Helm can reuse:
+However, the native system contains several important pieces that Frame Conn can reuse:
 
 - Brace exists as a native semantic/synergy location.
 - Legacy/packed mech state contains `braced` and `bracedCooldown`.
@@ -38,7 +38,7 @@ However, the native system contains several important pieces that Frame Helm can
 
 Therefore:
 
-> Frame Helm should implement Brace as a reaction-state and timing orchestration layer.
+> Frame Conn should implement Brace as a reaction-state and timing orchestration layer.
 
 while:
 
@@ -54,7 +54,7 @@ Unlike normal turn actions, Brace is not simply selected and executed at arbitra
 
 It is triggered in response to an incoming event.
 
-Therefore Brace requires Frame Helm to understand:
+Therefore Brace requires Frame Conn to understand:
 
 - reaction availability;
 - incoming attack/effect timing;
@@ -84,7 +84,7 @@ Repository searching did not identify:
 - dedicated Brace execution app
 - dedicated universal Brace action workflow
 
-Therefore Frame Helm cannot delegate Brace execution to a native Brace flow.
+Therefore Frame Conn cannot delegate Brace execution to a native Brace flow.
 
 —
 
@@ -108,7 +108,7 @@ This exists alongside other semantic locations such as:
 
 This means native content can conceptually reference Brace as a meaningful action/event location even though the universal Brace action itself lacks a dedicated execution flow.
 
-Therefore Frame Helm should preserve Brace as a semantic event, not merely as an anonymous damage modifier.
+Therefore Frame Conn should preserve Brace as a semantic event, not merely as an anonymous damage modifier.
 
 —
 
@@ -147,7 +147,7 @@ They are **not** sufficient evidence to directly reproduce a runtime Brace state
 
 # 5. Do Not Mutate Packed State Blindly
 
-Frame Helm should not assume that:
+Frame Conn should not assume that:
 
 `braced = true`
 
@@ -165,7 +165,7 @@ Before implementation, determine:
 - whether any native UI consumes them;
 - whether another status/effect representation is preferred.
 
-If no active native runtime state exists, Frame Helm may need to own Brace timing state internally while still using native damage primitives.
+If no active native runtime state exists, Frame Conn may need to own Brace timing state internally while still using native damage primitives.
 
 —
 
@@ -238,7 +238,7 @@ and:
 
 incoming damage application.
 
-Frame Helm’s eventual automation may remove some of this manual separation, but the native architecture currently treats them as distinct phases.
+Frame Conn’s eventual automation may remove some of this manual separation, but the native architecture currently treats them as distinct phases.
 
 —
 
@@ -261,7 +261,7 @@ with options including concepts such as:
 
 This method is the authoritative native location where incoming damage is processed against the target.
 
-Frame Helm should strongly prefer feeding prepared damage into this method rather than reproducing downstream defensive rules itself.
+Frame Conn should strongly prefer feeding prepared damage into this method rather than reproducing downstream defensive rules itself.
 
 —
 
@@ -318,7 +318,7 @@ When:
 
 the native code recognizes the damage as being halved.
 
-This gives Frame Helm a reusable primitive for any Brace consequence that is mechanically represented as half damage.
+This gives Frame Conn a reusable primitive for any Brace consequence that is mechanically represented as half damage.
 
 —
 
@@ -334,7 +334,7 @@ Therefore half damage is not an accidental internal numeric trick.
 
 It is a first-class concept in the native damage-resolution architecture.
 
-This strongly suggests Frame Helm should use this native mechanism where Brace requires halving incoming damage.
+This strongly suggests Frame Conn should use this native mechanism where Brace requires halving incoming damage.
 
 —
 
@@ -344,22 +344,22 @@ Assuming the confirmed Brace rules require halving the relevant incoming damage,
 
 incoming attack/effect
 → Brace reaction declared
-→ Frame Helm validates reaction availability
-→ Frame Helm records Brace against that incoming event
+→ Frame Conn validates reaction availability
+→ Frame Conn records Brace against that incoming event
 → damage resolution begins
-→ Frame Helm/native adapter marks relevant damage as half damage
+→ Frame Conn/native adapter marks relevant damage as half damage
 → native damage application calls:
   `damageCalc(..., { multiple: 0.5 })`
 → native system handles downstream defenses
 → Brace event resolves
 
-The exact point where Frame Helm supplies `multiple: 0.5` must be determined from the final execution architecture.
+The exact point where Frame Conn supplies `multiple: 0.5` must be determined from the final execution architecture.
 
 —
 
 # 14. Do Not Reimplement Damage Halving
 
-Frame Helm should not implement:
+Frame Conn should not implement:
 
 raw damage / 2
 
@@ -384,7 +384,7 @@ Brace
 not:
 
 Brace
-→ custom Frame Helm damage engine.
+→ custom Frame Conn damage engine.
 
 —
 
@@ -412,9 +412,9 @@ Do not infer all rule interactions solely from the existence of the native half-
 
 —
 
-# 16. Frame Helm Reaction Ownership
+# 16. Frame Conn Reaction Ownership
 
-Frame Helm’s Turn state already owns Reaction availability.
+Frame Conn’s Turn state already owns Reaction availability.
 
 Relevant current concepts include:
 
@@ -424,7 +424,7 @@ and:
 
 `reaction.actionId`
 
-Therefore Brace should integrate naturally with Frame Helm’s Turn domain.
+Therefore Brace should integrate naturally with Frame Conn’s Turn domain.
 
 Conceptually:
 
@@ -434,26 +434,26 @@ Brace declared
 → record action ID
 → begin Brace defensive state
 
-The native damage system does not need to know how Frame Helm tracks Reaction expenditure.
+The native damage system does not need to know how Frame Conn tracks Reaction expenditure.
 
 —
 
 # 17. Proposed Initial Brace Flow
 
-The initial Frame Helm flow should be:
+The initial Frame Conn flow should be:
 
 incoming qualifying event occurs
-→ Frame Helm exposes Brace opportunity
+→ Frame Conn exposes Brace opportunity
 → player chooses Brace
-→ Frame Helm resolves authoritative acting mech
+→ Frame Conn resolves authoritative acting mech
 → validate reaction availability
 → validate Brace is legal for this incoming event
-→ consume Frame Helm Reaction
+→ consume Frame Conn Reaction
 → record Brace reaction state
 → apply Brace defensive modifier to the bound incoming event
 → allow native damage resolution to proceed
 → enforce any confirmed post-Brace penalty/cooldown
-→ update Frame Helm state/presentation
+→ update Frame Conn state/presentation
 
 No attack roll is made by Brace itself.
 
@@ -478,7 +478,7 @@ This prevents Brace from incorrectly becoming a persistent generic half-damage t
 
 # 19. Event-Bound State
 
-A future Frame Helm Brace execution record may need information such as:
+A future Frame Conn Brace execution record may need information such as:
 
 - source attacker;
 - source attack/effect;
@@ -499,7 +499,7 @@ The exact state contract should be designed during implementation.
 
 Brace timing must be researched precisely from the Lancer rules.
 
-Frame Helm needs to know:
+Frame Conn needs to know:
 
 - when Brace may be declared;
 - whether declaration occurs after hit confirmation;
@@ -551,7 +551,7 @@ The packed-state field:
 
 suggests a post-Brace restriction or cooldown concept existed in the data model.
 
-Frame Helm must confirm the actual rule timing.
+Frame Conn must confirm the actual rule timing.
 
 Questions include:
 
@@ -563,7 +563,7 @@ Questions include:
 - what actions are prohibited or modified;
 - whether Reaction refresh interacts with it.
 
-Only after confirming these rules should Frame Helm implement a post-Brace state machine.
+Only after confirming these rules should Frame Conn implement a post-Brace state machine.
 
 —
 
@@ -590,12 +590,12 @@ Do not implement these exact transitions until rule timing is confirmed.
 
 # 24. Relationship to `braced`
 
-If current runtime actor state does not use the packed `braced` field, Frame Helm should not create a fake native state merely to match the old schema.
+If current runtime actor state does not use the packed `braced` field, Frame Conn should not create a fake native state merely to match the old schema.
 
 Possible implementation choices include:
 
-- Frame Helm Turn state;
-- Frame Helm reaction execution state;
+- Frame Conn Turn state;
+- Frame Conn reaction execution state;
 - temporary ActiveEffect if appropriate;
 - another native actor state mechanism discovered later.
 
@@ -618,19 +618,19 @@ Before using it:
 - search update handlers;
 - search effect/status helpers.
 
-If no current consumer exists, Frame Helm should own the restriction explicitly.
+If no current consumer exists, Frame Conn should own the restriction explicitly.
 
 —
 
 # 26. Brace and Damage Automation
 
-The Brace search revealed an important general Frame Helm architecture beyond Brace itself.
+The Brace search revealed an important general Frame Conn architecture beyond Brace itself.
 
 For future automated attacks:
 
-Frame Helm determines hit
+Frame Conn determines hit
 → raw damage rolled
-→ Frame Helm prepares native damage options
+→ Frame Conn prepares native damage options
 → target actor receives:
   `damageCalc(...)`
 → native Lancer handles defenses
@@ -663,7 +663,7 @@ These should be preserved rather than flattened into precomputed damage when pos
 
 Conceptually:
 
-Frame Helm should pass:
+Frame Conn should pass:
 
 raw damage
 +
@@ -683,7 +683,7 @@ Therefore Brace should not introduce its own Armor interaction.
 
 If the incoming damage is AP:
 
-Frame Helm passes AP information
+Frame Conn passes AP information
 
 and:
 
@@ -699,7 +699,7 @@ Native damage calculation accepts a paracausal concept.
 
 Brace interaction with Paracausal damage must be checked against the actual rules.
 
-Frame Helm should not assume that half-damage Brace applies or does not apply.
+Frame Conn should not assume that half-damage Brace applies or does not apply.
 
 The damage engine provides the primitive; the Brace adapter must decide the legal configuration.
 
@@ -735,7 +735,7 @@ half Heat
 
 unless the rules say so.
 
-The native damage pipeline provides the mechanism, but Frame Helm must supply correct Brace semantics.
+The native damage pipeline provides the mechanism, but Frame Conn must supply correct Brace semantics.
 
 —
 
@@ -743,7 +743,7 @@ The native damage pipeline provides the mechanism, but Frame Helm must supply co
 
 Overshield is already downstream of the native damage calculation.
 
-Therefore Frame Helm should not separately subtract Overshield when Brace is active.
+Therefore Frame Conn should not separately subtract Overshield when Brace is active.
 
 The native damage call should remain authoritative.
 
@@ -755,7 +755,7 @@ Exposed is already part of the native damage ordering.
 
 This is especially important because damage doubling and Brace halving may interact.
 
-Frame Helm should not decide the final numeric result itself if native `damageCalc(...)` can correctly apply the relevant multipliers and defenses.
+Frame Conn should not decide the final numeric result itself if native `damageCalc(...)` can correctly apply the relevant multipliers and defenses.
 
 The exact stacking/order should remain native whenever possible.
 
@@ -763,7 +763,7 @@ The exact stacking/order should remain native whenever possible.
 
 # 34. Brace Presentation
 
-Brace should appear as a reaction-capable action in Frame Helm.
+Brace should appear as a reaction-capable action in Frame Conn.
 
 However, its execution control should normally become available in response to a qualifying event rather than existing only as a static committed-plan action.
 
@@ -779,7 +779,7 @@ The exact UI belongs to the reaction/presentation layer.
 
 # 35. Reaction Availability
 
-Frame Helm already tracks whether a Reaction has been used during the turn.
+Frame Conn already tracks whether a Reaction has been used during the turn.
 
 Brace execution should consult that authoritative Turn state.
 
@@ -818,7 +818,7 @@ as a synergy location, future actor-owned content may trigger from:
 - while Braced;
 - after Brace resolves.
 
-Frame Helm should preserve Brace action identity so these effects can eventually be integrated.
+Frame Conn should preserve Brace action identity so these effects can eventually be integrated.
 
 —
 
@@ -828,13 +828,13 @@ If native actor-owned content exposes structured synergy information for:
 
 `brace`
 
-Frame Helm should prefer that structured data over scanning descriptive text.
+Frame Conn should prefer that structured data over scanning descriptive text.
 
 Preferred hierarchy:
 
 1. native structured synergy/action metadata;
 2. native action/effect data;
-3. explicit Frame Helm adapter;
+3. explicit Frame Conn adapter;
 4. prose parsing only when unavoidable.
 
 —
@@ -843,7 +843,7 @@ Preferred hierarchy:
 
 The intended execution boundary is:
 
-Frame Helm reaction/timing layer
+Frame Conn reaction/timing layer
 → Brace legality
 → Reaction expenditure
 → incoming-event binding
@@ -852,7 +852,7 @@ Frame Helm reaction/timing layer
 → `LancerActor.damageCalc(...)`
 → native defense processing
 → authoritative actor mutation
-→ Frame Helm aftermath/cooldown state
+→ Frame Conn aftermath/cooldown state
 
 This keeps responsibility clean.
 
@@ -862,7 +862,7 @@ This keeps responsibility clean.
 
 No native `BraceFlow` was found.
 
-Frame Helm may have an internal Brace execution service, but it should not pretend to delegate to a nonexistent native workflow.
+Frame Conn may have an internal Brace execution service, but it should not pretend to delegate to a nonexistent native workflow.
 
 The native reusable primitive is:
 
@@ -885,7 +885,7 @@ not:
 - [ ] Trace how `halfDamage` becomes `multiple: 0.5`.
 - [ ] Determine whether half damage can be assigned per target.
 - [ ] Determine whether half damage can be injected before the HUD.
-- [ ] Determine whether Frame Helm can bypass the HUD while preserving native calculations.
+- [ ] Determine whether Frame Conn can bypass the HUD while preserving native calculations.
 - [ ] Trace `applyDamage(...)`.
 - [ ] Trace the complete signature of `LancerActor.damageCalc(...)`.
 - [ ] Record all relevant options passed into `damageCalc(...)`.
@@ -931,7 +931,7 @@ Relevant decomposition targets include:
 Afterward:
 
 - [ ] Add Brace reaction execution strategy.
-- [ ] Integrate Brace with Frame Helm Reaction availability.
+- [ ] Integrate Brace with Frame Conn Reaction availability.
 - [ ] Define qualifying incoming-event representation.
 - [ ] Bind Brace to one incoming event.
 - [ ] Spend Reaction once.
@@ -942,7 +942,7 @@ Afterward:
 - [ ] Apply confirmed non-damage Brace consequences.
 - [ ] Track post-Brace restriction/cooldown.
 - [ ] Clear Brace state at correct lifecycle points.
-- [ ] Refresh Frame Helm UI.
+- [ ] Refresh Frame Conn UI.
 - [ ] Preserve Brace semantic event for future triggers.
 - [ ] Smoke-test Brace against weapon damage.
 - [ ] Smoke-test Brace with Armor.
@@ -968,11 +968,11 @@ No dedicated native `BraceFlow` was found.
 
 **Invariant 3**
 
-Frame Helm owns Brace reaction timing and state.
+Frame Conn owns Brace reaction timing and state.
 
 **Invariant 4**
 
-Reaction expenditure remains owned by Frame Helm Turn state.
+Reaction expenditure remains owned by Frame Conn Turn state.
 
 **Invariant 5**
 
@@ -988,7 +988,7 @@ Native Lancer’s authoritative damage boundary is `LancerActor.damageCalc(...)`
 
 **Invariant 8**
 
-Frame Helm should not recreate Armor, Resistance, Exposed, Overshield, HP, Burn, or Heat processing when native damage resolution can handle them.
+Frame Conn should not recreate Armor, Resistance, Exposed, Overshield, HP, Burn, or Heat processing when native damage resolution can handle them.
 
 **Invariant 9**
 
@@ -1015,7 +1015,7 @@ BRACE
 │   ├── `braced`
 │   └── `bracedCooldown`
 │
-├── Frame Helm owns:
+├── Frame Conn owns:
 │   ├── reaction legality
 │   ├── trigger timing
 │   ├── incoming-event binding
@@ -1049,7 +1049,7 @@ Brace reaction state
 rather than:
 
 Brace
-→ custom Frame Helm damage engine.
+→ custom Frame Conn damage engine.
 
 The remaining hard problem is not damage arithmetic.
 

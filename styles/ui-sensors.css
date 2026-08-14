@@ -8,12 +8,12 @@
 
 /**
  * ============================================================
- * FRAME HELM UI FEATURE -- SENSORS
+ * FRAME CONN UI FEATURE -- SENSORS
  * ============================================================
  *
  * ROLE:
  *   Owns visual configuration belonging specifically to the
- *   Frame Helm Sensors UI feature.
+ *   Frame Conn Sensors UI feature.
  *
  * FEATURE:
  *   sensors
@@ -45,7 +45,7 @@
  *   - Canvas attachment.
  *   - Canvas layer destruction.
  *   - Application/window composition.
- *   - Shared Frame Helm primitives.
+ *   - Shared Frame Conn primitives.
  *
  * IMPLEMENTATION CONTRACT:
  *
@@ -68,7 +68,7 @@
  *       ↓
  *   ui-registry.css
  *       ↓
- *   lancer-frame-helm.css
+ *   lancer-frame-conn.css
  *
  * RUNTIME PRESENTATION FLOW:
  *
@@ -94,24 +94,24 @@
    ============================================================ */
 
 :root {
-  --fh-sensor-contact-color:
+  --fc-sensor-contact-color:
     #ff3030;
 
-  --fh-sensor-reticle-stroke-width:
+  --fc-sensor-reticle-stroke-width:
     1.5;
 
-  --fh-sensor-reticle-alpha:
+  --fc-sensor-reticle-alpha:
     0.9;
 
-  --fh-sensor-reticle-clearance:
+  --fc-sensor-reticle-clearance:
     5;
 
-  --fh-sensor-reticle-bracket-minimum:
+  --fc-sensor-reticle-bracket-minimum:
     8;
 
-  --fh-sensor-reticle-bracket-scale:
+  --fc-sensor-reticle-bracket-scale:
     0.28;
 
-  --fh-sensor-layer-z-index:
+  --fc-sensor-layer-z-index:
     100000;
 }

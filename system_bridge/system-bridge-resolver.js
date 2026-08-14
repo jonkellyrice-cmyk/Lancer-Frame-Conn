@@ -19,8 +19,8 @@
  * - system-bridge-augmentation-registry
  * - actor_owned_feature_registry/actor-owned-feature-service
  *
- * EXISTING FRAME HELM INTEGRATION:
- * - existing Frame Helm registry remains a separate source
+ * EXISTING FRAME CONN INTEGRATION:
+ * - existing Frame Conn registry remains a separate source
  * - existing registry access is injected through a resolver adapter
  * - actor_owned_feature_registry/ is consumed through its public service
  * - augmentation matching is delegated to augmentation registry
@@ -90,7 +90,7 @@ import {
    ============================================================ */
 
 export const SYSTEM_BRIDGE_RESOLVER_MODULE_ID =
-  "lancer-frame-helm.system-bridge-resolver";
+  "lancer-frame-conn.system-bridge-resolver";
 
 export const SYSTEM_BRIDGE_RESOLVER_MODULE_VERSION =
   1;
@@ -102,7 +102,7 @@ export const SYSTEM_BRIDGE_RESOLVER_MODULE_VERSION =
 /**
  * @section existing-registry-resolver-adapter
  *
- * Existing Frame Helm registry shape predates system_bridge.
+ * Existing Frame Conn registry shape predates system_bridge.
  *
  * Rather than coupling this resolver to one registry implementation,
  * runtime composition injects the lookup boundary.
@@ -1345,7 +1345,7 @@ function createMissingSourceWarnings({
           "existing-registry-source-not-found",
 
         message:
-          "No existing Frame Helm registry entry matched the bridge request.",
+          "No existing Frame Conn registry entry matched the bridge request.",
 
         field:
           "existingRegistry"
@@ -1889,7 +1889,7 @@ export function getSystemBridgePrimarySource(
 /**
  * @section existing-registry-source-rule
  *
- * Existing registry access is injected because the old Frame Helm registry
+ * Existing registry access is injected because the old Frame Conn registry
  * predates system_bridge and may have its own storage/query shape.
  *
  * The adapter should translate only lookup mechanics.
@@ -2111,13 +2111,13 @@ export function getSystemBridgeResolverDiagnostics() {
 }
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
- * existing Frame Helm registry
+ * existing Frame Conn registry
  * ----------------------------
  *
  * Read through injected resolver adapter.
@@ -2170,7 +2170,7 @@ export function getSystemBridgeResolverDiagnostics() {
  * system-bridge-resolver.js resolves sources but does not compose fields.
  *
  * INVARIANT 2
- * Existing Frame Helm registry remains a separate source.
+ * Existing Frame Conn registry remains a separate source.
  *
  * INVARIANT 3
  * Actor-owned registry remains a separate source.

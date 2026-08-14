@@ -15,7 +15,7 @@
  *
  * @depends-on native-contract, native-actors, native-items
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumed by native-adapter.js
  * - consumed by resource_service/*
  * - consumed by execution_transaction/*
@@ -48,7 +48,7 @@
  * EDIT CONTRACT:
  * - preserve authoritative native document paths
  * - native resource mutations go through Foundry document update APIs
- * - do not duplicate resources in Frame Helm state
+ * - do not duplicate resources in Frame Conn state
  * - do not consume native resources already consumed by native Flows
  */
 import {
@@ -900,7 +900,7 @@ export async function createNativeCounterResourceReference(
  *
  * Native item.cascading storage exists.
  *
- * Frame Helm NHP runtime owns:
+ * Frame Conn NHP runtime owns:
  *
  * - cascade eligibility
  * - natural-1 gating
@@ -1110,7 +1110,7 @@ export async function discoverNativeItemResources(
  *
  * Pilot Reload is different:
  *
- * Frame Helm Quick Action
+ * Frame Conn Quick Action
  * → setNativeLoaded(true)
  *
  *
@@ -1138,17 +1138,17 @@ export async function discoverNativeItemResources(
  *
  * Native CascadeFlow currently has incorrect unconditional mutation.
  *
- * Frame Helm corrected cascade runtime should call:
+ * Frame Conn corrected cascade runtime should call:
  *
  * setNativeCascading(true)
  *
  * only on natural 1.
  */
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * feature_turn/
  * -------------
@@ -1171,7 +1171,7 @@ export async function discoverNativeItemResources(
  * ├── core-power adapter
  * │   └── native-resources.js
  * ├── action-frequency adapter
- * │   └── Frame Helm state
+ * │   └── Frame Conn state
  * └── supplemental adapter
  *
  *
@@ -1226,7 +1226,7 @@ export async function discoverNativeItemResources(
  *
  * for native source state.
  *
- * controllerMode remains supplemental Frame Helm state.
+ * controllerMode remains supplemental Frame Conn state.
  *
  *
  * pilot-actions runtime
@@ -1265,7 +1265,7 @@ export async function discoverNativeItemResources(
  * Never double-consume Core Energy after CoreActiveFlow.
  *
  * INVARIANT 8
- * CounterData is native storage even when Frame Helm supplies semantics.
+ * CounterData is native storage even when Frame Conn supplies semantics.
  *
  * INVARIANT 9
  * Action frequency is not represented here.

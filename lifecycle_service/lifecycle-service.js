@@ -10,7 +10,7 @@
  * @path main/lifecycle_service/lifecycle-service.js
  * @module lifecycle-service
  * @layer lifecycle-service-public-boundary
- * @responsibility expose-one-stable-frame-helm-facing-lifecycle-service-api
+ * @responsibility expose-one-stable-frame-conn-facing-lifecycle-service-api
  * @public-boundary true
  * @side-effects delegated-through-state-dispatcher-and-hooks
  *
@@ -20,7 +20,7 @@
  * - lifecycle-dispatcher
  * - lifecycle-hooks
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumed by runtime-orchestrator.js
  * - consumed by future actor_owned_feature_registry/
  * - consumed by future system_bridge/
@@ -78,7 +78,7 @@ import * as hooks from "./lifecycle-hooks.js";
    ============================================================ */
 
 export const LIFECYCLE_SERVICE_MODULE_ID =
-  "lancer-frame-helm.lifecycle-service";
+  "lancer-frame-conn.lifecycle-service";
 
 export const LIFECYCLE_SERVICE_MODULE_VERSION =
   1;
@@ -1149,7 +1149,7 @@ export async function getLifecycleStateSnapshot(
  *
  * LifecycleDescriptor.authority = NATIVE:
  *
- * Frame Helm observes/verifies.
+ * Frame Conn observes/verifies.
  *
  * It does NOT duplicate native:
  *
@@ -1159,7 +1159,7 @@ export async function getLifecycleStateSnapshot(
  * native effect expiration
  *
  * unless repo trace demonstrates the native pathway is absent and the
- * descriptor is deliberately reclassified as FRAME_HELM-owned.
+ * descriptor is deliberately reclassified as FRAME_CONN-owned.
  */
 
 /* ============================================================
@@ -1235,11 +1235,11 @@ export async function getLifecycleStateSnapshot(
  */
 
 /* ============================================================
-   FRAME HELM RUNTIME COMPOSITION
+   FRAME CONN RUNTIME COMPOSITION
    ============================================================ */
 
 /**
- * @section frame-helm-runtime-composition
+ * @section frame-conn-runtime-composition
  *
  * Recommended setup:
  *
@@ -1451,11 +1451,11 @@ export async function getLifecycleStateSnapshot(
  */
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * semantic_event_bus/
  * -------------------
@@ -1520,7 +1520,7 @@ export async function getLifecycleStateSnapshot(
  * @section boundary-invariants
  *
  * INVARIANT 1
- * lifecycle-service.js is the public Frame Helm lifecycle boundary.
+ * lifecycle-service.js is the public Frame Conn lifecycle boundary.
  *
  * INVARIANT 2
  * Contract owns lifecycle shapes/vocabulary.

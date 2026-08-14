@@ -9,16 +9,16 @@
 
 /**
  * ============================================================
- * FRAME HELM TURN -- MOVEMENT STATE BEHAVIOR
+ * FRAME CONN TURN -- MOVEMENT STATE BEHAVIOR
  * ============================================================
  *
  * ROLE:
  *   Owns movement-related behavior currently retained inside the
- *   Frame Helm Turn state model.
+ *   Frame Conn Turn state model.
  *
  * PURPOSE:
  *   Remove the large transitional movement implementation from
- *   turn-state.js while preserving FrameHelmTurnState as the
+ *   turn-state.js while preserving FrameConnTurnState as the
  *   authoritative owner of per-turn state.
  *
  * OWNS:
@@ -37,8 +37,8 @@
  *   - Token-movement state accounting.
  *
  * DOES NOT OWN:
- *   - FrameHelmTurnState construction.
- *   - FrameHelmTurnStateManager.
+ *   - FrameConnTurnState construction.
+ *   - FrameConnTurnStateManager.
  *   - Canonical Turn-manager construction.
  *   - Actions registry ownership.
  *   - Action definitions.
@@ -57,7 +57,7 @@
  *        ▼
  *   turn-state-movement.js
  *        │
- *        │ operates on FrameHelmTurnState
+ *        │ operates on FrameConnTurnState
  *        ▼
  *   turn-state.js
  *        │
@@ -76,7 +76,7 @@
  *   object.
  *
  *   Every exported function receives the authoritative
- *   FrameHelmTurnState instance as its first argument and mutates
+ *   FrameConnTurnState instance as its first argument and mutates
  *   that state directly.
  *
  *   turn-state.js should preserve its existing public method
@@ -116,7 +116,7 @@
    ============================================================ */
 
 import {
-  getFrameHelmTurnActionRegistry
+  getFrameConnTurnActionRegistry
 } from "./turn-runtime-bindings.js";
 
 
@@ -125,11 +125,11 @@ import {
    ============================================================ */
 
 /**
- * Updates the movement Speed stored by a FrameHelmTurnState.
+ * Updates the movement Speed stored by a FrameConnTurnState.
  *
  * Existing spent movement is clamped to the new maximum.
  */
-function setFrameHelmTurnStateSpeed(
+function setFrameConnTurnStateSpeed(
   state,
   speed
 ) {
@@ -146,7 +146,7 @@ function setFrameHelmTurnStateSpeed(
     numericSpeed < 0
   ) {
     throw new TypeError(
-      "Frame Helm speed must be a non-negative number."
+      "Frame Conn speed must be a non-negative number."
     );
   }
 
@@ -209,7 +209,7 @@ function setFrameHelmTurnStateSpeed(
 /**
  * Spends movement from the currently-active movement allowance.
  */
-function spendFrameHelmTurnStateMovement(
+function spendFrameConnTurnStateMovement(
   state,
   distance
 ) {
@@ -296,7 +296,7 @@ function spendFrameHelmTurnStateMovement(
 /**
  * Marks the current movement allowance complete.
  */
-function completeFrameHelmTurnStateMovement(
+function completeFrameConnTurnStateMovement(
   state
 ) {
   state.assertTurnActive();
@@ -328,7 +328,7 @@ function completeFrameHelmTurnStateMovement(
  * if the current allowance has been completely spent, reopening
  * restores a fresh allowance equal to Speed.
  */
-function reopenFrameHelmTurnStateMovement(
+function reopenFrameConnTurnStateMovement(
   state
 ) {
   state.assertTurnActive();
@@ -371,7 +371,7 @@ function reopenFrameHelmTurnStateMovement(
  * Commits all currently-remaining movement using a selected
  * movement action.
  */
-function commitFrameHelmTurnStateMovement(
+function commitFrameConnTurnStateMovement(
   state,
   actionId
 ) {
@@ -448,7 +448,7 @@ function commitFrameHelmTurnStateMovement(
 /**
  * Restores the movement allowance after a manually-recorded Boost.
  */
-function refreshFrameHelmTurnStateMovementFromBoost(
+function refreshFrameConnTurnStateMovementFromBoost(
   state
 ) {
   state.assertTurnActive();
@@ -505,7 +505,7 @@ function refreshFrameHelmTurnStateMovementFromBoost(
 /**
  * Returns committed Quick Boost action entries.
  */
-function getFrameHelmTurnStateMovementBoostEntries(
+function getFrameConnTurnStateMovementBoostEntries(
   state
 ) {
   return (
@@ -524,11 +524,11 @@ function getFrameHelmTurnStateMovementBoostEntries(
 /**
  * Returns the number of committed Boost actions.
  */
-function getFrameHelmTurnStateMovementBoostCount(
+function getFrameConnTurnStateMovementBoostCount(
   state
 ) {
   return (
-    getFrameHelmTurnStateMovementBoostEntries(
+    getFrameConnTurnStateMovementBoostEntries(
       state
     ).length
   );
@@ -545,7 +545,7 @@ function getFrameHelmTurnStateMovementBoostCount(
  * Movement IDs prevent duplicate accounting when multiple Foundry
  * surfaces report the same token movement.
  */
-function hasFrameHelmTurnStateProcessedMovementId(
+function hasFrameConnTurnStateProcessedMovementId(
   state,
   movementId
 ) {
@@ -573,7 +573,7 @@ function hasFrameHelmTurnStateProcessedMovementId(
  *
  * The existing bounded history of 100 IDs is preserved.
  */
-function rememberFrameHelmTurnStateMovementId(
+function rememberFrameConnTurnStateMovementId(
   state,
   movementId
 ) {
@@ -635,7 +635,7 @@ function rememberFrameHelmTurnStateMovementId(
  * If necessary, Overcharge is activated and its granted Quick
  * Action is immediately spent on Boost.
  */
-function ensureFrameHelmTurnStateAutomaticMovementBoost(
+function ensureFrameConnTurnStateAutomaticMovementBoost(
   state,
   {
     forceOvercharge = false
@@ -644,12 +644,12 @@ function ensureFrameHelmTurnStateAutomaticMovementBoost(
   state.assertTurnActive();
 
 
-  const frameHelmActionRegistry =
-    getFrameHelmTurnActionRegistry();
+  const frameConnActionRegistry =
+    getFrameConnTurnActionRegistry();
 
 
   const boostAction =
-    frameHelmActionRegistry.get(
+    frameConnActionRegistry.get(
       "quick.boost"
     );
 
@@ -837,7 +837,7 @@ function ensureFrameHelmTurnStateAutomaticMovementBoost(
  *       ▼
  *   excess movement
  */
-function recalculateFrameHelmTurnStateTrackedMovement(
+function recalculateFrameConnTurnStateTrackedMovement(
   state
 ) {
   const speed =
@@ -900,7 +900,7 @@ function recalculateFrameHelmTurnStateTrackedMovement(
      ---------------------------------------------------------- */
 
   const boostEntries =
-    getFrameHelmTurnStateMovementBoostEntries(
+    getFrameConnTurnStateMovementBoostEntries(
       state
     );
 
@@ -1093,7 +1093,7 @@ function recalculateFrameHelmTurnStateTrackedMovement(
  * This function receives an already-resolved distance plus
  * optional movement metadata.
  */
-function trackFrameHelmTurnStateTokenMovement(
+function trackFrameConnTurnStateTokenMovement(
   state,
   distance,
   {
@@ -1140,7 +1140,7 @@ function trackFrameHelmTurnStateTokenMovement(
      ---------------------------------------------------------- */
 
   if (
-    hasFrameHelmTurnStateProcessedMovementId(
+    hasFrameConnTurnStateProcessedMovementId(
       state,
       movementId
     )
@@ -1175,7 +1175,7 @@ function trackFrameHelmTurnStateTokenMovement(
     speed <= 0
   ) {
     throw new Error(
-      "Frame Helm cannot track movement until the unit has a positive Speed."
+      "Frame Conn cannot track movement until the unit has a positive Speed."
     );
   }
 
@@ -1194,7 +1194,7 @@ function trackFrameHelmTurnStateTokenMovement(
 
 
   const previousBoostCount =
-    getFrameHelmTurnStateMovementBoostCount(
+    getFrameConnTurnStateMovementBoostCount(
       state
     );
 
@@ -1209,12 +1209,12 @@ function trackFrameHelmTurnStateTokenMovement(
 
   if (
     newTotal > speed &&
-    getFrameHelmTurnStateMovementBoostCount(
+    getFrameConnTurnStateMovementBoostCount(
       state
     ) < 1
   ) {
     const result =
-      ensureFrameHelmTurnStateAutomaticMovementBoost(
+      ensureFrameConnTurnStateAutomaticMovementBoost(
         state,
         {
           forceOvercharge:
@@ -1239,12 +1239,12 @@ function trackFrameHelmTurnStateTokenMovement(
   if (
     newTotal >
       speed * 2 &&
-    getFrameHelmTurnStateMovementBoostCount(
+    getFrameConnTurnStateMovementBoostCount(
       state
     ) < 2
   ) {
     const result =
-      ensureFrameHelmTurnStateAutomaticMovementBoost(
+      ensureFrameConnTurnStateAutomaticMovementBoost(
         state,
         {
           forceOvercharge:
@@ -1307,7 +1307,7 @@ function trackFrameHelmTurnStateTokenMovement(
   });
 
 
-  rememberFrameHelmTurnStateMovementId(
+  rememberFrameConnTurnStateMovementId(
     state,
     movementId
   );
@@ -1316,7 +1316,7 @@ function trackFrameHelmTurnStateTokenMovement(
   state.closeProtocolWindow();
 
 
-  recalculateFrameHelmTurnStateTrackedMovement(
+  recalculateFrameConnTurnStateTrackedMovement(
     state
   );
 
@@ -1343,7 +1343,7 @@ function trackFrameHelmTurnStateTokenMovement(
       previousBoostCount,
 
       boostCount:
-        getFrameHelmTurnStateMovementBoostCount(
+        getFrameConnTurnStateMovementBoostCount(
           state
         ),
 
@@ -1393,29 +1393,29 @@ function trackFrameHelmTurnStateTokenMovement(
    ============================================================ */
 
 export {
-  setFrameHelmTurnStateSpeed,
+  setFrameConnTurnStateSpeed,
 
-  spendFrameHelmTurnStateMovement,
+  spendFrameConnTurnStateMovement,
 
-  completeFrameHelmTurnStateMovement,
+  completeFrameConnTurnStateMovement,
 
-  reopenFrameHelmTurnStateMovement,
+  reopenFrameConnTurnStateMovement,
 
-  commitFrameHelmTurnStateMovement,
+  commitFrameConnTurnStateMovement,
 
-  refreshFrameHelmTurnStateMovementFromBoost,
+  refreshFrameConnTurnStateMovementFromBoost,
 
-  getFrameHelmTurnStateMovementBoostEntries,
+  getFrameConnTurnStateMovementBoostEntries,
 
-  getFrameHelmTurnStateMovementBoostCount,
+  getFrameConnTurnStateMovementBoostCount,
 
-  hasFrameHelmTurnStateProcessedMovementId,
+  hasFrameConnTurnStateProcessedMovementId,
 
-  rememberFrameHelmTurnStateMovementId,
+  rememberFrameConnTurnStateMovementId,
 
-  ensureFrameHelmTurnStateAutomaticMovementBoost,
+  ensureFrameConnTurnStateAutomaticMovementBoost,
 
-  recalculateFrameHelmTurnStateTrackedMovement,
+  recalculateFrameConnTurnStateTrackedMovement,
 
-  trackFrameHelmTurnStateTokenMovement
+  trackFrameConnTurnStateTokenMovement
 };

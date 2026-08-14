@@ -28,11 +28,11 @@ cat > docs/af-Mount-Dismount-Eject.md <<‘EOF’
 
 **Native action-economy handling:** Not found.
 
-**Frame Helm implementation status:** Frame Helm should own Mount / Dismount / Eject rules orchestration, action economy, physical mounted-state mutation, legality, and lifecycle while reusing the native pilot↔mech relationship and the stock Dismount/Eject token-placement pattern.
+**Frame Conn implementation status:** Frame Conn should own Mount / Dismount / Eject rules orchestration, action economy, physical mounted-state mutation, legality, and lifecycle while reusing the native pilot↔mech relationship and the stock Dismount/Eject token-placement pattern.
 
 ## Purpose
 
-This document records the native Foundry Lancer findings relevant to **Mount / Dismount / Eject** and defines the intended Frame Helm integration boundary.
+This document records the native Foundry Lancer findings relevant to **Mount / Dismount / Eject** and defines the intended Frame Conn integration boundary.
 
 Repository investigation did not reveal dedicated executable flows such as:
 
@@ -66,7 +66,7 @@ It does **not** implement the complete tabletop action.
 
 Therefore:
 
-> Frame Helm should reuse the native relationship and placement primitives while supplying the missing action/state orchestration.
+> Frame Conn should reuse the native relationship and placement primitives while supplying the missing action/state orchestration.
 
 —
 
@@ -106,7 +106,7 @@ Repository searching did not identify:
 - dedicated Dismount actor executor
 - dedicated Eject actor executor
 
-Therefore Frame Helm cannot delegate this action family to a native Flow.
+Therefore Frame Conn cannot delegate this action family to a native Flow.
 
 —
 
@@ -138,7 +138,7 @@ current actor
 
 This establishes that the stock interaction is launched from the mech rather than from a separate pilot action controller.
 
-Frame Helm’s mech-facing interface naturally fits this same entry context.
+Frame Conn’s mech-facing interface naturally fits this same entry context.
 
 —
 
@@ -159,7 +159,7 @@ The discovered implementation uses:
 
 to resolve the referenced pilot actor.
 
-Therefore Frame Helm should not independently search actors by name or maintain a duplicate pilot lookup table.
+Therefore Frame Conn should not independently search actors by name or maintain a duplicate pilot lookup table.
 
 Use the native mech↔pilot relationship.
 
@@ -200,7 +200,7 @@ Dismount/Eject invoked
 → create Pilot token
 → remove temporary template
 
-This is a useful native UX pattern that Frame Helm can reuse initially.
+This is a useful native UX pattern that Frame Conn can reuse initially.
 
 —
 
@@ -214,7 +214,7 @@ The discovered implementation calls conceptually:
 
 This provides the top-left grid position used for pilot-token creation.
 
-Frame Helm should prefer native Foundry grid geometry rather than manually calculating pixel offsets.
+Frame Conn should prefer native Foundry grid geometry rather than manually calculating pixel offsets.
 
 —
 
@@ -262,7 +262,7 @@ into the new TokenDocument.
 
 Therefore the pilot token inherits the pilot actor’s configured token data.
 
-Frame Helm should preserve this behavior.
+Frame Conn should preserve this behavior.
 
 Do not fabricate:
 
@@ -284,7 +284,7 @@ The stock macro creates the token with:
 
 Therefore Dismount/Eject creates the pilot token on the currently active scene.
 
-Frame Helm should preserve explicit scene ownership when creating the pilot token.
+Frame Conn should preserve explicit scene ownership when creating the pilot token.
 
 —
 
@@ -298,7 +298,7 @@ placement selected
 → Pilot token created
 → temporary template deleted
 
-Any Frame Helm implementation reusing this mechanism must preserve cleanup even if later execution fails.
+Any Frame Conn implementation reusing this mechanism must preserve cleanup even if later execution fails.
 
 —
 
@@ -334,7 +334,7 @@ The macro does not appear to:
 - shut down the mech;
 - create chat output;
 - create a native Flow card;
-- manage Frame Helm committed action state.
+- manage Frame Conn committed action state.
 
 Therefore the macro is best understood as:
 
@@ -404,7 +404,7 @@ activateMech(mech)
 
 This confirms the bidirectional actor relationship.
 
-Frame Helm should consume this relationship rather than duplicate it.
+Frame Conn should consume this relationship rather than duplicate it.
 
 —
 
@@ -446,7 +446,7 @@ Therefore the native data model explicitly recognizes a concept corresponding to
 
 `pilot is physically mounted`
 
-This is the most natural native field for Frame Helm to use for physical mount state.
+This is the most natural native field for Frame Conn to use for physical mount state.
 
 —
 
@@ -472,13 +472,13 @@ Despite existing in the schema, repository searching found essentially no gamepl
 
 The stock Dismount/Eject macro does not update it.
 
-Therefore Frame Helm will likely need to mutate this native field itself through the proper actor update/document API.
+Therefore Frame Conn will likely need to mutate this native field itself through the proper actor update/document API.
 
 —
 
 # 23. Relationship vs Physical State
 
-Frame Helm should preserve the distinction:
+Frame Conn should preserve the distinction:
 
 `pilot.system.active_mech`
 → which mech is active/assigned to this pilot
@@ -545,7 +545,7 @@ The import code even contains a comment equivalent to:
 
 Therefore native current-runtime Ejected state appears intentionally unimplemented.
 
-Frame Helm should not invent writes to:
+Frame Conn should not invent writes to:
 
 `mech.system.ejected`
 
@@ -553,13 +553,13 @@ when that is not an actual supported runtime field.
 
 —
 
-# 27. Frame Helm Eject Metadata
+# 27. Frame Conn Eject Metadata
 
-If Frame Helm needs to remember:
+If Frame Conn needs to remember:
 
 `this pilot Ejected rather than Dismounted`
 
-that state should likely be Frame Helm-owned unless later repository research reveals a supported native representation.
+that state should likely be Frame Conn-owned unless later repository research reveals a supported native representation.
 
 Potential reasons to retain Eject identity include:
 
@@ -584,7 +584,7 @@ as a native `SynergyLocation`.
 
 Therefore native actor-owned content may be able to reference Mount semantically.
 
-Frame Helm should preserve Mount action identity for future trigger integration.
+Frame Conn should preserve Mount action identity for future trigger integration.
 
 —
 
@@ -600,7 +600,7 @@ Repository searching did not reveal:
 - token absorption helper;
 - mounted-state transition handler.
 
-Therefore Frame Helm must own the Mount action.
+Therefore Frame Conn must own the Mount action.
 
 —
 
@@ -626,11 +626,11 @@ resolve pilot
 
 Therefore the native implementation does not model their tabletop distinction.
 
-Frame Helm must.
+Frame Conn must.
 
 —
 
-# 31. Why Frame Helm Must Distinguish Them
+# 31. Why Frame Conn Must Distinguish Them
 
 Dismount and Eject may differ in:
 
@@ -651,7 +651,7 @@ Shared placement infrastructure should not erase separate semantic identities.
 
 # 32. Shared Exit-Pilot Primitive
 
-Dismount and Eject should probably share a lower-level Frame Helm primitive.
+Dismount and Eject should probably share a lower-level Frame Conn primitive.
 
 Conceptually:
 
@@ -679,7 +679,7 @@ Exact API names are illustrative only.
 
 # 33. Proposed Initial Dismount Flow
 
-The likely initial Frame Helm Dismount flow is:
+The likely initial Frame Conn Dismount flow is:
 
 Player commits Dismount
 → execute
@@ -699,13 +699,13 @@ Player commits Dismount
 → apply any confirmed Dismount consequences
 → mark action executed
 → refresh authoritative state
-→ refresh Frame Helm presentation
+→ refresh Frame Conn presentation
 
 —
 
 # 34. Proposed Initial Eject Flow
 
-The likely initial Frame Helm Eject flow is:
+The likely initial Frame Conn Eject flow is:
 
 Player invokes/commits Eject
 → execute
@@ -719,11 +719,11 @@ Player invokes/commits Eject
 → create token from `pilot.prototypeToken`
 → set `pilot.system.mounted = false`
 → preserve pilot/mech actor relationship unless rules require otherwise
-→ record Frame Helm Eject-specific state if required
+→ record Frame Conn Eject-specific state if required
 → apply confirmed Eject consequences
 → mark execution complete
 → refresh authoritative state
-→ refresh Frame Helm presentation
+→ refresh Frame Conn presentation
 
 —
 
@@ -748,7 +748,7 @@ Pilot invokes Mount
 → restore mech-facing presentation/control as appropriate
 → mark action executed
 → refresh authoritative state
-→ refresh Frame Helm presentation
+→ refresh Frame Conn presentation
 
 —
 
@@ -771,7 +771,7 @@ Do not merely hide the token unless there is a deliberate reason to preserve it.
 
 # 37. Multiple Pilot Tokens
 
-Before deleting or spawning tokens, Frame Helm must guard against duplicate Pilot tokens.
+Before deleting or spawning tokens, Frame Conn must guard against duplicate Pilot tokens.
 
 Possible cases include:
 
@@ -780,7 +780,7 @@ Possible cases include:
 - pilot token manually dragged onto scene;
 - stale token from prior state.
 
-Frame Helm should not blindly create another Pilot token every time.
+Frame Conn should not blindly create another Pilot token every time.
 
 —
 
@@ -792,7 +792,7 @@ resolve scene
 → search for existing tokens representing Pilot actor
 → determine whether a valid outside-mech Pilot token already exists
 
-If one already exists, Frame Helm should avoid duplicate creation and either:
+If one already exists, Frame Conn should avoid duplicate creation and either:
 
 - use the existing token;
 - reject the inconsistent state;
@@ -808,7 +808,7 @@ Mount requires a physical mech token.
 
 The active-mech actor relationship alone is insufficient for adjacency.
 
-Frame Helm should resolve:
+Frame Conn should resolve:
 
 `pilot.system.active_mech`
 → Mech actor
@@ -832,7 +832,7 @@ active mech token
 
 Mount should not silently teleport the pilot between scenes.
 
-Frame Helm should reject or explicitly handle this case.
+Frame Conn should reject or explicitly handle this case.
 
 —
 
@@ -840,7 +840,7 @@ Frame Helm should reject or explicitly handle this case.
 
 Mount and normal Dismount placement likely have adjacency/range requirements.
 
-Frame Helm should use Foundry/native grid measurement rather than visual estimation.
+Frame Conn should use Foundry/native grid measurement rather than visual estimation.
 
 Before implementation, confirm exact tabletop requirements.
 
@@ -850,7 +850,7 @@ Before implementation, confirm exact tabletop requirements.
 
 The stock macro allows placement but does not appear to perform complete tabletop destination validation.
 
-Frame Helm should eventually validate:
+Frame Conn should eventually validate:
 
 - scene bounds;
 - legal grid position;
@@ -860,7 +860,7 @@ Frame Helm should eventually validate:
 - token size;
 - Eject-specific range if any.
 
-The native placement template can remain the interaction layer while Frame Helm validates the result.
+The native placement template can remain the interaction layer while Frame Conn validates the result.
 
 —
 
@@ -871,13 +871,13 @@ The stock macro demonstrates a known-good native interaction:
 `WeaponRangeTemplate.fromRange(...)`
 → `.placeTemplate()`
 
-Frame Helm can initially reuse this rather than inventing a custom canvas placement controller.
+Frame Conn can initially reuse this rather than inventing a custom canvas placement controller.
 
 However, this should be wrapped behind the native-system adapter because:
 
 - it is an implementation detail;
 - the system may change;
-- Frame Helm may later replace the UI.
+- Frame Conn may later replace the UI.
 
 —
 
@@ -903,7 +903,7 @@ rather than directly knowing why a Blast 0.1 template is being created.
 
 The stock macro does not spend any action resource.
 
-Therefore Frame Helm must own action-economy enforcement.
+Therefore Frame Conn must own action-economy enforcement.
 
 The exact action classification for:
 
@@ -911,7 +911,7 @@ The exact action classification for:
 - Dismount;
 - Eject;
 
-must come from confirmed Lancer rules and the Frame Helm universal action registry.
+must come from confirmed Lancer rules and the Frame Conn universal action registry.
 
 Do not infer all three use the same action cost merely because the stock macro combines Dismount/Eject.
 
@@ -955,7 +955,7 @@ The native Dismount/Eject macro creates a TokenDocument but does not appear to c
 
 Therefore a pilot exiting during active combat may create a token that is not automatically represented in the combat tracker.
 
-Frame Helm needs an explicit policy for this.
+Frame Conn needs an explicit policy for this.
 
 —
 
@@ -977,7 +977,7 @@ Do not assume generic Foundry initiative behavior is correct.
 
 The stock macro does not transfer token control.
 
-Frame Helm may eventually need to change its controlled-unit presentation from:
+Frame Conn may eventually need to change its controlled-unit presentation from:
 
 Mech
 
@@ -987,15 +987,15 @@ Pilot
 
 after Dismount/Eject.
 
-Likewise Mount may return the primary Frame Helm presentation to the mech.
+Likewise Mount may return the primary Frame Conn presentation to the mech.
 
-This is a Frame Helm UX concern separate from the underlying actor relationship.
+This is a Frame Conn UX concern separate from the underlying actor relationship.
 
 —
 
-# 51. Frame Helm Context After Dismount
+# 51. Frame Conn Context After Dismount
 
-Frame Helm is primarily a mech player interface.
+Frame Conn is primarily a mech player interface.
 
 When the pilot leaves the mech, possible UI strategies include:
 
@@ -1034,7 +1034,7 @@ Likewise, Eject may have stronger consequences than Dismount.
 
 The stock macro does not implement them.
 
-Frame Helm must not assume:
+Frame Conn must not assume:
 
 Eject
 = Dismount with a different label
@@ -1057,7 +1057,7 @@ pilot.active_mech
 
 remains intact.
 
-This allows Frame Helm to know which mech the pilot exited and potentially remount it later.
+This allows Frame Conn to know which mech the pilot exited and potentially remount it later.
 
 Only clear the relationship if the rules or an explicit user operation actually changes active-mech assignment.
 
@@ -1069,7 +1069,7 @@ If a Pilot attempts to Mount a mech that is not:
 
 `pilot.system.active_mech`
 
-Frame Helm needs an explicit rule/policy.
+Frame Conn needs an explicit rule/policy.
 
 Potential possibilities include:
 
@@ -1115,7 +1115,7 @@ Likewise Dismount/Eject should verify the pilot is in a state where exiting is l
 
 # 58. Native State Mutation
 
-Frame Helm should update:
+Frame Conn should update:
 
 `pilot.system.mounted`
 
@@ -1175,7 +1175,7 @@ However, failure recovery must be considered.
 
 If token deletion fails after state mutation:
 
-→ Frame Helm should reconcile the inconsistent state.
+→ Frame Conn should reconcile the inconsistent state.
 
 The final transaction strategy should be explicit.
 
@@ -1197,7 +1197,7 @@ Possible failures:
 - scene changes;
 - active mech disappears.
 
-Frame Helm should not mark the committed action fully executed until the required mutations succeed.
+Frame Conn should not mark the committed action fully executed until the required mutations succeed.
 
 —
 
@@ -1207,7 +1207,7 @@ The stock `.placeTemplate()` interaction may return no template if cancelled.
 
 The native macro simply stops.
 
-Frame Helm should distinguish:
+Frame Conn should distinguish:
 
 user cancelled placement
 
@@ -1223,7 +1223,7 @@ Cancellation should not automatically consume/complete the committed action unle
 
 The stock Dismount/Eject macro does not create a native chat card.
 
-Therefore Frame Helm may optionally provide concise execution feedback.
+Therefore Frame Conn may optionally provide concise execution feedback.
 
 For example:
 
@@ -1233,13 +1233,13 @@ or:
 
 `Pilot ejected from mech.`
 
-This should be Frame Helm output, not falsely presented as native Lancer Flow output.
+This should be Frame Conn output, not falsely presented as native Lancer Flow output.
 
 —
 
 # 64. Semantic Identity
 
-Frame Helm should preserve distinct semantic events:
+Frame Conn should preserve distinct semantic events:
 
 - Mount;
 - Dismount;
@@ -1273,7 +1273,7 @@ Relevant sources include:
 - Pilot Talents;
 - Manufacturer Core Bonuses.
 
-Frame Helm’s action orchestration should leave extension points for these modifiers.
+Frame Conn’s action orchestration should leave extension points for these modifiers.
 
 —
 
@@ -1285,7 +1285,7 @@ Preferred hierarchy:
 2. native `pilot.system.mounted`;
 3. native synergy/action metadata;
 4. native structured system/talent effects;
-5. Frame Helm explicit adapters;
+5. Frame Conn explicit adapters;
 6. prose parsing only where no structured representation exists.
 
 —
@@ -1294,7 +1294,7 @@ Preferred hierarchy:
 
 The intended ownership split is:
 
-**FRAME HELM OWNS:**
+**FRAME CONN OWNS:**
 
 - Mount action orchestration;
 - Dismount action orchestration;
@@ -1310,7 +1310,7 @@ The intended ownership split is:
 - combat/turn integration;
 - execution state;
 - semantic events;
-- Frame Helm presentation.
+- Frame Conn presentation.
 
 **NATIVE LANCER / FOUNDRY OWNS:**
 
@@ -1399,7 +1399,7 @@ or:
 
 was found.
 
-Frame Helm may implement internal execution strategies, but documentation/code should clearly identify them as Frame Helm orchestration.
+Frame Conn may implement internal execution strategies, but documentation/code should clearly identify them as Frame Conn orchestration.
 
 The native boundary is the actor/token infrastructure and stock macro pattern.
 
@@ -1492,14 +1492,14 @@ Afterward:
 - [ ] Prevent duplicate Pilot tokens.
 - [ ] Preserve active-mech relationship where appropriate.
 - [ ] Do not write nonexistent runtime `mech.system.ejected`.
-- [ ] Add Frame Helm Eject metadata only if rules require it.
+- [ ] Add Frame Conn Eject metadata only if rules require it.
 - [ ] Reconcile Combatant behavior.
-- [ ] Reconcile Frame Helm controlled-unit presentation.
+- [ ] Reconcile Frame Conn controlled-unit presentation.
 - [ ] Await all document mutations.
 - [ ] Re-read authoritative state.
 - [ ] Mark committed action executed only after success.
 - [ ] Emit Mount/Dismount/Eject semantic events.
-- [ ] Refresh Frame Helm presentation.
+- [ ] Refresh Frame Conn presentation.
 
 —
 
@@ -1528,7 +1528,7 @@ Eject:
 - [ ] mounted state becomes false.
 - [ ] Eject-specific consequences applied.
 - [ ] nonexistent native `mech.system.ejected` is not mutated.
-- [ ] Frame Helm Eject metadata behaves correctly if required.
+- [ ] Frame Conn Eject metadata behaves correctly if required.
 - [ ] action/reaction timing behaves according to rules.
 
 Mount:
@@ -1544,7 +1544,7 @@ Mount:
 - [ ] external Pilot token removed.
 - [ ] active-mech relationship remains intact.
 - [ ] mech pilot relationship remains intact.
-- [ ] Frame Helm returns to correct mech presentation.
+- [ ] Frame Conn returns to correct mech presentation.
 
 Failure/recovery:
 
@@ -1602,7 +1602,7 @@ Dismount and Eject may share physical-exit infrastructure but must remain separa
 
 **Invariant 10**
 
-Mount is the inverse physical transition and requires Frame Helm-owned execution.
+Mount is the inverse physical transition and requires Frame Conn-owned execution.
 
 **Invariant 11**
 
@@ -1610,7 +1610,7 @@ Pilot token creation should reuse `pilot.prototypeToken`.
 
 **Invariant 12**
 
-All multi-document mutations must be awaited and authoritative state re-read before Frame Helm considers execution complete.
+All multi-document mutations must be awaited and authoritative state re-read before Frame Conn considers execution complete.
 
 —
 
@@ -1643,7 +1643,7 @@ MOUNT / DISMOUNT / EJECT
 │
 ├── DISMOUNT
 │   │
-│   ├── Frame Helm legality/action economy
+│   ├── Frame Conn legality/action economy
 │   ├── native-style placement
 │   ├── create Pilot token
 │   ├── `pilot.system.mounted = false`
@@ -1651,12 +1651,12 @@ MOUNT / DISMOUNT / EJECT
 │
 ├── EJECT
 │   │
-│   ├── Frame Helm legality/timing
+│   ├── Frame Conn legality/timing
 │   ├── native-style placement
 │   ├── create Pilot token
 │   ├── `pilot.system.mounted = false`
 │   ├── preserve assignment unless rules say otherwise
-│   └── Frame Helm Eject-specific state/consequences
+│   └── Frame Conn Eject-specific state/consequences
 │
 └── MOUNT
     │
@@ -1677,7 +1677,7 @@ while:
 `pilot.system.mounted`
 = physical mounted state.
 
-The stock Lancer system already gives Frame Helm a useful native Dismount/Eject placement pattern.
+The stock Lancer system already gives Frame Conn a useful native Dismount/Eject placement pattern.
 
-Frame Helm should reuse that pattern while supplying the missing action economy, legality, state transitions, Mount behavior, Eject distinction, and player-facing orchestration.
+Frame Conn should reuse that pattern while supplying the missing action economy, legality, state transitions, Mount behavior, Eject distinction, and player-facing orchestration.
 EOF

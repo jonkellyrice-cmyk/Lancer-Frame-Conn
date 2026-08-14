@@ -18,11 +18,11 @@
 
 **Native weapon Threat data:** Found.
 
-**Frame Helm implementation status:** Frame Helm should own Disengage as a temporary movement/reaction-suppression state, using its Movement and Turn domains to prevent Overwatch opportunity generation while preserving native engagement state and native weapon data.
+**Frame Conn implementation status:** Frame Conn should own Disengage as a temporary movement/reaction-suppression state, using its Movement and Turn domains to prevent Overwatch opportunity generation while preserving native engagement state and native weapon data.
 
 ## Purpose
 
-This document records the native Foundry Lancer findings relevant to the universal **Disengage** Full Action and defines the intended Frame Helm implementation boundary.
+This document records the native Foundry Lancer findings relevant to the universal **Disengage** Full Action and defines the intended Frame Conn implementation boundary.
 
 Repository investigation did not reveal a dedicated executable Disengage flow such as:
 
@@ -38,13 +38,13 @@ However, native Lancer does not appear to implement the actual universal Disenga
 
 Therefore:
 
-> Frame Helm should implement Disengage as a temporary action state affecting movement-triggered reactions.
+> Frame Conn should implement Disengage as a temporary action state affecting movement-triggered reactions.
 
 and:
 
 > Disengage should not simply remove the native `engaged` status.
 
-The critical integration point is Frame Helm’s own movement-trigger / Overwatch opportunity generation.
+The critical integration point is Frame Conn’s own movement-trigger / Overwatch opportunity generation.
 
 —
 
@@ -79,7 +79,7 @@ Repository searching did not identify:
 - dedicated universal Disengage executor
 - dedicated Disengage ActiveEffect application logic
 
-Therefore Frame Helm cannot delegate Disengage execution to a native action flow.
+Therefore Frame Conn cannot delegate Disengage execution to a native action flow.
 
 —
 
@@ -109,7 +109,7 @@ It appears in the same semantic family as actions such as:
 
 This means actor-owned native content may be capable of referring to Disengage as a meaningful rules/action location.
 
-Therefore Frame Helm should preserve:
+Therefore Frame Conn should preserve:
 
 `Disengage occurred`
 
@@ -160,7 +160,7 @@ It participates in native attack mechanics.
 
 # 6. Disengage Is Not the Same as Removing Engaged
 
-Frame Helm should not implement Disengage as:
+Frame Conn should not implement Disengage as:
 
 `remove engaged status`
 
@@ -183,7 +183,7 @@ Therefore the preferred architecture is:
 Native Engaged status
 → remains authoritative
 
-Frame Helm Disengage state
+Frame Conn Disengage state
 → suppresses movement-triggered Overwatch opportunities
 
 This keeps the two concepts separate.
@@ -192,7 +192,7 @@ This keeps the two concepts separate.
 
 # 7. Why This Distinction Matters
 
-If Frame Helm simply removed `engaged`, it could accidentally alter unrelated native behavior.
+If Frame Conn simply removed `engaged`, it could accidentally alter unrelated native behavior.
 
 For example:
 
@@ -225,7 +225,7 @@ token movement
 
 Therefore Disengage does not need to suppress a hidden native Overwatch engine.
 
-Frame Helm will likely own both sides of the interaction.
+Frame Conn will likely own both sides of the interaction.
 
 —
 
@@ -258,7 +258,7 @@ Threat is represented through native weapon range data such as:
 
 `RangeType.Threat`
 
-Therefore Frame Helm does not need to invent Threat values.
+Therefore Frame Conn does not need to invent Threat values.
 
 The authoritative Threat for a weapon should come from native weapon data.
 
@@ -284,7 +284,7 @@ Reaction available
 → spend Reaction
 → reaction = false
 
-The exact integration strategy with Frame Helm’s own Turn reaction state should be deliberately designed to avoid maintaining conflicting authoritative reaction models.
+The exact integration strategy with Frame Conn’s own Turn reaction state should be deliberately designed to avoid maintaining conflicting authoritative reaction models.
 
 —
 
@@ -296,7 +296,7 @@ The discovered behavior conceptually iterates combatants and refreshes their Rea
 
 This is useful because Lancer Reaction availability is not merely a once-per-own-turn resource.
 
-Frame Helm should preserve the correct reaction timing semantics and reconcile its Turn state with native actor state where appropriate.
+Frame Conn should preserve the correct reaction timing semantics and reconcile its Turn state with native actor state where appropriate.
 
 —
 
@@ -310,7 +310,7 @@ However, repository investigation has not yet established exactly how this field
 
 No Overwatch-specific runtime code was found populating it.
 
-Therefore Frame Helm should not assume:
+Therefore Frame Conn should not assume:
 
 `used_reactions`
 
@@ -336,14 +336,14 @@ However, semantic recognition does not equal executable Overwatch logic.
 
 —
 
-# 15. Overwatch as Frame Helm-Orchestrated Reaction
+# 15. Overwatch as Frame Conn-Orchestrated Reaction
 
-The current findings imply that Frame Helm will need to own the higher-order Overwatch reaction.
+The current findings imply that Frame Conn will need to own the higher-order Overwatch reaction.
 
 Conceptually:
 
 token moves
-→ Frame Helm Movement feature receives movement segment
+→ Frame Conn Movement feature receives movement segment
 → compare origin and destination
 → inspect hostile actors
 → inspect eligible hostile mounted weapons
@@ -391,12 +391,12 @@ and not:
 
 # 17. Proposed Initial Disengage Flow
 
-The initial Frame Helm action should be:
+The initial Frame Conn action should be:
 
 Player commits Disengage
 → Disengage appears in Committed Plan
 → player executes Disengage
-→ Frame Helm resolves authoritative acting mech
+→ Frame Conn resolves authoritative acting mech
 → validate active Turn
 → validate Full Action
 → record Disengage active state for the acting character
@@ -407,7 +407,7 @@ Player commits Disengage
 → suppress Overwatch opportunity generation while Disengage is active
 → clear Disengage state at the correct lifecycle point
 → mark committed action executed
-→ refresh Frame Helm presentation
+→ refresh Frame Conn presentation
 
 No target is required.
 
@@ -439,7 +439,7 @@ Disengage consumes:
 
 **one Full Action**
 
-Frame Helm’s Turn feature should remain authoritative for that action expenditure.
+Frame Conn’s Turn feature should remain authoritative for that action expenditure.
 
 Conceptually:
 
@@ -460,7 +460,7 @@ The temporary state should not independently alter action budget.
 
 The exact duration of Disengage must come from the confirmed Lancer rules.
 
-Frame Helm needs a precise lifecycle boundary for clearing the state.
+Frame Conn needs a precise lifecycle boundary for clearing the state.
 
 Possible lifecycle points might include:
 
@@ -477,7 +477,7 @@ Before implementation, confirm exact tabletop timing.
 
 # 21. Likely Turn-State Ownership
 
-Because Disengage is temporary and action-bound, Frame Helm’s Turn domain is a strong candidate to own the active Disengage flag/state.
+Because Disengage is temporary and action-bound, Frame Conn’s Turn domain is a strong candidate to own the active Disengage flag/state.
 
 Conceptually:
 
@@ -494,7 +494,7 @@ The important point is that Disengage should not require permanent actor mutatio
 
 # 22. Why Turn State Is Preferable to Actor Status
 
-If Disengage lasts only for a short action/turn timing window, storing it in Frame Helm Turn state has advantages:
+If Disengage lasts only for a short action/turn timing window, storing it in Frame Conn Turn state has advantages:
 
 - automatically scoped to current turn;
 - no stale persistent actor effect;
@@ -508,7 +508,7 @@ A native ActiveEffect may still be useful for presentation or synchronization, b
 
 # 23. Movement Feature Integration
 
-Frame Helm’s Movement feature already interprets token movement.
+Frame Conn’s Movement feature already interprets token movement.
 
 This includes movement segments and contextual information such as:
 
@@ -591,7 +591,7 @@ Disengage
 → movement
 → some additional movement source
 
-Frame Helm should not hard-code suppression to only the first movement segment.
+Frame Conn should not hard-code suppression to only the first movement segment.
 
 The exact duration rules should determine scope.
 
@@ -640,7 +640,7 @@ The Disengage layer should consume the Movement feature’s determination of whe
 
 # 30. Threat Exit Detection
 
-Frame Helm will need a geometry service for Overwatch.
+Frame Conn will need a geometry service for Overwatch.
 
 Conceptually, for each hostile threatening mount/weapon:
 
@@ -673,7 +673,7 @@ character begins inside Threat and exits it.
 
 The exact Lancer rule should determine the trigger.
 
-Frame Helm should use the actual interpreted movement path where available.
+Frame Conn should use the actual interpreted movement path where available.
 
 Disengage does not need to solve the geometry itself; it simply suppresses qualifying reaction opportunities.
 
@@ -748,7 +748,7 @@ the relevant effect is preventing the Overwatch Mount Attack Group from being cr
 
 # 35. Reaction Availability
 
-Before generating or presenting an Overwatch opportunity, Frame Helm should check whether the hostile actor has an available Reaction.
+Before generating or presenting an Overwatch opportunity, Frame Conn should check whether the hostile actor has an available Reaction.
 
 If no Reaction is available:
 
@@ -770,11 +770,11 @@ movement occurs
 
 # 36. Reaction Refresh
 
-Because native combat automation refreshes Reactions at each new combatant turn, Frame Helm must ensure its own reaction model does not drift from native actor state.
+Because native combat automation refreshes Reactions at each new combatant turn, Frame Conn must ensure its own reaction model does not drift from native actor state.
 
 Potential strategies include:
 
-- make Frame Helm Turn reaction state authoritative and synchronize native state;
+- make Frame Conn Turn reaction state authoritative and synchronize native state;
 - make native actor reaction state authoritative and adapt it;
 - maintain explicit reconciliation.
 
@@ -817,7 +817,7 @@ Future actor-owned content may therefore include effects such as:
 - bonuses to Overwatch;
 - effects preventing Disengage.
 
-Frame Helm should preserve both event identities for future trigger integration.
+Frame Conn should preserve both event identities for future trigger integration.
 
 —
 
@@ -831,13 +831,13 @@ or:
 
 `overwatch`
 
-Frame Helm should prefer that structured metadata.
+Frame Conn should prefer that structured metadata.
 
 Preferred hierarchy:
 
 1. native structured synergy/action data;
 2. native weapon/action data;
-3. explicit Frame Helm adapter;
+3. explicit Frame Conn adapter;
 4. prose parsing only when unavoidable.
 
 —
@@ -846,7 +846,7 @@ Preferred hierarchy:
 
 The intended ownership split is:
 
-**FRAME HELM OWNS:**
+**FRAME CONN OWNS:**
 
 - Disengage action commitment;
 - Full Action expenditure;
@@ -877,7 +877,7 @@ The intended ownership split is:
 
 No native `DisengageFlow` was found.
 
-Frame Helm may have an internal Disengage execution service, but it should not pretend to delegate to a nonexistent native workflow.
+Frame Conn may have an internal Disengage execution service, but it should not pretend to delegate to a nonexistent native workflow.
 
 The actual integration boundary is:
 
@@ -901,7 +901,7 @@ native Threat data
 - [ ] Trace actor action-tracker Reaction state completely.
 - [ ] Trace `used_reactions`.
 - [ ] Determine current consumers of `used_reactions`.
-- [ ] Determine whether native Reaction state should be synchronized with Frame Helm Turn reaction state.
+- [ ] Determine whether native Reaction state should be synchronized with Frame Conn Turn reaction state.
 - [ ] Trace the native combat Reaction refresh hook completely.
 - [ ] Determine whether native movement helpers already expose path data useful for Threat-exit detection.
 - [ ] Determine whether token size/radius helpers already exist.
@@ -973,7 +973,7 @@ Afterward:
 - [ ] Clear Disengage state at correct lifecycle point.
 - [ ] Emit/preserve semantic Disengage event.
 - [ ] Mark committed Disengage executed.
-- [ ] Refresh Frame Helm presentation.
+- [ ] Refresh Frame Conn presentation.
 - [ ] Smoke-test Disengage while Engaged.
 - [ ] Smoke-test ranged Engaged penalty remains intact where appropriate.
 - [ ] Smoke-test movement out of Threat while Disengaging.
@@ -1013,7 +1013,7 @@ Disengage should not simply remove `engaged`.
 
 **Invariant 7**
 
-Frame Helm should represent Disengage as temporary action state.
+Frame Conn should represent Disengage as temporary action state.
 
 **Invariant 8**
 
@@ -1048,7 +1048,7 @@ DISENGAGE
 │   └── `actor.system.statuses.engaged`
 │       └── remains separate
 │
-├── Frame Helm owns:
+├── Frame Conn owns:
 │   ├── Full Action expenditure
 │   ├── temporary Disengage state
 │   ├── state duration
@@ -1076,7 +1076,7 @@ DISENGAGE
 The critical ownership boundary is:
 
 Disengage
-→ temporary Frame Helm movement/reaction state
+→ temporary Frame Conn movement/reaction state
 
 not:
 

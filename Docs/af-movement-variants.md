@@ -34,7 +34,7 @@
 
 **Native fall-damage automation:** Not found.
 
-**Frame Helm implementation status:** Frame Helm should own the per-turn movement ledger and higher-level movement-mode legality while consuming native Foundry/Lancer movement-path semantics and cost calculation wherever those already exist.
+**Frame Conn implementation status:** Frame Conn should own the per-turn movement ledger and higher-level movement-mode legality while consuming native Foundry/Lancer movement-path semantics and cost calculation wherever those already exist.
 
 ## Purpose
 
@@ -67,11 +67,11 @@ or:
 
 Instead, Lancer extends Foundry’s native token movement-action and path-measurement systems.
 
-This gives Frame Helm an important architectural rule:
+This gives Frame Conn an important architectural rule:
 
 > Movement variants should generally be treated as policies/methods layered over one shared movement pipeline rather than as completely separate action engines.
 
-Frame Helm should therefore consume native movement interpretation where possible and add only the missing Lancer-specific action/rules orchestration.
+Frame Conn should therefore consume native movement interpretation where possible and add only the missing Lancer-specific action/rules orchestration.
 
 —
 
@@ -93,7 +93,7 @@ rather than:
 action
 → dedicated Lancer Flow class
 
-This means Frame Helm should prefer:
+This means Frame Conn should prefer:
 
 Foundry/Lancer interpreted movement data
 
@@ -112,8 +112,8 @@ Player moves token
 → native movement path is constructed
 → native path/terrain/method cost is calculated
 → movement segment includes X/Y/elevation/method context
-→ Frame Helm Movement feature receives interpreted segment
-→ Frame Helm updates turn movement ledger
+→ Frame Conn Movement feature receives interpreted segment
+→ Frame Conn updates turn movement ledger
 → movement-trigger systems evaluate the segment
 
 This pipeline should support all movement variants.
@@ -144,9 +144,9 @@ Native action-tracker initialization uses the actor’s Speed through logic conc
 
 `getSpeed(actor)`
 
-This confirms that Frame Helm should continue deriving the movement allowance from native actor Speed.
+This confirms that Frame Conn should continue deriving the movement allowance from native actor Speed.
 
-Do not duplicate a permanent Frame Helm Speed stat.
+Do not duplicate a permanent Frame Conn Speed stat.
 
 —
 
@@ -158,7 +158,7 @@ Native actor action tracking contains:
 
 This is initialized using actor Speed.
 
-However, the native system does not appear to maintain the detailed physical movement ledger that Frame Helm needs.
+However, the native system does not appear to maintain the detailed physical movement ledger that Frame Conn needs.
 
 The native code contains a TODO around movement-counting UI/behavior.
 
@@ -170,9 +170,9 @@ but does not appear to fully reconcile actual token-path distance against that a
 
 —
 
-# 6. Frame Helm Standard Movement Ownership
+# 6. Frame Conn Standard Movement Ownership
 
-Frame Helm should continue to own:
+Frame Conn should continue to own:
 
 - movement spent;
 - movement remaining;
@@ -198,7 +198,7 @@ Native Lancer should supply:
 
 This is an important distinction.
 
-Frame Helm should eventually track at least conceptually:
+Frame Conn should eventually track at least conceptually:
 
 `geometric distance`
 
@@ -226,7 +226,7 @@ Teleport:
 geometric relocation 6
 → ordinary movement cost 0
 
-Therefore Frame Helm should not assume:
+Therefore Frame Conn should not assume:
 
 `distance moved == movement budget spent`
 
@@ -244,7 +244,7 @@ to add or customize movement modes.
 
 This is the principal native movement-mode integration point.
 
-Frame Helm should treat this configuration as authoritative for native-supported movement method semantics.
+Frame Conn should treat this configuration as authoritative for native-supported movement method semantics.
 
 —
 
@@ -271,7 +271,7 @@ This means the native movement path itself can represent:
 geometric distance
 → doubled movement expenditure
 
-Frame Helm should reuse this interpreted cost where practical.
+Frame Conn should reuse this interpreted cost where practical.
 
 —
 
@@ -283,10 +283,10 @@ player selects/uses Jump movement mode
 → Foundry/Lancer movement action = `jump`
 → native path calculation
 → native movement cost = 2 × distance
-→ Frame Helm receives interpreted cost
-→ Frame Helm movement ledger spends that cost
+→ Frame Conn receives interpreted cost
+→ Frame Conn movement ledger spends that cost
 
-Frame Helm should not independently multiply Jump distance by two if the native movement path already supplies the correct cost.
+Frame Conn should not independently multiply Jump distance by two if the native movement path already supplies the correct cost.
 
 Avoid double-counting.
 
@@ -296,7 +296,7 @@ Avoid double-counting.
 
 Native movement-cost support does not necessarily implement every tabletop Jump rule.
 
-Frame Helm may still need to own:
+Frame Conn may still need to own:
 
 - whether Jump is currently legal;
 - maximum vertical/horizontal movement;
@@ -329,7 +329,7 @@ Climb movement cost is conceptually:
 
 `distance × 2`
 
-Therefore Jump and Climb should likely share the same Frame Helm native-cost consumption architecture.
+Therefore Jump and Climb should likely share the same Frame Conn native-cost consumption architecture.
 
 —
 
@@ -340,9 +340,9 @@ Conceptually:
 Movement method
 → native path cost function
 → doubled movement cost
-→ Frame Helm ledger
+→ Frame Conn ledger
 
-Frame Helm should distinguish the method identity for:
+Frame Conn should distinguish the method identity for:
 
 - rules triggers;
 - presentation;
@@ -380,7 +380,7 @@ The native path system knows:
 
 `this movement segment is teleportation`
 
-This is extremely useful for Frame Helm trigger logic.
+This is extremely useful for Frame Conn trigger logic.
 
 —
 
@@ -408,7 +408,7 @@ Teleport uses an animation option equivalent to:
 
 This avoids ordinary movement animation.
 
-Frame Helm should preserve native token movement presentation where possible rather than manually animating teleportation.
+Frame Conn should preserve native token movement presentation where possible rather than manually animating teleportation.
 
 —
 
@@ -451,7 +451,7 @@ which carries:
 - no normal animation;
 - terrain bypass.
 
-Therefore Frame Helm should separate:
+Therefore Frame Conn should separate:
 
 **ability execution**
 
@@ -532,7 +532,7 @@ This means native Foundry/Lancer already provides a movement classification suit
 
 `move this token without spending ordinary movement`
 
-Frame Helm should strongly consider reusing this rather than inventing a parallel forced-movement token-path type.
+Frame Conn should strongly consider reusing this rather than inventing a parallel forced-movement token-path type.
 
 —
 
@@ -546,7 +546,7 @@ It should not automatically be interpreted as:
 
 for game rules.
 
-Frame Helm should preserve the higher-level movement cause:
+Frame Conn should preserve the higher-level movement cause:
 
 `forced`
 
@@ -593,13 +593,13 @@ waypoint:
 
 Therefore elevation is part of the native movement path model.
 
-This strongly validates Frame Helm’s elevation-tracking work.
+This strongly validates Frame Conn’s elevation-tracking work.
 
 —
 
 # 30. Elevation Is Movement Geometry
 
-Frame Helm should continue to treat elevation change as part of Movement interpretation.
+Frame Conn should continue to treat elevation change as part of Movement interpretation.
 
 Do not model elevation as an unrelated UI-only number.
 
@@ -633,7 +633,7 @@ The repository findings prove elevation is carried in path data.
 
 They do not by themselves prove that every elevation change is automatically costed exactly as Lancer requires.
 
-Therefore Frame Helm should trace the native measurement result rather than simply assuming:
+Therefore Frame Conn should trace the native measurement result rather than simply assuming:
 
 vertical delta
 = movement cost.
@@ -666,7 +666,7 @@ Therefore Lancer has a first-class semantic/status identity for:
 
 `this character is Flying`
 
-Frame Helm should use this native state where appropriate.
+Frame Conn should use this native state where appropriate.
 
 —
 
@@ -682,7 +682,7 @@ but:
 
 full native Fly movement automation is incomplete.
 
-Therefore Frame Helm likely needs to own actual Fly movement semantics.
+Therefore Frame Conn likely needs to own actual Fly movement semantics.
 
 —
 
@@ -694,7 +694,7 @@ The native data model recognizes:
 
 This is valuable for future Mounted System discovery.
 
-It may allow Frame Helm to identify flight-capable systems structurally rather than by item name.
+It may allow Frame Conn to identify flight-capable systems structurally rather than by item name.
 
 —
 
@@ -723,13 +723,13 @@ Conceptually:
 
 actor has legal flight capability
 → Fly mode becomes available
-→ Frame Helm marks movement method = fly
+→ Frame Conn marks movement method = fly
 → token moves with elevation-aware path
-→ Frame Helm consumes movement cost according to confirmed Fly rules
+→ Frame Conn consumes movement cost according to confirmed Fly rules
 → native `flying` status maintained where appropriate
 → movement-trigger systems receive method = fly
 
-Frame Helm should reuse native geometry while supplying missing Fly policy.
+Frame Conn should reuse native geometry while supplying missing Fly policy.
 
 —
 
@@ -744,7 +744,7 @@ Fly segment
 → vertical delta
 → native/path distance
 → confirmed Fly cost rule
-→ Frame Helm ledger
+→ Frame Conn ledger
 
 Do not separately mutate elevation outside the Movement pipeline.
 
@@ -756,7 +756,7 @@ A flying character decreasing elevation is not automatically falling.
 
 Likewise, a Flying status ending while the token is above the ground may create a fall.
 
-Therefore Frame Helm needs a distinction between:
+Therefore Frame Conn needs a distinction between:
 
 controlled flight/descent
 
@@ -783,7 +783,7 @@ Therefore native Lancer does not appear to automate falling damage.
 
 # 42. Elevation Decrease Is Not Automatically a Fall
 
-Frame Helm must not implement:
+Frame Conn must not implement:
 
 if destination.elevation < origin.elevation:
 → apply fall damage
@@ -804,13 +804,13 @@ Movement context matters.
 
 # 43. Need for Fall Movement Classification
 
-Frame Helm will likely need a movement/event classification corresponding conceptually to:
+Frame Conn will likely need a movement/event classification corresponding conceptually to:
 
 `fall`
 
 Native Lancer did not expose a dedicated Fall movement action in the searched configuration.
 
-Therefore Fall may become a Frame Helm-owned movement context.
+Therefore Fall may become a Frame Conn-owned movement context.
 
 —
 
@@ -835,7 +835,7 @@ The exact trigger conditions require rules research.
 
 No native fall-damage executor was found.
 
-Therefore Frame Helm will need to calculate the raw consequence itself once the tabletop rule is confirmed.
+Therefore Frame Conn will need to calculate the raw consequence itself once the tabletop rule is confirmed.
 
 —
 
@@ -854,7 +854,7 @@ Fall
 → native defensive processing
 → authoritative actor mutation
 
-Frame Helm should not manually reproduce Armor, Resistance, HP, etc.
+Frame Conn should not manually reproduce Armor, Resistance, HP, etc.
 
 —
 
@@ -888,7 +888,7 @@ This means movement cost may already reflect:
 - movement method;
 - scene grid rules.
 
-Frame Helm should prefer consuming this cost result instead of recalculating purely from coordinates.
+Frame Conn should prefer consuming this cost result instead of recalculating purely from coordinates.
 
 —
 
@@ -903,7 +903,7 @@ Examples in native settings/localization include concepts like:
 - Manhattan-like movement;
 - Euclidean-style movement.
 
-Therefore raw coordinate math inside Frame Helm risks disagreeing with the user’s native Foundry/Lancer movement configuration.
+Therefore raw coordinate math inside Frame Conn risks disagreeing with the user’s native Foundry/Lancer movement configuration.
 
 Use native path measurement wherever practical.
 
@@ -911,7 +911,7 @@ Use native path measurement wherever practical.
 
 # 50. Movement Cost Should Be Canonical
 
-The ideal Frame Helm movement ledger should eventually receive something like:
+The ideal Frame Conn movement ledger should eventually receive something like:
 
 segment:
 - geometric distance
@@ -924,7 +924,7 @@ segment:
 
 Then:
 
-Frame Helm Turn movement
+Frame Conn Turn movement
 → spends `movement cost`
 
 while:
@@ -936,9 +936,9 @@ This is especially important for Jump/Climb.
 
 —
 
-# 51. Current Frame Helm Tracking
+# 51. Current Frame Conn Tracking
 
-Frame Helm currently tracks concepts such as:
+Frame Conn currently tracks concepts such as:
 
 - totalTracked;
 - standardUsed;
@@ -986,7 +986,7 @@ Forced movement should not normally consume the acting character’s ordinary mo
 
 The native Forced movement action already supports zero ordinary movement cost.
 
-This should integrate cleanly with Frame Helm’s movement ledger.
+This should integrate cleanly with Frame Conn’s movement ledger.
 
 —
 
@@ -1080,7 +1080,7 @@ Actor-owned effects may care about the distinction.
 
 # 60. Proposed Movement Method Model
 
-Conceptually, a Frame Helm movement segment could eventually carry:
+Conceptually, a Frame Conn movement segment could eventually carry:
 
 `method`
 
@@ -1115,13 +1115,13 @@ Where native movement action IDs already exist:
 
 `blink`
 
-Frame Helm should preserve those exact IDs internally where practical.
+Frame Conn should preserve those exact IDs internally where practical.
 
 This makes debugging and native adapter integration much easier.
 
 —
 
-# 62. Frame Helm-Owned IDs
+# 62. Frame Conn-Owned IDs
 
 Where native movement actions do not exist, such as the currently discovered lack of:
 
@@ -1131,9 +1131,9 @@ or:
 
 `fall`
 
-Frame Helm may need its own semantic method IDs.
+Frame Conn may need its own semantic method IDs.
 
-These should be clearly documented as Frame Helm-owned rather than presented as native Lancer movement actions.
+These should be clearly documented as Frame Conn-owned rather than presented as native Lancer movement actions.
 
 —
 
@@ -1168,8 +1168,8 @@ Preferred dependency direction:
 Foundry token movement
 → native Lancer/Foundry movement action
 → movement path/waypoints
-→ Frame Helm native-system adapter
-→ Frame Helm Movement feature
+→ Frame Conn native-system adapter
+→ Frame Conn Movement feature
 → Turn movement accounting
 → trigger systems
 
@@ -1189,7 +1189,7 @@ STANDARD MOVE
 │   ├── diagonals
 │   └── elevation waypoints
 │
-└── Frame Helm
+└── Frame Conn
     ├── movement ledger
     ├── spent/remaining
     ├── movement history
@@ -1210,7 +1210,7 @@ JUMP
 │
 ├── native elevation-aware path
 │
-└── Frame Helm
+└── Frame Conn
     ├── legality/rules
     ├── consume native interpreted cost
     ├── movement ledger
@@ -1228,7 +1228,7 @@ CLIMB
 ├── native movement cost:
 │   └── 2 × distance
 │
-└── Frame Helm
+└── Frame Conn
     ├── legality/rules
     ├── consume native interpreted cost
     └── movement ledger
@@ -1248,7 +1248,7 @@ FLY
 ├── native Fly movement action:
 │   └── none found
 │
-└── Frame Helm
+└── Frame Conn
     ├── determine flight availability
     ├── own Fly movement semantics
     ├── consume native geometry
@@ -1277,7 +1277,7 @@ TELEPORT
 ├── native terrain behavior:
 │   └── ordinary terrain ignored
 │
-└── Frame Helm
+└── Frame Conn
     ├── parent ability legality
     ├── range/destination restrictions
     ├── resources/action cost
@@ -1302,7 +1302,7 @@ FORCED MOVEMENT
 ├── native path implementation:
 │   └── teleport-like
 │
-└── Frame Helm
+└── Frame Conn
     ├── cause/source
     ├── destination
     ├── Ram/Grapple integration
@@ -1323,7 +1323,7 @@ FALL
 ├── native fall-damage flow:
 │   └── none found
 │
-├── Frame Helm
+├── Frame Conn
 │   ├── identify uncontrolled fall
 │   ├── calculate fall distance
 │   ├── calculate raw consequence
@@ -1451,7 +1451,7 @@ Afterward:
 - [ ] Integrate native Teleport path semantics.
 - [ ] Integrate native Forced path semantics.
 - [ ] Investigate/use Blink correctly.
-- [ ] Route Ram forced movement through native/Frame Helm forced method.
+- [ ] Route Ram forced movement through native/Frame Conn forced method.
 - [ ] Route Grapple movement through correct method/context.
 - [ ] Preserve elevation movement.
 - [ ] Add explicit fall classification.
@@ -1536,7 +1536,7 @@ Actor Speed remains native authoritative data.
 
 **Invariant 3**
 
-Frame Helm owns the detailed per-turn movement ledger.
+Frame Conn owns the detailed per-turn movement ledger.
 
 **Invariant 4**
 
@@ -1576,7 +1576,7 @@ No native fall-damage flow was found.
 
 **Invariant 13**
 
-Fall damage should eventually use native `LancerActor.damageCalc(...)` rather than a custom Frame Helm damage engine.
+Fall damage should eventually use native `LancerActor.damageCalc(...)` rather than a custom Frame Conn damage engine.
 
 —
 
@@ -1594,7 +1594,7 @@ MOVEMENT
 │
 ├── STANDARD
 │   ├── native Speed
-│   └── Frame Helm movement ledger
+│   └── Frame Conn movement ledger
 │
 ├── JUMP
 │   ├── native action `jump`
@@ -1607,7 +1607,7 @@ MOVEMENT
 ├── FLY
 │   ├── native `flying` status
 │   ├── native FlightSystem classification
-│   └── Frame Helm movement policy
+│   └── Frame Conn movement policy
 │
 ├── TELEPORT
 │   ├── native action `teleport`
@@ -1628,10 +1628,10 @@ MOVEMENT
 └── FALL
     ├── no native Fall action
     ├── no native fall-damage flow
-    ├── Frame Helm classifies actual fall
-    ├── Frame Helm calculates raw fall consequence
+    ├── Frame Conn classifies actual fall
+    ├── Frame Conn calculates raw fall consequence
     └── native `damageCalc(...)` applies downstream damage
 
 The critical implementation rule is:
 
-**Frame Helm should own the movement ledger and Lancer-specific movement legality, while native Foundry/Lancer movement-path semantics should remain the preferred source for distance, cost, terrain, method, and elevation whenever available.**
+**Frame Conn should own the movement ledger and Lancer-specific movement legality, while native Foundry/Lancer movement-path semantics should remain the preferred source for distance, cost, terrain, method, and elevation whenever available.**

@@ -9,11 +9,11 @@
 
 /**
  * ============================================================
- * FRAME HELM REPOSITORY AUDITOR
+ * FRAME CONN REPOSITORY AUDITOR
  * ============================================================
  *
  * ROLE:
- *   Performs a static integrity audit of the Lancer Frame Helm
+ *   Performs a static integrity audit of the Frame Conn
  *   repository and writes a machine-readable JSON report.
  *
  * PURPOSE:
@@ -1057,7 +1057,7 @@ function extractFeatureDeclarations(
 
 
   const needle =
-    "defineFrameHelmFeature";
+    "defineFrameConnFeature";
 
 
   let searchIndex =
@@ -1674,7 +1674,7 @@ function auditFeatureGraph(
           "FEATURE_ID_NOT_STATICALLY_RESOLVED",
 
         message:
-          "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
+          "A defineFrameConnFeature declaration was found, but its id could not be resolved statically.",
 
         file:
           feature.file,
@@ -1977,7 +1977,7 @@ function auditRuntimeFeatureRegistration(
           "RUNTIME_FEATURE_NOT_IMPORTED_BY_REGISTRY",
 
         message:
-          `Runtime feature appears to declare a Frame Helm feature but is not imported by scripts/feature-registry.js.`,
+          `Runtime feature appears to declare a Frame Conn feature but is not imported by scripts/feature-registry.js.`,
 
         file,
 
@@ -2665,7 +2665,7 @@ function buildReport({
   return {
     audit: {
       name:
-        "Lancer Frame Helm Repository Audit",
+        "Frame Conn Repository Audit",
 
       scriptVersion:
         SCRIPT_VERSION,
@@ -2822,7 +2822,7 @@ function buildReport({
 
 function runAudit() {
   console.log(
-    "Frame Helm repository audit starting..."
+    "Frame Conn repository audit starting..."
   );
 
 
@@ -2992,7 +2992,7 @@ function runAudit() {
 
 
   console.log(
-    "Frame Helm repository audit complete."
+    "Frame Conn repository audit complete."
   );
 
 

@@ -8,7 +8,7 @@
 
 /**
  * ============================================================
- * FRAME HELM UI TURN -- STATE ACCESS
+ * FRAME CONN UI TURN -- STATE ACCESS
  * ============================================================
  *
  * ROLE:
@@ -44,7 +44,7 @@
    ============================================================ */
 
 import {
-  getFrameHelmTurnUiTurnApi
+  getFrameConnTurnUiTurnApi
 } from "./turn-runtime-bindings.js";
 
 
@@ -55,9 +55,9 @@ import {
 /**
  * Resolve the current authoritative Turn state.
  */
-function getFrameHelmTurnUiCurrentState() {
+function getFrameConnTurnUiCurrentState() {
   const turnApi =
-    getFrameHelmTurnUiTurnApi();
+    getFrameConnTurnUiTurnApi();
 
 
   return (
@@ -75,9 +75,9 @@ function getFrameHelmTurnUiCurrentState() {
  * properties are only fallbacks because feature-record
  * normalization may materialize getters into static values.
  */
-function getFrameHelmTurnUiSnapshot() {
+function getFrameConnTurnUiSnapshot() {
   const turnApi =
-    getFrameHelmTurnUiTurnApi();
+    getFrameConnTurnUiTurnApi();
 
 
   const liveSnapshot =
@@ -121,6 +121,6 @@ function getFrameHelmTurnUiSnapshot() {
    ============================================================ */
 
 export {
-  getFrameHelmTurnUiCurrentState,
-  getFrameHelmTurnUiSnapshot
+  getFrameConnTurnUiCurrentState,
+  getFrameConnTurnUiSnapshot
 };

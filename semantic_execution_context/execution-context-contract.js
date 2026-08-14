@@ -10,11 +10,11 @@
  * @path main/semantic_execution_context/execution-context-contract.js
  * @module execution-context-contract
  * @layer semantic-execution-context-contract
- * @responsibility define-stable-frame-helm-semantic-execution-context-shapes
+ * @responsibility define-stable-frame-conn-semantic-execution-context-shapes
  * @public-boundary true
  * @side-effects none
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumes semantic identity from feature-contract.js
  * - consumes registered feature/action identity from
  *   feature-registry.js / feature-registry-core.js
@@ -74,7 +74,7 @@
 /**
  * @section execution-phase
  *
- * These phases describe semantic Frame Helm execution.
+ * These phases describe semantic Frame Conn execution.
  *
  * execution_transaction/ will own phase transitions.
  */
@@ -195,7 +195,7 @@ export const EXECUTION_SOURCE_KIND = Object.freeze({
 /**
  * @section controller-mode
  *
- * Current controller is semantic Frame Helm runtime state.
+ * Current controller is semantic Frame Conn runtime state.
  *
  * Native Actor ownership is not equivalent to controller mode.
  */
@@ -498,7 +498,7 @@ function generateExecutionId() {
   }
 
   return (
-    `fh-execution-${Date.now()}-` +
+    `fc-execution-${Date.now()}-` +
     Math.random()
       .toString(36)
       .slice(2)
@@ -607,7 +607,7 @@ export function createExecutionActorContext({
 /**
  * @section semantic-action-reference
  *
- * Bridges existing Frame Helm feature-contract / registry identity into
+ * Bridges existing Frame Conn feature-contract / registry identity into
  * runtime execution.
  *
  * This contract does not define the feature itself.
@@ -1806,11 +1806,11 @@ export function assertExecutionContext(
 }
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * feature-contract.js
  * -------------------
@@ -1827,7 +1827,7 @@ export function assertExecutionContext(
  *
  * feature-registry.js / feature-registry-core.js
  * ------------------------------------------------
- * Continue to register declared Frame Helm actions/features.
+ * Continue to register declared Frame Conn actions/features.
  *
  * Registry identity should be preserved in:
  *

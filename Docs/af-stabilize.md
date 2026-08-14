@@ -25,11 +25,11 @@
 
 **Native Stabilize semantic SynergyLocation:** Found.
 
-**Frame Helm implementation status:** Frame Helm should delegate Stabilize directly to native `actor.beginStabilizeFlow(...)` for the first implementation, while owning Full Action expenditure and committed-plan execution. Later Frame Helm automation should extend only the missing condition-clearing branches rather than recreating the native Stabilize engine.
+**Frame Conn implementation status:** Frame Conn should delegate Stabilize directly to native `actor.beginStabilizeFlow(...)` for the first implementation, while owning Full Action expenditure and committed-plan execution. Later Frame Conn automation should extend only the missing condition-clearing branches rather than recreating the native Stabilize engine.
 
 ## Purpose
 
-This document records the native Foundry Lancer findings relevant to the universal **Stabilize** Full Action and defines the intended Frame Helm integration boundary.
+This document records the native Foundry Lancer findings relevant to the universal **Stabilize** Full Action and defines the intended Frame Conn integration boundary.
 
 Unlike many universal actions researched so far, Stabilize has a complete native Lancer execution flow.
 
@@ -49,11 +49,11 @@ The native system already provides:
 
 Therefore:
 
-> Frame Helm should not recreate Stabilize mechanics.
+> Frame Conn should not recreate Stabilize mechanics.
 
 The correct initial integration is:
 
-Frame Helm
+Frame Conn
 → native-system adapter
 → `actor.beginStabilizeFlow(...)`
 
@@ -96,7 +96,7 @@ in:
 
 This is a genuine dedicated native Flow.
 
-Therefore Frame Helm should preserve it.
+Therefore Frame Conn should preserve it.
 
 —
 
@@ -117,7 +117,7 @@ actor
 → native updates
 → native chat result
 
-This should be called through Frame Helm’s native-system adapter.
+This should be called through Frame Conn’s native-system adapter.
 
 —
 
@@ -125,7 +125,7 @@ This should be called through Frame Helm’s native-system adapter.
 
 The native mech sheet already launches Stabilize through the actor entry point.
 
-Therefore Frame Helm can mirror the same native execution path used by the stock character sheet.
+Therefore Frame Conn can mirror the same native execution path used by the stock character sheet.
 
 This satisfies the project’s preferred integration pattern:
 
@@ -167,7 +167,7 @@ The native StabilizeFlow contains the ordered steps:
 
 `printStabilizeResult`
 
-Frame Helm should not duplicate or reorder these steps.
+Frame Conn should not duplicate or reorder these steps.
 
 —
 
@@ -202,9 +202,9 @@ The native flow renders:
 
 This is the native Lancer Stabilize interaction.
 
-The first Frame Helm implementation should preserve this popup.
+The first Frame Conn implementation should preserve this popup.
 
-There is no need to immediately recreate the choice UI inside Frame Helm.
+There is no need to immediately recreate the choice UI inside Frame Conn.
 
 —
 
@@ -273,7 +273,7 @@ Cool
 
 This is already fully automated.
 
-Frame Helm should not reproduce this behavior.
+Frame Conn should not reproduce this behavior.
 
 —
 
@@ -283,7 +283,7 @@ The native helper uses effect/status infrastructure to remove Exposed.
 
 This means Stabilize already respects native status ownership.
 
-Frame Helm should not separately clear a local Exposed state after native Stabilize runs.
+Frame Conn should not separately clear a local Exposed state after native Stabilize runs.
 
 Instead:
 
@@ -316,7 +316,7 @@ Therefore native Lancer already handles both the resource cost and HP restoratio
 
 # 15. Repair Expenditure
 
-Frame Helm should not manually decrement Repairs when native Restore HP is selected.
+Frame Conn should not manually decrement Repairs when native Restore HP is selected.
 
 Native Stabilize already owns:
 
@@ -330,7 +330,7 @@ This avoids double-spending Repairs.
 
 The native helper also supports relevant NPC cases, including native content such as Veteran self-repair behavior.
 
-Frame Helm’s player-facing universal Stabilize action is primarily mech-focused, but this confirms the native helper is broader than a hardcoded PC-only function.
+Frame Conn’s player-facing universal Stabilize action is primarily mech-focused, but this confirms the native helper is broader than a hardcoded PC-only function.
 
 —
 
@@ -350,7 +350,7 @@ and applies resulting embedded item updates through:
 
 Therefore native Lancer already determines which items can be reloaded and mutates their loaded state.
 
-Frame Helm should not manually enumerate/reload weapons.
+Frame Conn should not manually enumerate/reload weapons.
 
 —
 
@@ -360,7 +360,7 @@ The native Stabilize flow also builds chat/result text describing the reloaded w
 
 This native output should be preserved.
 
-Frame Helm does not need a duplicate reload summary.
+Frame Conn does not need a duplicate reload summary.
 
 —
 
@@ -376,7 +376,7 @@ the native helper performs:
 
 Therefore Burn clearing is already automated.
 
-Frame Helm should not separately remove Burn.
+Frame Conn should not separately remove Burn.
 
 —
 
@@ -445,11 +445,11 @@ Clear Own Condition
 Clear Ally Condition
 → not automated
 
-This should guide Frame Helm’s implementation priorities.
+This should guide Frame Conn’s implementation priorities.
 
 —
 
-# 23. Initial Frame Helm Strategy
+# 23. Initial Frame Conn Strategy
 
 The correct first implementation is:
 
@@ -460,7 +460,7 @@ Committed Stabilize
 → native Stabilize prompt
 → native mutation
 → native chat result
-→ Frame Helm marks action executed
+→ Frame Conn marks action executed
 → refresh authoritative state/UI
 
 This delivers correct behavior immediately without recreating native mechanics.
@@ -469,7 +469,7 @@ This delivers correct behavior immediately without recreating native mechanics.
 
 # 24. Do Not Replace Native Prompt Initially
 
-The first Frame Helm implementation should not build a custom:
+The first Frame Conn implementation should not build a custom:
 
 - Cool selector;
 - Repair selector;
@@ -488,13 +488,13 @@ Stabilize consumes:
 
 **one Full Action**
 
-Frame Helm Turn state should own this expenditure.
+Frame Conn Turn state should own this expenditure.
 
 The native StabilizeFlow does not need to be treated as a second Full Action.
 
 Conceptually:
 
-Frame Helm parent action
+Frame Conn parent action
 → spend Full Action
 
 Native StabilizeFlow
@@ -522,7 +522,7 @@ Most Stabilize branches require no hostile target.
 
 The current native flow opens its own prompt and manages its own branch decisions.
 
-Therefore Frame Helm should not enter target-selection mode before launching Stabilize.
+Therefore Frame Conn should not enter target-selection mode before launching Stabilize.
 
 Only the future automated:
 
@@ -534,11 +534,11 @@ branch will need target selection.
 
 # 28. Native Flow Owns Choice State
 
-Frame Helm does not need to know the selected Stabilize options in order to execute the first implementation.
+Frame Conn does not need to know the selected Stabilize options in order to execute the first implementation.
 
 It can simply delegate to native StabilizeFlow.
 
-Later, if Frame Helm needs:
+Later, if Frame Conn needs:
 
 - detailed execution history;
 - automatic condition clearing;
@@ -552,7 +552,7 @@ That can be added incrementally.
 
 # 29. Await Native Flow Completion
 
-Frame Helm should await the native flow before marking the committed action fully executed.
+Frame Conn should await the native flow before marking the committed action fully executed.
 
 Conceptually:
 
@@ -572,7 +572,7 @@ Do not mark Stabilize complete merely because the native prompt opened.
 
 The native prompt may potentially be cancelled.
 
-Frame Helm needs to distinguish:
+Frame Conn needs to distinguish:
 
 flow opened
 
@@ -600,7 +600,7 @@ as a native SynergyLocation.
 
 Therefore structured actor-owned content may be able to reference Stabilize semantically.
 
-Frame Helm should preserve this identity for future integration with:
+Frame Conn should preserve this identity for future integration with:
 
 - Mounted Systems;
 - Mech Traits;
@@ -612,7 +612,7 @@ Frame Helm should preserve this identity for future integration with:
 
 # 32. Future Stabilize Trigger Events
 
-Frame Helm may eventually expose semantic events such as:
+Frame Conn may eventually expose semantic events such as:
 
 - Stabilize executed;
 - Cool selected;
@@ -631,7 +631,7 @@ Where native structured synergy data already references `stabilize`, preserve th
 
 # 33. Future Clear Own Condition Automation
 
-A mature Frame Helm enhancement for:
+A mature Frame Conn enhancement for:
 
 `Clear Own Condition`
 
@@ -650,7 +650,7 @@ The exact eligible condition set should come from the tabletop rules.
 
 # 34. Native Condition Removal
 
-When Frame Helm automates Clear Own Condition:
+When Frame Conn automates Clear Own Condition:
 
 use native Foundry/Lancer status/effect infrastructure.
 
@@ -669,7 +669,7 @@ may be reusable.
 
 # 35. Future Clear Ally Condition Automation
 
-A mature Frame Helm enhancement for:
+A mature Frame Conn enhancement for:
 
 `Clear Ally Condition`
 
@@ -714,7 +714,7 @@ or:
 
 Option B:
 
-reproduce the same high-level choice orchestration in Frame Helm while still using native low-level mutation helpers.
+reproduce the same high-level choice orchestration in Frame Conn while still using native low-level mutation helpers.
 
 The preferred direction should be whichever preserves the most native behavior with the least duplication.
 
@@ -724,7 +724,7 @@ Do not replace the flow simply because two branches are incomplete.
 
 # 38. Preferred Long-Term Principle
 
-Even after Frame Helm automates the missing condition branches:
+Even after Frame Conn automates the missing condition branches:
 
 native Lancer should remain authoritative for:
 
@@ -735,7 +735,7 @@ native Lancer should remain authoritative for:
 - Reload;
 - Burn removal.
 
-Frame Helm should own only the missing orchestration needed to complete the condition branches.
+Frame Conn should own only the missing orchestration needed to complete the condition branches.
 
 —
 
@@ -750,7 +750,7 @@ Restore HP may interact with:
 
 Native `strussHelper.stabilize(...)` already handles this.
 
-Frame Helm should not duplicate:
+Frame Conn should not duplicate:
 
 if Repairs > 0
 → heal
@@ -766,7 +766,7 @@ Reloadable-item discovery is already owned by:
 
 `actor.loadoutHelper.reloadableItems()`
 
-Frame Helm should not scan weapon names/tags itself.
+Frame Conn should not scan weapon names/tags itself.
 
 This is a strong native integration boundary.
 
@@ -779,7 +779,7 @@ Native Stabilize already owns:
 - Heat to 0;
 - Exposed removal.
 
-Frame Helm should not add a second cooling mutation after flow completion.
+Frame Conn should not add a second cooling mutation after flow completion.
 
 —
 
@@ -789,7 +789,7 @@ Native Stabilize already owns:
 
 `system.burn = 0`
 
-Frame Helm should not duplicate Burn clearing.
+Frame Conn should not duplicate Burn clearing.
 
 —
 
@@ -797,7 +797,7 @@ Frame Helm should not duplicate Burn clearing.
 
 After native Stabilize completes:
 
-Frame Helm should re-read:
+Frame Conn should re-read:
 
 - actor Heat;
 - Exposed state;
@@ -817,9 +817,9 @@ This ensures telemetry/UI reflects actual native results.
 
 The native flow prints a Stabilize result.
 
-Frame Helm should preserve this rather than creating a duplicate generic message.
+Frame Conn should preserve this rather than creating a duplicate generic message.
 
-If Frame Helm later adds automated condition clearing, it may append concise supplemental output where native chat does not reflect that added mutation.
+If Frame Conn later adds automated condition clearing, it may append concise supplemental output where native chat does not reflect that added mutation.
 
 —
 
@@ -864,7 +864,7 @@ Because Stabilize is itself Full:
 
 taking it consumes the actor’s Full Action.
 
-Frame Helm Turn legality should block combining it with another Full Action unless a special rule grants that ability.
+Frame Conn Turn legality should block combining it with another Full Action unless a special rule grants that ability.
 
 The native flow should remain mechanically independent of this parent action-budget logic.
 
@@ -874,7 +874,7 @@ The native flow should remain mechanically independent of this parent action-bud
 
 The intended ownership split is:
 
-**FRAME HELM OWNS:**
+**FRAME CONN OWNS:**
 
 - universal Stabilize Full Action;
 - Full Action expenditure;
@@ -906,7 +906,7 @@ The intended ownership split is:
 
 —
 
-# 50. Native Gaps Owned by Future Frame Helm Extension
+# 50. Native Gaps Owned by Future Frame Conn Extension
 
 The two identified native gaps are:
 
@@ -916,7 +916,7 @@ and:
 
 `Clear Ally Condition`
 
-Frame Helm may eventually own:
+Frame Conn may eventually own:
 
 - condition enumeration;
 - target selection;
@@ -931,7 +931,7 @@ These should be implemented as additions around the native Stabilize architectur
 
 A native StabilizeFlow already exists.
 
-Frame Helm should not create a parallel custom flow with the same responsibility unless a future architectural need makes replacement unavoidable.
+Frame Conn should not create a parallel custom flow with the same responsibility unless a future architectural need makes replacement unavoidable.
 
 The initial adapter should call the native actor entry point directly.
 
@@ -940,7 +940,7 @@ The initial adapter should call the native actor entry point directly.
 # 52. Proposed Initial Stabilize Flow
 
 STABILIZE
-→ Frame Helm validates active Turn
+→ Frame Conn validates active Turn
 → validate Full Action
 → resolve authoritative mech
 → spend/commit Full Action
@@ -956,7 +956,7 @@ STABILIZE
 → actor/item mutations
 → `printStabilizeResult`
 → await flow completion
-→ Frame Helm re-reads authoritative actor/items
+→ Frame Conn re-reads authoritative actor/items
 → mark committed Stabilize executed
 → refresh telemetry/Turn/UI
 
@@ -992,7 +992,7 @@ OPTION 2
 └── CLEAR ALLY CONDITION
     └── native TODO / manual
 
-This is the core native behavior Frame Helm should preserve.
+This is the core native behavior Frame Conn should preserve.
 
 —
 
@@ -1076,13 +1076,13 @@ Base flow:
 - [ ] Full Action spent exactly once.
 - [ ] no d20 roll required.
 - [ ] native chat result appears.
-- [ ] Frame Helm marks execution correctly.
+- [ ] Frame Conn marks execution correctly.
 
 Cool:
 
 - [ ] Heat becomes 0.
 - [ ] Exposed removed.
-- [ ] Frame Helm telemetry refreshes.
+- [ ] Frame Conn telemetry refreshes.
 
 Restore HP:
 
@@ -1097,18 +1097,18 @@ Reload:
 - [ ] Loading state updated.
 - [ ] multiple reloadable items handled.
 - [ ] native chat lists reloaded items.
-- [ ] Frame Helm does not duplicate item updates.
+- [ ] Frame Conn does not duplicate item updates.
 
 Clear Burn:
 
 - [ ] Burn becomes 0.
-- [ ] Frame Helm refreshes correctly.
+- [ ] Frame Conn refreshes correctly.
 
 Condition branches:
 
 - [ ] Clear Own Condition currently shows native manual behavior.
 - [ ] Clear Ally Condition currently shows native manual behavior.
-- [ ] future Frame Helm automation removes exactly one legal condition.
+- [ ] future Frame Conn automation removes exactly one legal condition.
 - [ ] unrelated statuses remain untouched.
 
 Cancellation/failure:
@@ -1135,7 +1135,7 @@ The authoritative native entry point is `actor.beginStabilizeFlow(...)`.
 
 **Invariant 4**
 
-Frame Helm should delegate to native StabilizeFlow rather than recreate it.
+Frame Conn should delegate to native StabilizeFlow rather than recreate it.
 
 **Invariant 5**
 
@@ -1163,7 +1163,7 @@ Clear Ally Condition is not currently automated natively.
 
 **Invariant 11**
 
-Frame Helm owns the parent Full Action expenditure; native Stabilize owns mechanical branch resolution.
+Frame Conn owns the parent Full Action expenditure; native Stabilize owns mechanical branch resolution.
 
 **Invariant 12**
 
@@ -1177,7 +1177,7 @@ STABILIZE
 │
 ├── Full Action
 │
-├── Frame Helm
+├── Frame Conn
 │   ├── validate Full Action
 │   ├── spend/commit Full Action
 │   ├── resolve authoritative mech
@@ -1222,6 +1222,6 @@ The critical architectural rule is:
 
 **Stabilize is already a real native Lancer workflow.**
 
-Frame Helm should be the player-facing command surface over that workflow.
+Frame Conn should be the player-facing command surface over that workflow.
 
 The only identified pieces worth adding ourselves are the two condition-clearing branches that the native developers left manual.

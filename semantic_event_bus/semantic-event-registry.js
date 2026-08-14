@@ -16,7 +16,7 @@
  * @depends-on
  * - semantic-event-contract
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumed by semantic-event-dispatcher.js
  * - consumed by semantic-event-hooks.js
  * - consumed by semantic-event-bus.js
@@ -72,7 +72,7 @@ import {
    MODULE IDENTITY
    ============================================================ */
 export const SEMANTIC_EVENT_REGISTRY_MODULE_ID =
-  "lancer-frame-helm.semantic-event-registry";
+  "lancer-frame-conn.semantic-event-registry";
 export const SEMANTIC_EVENT_REGISTRY_MODULE_VERSION =
   1;
 /* ============================================================
@@ -204,7 +204,7 @@ function freezeObject(value) {
 function generateListenerId() {
   registrationCounter += 1;
   return (
-    `fh-semantic-listener-${Date.now()}-` +
+    `fc-semantic-listener-${Date.now()}-` +
     `${registrationCounter}-` +
     Math.random()
       .toString(36)
@@ -1458,10 +1458,10 @@ export function onExecutionRootSemanticEvent(
  * indexes.
  */
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * semantic-event-contract.js
  * --------------------------

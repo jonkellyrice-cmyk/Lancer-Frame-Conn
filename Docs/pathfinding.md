@@ -1,6 +1,6 @@
 const fs = require(“fs”);
 
-const content = String.raw`# Frame Helm Movement Pathfinder — Integration Guide
+const content = String.raw`# Frame Conn Movement Pathfinder — Integration Guide
 
 ## Purpose
 
@@ -580,7 +580,7 @@ replan or reject
 
 # 28. Movement Tracker Integration
 
-Existing Frame Helm movement tracking remains authoritative for actual expenditure.
+Existing Frame Conn movement tracking remains authoritative for actual expenditure.
 
 Execution should report:
 
@@ -1151,7 +1151,7 @@ FINAL REVALIDATION
 MOVEMENT EXECUTOR
         │
         ▼
-EXISTING FRAME HELM MOVEMENT TRACKER
+EXISTING FRAME CONN MOVEMENT TRACKER
 \`\`\`
 
 Critical rule:

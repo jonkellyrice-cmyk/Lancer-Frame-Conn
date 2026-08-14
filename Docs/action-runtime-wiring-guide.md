@@ -1,15 +1,15 @@
-# Frame Helm Action Runtime Wiring Guide
+# Frame Conn Action Runtime Wiring Guide
 
 ## Purpose
 
-This document codifies the proven runtime path for wiring Frame Helm actions into the native Foundry Lancer system. It is the implementation companion to the action-flow research documents in `Docs/af-*.md`.
+This document codifies the proven runtime path for wiring Frame Conn actions into the native Foundry Lancer system. It is the implementation companion to the action-flow research documents in `Docs/af-*.md`.
 
-The `af-*` notes answer **what stock Lancer does**. This guide answers **how Frame Helm should carry a player command from its UI, through Turn commitment and runtime composition, into the native Lancer runtime without duplicating the native rules engine**.
+The `af-*` notes answer **what stock Lancer does**. This guide answers **how Frame Conn should carry a player command from its UI, through Turn commitment and runtime composition, into the native Lancer runtime without duplicating the native rules engine**.
 
 The path validated end-to-end with **Improvised Attack** is:
 
 ```text
-Frame Helm action selection
+Frame Conn action selection
         ↓
 canonical Actions registry entry
         ↓
@@ -39,20 +39,20 @@ successful transaction
         ↓
 committed entry marked executed
         ↓
-Frame Helm re-renders
+Frame Conn re-renders
 ```
 
 The governing rule is:
 
-> **Frame Helm owns player-facing command and presentation semantics. Native Lancer owns Lancer execution semantics whenever an authoritative native path exists.**
+> **Frame Conn owns player-facing command and presentation semantics. Native Lancer owns Lancer execution semantics whenever an authoritative native path exists.**
 
-Frame Helm should not reimplement attack formulas, stat rolls, target modifiers, chat cards, heat application, status effects, weapon workflows, or other behavior already owned by the system.
+Frame Conn should not reimplement attack formulas, stat rolls, target modifiers, chat cards, heat application, status effects, weapon workflows, or other behavior already owned by the system.
 
 ---
 
 ## 1. Ownership boundary
 
-### Frame Helm owns
+### Frame Conn owns
 
 - the universal action catalog;
 - action categories and player-facing command UI;
@@ -93,14 +93,14 @@ Do not invent a native API because its name seems plausible. Use the actual entr
 
 ## 2. Player selection and lazy Turn creation
 
-The Application renders action choices from the canonical Actions registry. The selected action is identified by its canonical Frame Helm action ID, for example `full.improvised-attack`.
+The Application renders action choices from the canonical Actions registry. The selected action is identified by its canonical Frame Conn action ID, for example `full.improvised-attack`.
 
 There is no manual **Begin Turn Plan** gate. Turn creation is lazy and idempotent:
 
 ```text
 player enters a turn-economy path
         ↓
-active Frame Helm Turn exists?
+active Frame Conn Turn exists?
         ├── yes → preserve it
         └── no  → derive selected token/combat context and ensure one
 ```
@@ -113,7 +113,7 @@ Reactions are different: they may occur during another character's turn and must
 
 ## 3. Commitment and execution are separate
 
-Committing an action spends Frame Helm turn economy and creates a committed entry. It does **not** imply that native execution has already happened.
+Committing an action spends Frame Conn turn economy and creates a committed entry. It does **not** imply that native execution has already happened.
 
 For ordinary quick/full actions the commitment path is:
 
@@ -122,7 +122,7 @@ Application commit command
         ↓
 Turn API / Turn state
         ↓
-FrameHelmTurnState.useAction(...)
+FrameConnTurnState.useAction(...)
         ↓
 canUseAction(...)
         ↓
@@ -157,12 +157,12 @@ These IDs are not interchangeable. `id` identifies **this exact committed occurr
 
 ## 4. Turn state is authoritative
 
-`FrameHelmTurnState` owns the mutable turn plan. Its snapshot includes action budget, protocol/reaction/overcharge state, `usedActions`, history, and execution state.
+`FrameConnTurnState` owns the mutable turn plan. Its snapshot includes action budget, protocol/reaction/overcharge state, `usedActions`, history, and execution state.
 
 The committed plan must flow through:
 
 ```text
-FrameHelmTurnState
+FrameConnTurnState
         ↓
 Turn feature snapshot()
         ↓
@@ -247,7 +247,7 @@ Before native execution:
 3. confirm its stored `actionId` matches the control;
 4. resolve the canonical Actions registry entry;
 5. resolve the actor/token used for execution;
-6. satisfy any Frame Helm-level target prerequisite.
+6. satisfy any Frame Conn-level target prerequisite.
 
 Only then enter Action Execution.
 
@@ -255,12 +255,12 @@ Only then enter Action Execution.
 
 ## 8. Targeting boundary
 
-If an action requires a target, Frame Helm may ensure a valid target exists or prompt the player to select one. Once the native path starts, stock Lancer should continue to own target-sensitive modifier logic.
+If an action requires a target, Frame Conn may ensure a valid target exists or prompt the player to select one. Once the native path starts, stock Lancer should continue to own target-sensitive modifier logic.
 
 The validated Improvised Attack path is the desired model:
 
 ```text
-Frame Helm Execute
+Frame Conn Execute
         ↓
 native Basic Attack
         ↓
@@ -273,13 +273,13 @@ Accuracy / Difficulty / cover / status modifiers
 native Roll
 ```
 
-Do not duplicate that native modifier dialog in Frame Helm.
+Do not duplicate that native modifier dialog in Frame Conn.
 
 ---
 
 ## 9. Canonical execution spine
 
-The Application delegates to the registered **Action Execution** feature. It should know only that it wants to execute a semantic Frame Helm action for an actor. It should not construct Lancer Flow classes directly.
+The Application delegates to the registered **Action Execution** feature. It should know only that it wants to execute a semantic Frame Conn action for an actor. It should not construct Lancer Flow classes directly.
 
 `scripts/runtime-orchestrator.js` is the composition root. The proven execution spine is:
 
@@ -311,7 +311,7 @@ This rule applies to UI features too. `ui-turn` and `ui-movement` both previousl
 
 ## 10. System Bridge and Semantic Execution Context
 
-System Bridge reconciles Frame Helm semantic action identity with available runtime/system support. Inputs may include actor scope, `actionId`, registry identity, action name, existing registry entry, and `executionKind`.
+System Bridge reconciles Frame Conn semantic action identity with available runtime/system support. Inputs may include actor scope, `actionId`, registry identity, action name, existing registry entry, and `executionKind`.
 
 Before continuing, require successful composition with no blocking conflict. Fail before native mutation begins if semantic/system composition cannot be established.
 
@@ -343,9 +343,9 @@ The Native Adapter is the concrete boundary to Foundry Lancer. Future actions sh
 
 Do not call native Flow APIs or actor-native methods directly from Application UI code.
 
-Once the adapter invokes the correct native entry point, Frame Helm should get out of the way unless another explicit semantic bridge is required. Native Lancer may then own dialog construction, target inspection, Accuracy/Difficulty, cover, status modifiers, weapon/system choice, roll formula, chat output, document mutation, resources, and effects.
+Once the adapter invokes the correct native entry point, Frame Conn should get out of the way unless another explicit semantic bridge is required. Native Lancer may then own dialog construction, target inspection, Accuracy/Difficulty, cover, status modifiers, weapon/system choice, roll formula, chat output, document mutation, resources, and effects.
 
-The validated proof case is Improvised Attack opening stock Lancer's **Basic Attack** dialog from a Frame Helm committed action. That is the success criterion for native delegation.
+The validated proof case is Improvised Attack opening stock Lancer's **Basic Attack** dialog from a Frame Conn committed action. That is the success criterion for native delegation.
 
 ---
 
@@ -462,14 +462,14 @@ Field names must match across feature boundaries.
 
 ### Downstream startup symptoms
 
-An error such as `lancer-frame-helm.enabled is not a registered game setting` did not mean settings registration was the root problem. The module graph had already failed during import, so Foundry never reached `init`.
+An error such as `lancer-frame-conn.enabled is not a registered game setting` did not mean settings registration was the root problem. The module graph had already failed during import, so Foundry never reached `init`.
 
-When startup dies before normal Frame Helm initialization logs, use a cache-busting import probe:
+When startup dies before normal Frame Conn initialization logs, use a cache-busting import probe:
 
 ```js
-import(`/modules/lancer-frame-helm/scripts/runtime-orchestrator.js?debug=${Date.now()}`)
-  .then(() => console.log("FRAME HELM IMPORT OK"))
-  .catch(error => console.error("FRAME HELM IMPORT FAILURE:", error));
+import(`/modules/lancer-frame-conn/scripts/runtime-orchestrator.js?debug=${Date.now()}`)
+  .then(() => console.log("FRAME CONN IMPORT OK"))
+  .catch(error => console.error("FRAME CONN IMPORT FAILURE:", error));
 ```
 
 Fix the first import-time exception before treating lifecycle symptoms as separate defects.
@@ -522,7 +522,7 @@ Fix the first import-time exception before treating lifecycle symptoms as separa
 ### Foundry validation
 
 - [ ] Module imports cleanly.
-- [ ] Frame Helm opens.
+- [ ] Frame Conn opens.
 - [ ] Action commits.
 - [ ] Committed row appears.
 - [ ] Execute launches stock Lancer workflow.
@@ -538,7 +538,7 @@ Fix the first import-time exception before treating lifecycle symptoms as separa
 ```text
 PLAYER
   ↓
-Frame Helm Application
+Frame Conn Application
   ↓
 Actions Registry
   ↓
@@ -575,7 +575,7 @@ Turn State marks exact committed entry executed
   ↓
 ui-turn rebuilds presentation
   ↓
-Frame Helm Application re-renders
+Frame Conn Application re-renders
 ```
 
 If a future implementation bypasses several boxes in this diagram, treat that as a design warning and justify it explicitly.
@@ -584,11 +584,11 @@ If a future implementation bypasses several boxes in this diagram, treat that as
 
 ## Final principle
 
-The goal is not to make Frame Helm imitate the Lancer character sheet. The goal is to provide a different player-facing command interface while still arriving at the same authoritative native Lancer execution machinery.
+The goal is not to make Frame Conn imitate the Lancer character sheet. The goal is to provide a different player-facing command interface while still arriving at the same authoritative native Lancer execution machinery.
 
 A successfully wired action therefore satisfies both conditions:
 
-1. **Frame Helm owns the plan and the player's semantic command.**
+1. **Frame Conn owns the plan and the player's semantic command.**
 2. **Lancer owns the Lancer rules execution.**
 
 Preserve that boundary as the remaining actions are wired in.

@@ -21,7 +21,7 @@
  * - semantic_event_bus/semantic-event-bus
  * - execution_transaction/execution-transaction
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - attaches targeting_spatial_service to execution_transaction/
  * - resolves targets during the transaction targeting boundary
  * - validates resolved targets during final validation
@@ -107,7 +107,7 @@ import {
    ============================================================ */
 
 export const TARGETING_SPATIAL_HOOKS_MODULE_ID =
-  "lancer-frame-helm.targeting-spatial-hooks";
+  "lancer-frame-conn.targeting-spatial-hooks";
 
 export const TARGETING_SPATIAL_HOOKS_MODULE_VERSION =
   1;
@@ -1309,7 +1309,7 @@ export function clearAllExecutionTargetingSpatialState() {
 /**
  * @section targeting-requirement-augmentation-notes
  *
- * Existing Frame Helm registry/native feature data may not contain:
+ * Existing Frame Conn registry/native feature data may not contain:
  *
  * target kinds
  * relationship
@@ -1487,11 +1487,11 @@ export function getTargetingSpatialHookDiagnostics() {
 }
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * semantic_execution_context/
  * ---------------------------

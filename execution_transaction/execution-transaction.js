@@ -10,7 +10,7 @@
  * @path main/execution_transaction/execution-transaction.js
  * @module execution-transaction
  * @layer execution-transaction-public-boundary
- * @responsibility expose-one-stable-frame-helm-facing-execution-transaction-api
+ * @responsibility expose-one-stable-frame-conn-facing-execution-transaction-api
  * @public-boundary true
  * @side-effects delegated-through-runner-hooks-and-execution-callbacks
  *
@@ -19,7 +19,7 @@
  * - execution-transaction-runner
  * - execution-transaction-hooks
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumed by runtime-orchestrator.js
  * - consumed by feature_actions/*
  * - consumed by execution-strategy runtimes
@@ -89,7 +89,7 @@ import * as hooks from "./execution-transaction-hooks.js";
  */
 
 export const EXECUTION_TRANSACTION_MODULE_ID =
-  "lancer-frame-helm.execution-transaction";
+  "lancer-frame-conn.execution-transaction";
 
 export const EXECUTION_TRANSACTION_MODULE_VERSION =
   1;
@@ -131,7 +131,7 @@ export const executionTransaction =
 /**
  * @section primary-transaction-entry
  *
- * Canonical Frame Helm execution pipeline.
+ * Canonical Frame Conn execution pipeline.
  */
 
 export async function runExecutionTransaction(
@@ -1060,11 +1060,11 @@ export function getExecutionTransactionCapabilities() {
 }
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * runtime-orchestrator.js
  * -----------------------
@@ -1292,7 +1292,7 @@ export function getExecutionTransactionCapabilities() {
  * CLASS 2
  * -------
  *
- * Native Lancer has useful primitives but Frame Helm owns orchestration.
+ * Native Lancer has useful primitives but Frame Conn owns orchestration.
  *
  * Typical:
  *
@@ -1308,7 +1308,7 @@ export function getExecutionTransactionCapabilities() {
  *
  * Typical:
  *
- * Frame Helm strategy
+ * Frame Conn strategy
  * → transaction
  * → native primitive mutations/rolls/statuses
  *
@@ -1441,7 +1441,7 @@ export function getExecutionTransactionCapabilities() {
  * Native execution remains below this subsystem.
  *
  * INVARIANT 12
- * Existing Frame Helm architecture should converge on this public boundary
+ * Existing Frame Conn architecture should converge on this public boundary
  * rather than creating parallel transaction models.
  */
 

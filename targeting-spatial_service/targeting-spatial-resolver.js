@@ -18,7 +18,7 @@
  * - targeting-spatial-contract
  * - targeting-spatial-query
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumes semantic_execution_context target/source data
  * - consumed by targeting-validator.js
  * - consumed by targeting-spatial-hooks.js
@@ -86,7 +86,7 @@ import {
    ============================================================ */
 
 export const TARGETING_SPATIAL_RESOLVER_MODULE_ID =
-  "lancer-frame-helm.targeting-spatial-resolver";
+  "lancer-frame-conn.targeting-spatial-resolver";
 
 export const TARGETING_SPATIAL_RESOLVER_MODULE_VERSION =
   1;
@@ -121,7 +121,7 @@ export const TARGETING_SPATIAL_RESOLVER_MODULE_VERSION =
  * Foundry user targets
  * token selection
  * MeasuredTemplate placement
- * Frame Helm targeting UI
+ * Frame Conn targeting UI
  *
  * This module remains UI-independent.
  */
@@ -1347,7 +1347,7 @@ export function didTargetResolutionFail(
  * Character targets:
  *
  * 1. ExecutionContext targets
- * 2. current Foundry/Frame Helm selected targets
+ * 2. current Foundry/Frame Conn selected targets
  * 3. prompt if required and permitted
  *
  *
@@ -1461,7 +1461,7 @@ export function didTargetResolutionFail(
 /**
  * @section missing-target-prompt-notes
  *
- * This directly supports Frame Helm committed actions:
+ * This directly supports Frame Conn committed actions:
  *
  * action requires target
  * + no target selected
@@ -1609,11 +1609,11 @@ export function getTargetingSpatialResolverDiagnostics() {
 }
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * semantic_execution_context/
  * ---------------------------

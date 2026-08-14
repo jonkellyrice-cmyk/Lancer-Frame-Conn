@@ -18,11 +18,11 @@
 
 **Native individual weapon attack execution:** Found.
 
-**Frame Helm implementation status:** Frame Helm should own Overwatch opportunity generation, Threat-exit detection, Reaction legality, mount selection, triggering-target binding, and higher-order attack sequencing while delegating individual weapon attacks to native Lancer weapon execution.
+**Frame Conn implementation status:** Frame Conn should own Overwatch opportunity generation, Threat-exit detection, Reaction legality, mount selection, triggering-target binding, and higher-order attack sequencing while delegating individual weapon attacks to native Lancer weapon execution.
 
 ## Purpose
 
-This document records the native Foundry Lancer findings relevant to the universal **Overwatch** Reaction and defines the intended Frame Helm implementation boundary.
+This document records the native Foundry Lancer findings relevant to the universal **Overwatch** Reaction and defines the intended Frame Conn implementation boundary.
 
 Repository investigation did not reveal a dedicated executable Overwatch flow such as:
 
@@ -43,7 +43,7 @@ The native system does, however, already provide the important lower-level primi
 
 Therefore:
 
-> Frame Helm should own the higher-order Overwatch reaction architecture.
+> Frame Conn should own the higher-order Overwatch reaction architecture.
 
 while:
 
@@ -82,7 +82,7 @@ Its architecture requires:
 
 This makes Overwatch inherently cross-domain.
 
-Relevant Frame Helm domains include:
+Relevant Frame Conn domains include:
 
 - Movement;
 - Turn;
@@ -105,7 +105,7 @@ Repository searching did not identify:
 - dedicated Overwatch target-selection handler
 - automatic movement-triggered Overwatch executor
 
-Therefore Frame Helm cannot delegate the complete Overwatch action to a native flow.
+Therefore Frame Conn cannot delegate the complete Overwatch action to a native flow.
 
 —
 
@@ -127,7 +127,7 @@ This exists in the same semantic family as actions such as:
 
 This means native actor-owned content may refer to Overwatch as a meaningful action/event location.
 
-Therefore Frame Helm should preserve:
+Therefore Frame Conn should preserve:
 
 `Overwatch occurred`
 
@@ -159,9 +159,9 @@ Reaction available
 → Reaction used
 → reaction = false
 
-This native primitive may be reusable by Frame Helm.
+This native primitive may be reusable by Frame Conn.
 
-However, Frame Helm already has its own Turn-level Reaction state.
+However, Frame Conn already has its own Turn-level Reaction state.
 
 The project should choose one authoritative reaction model or explicitly reconcile the two.
 
@@ -183,7 +183,7 @@ This is important because Lancer’s reaction timing is broader than:
 
 `refresh only on your own turn`
 
-Frame Helm should preserve the native timing semantics.
+Frame Conn should preserve the native timing semantics.
 
 —
 
@@ -203,7 +203,7 @@ However, repository research has not yet established whether this is:
 
 No Overwatch-specific runtime path was found populating it.
 
-Therefore Frame Helm should not yet depend on this field for Overwatch identity/history.
+Therefore Frame Conn should not yet depend on this field for Overwatch identity/history.
 
 —
 
@@ -215,7 +215,7 @@ The native Lancer system represents weapon Threat using:
 
 Weapon data therefore already contains authoritative Threat information.
 
-Frame Helm should not invent separate Threat values.
+Frame Conn should not invent separate Threat values.
 
 The Overwatch trigger engine should inspect native weapon/mount data.
 
@@ -267,13 +267,13 @@ token movement
 → detect leaving Threat
 → prompt Overwatch
 
-Therefore Frame Helm must own the missing movement-trigger layer.
+Therefore Frame Conn must own the missing movement-trigger layer.
 
 —
 
-# 10. Frame Helm Movement Integration
+# 10. Frame Conn Movement Integration
 
-Frame Helm’s Movement feature already interprets token movement.
+Frame Conn’s Movement feature already interprets token movement.
 
 Relevant existing concepts include:
 
@@ -291,7 +291,7 @@ Therefore Overwatch opportunity generation should plug into this existing moveme
 Conceptually:
 
 Foundry token moves
-→ Frame Helm Movement interprets segment
+→ Frame Conn Movement interprets segment
 → record movement
 → evaluate reaction triggers
 → Overwatch opportunities generated if legal
@@ -367,7 +367,7 @@ This keeps Disengage inexpensive and clean.
 
 # 14. Threat Exit Geometry
 
-Frame Helm will need a geometry service capable of determining whether a movement segment qualifies as leaving hostile Threat.
+Frame Conn will need a geometry service capable of determining whether a movement segment qualifies as leaving hostile Threat.
 
 Conceptually:
 
@@ -405,13 +405,13 @@ Potential cases include:
 
 The exact tabletop trigger should determine which of these qualify.
 
-Frame Helm’s Movement feature should preserve enough path/segment information for the Overwatch evaluator.
+Frame Conn’s Movement feature should preserve enough path/segment information for the Overwatch evaluator.
 
 —
 
 # 16. Elevation
 
-Because Frame Helm is tracking elevation movement as movement expenditure, Overwatch geometry may eventually need to account for vertical separation where relevant.
+Because Frame Conn is tracking elevation movement as movement expenditure, Overwatch geometry may eventually need to account for vertical separation where relevant.
 
 The Threat model should remain consistent with Foundry/Lancer distance measurement.
 
@@ -591,7 +591,7 @@ This flow already handles important native weapon concerns including:
 - post-action weapon mutation;
 - native chat output.
 
-Frame Helm should reuse this native attack machinery.
+Frame Conn should reuse this native attack machinery.
 
 —
 
@@ -619,13 +619,13 @@ Overwatch should not reimplement these lower-level steps.
 
 # 26. Target Injection
 
-Because the Overwatch target is fixed by the trigger, Frame Helm should eventually supply that target directly to the native weapon flow if the native API permits it.
+Because the Overwatch target is fixed by the trigger, Frame Conn should eventually supply that target directly to the native weapon flow if the native API permits it.
 
 Research is still required to determine:
 
 - whether `WeaponAttackFlow` accepts initial target data;
 - whether `setAttackTargets` reads `game.user.targets`;
-- whether Frame Helm can prepopulate target state;
+- whether Frame Conn can prepopulate target state;
 - whether the native attack HUD may alter the target.
 
 Until that is confirmed, the first implementation may use Foundry target state as an adapter.
@@ -634,7 +634,7 @@ Until that is confirmed, the first implementation may use Foundry target state a
 
 # 27. Do Not Prompt for Target
 
-Overwatch should not perform the normal Frame Helm target-selection interaction.
+Overwatch should not perform the normal Frame Conn target-selection interaction.
 
 Wrong:
 
@@ -656,10 +656,10 @@ The trigger itself resolves the target.
 
 # 28. Proposed Initial Overwatch Flow
 
-The initial Frame Helm execution should be:
+The initial Frame Conn execution should be:
 
 token movement occurs
-→ Frame Helm Movement records movement segment
+→ Frame Conn Movement records movement segment
 → confirm mover is not Disengaging
 → discover hostile characters
 → inspect hostile Threat
@@ -678,7 +678,7 @@ token movement occurs
    execute first weapon through native WeaponAttackFlow
    execute second weapon if present against same target
 → complete Overwatch reaction
-→ refresh Frame Helm state/presentation
+→ refresh Frame Conn state/presentation
 
 —
 
@@ -710,7 +710,7 @@ Only accepting the reaction should spend the Reaction.
 
 # 30. Opportunity State
 
-A Frame Helm Overwatch opportunity may need to contain:
+A Frame Conn Overwatch opportunity may need to contain:
 
 - triggering movement ID;
 - mover token/actor ID;
@@ -748,7 +748,7 @@ The exact rules/UI behavior should be determined before implementation.
 
 One movement event may potentially trigger multiple hostile characters.
 
-Frame Helm should support:
+Frame Conn should support:
 
 one mover
 → multiple hostile Overwatch opportunities
@@ -799,7 +799,7 @@ Because weapons may have different Threat ranges, the mount resolver needs to kn
 
 A mount should not appear as a legal Overwatch option merely because another weapon on the actor had sufficient Threat.
 
-Frame Helm should preserve the relationship:
+Frame Conn should preserve the relationship:
 
 qualifying Threat
 → eligible mount
@@ -867,7 +867,7 @@ WeaponAttackFlow A
 WeaponAttackFlow B
 → mechanical attack execution only
 
-Do not allow native sub-attacks to create additional Frame Helm action expenditure.
+Do not allow native sub-attacks to create additional Frame Conn action expenditure.
 
 —
 
@@ -905,7 +905,7 @@ Possible interruption cases include:
 - combat advances;
 - native attack flow aborts.
 
-Frame Helm should distinguish:
+Frame Conn should distinguish:
 
 opportunity declined
 
@@ -930,7 +930,7 @@ Example:
 Weapon A resolves
 → Weapon B is cancelled
 
-Frame Helm should not assume Weapon A can be rolled back.
+Frame Conn should not assume Weapon A can be rolled back.
 
 Potential Overwatch execution states include:
 
@@ -956,7 +956,7 @@ It arises reactively.
 
 Therefore it may not belong in the ordinary Committed Plan before its trigger exists.
 
-Instead, Frame Helm may expose reaction opportunities through a dedicated reaction UI.
+Instead, Frame Conn may expose reaction opportunities through a dedicated reaction UI.
 
 Conceptually:
 
@@ -1091,7 +1091,7 @@ The native attack Accuracy/Difficulty system already knows how to apply the Enga
 
 If an Overwatch weapon attack occurs while the reacting character is Engaged, native `WeaponAttackFlow` should remain authoritative for that attack modifier.
 
-Frame Helm should not duplicate this calculation.
+Frame Conn should not duplicate this calculation.
 
 —
 
@@ -1101,7 +1101,7 @@ Native WeaponAttackFlow already participates in native Lock On consumption behav
 
 Therefore an Overwatch attack against a target with Lock On should preserve that native behavior where allowed by the rules.
 
-Frame Helm should not special-case Lock On inside Overwatch unless needed.
+Frame Conn should not special-case Lock On inside Overwatch unless needed.
 
 —
 
@@ -1124,7 +1124,7 @@ Overwatch orchestration should not manually consume those resources.
 
 In the first implementation, Overwatch weapon attacks can reuse native attack HUD/flow.
 
-Eventually Frame Helm may automate:
+Eventually Frame Conn may automate:
 
 target fixed by trigger
 → derive Accuracy/Difficulty
@@ -1138,7 +1138,7 @@ When that happens, the native damage endpoint discovered during Brace research s
 
 `LancerActor.damageCalc(...)`
 
-Frame Helm should not recreate Armor/Resistance/etc.
+Frame Conn should not recreate Armor/Resistance/etc.
 
 —
 
@@ -1148,7 +1148,7 @@ Because native Lancer recognizes:
 
 `overwatch`
 
-as a synergy location, Frame Helm should eventually emit/expose an Overwatch semantic event.
+as a synergy location, Frame Conn should eventually emit/expose an Overwatch semantic event.
 
 Conceptually:
 
@@ -1175,7 +1175,7 @@ Preferred hierarchy:
 
 1. native structured synergy/action metadata;
 2. native weapon/action metadata;
-3. explicit Frame Helm adapter;
+3. explicit Frame Conn adapter;
 4. prose parsing only when unavoidable.
 
 —
@@ -1184,7 +1184,7 @@ Preferred hierarchy:
 
 The intended responsibility split is:
 
-**FRAME HELM OWNS:**
+**FRAME CONN OWNS:**
 
 - movement-trigger observation;
 - Disengage suppression;
@@ -1296,7 +1296,7 @@ This keeps geometry, presentation, and native execution separated.
 
 No native `OverwatchFlow` was found.
 
-Frame Helm may have an internal Overwatch execution service, but it should not pretend to call a nonexistent native Lancer workflow.
+Frame Conn may have an internal Overwatch execution service, but it should not pretend to call a nonexistent native Lancer workflow.
 
 The native boundary is:
 
@@ -1322,7 +1322,7 @@ OverwatchFlow.
 - [ ] Trace actor token-size/range utilities.
 - [ ] Trace reaction action-tracker state completely.
 - [ ] Trace `used_reactions`.
-- [ ] Determine whether Frame Helm should synchronize native `reaction`.
+- [ ] Determine whether Frame Conn should synchronize native `reaction`.
 - [ ] Trace native Reaction refresh hook completely.
 - [ ] Trace `WeaponAttackFlow` target initialization.
 - [ ] Determine whether target can be injected directly.
@@ -1393,7 +1393,7 @@ Afterward:
 - [ ] Handle cancellation/failure.
 - [ ] Expire opportunity correctly.
 - [ ] Emit semantic Overwatch event.
-- [ ] Refresh Frame Helm state/presentation.
+- [ ] Refresh Frame Conn state/presentation.
 - [ ] Reconcile native Reaction state if used.
 - [ ] Smoke-test single hostile Threat.
 - [ ] Smoke-test multiple hostile Threats.
@@ -1428,7 +1428,7 @@ Native weapon Threat data should remain authoritative.
 
 **Invariant 5**
 
-Frame Helm Movement should own trigger detection.
+Frame Conn Movement should own trigger detection.
 
 **Invariant 6**
 
@@ -1456,7 +1456,7 @@ Overwatch consumes one Reaction, not a Quick Action.
 
 **Invariant 12**
 
-The individual weapon attacks do not independently consume Frame Helm action budget.
+The individual weapon attacks do not independently consume Frame Conn action budget.
 
 —
 
@@ -1480,7 +1480,7 @@ OVERWATCH
 │   ├── Reaction refresh
 │   └── `WeaponAttackFlow`
 │
-├── Frame Helm trigger layer:
+├── Frame Conn trigger layer:
 │   ├── token movement
 │   ├── mover identification
 │   ├── Disengage check
@@ -1489,7 +1489,7 @@ OVERWATCH
 │   ├── Reaction legality
 │   └── opportunity creation
 │
-├── Frame Helm execution layer:
+├── Frame Conn execution layer:
 │   ├── accept / decline
 │   ├── choose one legal mount
 │   ├── triggering mover fixed as target

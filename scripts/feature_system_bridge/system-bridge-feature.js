@@ -9,8 +9,8 @@
  * @file
  * @path scripts/feature_system_bridge/system-bridge-feature.js
  * @module system-bridge-feature
- * @layer frame-helm-runtime-feature
- * @responsibility expose-system-bridge-through-the-canonical-frame-helm-feature-contract
+ * @layer frame-conn-runtime-feature
+ * @responsibility expose-system-bridge-through-the-canonical-frame-conn-feature-contract
  * @public-boundary true
  * @side-effects delegated-through-system-bridge-resolution-and-augmentation-registration
  *
@@ -27,7 +27,7 @@
  * runtime-orchestrator.js
  *
  * THIS FILE OWNS:
- * - canonical Frame Helm System Bridge feature definition
+ * - canonical Frame Conn System Bridge feature definition
  * - System Bridge capability declaration
  * - narrow existing-registry resolver adapter configuration boundary
  * - registry-facing bridge resolution/composition API
@@ -51,7 +51,7 @@
  * - keep this file a thin feature wrapper
  * - do not duplicate system_bridge behavior here
  * - do not import sibling runtime features directly
- * - runtime-orchestrator supplies the existing Frame Helm registry adapter
+ * - runtime-orchestrator supplies the existing Frame Conn registry adapter
  * - feature-registry.js remains the registration boundary
  */
 
@@ -60,7 +60,7 @@
    ============================================================ */
 
 import {
-  defineFrameHelmFeature
+  defineFrameConnFeature
 } from "../feature-contract.js";
 
 import * as systemBridgeRuntime from
@@ -72,10 +72,10 @@ import * as systemBridgeRuntime from
 
 /**
  * The bridge intentionally knows nothing about the concrete shape of the
- * existing Frame Helm registry. Runtime composition supplies exactly one
+ * existing Frame Conn registry. Runtime composition supplies exactly one
  * resolver adapter for that existing source.
  */
-function configureFrameHelmSystemBridgeRuntime(
+function configureFrameConnSystemBridgeRuntime(
   bindings = {}
 ) {
   if (
@@ -84,7 +84,7 @@ function configureFrameHelmSystemBridgeRuntime(
     Array.isArray(bindings)
   ) {
     throw new TypeError(
-      "Frame Helm System Bridge runtime bindings must be supplied as an object."
+      "Frame Conn System Bridge runtime bindings must be supplied as an object."
     );
   }
 
@@ -96,7 +96,7 @@ function configureFrameHelmSystemBridgeRuntime(
   for (const key of Object.keys(bindings)) {
     if (!allowedKeys.has(key)) {
       throw new Error(
-        `Frame Helm System Bridge received unknown runtime binding: ${key}`
+        `Frame Conn System Bridge received unknown runtime binding: ${key}`
       );
     }
   }
@@ -113,13 +113,13 @@ function configureFrameHelmSystemBridgeRuntime(
       );
   }
 
-  return getFrameHelmSystemBridgeRuntimeBindings();
+  return getFrameConnSystemBridgeRuntimeBindings();
 }
 
 /**
  * Returns composition status without exposing the resolver adapter itself.
  */
-function getFrameHelmSystemBridgeRuntimeBindings() {
+function getFrameConnSystemBridgeRuntimeBindings() {
   return Object.freeze({
     existingRegistryResolverAdapter:
       systemBridgeRuntime
@@ -131,10 +131,10 @@ function getFrameHelmSystemBridgeRuntimeBindings() {
    FEATURE DIAGNOSTICS
    ============================================================ */
 
-function getFrameHelmSystemBridgeDiagnostics() {
+function getFrameConnSystemBridgeDiagnostics() {
   return Object.freeze({
     runtimeBindings:
-      getFrameHelmSystemBridgeRuntimeBindings(),
+      getFrameConnSystemBridgeRuntimeBindings(),
 
     serviceId:
       systemBridgeRuntime
@@ -163,8 +163,8 @@ function getFrameHelmSystemBridgeDiagnostics() {
  * scripts/feature-registry.js remains the application-wide registration
  * boundary.
  */
-export const frameHelmSystemBridgeFeature =
-  defineFrameHelmFeature({
+export const frameConnSystemBridgeFeature =
+  defineFrameConnFeature({
     id:
       "system-bridge",
 
@@ -192,7 +192,7 @@ export const frameHelmSystemBridgeFeature =
 
     commands: {
       configureRuntime:
-        configureFrameHelmSystemBridgeRuntime,
+        configureFrameConnSystemBridgeRuntime,
 
       registerAugmentation:
         systemBridgeRuntime.registerSystemBridgeAugmentation,
@@ -236,10 +236,10 @@ export const frameHelmSystemBridgeFeature =
         systemBridgeRuntime.querySystemBridgeAugmentations,
 
       runtimeBindings:
-        getFrameHelmSystemBridgeRuntimeBindings,
+        getFrameConnSystemBridgeRuntimeBindings,
 
       diagnostics:
-        getFrameHelmSystemBridgeDiagnostics
+        getFrameConnSystemBridgeDiagnostics
     },
 
     hooks: {},
@@ -251,13 +251,13 @@ export const frameHelmSystemBridgeFeature =
         systemBridgeRuntime.systemBridge,
 
       configureRuntime:
-        configureFrameHelmSystemBridgeRuntime,
+        configureFrameConnSystemBridgeRuntime,
 
       runtimeBindings:
-        getFrameHelmSystemBridgeRuntimeBindings,
+        getFrameConnSystemBridgeRuntimeBindings,
 
       diagnostics:
-        getFrameHelmSystemBridgeDiagnostics,
+        getFrameConnSystemBridgeDiagnostics,
 
       createIdentity:
         systemBridgeRuntime.createSystemBridgeIdentity,
@@ -424,7 +424,7 @@ export const frameHelmSystemBridgeFeature =
         "System Bridge",
 
       description:
-        "Resolves and composes existing Frame Helm, actor-owned, and augmentation sources into canonical runtime descriptors for downstream semantic execution.",
+        "Resolves and composes existing Frame Conn, actor-owned, and augmentation sources into canonical runtime descriptors for downstream semantic execution.",
 
       serviceBoundary:
         "system_bridge/system-bridge.js",
@@ -448,7 +448,7 @@ export const frameHelmSystemBridgeFeature =
    ============================================================ */
 
 export {
-  configureFrameHelmSystemBridgeRuntime,
-  getFrameHelmSystemBridgeRuntimeBindings,
-  getFrameHelmSystemBridgeDiagnostics
+  configureFrameConnSystemBridgeRuntime,
+  getFrameConnSystemBridgeRuntimeBindings,
+  getFrameConnSystemBridgeDiagnostics
 };

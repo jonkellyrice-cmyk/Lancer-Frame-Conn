@@ -10,7 +10,7 @@
  * @path main/actor_owned_feature_registry/actor-owned-feature-service.js
  * @module actor-owned-feature-service
  * @layer actor-owned-feature-registry-public-boundary
- * @responsibility expose-one-stable-frame-helm-facing-actor-owned-feature-api
+ * @responsibility expose-one-stable-frame-conn-facing-actor-owned-feature-api
  * @public-boundary true
  * @side-effects delegated-through-discovery-and-registry-refresh
  *
@@ -20,10 +20,10 @@
  * - actor-owned-feature-normalizer
  * - actor-owned-feature-registry
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - native_adapter/ supplies discovery adapter implementation
  * - future system_bridge/ consumes normalized registry snapshots
- * - existing Frame Helm registry remains separate until bridge composition
+ * - existing Frame Conn registry remains separate until bridge composition
  * - future runtime composition refreshes actor-owned state on relevant actor
  *   changes
  * - pilot/mech linked ownership remains preserved
@@ -56,7 +56,7 @@
  *
  * EDIT CONTRACT:
  * - keep façade thin
- * - do not merge existing Frame Helm registry here
+ * - do not merge existing Frame Conn registry here
  * - do not add feature-specific execution behavior here
  * - preserve discovery → normalization → registry separation
  */
@@ -75,7 +75,7 @@ import * as registry from "./actor-owned-feature-registry.js";
    ============================================================ */
 
 export const ACTOR_OWNED_FEATURE_SERVICE_MODULE_ID =
-  "lancer-frame-helm.actor-owned-feature-service";
+  "lancer-frame-conn.actor-owned-feature-service";
 
 export const ACTOR_OWNED_FEATURE_SERVICE_MODULE_VERSION =
   1;
@@ -1342,13 +1342,13 @@ export function getActorOwnedFeatureServiceDiagnostics() {
  */
 
 /* ============================================================
-   EXISTING FRAME HELM REGISTRY BOUNDARY
+   EXISTING FRAME CONN REGISTRY BOUNDARY
    ============================================================ */
 
 /**
- * @section existing-frame-helm-registry-boundary
+ * @section existing-frame-conn-registry-boundary
  *
- * Existing Frame Helm registry:
+ * Existing Frame Conn registry:
  *
  * declared/global action catalog
  *
@@ -1360,7 +1360,7 @@ export function getActorOwnedFeatureServiceDiagnostics() {
  *
  * future system_bridge:
  *
- * existing Frame Helm registry
+ * existing Frame Conn registry
  *          +
  * actor-owned feature service
  *          +
@@ -1532,7 +1532,7 @@ export function getActorOwnedFeatureServiceDiagnostics() {
  * Registry scope may expose both families while descriptors preserve actual
  * source actor UUID.
  *
- * Frame Helm can therefore later decide presentation/runtime availability
+ * Frame Conn can therefore later decide presentation/runtime availability
  * based on:
  *
  * pilot mounted
@@ -1580,11 +1580,11 @@ export function getActorOwnedFeatureServiceDiagnostics() {
  */
 
 /* ============================================================
-   FRAME HELM RUNTIME COMPOSITION
+   FRAME CONN RUNTIME COMPOSITION
    ============================================================ */
 
 /**
- * @section frame-helm-runtime-composition
+ * @section frame-conn-runtime-composition
  *
  * Recommended:
  *
@@ -1652,7 +1652,7 @@ export function getActorOwnedFeatureServiceDiagnostics() {
  *
  * RULE 4
  *
- * Existing Frame Helm registry remains separate until system_bridge.
+ * Existing Frame Conn registry remains separate until system_bridge.
  *
  *
  * RULE 5
@@ -1698,11 +1698,11 @@ export function getActorOwnedFeatureServiceDiagnostics() {
  */
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * native_adapter/
  * ---------------
@@ -1752,7 +1752,7 @@ export function getActorOwnedFeatureServiceDiagnostics() {
  * Owns targeting and spatial legality.
  *
  *
- * existing Frame Helm registry
+ * existing Frame Conn registry
  * ----------------------------
  *
  * Remains separate.
@@ -1799,7 +1799,7 @@ export function getActorOwnedFeatureServiceDiagnostics() {
  * PARTIAL_NATIVE and SEMANTIC_ONLY remain valid first-class states.
  *
  * INVARIANT 10
- * Existing Frame Helm registry remains separate until system_bridge.
+ * Existing Frame Conn registry remains separate until system_bridge.
  *
  * INVARIANT 11
  * This service does not execute mechanics.

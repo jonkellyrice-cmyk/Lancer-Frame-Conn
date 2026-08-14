@@ -9,12 +9,12 @@
 
 /**
  * ============================================================
- * FRAME HELM TURN -- RUNTIME BINDINGS
+ * FRAME CONN TURN -- RUNTIME BINDINGS
  * ============================================================
  *
  * ROLE:
  *   Owns the narrow runtime dependency bridge consumed by the
- *   Frame Helm Turn domain.
+ *   Frame Conn Turn domain.
  *
  * PURPOSE:
  *   Remove cross-feature runtime binding state and dependency
@@ -32,8 +32,8 @@
  *   - Application-render notification delegation.
  *
  * DOES NOT OWN:
- *   - FrameHelmTurnState.
- *   - FrameHelmTurnStateManager.
+ *   - FrameConnTurnState.
+ *   - FrameConnTurnStateManager.
  *   - Canonical Turn-manager construction.
  *   - Action registry implementation.
  *   - Action definitions.
@@ -53,9 +53,9 @@
  *        ▼
  *   turn-runtime-bindings.js
  *        │
- *        ├── getFrameHelmTurnActionRegistry()
+ *        ├── getFrameConnTurnActionRegistry()
  *        │
- *        └── renderFrameHelmTurnApplication()
+ *        └── renderFrameConnTurnApplication()
  *        │
  *        ▼
  *   turn-state.js
@@ -76,7 +76,7 @@
  *   turn-runtime-bindings.js
  *        │
  *        ▼
- *   renderFrameHelmTurnApplication()
+ *   renderFrameConnTurnApplication()
  *        │
  *        ▼
  *   Turn state manager / command surfaces
@@ -87,9 +87,9 @@
  *   runtime-orchestrator.js resolves registered feature APIs and
  *   configures this module indirectly through:
  *
- *     frameHelmTurnApi.configureRuntime(...)
+ *     frameConnTurnApi.configureRuntime(...)
  *
- *   turn-feature.js exposes configureFrameHelmTurnRuntime() as
+ *   turn-feature.js exposes configureFrameConnTurnRuntime() as
  *   part of the Turn feature API.
  *
  * IMPORTANT:
@@ -104,12 +104,12 @@
  *
  *   getActionRegistry
  *
- *     Returns the canonical Frame Helm Actions registry.
+ *     Returns the canonical Frame Conn Actions registry.
  *
  *
  *   renderApplication
  *
- *     Requests that the primary Frame Helm Application render
+ *     Requests that the primary Frame Conn Application render
  *     updated Turn-visible state.
  *
  *
@@ -136,7 +136,7 @@
  * Turn stores only the functions needed to access those
  * capabilities.
  */
-const frameHelmTurnRuntimeBindings = {
+const frameConnTurnRuntimeBindings = {
   getActionRegistry:
     null,
 
@@ -161,7 +161,7 @@ const frameHelmTurnRuntimeBindings = {
  *
  * Null permits explicit clearing during development/testing.
  */
-function configureFrameHelmTurnRuntime(
+function configureFrameConnTurnRuntime(
   bindings = {}
 ) {
   if (
@@ -173,7 +173,7 @@ function configureFrameHelmTurnRuntime(
     )
   ) {
     throw new TypeError(
-      "Frame Helm turn runtime bindings must be supplied as an object."
+      "Frame Conn turn runtime bindings must be supplied as an object."
     );
   }
 
@@ -181,7 +181,7 @@ function configureFrameHelmTurnRuntime(
   const allowedKeys =
     new Set(
       Object.keys(
-        frameHelmTurnRuntimeBindings
+        frameConnTurnRuntimeBindings
       )
     );
 
@@ -201,7 +201,7 @@ function configureFrameHelmTurnRuntime(
       )
     ) {
       throw new Error(
-        `Frame Helm Turn received unknown runtime binding: ${key}`
+        `Frame Conn Turn received unknown runtime binding: ${key}`
       );
     }
 
@@ -212,19 +212,19 @@ function configureFrameHelmTurnRuntime(
         "function"
     ) {
       throw new TypeError(
-        `Frame Helm Turn runtime binding "${key}" must be a function or null.`
+        `Frame Conn Turn runtime binding "${key}" must be a function or null.`
       );
     }
 
 
-    frameHelmTurnRuntimeBindings[
+    frameConnTurnRuntimeBindings[
       key
     ] = value;
   }
 
 
   return (
-    getFrameHelmTurnRuntimeBindings()
+    getFrameConnTurnRuntimeBindings()
   );
 }
 
@@ -239,15 +239,15 @@ function configureFrameHelmTurnRuntime(
  *
  * The underlying functions themselves remain private.
  */
-function getFrameHelmTurnRuntimeBindings() {
+function getFrameConnTurnRuntimeBindings() {
   return Object.freeze({
     actionRegistry:
-      typeof frameHelmTurnRuntimeBindings
+      typeof frameConnTurnRuntimeBindings
         .getActionRegistry ===
         "function",
 
     applicationRendering:
-      typeof frameHelmTurnRuntimeBindings
+      typeof frameConnTurnRuntimeBindings
         .renderApplication ===
         "function"
   });
@@ -259,7 +259,7 @@ function getFrameHelmTurnRuntimeBindings() {
    ============================================================ */
 
 /**
- * Returns the canonical Frame Helm Actions registry supplied by
+ * Returns the canonical Frame Conn Actions registry supplied by
  * runtime composition.
  *
  * Turn state uses this registry to:
@@ -273,9 +273,9 @@ function getFrameHelmTurnRuntimeBindings() {
  * Failure to configure the Actions registry is considered a
  * composition error rather than an optional runtime condition.
  */
-function getFrameHelmTurnActionRegistry() {
+function getFrameConnTurnActionRegistry() {
   const registry =
-    frameHelmTurnRuntimeBindings
+    frameConnTurnRuntimeBindings
       .getActionRegistry?.();
 
 
@@ -283,7 +283,7 @@ function getFrameHelmTurnActionRegistry() {
     !registry
   ) {
     throw new Error(
-      "Frame Helm Turn could not resolve the Actions registry."
+      "Frame Conn Turn could not resolve the Actions registry."
     );
   }
 
@@ -297,7 +297,7 @@ function getFrameHelmTurnActionRegistry() {
    ============================================================ */
 
 /**
- * Requests a Frame Helm Application re-render after Turn-visible
+ * Requests a Frame Conn Application re-render after Turn-visible
  * state changes.
  *
  * Rendering remains optional from the Turn domain's perspective.
@@ -309,11 +309,11 @@ function getFrameHelmTurnActionRegistry() {
  * The Turn domain therefore does not throw when this dependency
  * is absent.
  */
-function renderFrameHelmTurnApplication(
+function renderFrameConnTurnApplication(
   force = false
 ) {
   return (
-    frameHelmTurnRuntimeBindings
+    frameConnTurnRuntimeBindings
       .renderApplication?.(
         Boolean(
           force
@@ -329,11 +329,11 @@ function renderFrameHelmTurnApplication(
    ============================================================ */
 
 export {
-  configureFrameHelmTurnRuntime,
+  configureFrameConnTurnRuntime,
 
-  getFrameHelmTurnRuntimeBindings,
+  getFrameConnTurnRuntimeBindings,
 
-  getFrameHelmTurnActionRegistry,
+  getFrameConnTurnActionRegistry,
 
-  renderFrameHelmTurnApplication
+  renderFrameConnTurnApplication
 };

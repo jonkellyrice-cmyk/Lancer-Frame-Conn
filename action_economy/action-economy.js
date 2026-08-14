@@ -9,7 +9,7 @@
  * @path main/action_economy/action-economy.js
  * @module action-economy
  * @layer action-economy-public-boundary
- * @responsibility expose-one-stable-frame-helm-facing-action-economy-api
+ * @responsibility expose-one-stable-frame-conn-facing-action-economy-api
  * @public-boundary true
  * @side-effects delegated-through-state-transaction-and-hooks
  *
@@ -19,9 +19,9 @@
  * - action-economy-transaction
  * - action-economy-hooks
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumed by runtime-orchestrator.js
- * - consumed by future frame-helm-runtime composition
+ * - consumed by future frame-conn-runtime composition
  * - consumed by future feature_runtime_bridge/
  * - consumed by lifecycle_service/*
  * - integrates with execution_transaction/ through action-economy-hooks.js
@@ -77,7 +77,7 @@ import * as hooks from "./action-economy-hooks.js";
  * @section module-identity
  */
 export const ACTION_ECONOMY_MODULE_ID =
-  "lancer-frame-helm.action-economy";
+  "lancer-frame-conn.action-economy";
 export const ACTION_ECONOMY_MODULE_VERSION =
   1;
 /* ============================================================
@@ -1000,10 +1000,10 @@ export function getActionEconomyDiagnostics() {
  * Do not model Overcharge itself as an ordinary Quick slot.
  */
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * runtime-orchestrator.js
  * -----------------------
@@ -1079,7 +1079,7 @@ export function getActionEconomyDiagnostics() {
 /**
  * @section recommended-top-level-composition
  *
- * Future frame-helm-runtime composition:
+ * Future frame-conn-runtime composition:
  *
  * 1. initialize native_adapter
  *
@@ -1185,7 +1185,7 @@ export function getActionEconomyDiagnostics() {
  * @section boundary-invariants
  *
  * INVARIANT 1
- * action-economy.js is the public Frame Helm action-economy boundary.
+ * action-economy.js is the public Frame Conn action-economy boundary.
  *
  * INVARIANT 2
  * Contract owns shapes/rules.

@@ -26,7 +26,7 @@
 
 **Official tabletop Search rules:** Confirmed.
 
-**Frame Helm implementation status:** Frame Helm should own Search targeting, Sensors validation, contested Systems-vs-Agility orchestration, success/failure comparison, and Hidden removal while reusing native actor stats, stat-roll machinery, Sensors data, and native Hidden status infrastructure.
+**Frame Conn implementation status:** Frame Conn should own Search targeting, Sensors validation, contested Systems-vs-Agility orchestration, success/failure comparison, and Hidden removal while reusing native actor stats, stat-roll machinery, Sensors data, and native Hidden status infrastructure.
 
 ## Purpose
 
@@ -53,7 +53,7 @@ What it does not provide is the actual contested Search action.
 
 Therefore:
 
-> Frame Helm should own the higher-order Search action.
+> Frame Conn should own the higher-order Search action.
 
 while:
 
@@ -106,7 +106,7 @@ A pilot on foot:
 - adds bonuses from triggers as normal;
 - can reveal characters within Range 5.
 
-Frame Helm is primarily a mech-facing interface, so the pilot-on-foot branch can remain out of initial implementation scope unless pilot-mode support is expanded later.
+Frame Conn is primarily a mech-facing interface, so the pilot-on-foot branch can remain out of initial implementation scope unless pilot-mode support is expanded later.
 
 This document focuses primarily on mech Search.
 
@@ -124,7 +124,7 @@ Repository searching did not identify:
 - Search-specific sheet execution handler
 - Search-specific contested-check service
 
-Therefore Frame Helm cannot delegate complete Search execution to a native Search workflow.
+Therefore Frame Conn cannot delegate complete Search execution to a native Search workflow.
 
 —
 
@@ -134,7 +134,7 @@ The inspected native `SynergyLocation` list did not include:
 
 `search`
 
-Therefore Frame Helm should not expect the same structured Search semantic hook currently available for actions such as:
+Therefore Frame Conn should not expect the same structured Search semantic hook currently available for actions such as:
 
 - Ram;
 - Grapple;
@@ -144,7 +144,7 @@ Therefore Frame Helm should not expect the same structured Search semantic hook 
 - Brace;
 - Disengage.
 
-Frame Helm should preserve Search as its own semantic action/event for future trigger integration.
+Frame Conn should preserve Search as its own semantic action/event for future trigger integration.
 
 —
 
@@ -180,7 +180,7 @@ The discovered native flow contains steps equivalent to:
 → `rollCheck`
 → `printStatRollCard`
 
-This gives Frame Helm reusable support for:
+This gives Frame Conn reusable support for:
 
 - native stat modifier resolution;
 - Accuracy/Difficulty adjustment;
@@ -188,7 +188,7 @@ This gives Frame Helm reusable support for:
 - native result presentation;
 - native chat card.
 
-Frame Helm should reuse this machinery where practical.
+Frame Conn should reuse this machinery where practical.
 
 —
 
@@ -206,7 +206,7 @@ Therefore the searching mech’s side of the contest should use native:
 
 or the native stat-flow path resolving that value.
 
-Do not duplicate Systems inside Frame Helm.
+Do not duplicate Systems inside Frame Conn.
 
 —
 
@@ -224,7 +224,7 @@ Therefore the target’s side of the contest should use native:
 
 or the native stat-flow path resolving that value.
 
-Do not duplicate Agility inside Frame Helm.
+Do not duplicate Agility inside Frame Conn.
 
 —
 
@@ -245,7 +245,7 @@ searcher token
 → native/Foundry distance
 → compare with `actor.system.sensor_range`
 
-Do not create a second Frame Helm Sensors stat.
+Do not create a second Frame Conn Sensors stat.
 
 —
 
@@ -271,7 +271,7 @@ It says:
 
 choose a character within your Sensors that you suspect is Hidden.
 
-Therefore Frame Helm should not add:
+Therefore Frame Conn should not add:
 
 `must have LOS`
 
@@ -283,7 +283,7 @@ This is an important implementation invariant.
 
 # 13. Search and Sensors Presentation
 
-Frame Helm’s Sensors UI already knows the controlled mech’s Sensors range.
+Frame Conn’s Sensors UI already knows the controlled mech’s Sensors range.
 
 Search targeting should therefore be able to reuse:
 
@@ -311,7 +311,7 @@ The player does not need to prove Hidden state before choosing the target.
 
 The rule deliberately allows suspicion.
 
-Therefore Frame Helm should not require:
+Therefore Frame Conn should not require:
 
 `target.system.statuses.hidden === true`
 
@@ -328,7 +328,7 @@ Because the player chooses a character they **suspect** is Hidden, Search should
 Wrong behavior:
 
 select target
-→ Frame Helm says “Target is not Hidden”
+→ Frame Conn says “Target is not Hidden”
 
 before roll
 
@@ -352,9 +352,9 @@ with a corresponding native Hidden status identity and icon.
 
 Therefore when Search succeeds against a Hidden target:
 
-Frame Helm should remove the native Hidden condition through the preferred native status/effect API.
+Frame Conn should remove the native Hidden condition through the preferred native status/effect API.
 
-Do not create a separate Frame Helm-only revealed flag as a substitute.
+Do not create a separate Frame Conn-only revealed flag as a substitute.
 
 —
 
@@ -390,7 +390,7 @@ Instead:
 
 Hidden is lost entirely.
 
-Therefore Frame Helm should not create a searcher-specific reveal relationship.
+Therefore Frame Conn should not create a searcher-specific reveal relationship.
 
 Successful Search removes the target’s Hidden state globally.
 
@@ -448,7 +448,7 @@ Repository searching did not identify a generic:
 
 or equivalent framework.
 
-Therefore Frame Helm must own:
+Therefore Frame Conn must own:
 
 - launching/resolving the two sides;
 - comparing results;
@@ -475,7 +475,7 @@ is not enough.
 
 That only resolves the searcher’s side.
 
-Frame Helm needs the opponent’s side as well.
+Frame Conn needs the opponent’s side as well.
 
 —
 
@@ -545,13 +545,13 @@ StatRollFlow provides the native Accuracy/Difficulty check interface.
 
 This allows situational Accuracy and Difficulty to affect the Systems and Agility rolls where appropriate.
 
-Frame Helm should preserve this in the first implementation rather than building a custom check roller immediately.
+Frame Conn should preserve this in the first implementation rather than building a custom check roller immediately.
 
 —
 
 # 27. Future Automatic Contest Resolution
 
-Eventually the desired Frame Helm architecture may be:
+Eventually the desired Frame Conn architecture may be:
 
 Search clicked
 → target selected
@@ -592,7 +592,7 @@ Committed Search
    no Hidden mutation
 → mark Search executed
 → refresh authoritative state
-→ refresh Frame Helm presentation
+→ refresh Frame Conn presentation
 
 —
 
@@ -616,7 +616,7 @@ Search consumes:
 
 **one Quick Action**
 
-Frame Helm Turn state owns that expenditure.
+Frame Conn Turn state owns that expenditure.
 
 The two native stat rolls are mechanical resolution only.
 
@@ -715,7 +715,7 @@ Do not require target Hidden state to be visible to the searching player.
 
 Use the native/Foundry grid measurement system for the distance between searcher and target.
 
-This should account for the same scene/grid configuration used elsewhere in Frame Helm.
+This should account for the same scene/grid configuration used elsewhere in Frame Conn.
 
 Do not measure raw pixels.
 
@@ -725,7 +725,7 @@ Do not measure raw pixels.
 
 If Foundry/Lancer Sensors range measurement accounts for elevation, Search should reuse the same range helper.
 
-If current Frame Helm Sensors presentation is 2D-only, this should be researched before claiming full 3D correctness.
+If current Frame Conn Sensors presentation is 2D-only, this should be researched before claiming full 3D correctness.
 
 Search and Sensors display should share one canonical range calculation.
 
@@ -777,7 +777,7 @@ This keeps state ownership consistent.
 
 Once Search succeeds and Hidden is removed:
 
-Frame Helm Sensors presentation should refresh from authoritative actor/token state.
+Frame Conn Sensors presentation should refresh from authoritative actor/token state.
 
 Because the target can now be located normally by any character, any player-facing concealment behavior tied to native Hidden should be removed accordingly.
 
@@ -802,7 +802,7 @@ Search is not refunded because the contested check failed.
 
 Because the rules permit choosing someone the player merely suspects is Hidden, the target may not actually be Hidden.
 
-Frame Helm should avoid leaking this fact before the check.
+Frame Conn should avoid leaking this fact before the check.
 
 After resolution:
 
@@ -823,7 +823,7 @@ Potentially the GM may know:
 - whether the selected token is the correct hidden character;
 - whether the player’s suspicion is correct.
 
-Frame Helm should not automatically expose GM-only state to players through legality messages.
+Frame Conn should not automatically expose GM-only state to players through legality messages.
 
 This should be considered when designing errors/result messaging.
 
@@ -833,7 +833,7 @@ This should be considered when designing errors/result messaging.
 
 A fully Hidden character may not always be represented as a normally clickable token for the searching player.
 
-Frame Helm may therefore eventually need a Search targeting mode that works with its Sensors presentation rather than relying only on ordinary visible token selection.
+Frame Conn may therefore eventually need a Search targeting mode that works with its Sensors presentation rather than relying only on ordinary visible token selection.
 
 Potential approaches include:
 
@@ -842,7 +842,7 @@ Potential approaches include:
 - GM-mediated target;
 - token selection where Foundry still exposes the token.
 
-The exact UI depends on how Frame Helm represents Hidden contacts.
+The exact UI depends on how Frame Conn represents Hidden contacts.
 
 —
 
@@ -890,7 +890,7 @@ Potential modifiers include:
 - Search against different stat;
 - additional effects on success.
 
-Where structured effect data exists, Frame Helm should consume it.
+Where structured effect data exists, Frame Conn should consume it.
 
 Do not create a generic prose parser first.
 
@@ -898,7 +898,7 @@ Do not create a generic prose parser first.
 
 # 48. Search Semantic Event
 
-Because native `SynergyLocation.search` was not found, Frame Helm should preserve its own semantic Search event.
+Because native `SynergyLocation.search` was not found, Frame Conn should preserve its own semantic Search event.
 
 Potential future triggers may care about:
 
@@ -939,7 +939,7 @@ Future content could care about different stages.
 
 # 50. Native Status Mutation
 
-When removing Hidden, Frame Helm should use the preferred native Foundry/Lancer status/effect helper.
+When removing Hidden, Frame Conn should use the preferred native Foundry/Lancer status/effect helper.
 
 Avoid direct raw mutation of:
 
@@ -958,7 +958,7 @@ After Search success:
 → await Hidden-status removal
 → re-read target actor state
 → confirm Hidden absent
-→ refresh Frame Helm Sensors/UI
+→ refresh Frame Conn Sensors/UI
 
 Do not assume mutation succeeded from local intent alone.
 
@@ -981,7 +981,7 @@ Agility result = Y
 Outcome:
 Success / Failure
 
-The exact display may be native chat cards plus Frame Helm summary.
+The exact display may be native chat cards plus Frame Conn summary.
 
 Do not obscure that this is a contested roll.
 
@@ -1013,7 +1013,7 @@ Later automation may consolidate the presentation.
 
 Rolling the target’s Agility may encounter Foundry ownership/permission issues if the target belongs to another player or GM-controlled NPC.
 
-Frame Helm should trace whether:
+Frame Conn should trace whether:
 
 - the searching player can invoke target actor StatRollFlow;
 - the GM must execute it;
@@ -1028,7 +1028,7 @@ This is a high-value implementation research item.
 
 Search may target NPCs.
 
-Frame Helm must confirm that native NPC actors expose the appropriate Agility-equivalent stat at the expected path or whether NPC stat representation differs.
+Frame Conn must confirm that native NPC actors expose the appropriate Agility-equivalent stat at the expected path or whether NPC stat representation differs.
 
 Do not assume every actor type stores:
 
@@ -1077,13 +1077,13 @@ Before final implementation:
 - whether higher raw modifier matters;
 - whether rerolls apply.
 
-Frame Helm should centralize contested-check resolution so future opposed actions can reuse it.
+Frame Conn should centralize contested-check resolution so future opposed actions can reuse it.
 
 —
 
 # 59. Shared Contested Check Service
 
-Search is a good candidate for a generic Frame Helm contested-check abstraction.
+Search is a good candidate for a generic Frame Conn contested-check abstraction.
 
 Conceptually:
 
@@ -1110,11 +1110,11 @@ This could be reusable for other rules later.
 
 No native SearchFlow was found.
 
-Frame Helm may implement:
+Frame Conn may implement:
 
 SearchExecutionService
 
-or a similar internal strategy, but it should be clearly Frame Helm-owned.
+or a similar internal strategy, but it should be clearly Frame Conn-owned.
 
 The native reusable primitive is:
 
@@ -1130,7 +1130,7 @@ not:
 
 The intended ownership split is:
 
-**FRAME HELM OWNS:**
+**FRAME CONN OWNS:**
 
 - Search Quick Action;
 - Quick Action expenditure;
@@ -1163,18 +1163,18 @@ The intended ownership split is:
 # 62. Proposed Initial Native Integration
 
 SEARCH
-→ Frame Helm resolves searcher
-→ Frame Helm resolves target
-→ Frame Helm validates Sensors
+→ Frame Conn resolves searcher
+→ Frame Conn resolves target
+→ Frame Conn validates Sensors
 → Native:
    `searcher.beginStatFlow(“system.sys”, “SEARCH”)`
 → capture Systems result
 → Native:
    target Agility stat flow or normalized equivalent
 → capture Agility result
-→ Frame Helm contested comparison
+→ Frame Conn contested comparison
 → if Search succeeds:
-   Frame Helm native-status adapter removes `hidden`
+   Frame Conn native-status adapter removes `hidden`
 → await mutation
 → refresh target/searcher/UI
 → mark Search executed
@@ -1363,7 +1363,7 @@ Search is a contested Systems check against target Agility.
 
 **Invariant 6**
 
-Frame Helm must orchestrate the contest because no native opposed-check flow was found.
+Frame Conn must orchestrate the contest because no native opposed-check flow was found.
 
 **Invariant 7**
 
@@ -1387,7 +1387,7 @@ The target’s opposing roll does not spend an action or Reaction.
 
 **Invariant 12**
 
-Frame Helm owns Search action economy and outcome; native Lancer owns the underlying stats, stat-roll machinery, and Hidden status representation.
+Frame Conn owns Search action economy and outcome; native Lancer owns the underlying stats, stat-roll machinery, and Hidden status representation.
 
 —
 
@@ -1405,7 +1405,7 @@ SEARCH
 │
 ├── no explicit LOS requirement
 │
-├── Frame Helm target handling
+├── Frame Conn target handling
 │   ├── select suspected character
 │   ├── preserve hidden information
 │   └── validate Sensors
@@ -1420,7 +1420,7 @@ SEARCH
 │       └── AGILITY
 │           └── native StatRollFlow / normalized native check
 │
-├── Frame Helm comparison
+├── Frame Conn comparison
 │   └── apply official contested-check rules
 │
 ├── FAILURE
@@ -1436,8 +1436,8 @@ SEARCH
 
 The critical architectural rule is:
 
-**Search is a Frame Helm-owned contested-action orchestration over native Systems, Agility, Sensors, StatRollFlow, and Hidden state.**
+**Search is a Frame Conn-owned contested-action orchestration over native Systems, Agility, Sensors, StatRollFlow, and Hidden state.**
 
 The native system provides the pieces.
 
-Frame Helm supplies the contest.
+Frame Conn supplies the contest.

@@ -8,17 +8,17 @@
 
 /**
  * ============================================================
- * FRAME HELM UI REGISTRY
+ * FRAME CONN UI REGISTRY
  * ============================================================
  *
  * ROLE:
  *   Provides the single stylesheet aggregation boundary through
- *   which registered Frame Helm feature UI styles enter the
+ *   which registered Frame Conn feature UI styles enter the
  *   application.
  *
  * PURPOSE:
  *   Establish a stable import spine for feature-owned CSS as
- *   Frame Helm is progressively decomposed into independent
+ *   Frame Conn is progressively decomposed into independent
  *   feature domains.
  *
  * IMPORTS:
@@ -41,7 +41,7 @@
  *   - Shared design tokens
  *   - Public UI contract definitions
  *   - Feature-specific styling
- *   - Primary Frame Helm composition
+ *   - Primary Frame Conn composition
  *   - Responsive feature behavior
  *   - JavaScript feature registration
  *   - Runtime stylesheet injection
@@ -147,7 +147,7 @@
  *
  *         owns:
  *           - Foundry application-window presentation
- *           - primary Frame Helm shell presentation
+ *           - primary Frame Conn shell presentation
  *           - application-header presentation
  *           - application-specific responsive window behavior
  *
@@ -212,7 +212,7 @@
  *   A stylesheet existing in the styles directory does not make
  *   it active.
  *
- *   A feature becomes part of the Frame Helm UI style graph only
+ *   A feature becomes part of the Frame Conn UI style graph only
  *   when its stylesheet is explicitly imported through this
  *   registry.
  *
@@ -406,7 +406,7 @@
  *   - window controls
  *   - window content surface
  *   - resize/minimized presentation
- *   - Frame Helm shell
+ *   - Frame Conn shell
  *   - application header
  *   - application eyebrow
  *   - window hint
@@ -435,7 +435,7 @@
 
 /**
  * Reserved for independently pluggable or optional feature
- * packages if Frame Helm later distinguishes core features from
+ * packages if Frame Conn later distinguishes core features from
  * extensions.
  *
  * No extension styles are registered yet.

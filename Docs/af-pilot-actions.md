@@ -12,7 +12,7 @@ Pilot combat actions covered here:
 
 Pilot actor/loadout/stat data already exists natively.
 
-Frame Helm should reuse native Pilot actor state and only add the missing parent action orchestration.
+Frame Conn should reuse native Pilot actor state and only add the missing parent action orchestration.
 
 —
 
@@ -51,7 +51,7 @@ system.action_tracker
 
 Existing flows do not provide complete action-cost enforcement.
 
-Frame Helm owns Quick/Full/etc. expenditure.
+Frame Conn owns Quick/Full/etc. expenditure.
 
 —
 
@@ -66,7 +66,7 @@ FIGHT handler
 
 was found.
 
-Fight should be a Frame Helm parent action over native Pilot attack machinery.
+Fight should be a Frame Conn parent action over native Pilot attack machinery.
 
 —
 
@@ -207,7 +207,7 @@ was found.
 
 Native loaded-state mutation exists.
 
-Frame Helm only needs the Quick Action wrapper.
+Frame Conn only needs the Quick Action wrapper.
 
 —
 
@@ -244,7 +244,7 @@ system.loaded
 
 This is state manipulation, not the official Reload action.
 
-Frame Helm should enforce action economy when using Reload.
+Frame Conn should enforce action economy when using Reload.
 
 —
 
@@ -261,7 +261,7 @@ jockey UI
 
 was found.
 
-Jockey requires Frame Helm orchestration.
+Jockey requires Frame Conn orchestration.
 
 —
 
@@ -303,7 +303,7 @@ HULL
 
 Native roll primitives exist.
 
-Frame Helm must coordinate the contested check.
+Frame Conn must coordinate the contested check.
 
 —
 
@@ -333,7 +333,7 @@ Use native roll result.
 
 # 18. Contested Check Coordinator
 
-Frame Helm must:
+Frame Conn must:
 
 \`\`\`text
 roll attacker
@@ -358,7 +358,7 @@ Jockey relationship becomes active
 
 No native persistent relationship field was found.
 
-Frame Helm needs supplemental runtime state.
+Frame Conn needs supplemental runtime state.
 
 —
 
@@ -489,7 +489,7 @@ contested check
 
 No native flow found.
 
-Frame Helm must coordinate it.
+Frame Conn must coordinate it.
 
 —
 
@@ -541,7 +541,7 @@ for Jockey Distract and other conditions.
 
 # 31. Pilot Targeting
 
-Frame Helm owns legality checks not fully enforced by native attack flows:
+Frame Conn owns legality checks not fully enforced by native attack flows:
 
 \`\`\`text
 Range
@@ -607,7 +607,7 @@ Keep them separate.
 
 —
 
-# 35. Native vs Frame Helm Ownership
+# 35. Native vs Frame Conn Ownership
 
 ## Native Lancer
 
@@ -628,7 +628,7 @@ status storage
 Heat/damage primitives
 \`\`\`
 
-## Frame Helm
+## Frame Conn
 
 \`\`\`text
 Fight parent action
@@ -732,7 +732,7 @@ Reload is only a missing Quick Action wrapper around native loaded state.
 
 **Invariant 5**
 
-Jockey has no native gameplay flow and requires Frame Helm orchestration.
+Jockey has no native gameplay flow and requires Frame Conn orchestration.
 
 **Invariant 6**
 
@@ -751,7 +751,7 @@ PILOT ACTIONS
 │
 ├── FIGHT — Full
 │   ├── choose Pilot Weapon
-│   ├── Frame Helm target legality
+│   ├── Frame Conn target legality
 │   └── native WeaponAttackFlow
 │       └── native DamageRollFlow
 │
@@ -762,7 +762,7 @@ PILOT ACTIONS
 └── JOCKEY — Full
     ├── adjacent Mech
     ├── GRIT/Trigger vs HULL
-    ├── Frame Helm Jockey state
+    ├── Frame Conn Jockey state
     ├── movement following
     ├── DISTRACT
     │   └── native Impaired + Slowed
@@ -776,7 +776,7 @@ PILOT ACTIONS
 
 Critical rule:
 
-**Reuse native Pilot actor, weapon, roll, status, Heat, and damage systems. Frame Helm only supplies the missing Fight/Reload parent actions and the Jockey gameplay state machine.**
+**Reuse native Pilot actor, weapon, roll, status, Heat, and damage systems. Frame Conn only supplies the missing Fight/Reload parent actions and the Jockey gameplay state machine.**
 `;
 
 fs.writeFileSync(“pilot-actions.md”, content, “utf8”);

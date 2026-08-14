@@ -9,22 +9,22 @@
  * @path main/action_economy/action-economy-state.js
  * @module action-economy-state
  * @layer action-economy-state-adapter
- * @responsibility normalize-read-and-mutate-existing-frame-helm-turn-economy-state
+ * @responsibility normalize-read-and-mutate-existing-frame-conn-turn-economy-state
  * @public-boundary false
  * @side-effects delegated-turn-state-mutation
  *
  * @depends-on
  * - action-economy-contract
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - adapts existing feature_turn/ state
  * - does not replace existing turn-state storage
  * - consumed by action-economy-transaction.js
  * - consumed indirectly by action-economy-hooks.js
- * - future frame-helm-runtime composition injects existing turn-state
+ * - future frame-conn-runtime composition injects existing turn-state
  *   reader/writer functions
  *
- * EXISTING FRAME HELM TURN STATE:
+ * EXISTING FRAME CONN TURN STATE:
  * - quick actions remaining
  * - full action available
  * - overcharge usage
@@ -32,7 +32,7 @@
  * - turn-local action state
  *
  * THIS FILE OWNS:
- * - normalization of existing Frame Helm turn state
+ * - normalization of existing Frame Conn turn state
  * - ActionEconomySnapshot construction
  * - economy-state read adapter
  * - economy-state mutation adapter
@@ -68,7 +68,7 @@ import {
    MODULE IDENTITY
    ============================================================ */
 export const ACTION_ECONOMY_STATE_MODULE_ID =
-  "lancer-frame-helm.action-economy-state";
+  "lancer-frame-conn.action-economy-state";
 export const ACTION_ECONOMY_STATE_MODULE_VERSION =
   1;
 /* ============================================================
@@ -77,7 +77,7 @@ export const ACTION_ECONOMY_STATE_MODULE_VERSION =
 /**
  * @section turn-state-adapter
  *
- * Existing Frame Helm feature_turn/ storage is injected here.
+ * Existing Frame Conn feature_turn/ storage is injected here.
  *
  * Required interface:
  *
@@ -192,7 +192,7 @@ export function hasActionEconomyTurnStateAdapter() {
 export function assertActionEconomyTurnStateAdapter() {
   if (!hasActionEconomyTurnStateAdapter()) {
     throw new Error(
-      "Action economy requires the existing Frame Helm turn-state adapter."
+      "Action economy requires the existing Frame Conn turn-state adapter."
     );
   }
   return turnStateAdapter;
@@ -271,7 +271,7 @@ function readMovementAvailable(
     return Boolean(explicit);
   }
   /*
-   * Existing Frame Helm movement state may track maximum/spent/remaining.
+   * Existing Frame Conn movement state may track maximum/spent/remaining.
    *
    * Standard movement is considered available until the authoritative
    * turn-state layer says otherwise.
@@ -1286,10 +1286,10 @@ export async function readExecutionActionEconomySnapshot(
   );
 }
 /* ============================================================
-   EXISTING FRAME HELM STATE ADAPTER NOTES
+   EXISTING FRAME CONN STATE ADAPTER NOTES
    ============================================================ */
 /**
- * @section existing-frame-helm-state-adapter-notes
+ * @section existing-frame-conn-state-adapter-notes
  *
  * feature_turn/ currently owns authoritative turn data.
  *
@@ -1328,7 +1328,7 @@ export async function readExecutionActionEconomySnapshot(
 /**
  * @section full-quick-relationship-notes
  *
- * Existing Frame Helm turn state historically tracks:
+ * Existing Frame Conn turn state historically tracks:
  *
  * quick actions = 2
  * full action available = true
@@ -1424,7 +1424,7 @@ export async function readExecutionActionEconomySnapshot(
 /**
  * @section overcharge-notes
  *
- * Existing Frame Helm turn state already tracks overcharge usage.
+ * Existing Frame Conn turn state already tracks overcharge usage.
  *
  * Overcharge is NOT ordinary Quick/Full economy and should not be folded
  * into this contract merely because it grants an additional action.
@@ -1494,10 +1494,10 @@ export function getActionEconomyStateDiagnostics() {
   });
 }
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * feature_turn/
  * -------------

@@ -20,7 +20,7 @@ cat > docs/af-grapple-ram.md <<‘EOF’
 
 **Native Knockback semantic/tag support:** Found.
 
-**Frame Helm implementation status:** Grapple and Ram should share a Frame Helm-owned basic maneuver attack orchestration layer over native `BasicAttackFlow`, with action-specific targeting, legality, flat bonuses, and post-hit consequences.
+**Frame Conn implementation status:** Grapple and Ram should share a Frame Conn-owned basic maneuver attack orchestration layer over native `BasicAttackFlow`, with action-specific targeting, legality, flat bonuses, and post-hit consequences.
 
 ## Purpose
 
@@ -50,11 +50,11 @@ The native system already provides:
 
 Therefore:
 
-> Frame Helm should not build separate Grapple and Ram attack engines.
+> Frame Conn should not build separate Grapple and Ram attack engines.
 
 Instead:
 
-> Frame Helm should implement one shared basic maneuver attack adapter over native `BasicAttackFlow`, then supply action-specific configuration and post-hit behavior.
+> Frame Conn should implement one shared basic maneuver attack adapter over native `BasicAttackFlow`, then supply action-specific configuration and post-hit behavior.
 
 Conceptually:
 
@@ -104,7 +104,7 @@ Repository searching did not identify:
 - dedicated Grapple application
 - dedicated Grapple runtime relationship engine
 
-Therefore Frame Helm cannot delegate the complete Grapple action to a native Grapple workflow.
+Therefore Frame Conn cannot delegate the complete Grapple action to a native Grapple workflow.
 
 —
 
@@ -120,7 +120,7 @@ Repository searching did not identify:
 - dedicated Ram application
 - dedicated Ram post-hit executor
 
-Therefore Frame Helm cannot delegate the complete Ram action to a native Ram workflow.
+Therefore Frame Conn cannot delegate the complete Ram action to a native Ram workflow.
 
 —
 
@@ -138,7 +138,7 @@ and provides the native attack machinery suitable for actor-based attacks that d
 
 Conceptually:
 
-Frame Helm maneuver
+Frame Conn maneuver
 → authoritative actor
 → `actor.beginBasicAttackFlow(...)`
 → `BasicAttackFlow`
@@ -161,7 +161,7 @@ The discovered native basic attack flow contains:
 → `applySelfHeat`
 → `printAttackCard`
 
-This gives Frame Helm reusable native support for:
+This gives Frame Conn reusable native support for:
 
 - attack target handling;
 - Accuracy/Difficulty UI;
@@ -169,7 +169,7 @@ This gives Frame Helm reusable native support for:
 - attack rolling;
 - native attack-card output.
 
-Frame Helm should reuse these pieces.
+Frame Conn should reuse these pieces.
 
 —
 
@@ -223,7 +223,7 @@ or:
 
 would therefore provide native attack machinery but may omit the action-specific flat bonus.
 
-Frame Helm must account for this explicitly.
+Frame Conn must account for this explicitly.
 
 —
 
@@ -250,7 +250,7 @@ Native effect conversion also supports Grapple bonuses by mapping them into:
 
 Therefore actor-owned systems, talents, and other native effects may mechanically grant Grapple bonuses through structured data.
 
-Frame Helm should use this native field.
+Frame Conn should use this native field.
 
 —
 
@@ -264,13 +264,13 @@ Native effect conversion can map a Ram-specific bonus into:
 
 `system.bonuses.flat.ram`
 
-Therefore Frame Helm should use the native structured Ram bonus rather than parsing actor feature text.
+Therefore Frame Conn should use the native structured Ram bonus rather than parsing actor feature text.
 
 —
 
 # 10. Shared Basic Maneuver Attack Adapter
 
-The findings suggest a shared Frame Helm execution primitive.
+The findings suggest a shared Frame Conn execution primitive.
 
 Conceptually:
 
@@ -304,7 +304,7 @@ This avoids duplicating attack machinery.
 
 # 11. Recommended Shared Responsibility Boundary
 
-**FRAME HELM OWNS:**
+**FRAME CONN OWNS:**
 
 - maneuver identity;
 - Quick Action expenditure;
@@ -336,7 +336,7 @@ This avoids duplicating attack machinery.
 
 Both Grapple and Ram require a target.
 
-The likely Frame Helm execution pattern is:
+The likely Frame Conn execution pattern is:
 
 Committed maneuver
 → click execute/d20
@@ -349,7 +349,7 @@ Committed maneuver
        → validate
 → execute maneuver
 
-These actions should use Frame Helm’s general target acquisition architecture.
+These actions should use Frame Conn’s general target acquisition architecture.
 
 —
 
@@ -357,7 +357,7 @@ These actions should use Frame Helm’s general target acquisition architecture.
 
 Grapple and Ram both depend on close-range positioning.
 
-Frame Helm should validate the exact range/adjacency rule before launching the attack.
+Frame Conn should validate the exact range/adjacency rule before launching the attack.
 
 Conceptually:
 
@@ -377,7 +377,7 @@ Do not rely on visual proximity alone.
 
 Both Grapple and Ram have size-related rules.
 
-Frame Helm should validate these before rolling where possible.
+Frame Conn should validate these before rolling where possible.
 
 The native basic attack flow does not appear to own Grapple/Ram-specific size legality.
 
@@ -393,9 +393,9 @@ Both actions consume:
 
 **one Quick Action**
 
-Frame Helm Turn state should remain authoritative for that expenditure.
+Frame Conn Turn state should remain authoritative for that expenditure.
 
-The underlying `BasicAttackFlow` should not independently consume another Frame Helm Quick Action.
+The underlying `BasicAttackFlow` should not independently consume another Frame Conn Quick Action.
 
 Conceptually:
 
@@ -438,24 +438,24 @@ Committed action
 → native Accuracy/Difficulty HUD
 → native attack roll
 → result available
-→ Frame Helm applies maneuver-specific consequence
+→ Frame Conn applies maneuver-specific consequence
 
-This gives Frame Helm a functioning intermediate architecture before attack automation is expanded.
+This gives Frame Conn a functioning intermediate architecture before attack automation is expanded.
 
 —
 
 # 18. Future Automated Roll Architecture
 
-Eventually Frame Helm may bypass the native Accuracy/Difficulty popup.
+Eventually Frame Conn may bypass the native Accuracy/Difficulty popup.
 
 The desired later sequence is:
 
 Committed maneuver
 → click d20
 → target selected
-→ Frame Helm derives Accuracy
-→ Frame Helm derives Difficulty
-→ Frame Helm derives flat modifiers
+→ Frame Conn derives Accuracy
+→ Frame Conn derives Difficulty
+→ Frame Conn derives flat modifiers
 → include maneuver-specific native flat bonus
 → automatically roll
 → determine hit
@@ -499,7 +499,7 @@ in status-icon infrastructure.
 
 Therefore the native system understands Grappled as a status/condition concept.
 
-Frame Helm should use the native Grappled identity where appropriate rather than inventing a separate visual status.
+Frame Conn should use the native Grappled identity where appropriate rather than inventing a separate visual status.
 
 —
 
@@ -534,7 +534,7 @@ or:
 
 `grapplingActorId`
 
-Therefore Frame Helm will likely need to own this relationship state.
+Therefore Frame Conn will likely need to own this relationship state.
 
 —
 
@@ -548,7 +548,7 @@ Native status:
 
 provides a game/UI condition identity.
 
-Frame Helm relationship state:
+Frame Conn relationship state:
 
 Actor A ↔ Actor B
 
@@ -557,7 +557,7 @@ provides the structural relationship required for movement and later action logi
 Conceptually:
 
 successful Grapple
-→ establish Frame Helm Grapple relationship
+→ establish Frame Conn Grapple relationship
 → apply native `grappled` status as required
 
 Do not assume the native status alone stores the entire relationship.
@@ -569,11 +569,11 @@ Do not assume the native status alone stores the entire relationship.
 Likely initial architecture:
 
 Grapple attack hits
-→ Frame Helm determines Grapple success
+→ Frame Conn determines Grapple success
 → establish relationship between acting actor and target
 → apply native Grappled status where appropriate
 → record relationship metadata
-→ refresh actor/Frame Helm presentation
+→ refresh actor/Frame Conn presentation
 
 The exact relationship and which actors receive which condition should come from confirmed Grapple rules.
 
@@ -581,7 +581,7 @@ The exact relationship and which actors receive which condition should come from
 
 # 24. Grapple Movement Integration
 
-Grapple will eventually interact directly with Frame Helm Movement.
+Grapple will eventually interact directly with Frame Conn Movement.
 
 Possible requirements include:
 
@@ -598,7 +598,7 @@ Therefore Grapple relationship state should be designed for Movement consumption
 
 # 25. Grapple Break/Cleanup
 
-Frame Helm needs explicit conditions for ending a Grapple.
+Frame Conn needs explicit conditions for ending a Grapple.
 
 Potential causes may include:
 
@@ -613,7 +613,7 @@ Exact rules must be confirmed.
 
 When the relationship ends:
 
-Frame Helm relationship state
+Frame Conn relationship state
 → clear
 
 and:
@@ -644,7 +644,7 @@ Unlike Overwatch, the target is not fixed by an external trigger.
 
 # 27. Grapple Flat Bonus
 
-Frame Helm should include:
+Frame Conn should include:
 
 `actor.system.bonuses.flat.grapple`
 
@@ -669,7 +669,7 @@ Therefore future actor-owned content may reference:
 - when you become Grappled;
 - bonuses to Grapple.
 
-Frame Helm should preserve Grapple action identity for future trigger integration.
+Frame Conn should preserve Grapple action identity for future trigger integration.
 
 —
 
@@ -690,7 +690,7 @@ Its attack roll should likewise use:
 
 # 30. Native Ram Flat Bonus
 
-Frame Helm should include:
+Frame Conn should include:
 
 `actor.system.bonuses.flat.ram`
 
@@ -716,9 +716,9 @@ The native attack system already cares about Prone when calculating attack modif
 
 Therefore when Ram successfully inflicts Prone:
 
-> Frame Helm should apply the native `prone` condition.
+> Frame Conn should apply the native `prone` condition.
 
-Do not create a Frame Helm-only Prone flag.
+Do not create a Frame Conn-only Prone flag.
 
 —
 
@@ -738,7 +738,7 @@ Therefore the native rules data model recognizes Knockback.
 
 However, no dedicated Ram executor was found that performs Ram-specific forced movement automatically.
 
-So generic Knockback recognition does not eliminate the need for Frame Helm Ram orchestration.
+So generic Knockback recognition does not eliminate the need for Frame Conn Ram orchestration.
 
 —
 
@@ -747,7 +747,7 @@ So generic Knockback recognition does not eliminate the need for Frame Helm Ram 
 Likely initial architecture:
 
 Ram attack hits
-→ Frame Helm determines success
+→ Frame Conn determines success
 → apply native `prone` condition as required
 → perform Ram-specific forced movement / Knockback as allowed
 → record movement through Movement feature
@@ -783,7 +783,7 @@ This is important for interactions with:
 
 # 35. Forced Movement Classification
 
-Frame Helm should distinguish:
+Frame Conn should distinguish:
 
 voluntary movement
 
@@ -807,7 +807,7 @@ If Ram’s rules allow choices between or combinations of:
 - Prone;
 - other consequences;
 
-Frame Helm should expose those choices explicitly.
+Frame Conn should expose those choices explicitly.
 
 Do not assume every successful Ram automatically applies every possible consequence until the rule text is confirmed.
 
@@ -832,7 +832,7 @@ Commit Ram
 
 # 38. Shared Target Validation Adapter
 
-Because Grapple and Ram share much of their target legality, Frame Helm should probably reuse a basic maneuver target validator.
+Because Grapple and Ram share much of their target legality, Frame Conn should probably reuse a basic maneuver target validator.
 
 Potential shared checks:
 
@@ -949,7 +949,7 @@ and:
 
 `prone`
 
-Frame Helm should use native Foundry/Lancer status/effect helpers where possible.
+Frame Conn should use native Foundry/Lancer status/effect helpers where possible.
 
 Do not manually mutate raw status data unless native helpers prove inadequate.
 
@@ -963,7 +963,7 @@ After applying Grapple or Ram consequences:
 
 → await native document/token mutation
 → re-read authoritative actor/token state
-→ refresh Frame Helm presentation
+→ refresh Frame Conn presentation
 
 Do not assume success based only on local state.
 
@@ -983,7 +983,7 @@ If a talent/system adds damage to one of these maneuvers later, that consequence
 
 Because these maneuvers use an attack-roll flow, research should determine whether native BasicAttackFlow recognizes Lock On in the same manner as other attacks.
 
-If native Accuracy/Difficulty infrastructure already does so correctly, Frame Helm should preserve that behavior.
+If native Accuracy/Difficulty infrastructure already does so correctly, Frame Conn should preserve that behavior.
 
 Do not implement separate Lock On logic for Grapple/Ram unless necessary.
 
@@ -1008,7 +1008,7 @@ That allows native handling of:
 - situational modifiers;
 - attacker/target effects.
 
-Frame Helm’s action-specific contribution should be:
+Frame Conn’s action-specific contribution should be:
 
 Grapple:
 `flat.grapple`
@@ -1026,7 +1026,7 @@ Eventually:
 
 Grapple/Ram
 → target selected
-→ Frame Helm derives:
+→ Frame Conn derives:
    Grit
    action-specific flat bonus
    Accuracy
@@ -1063,15 +1063,15 @@ These may modify:
 - statuses;
 - action economy.
 
-Where native structured bonus fields exist, Frame Helm should consume those rather than parse prose.
+Where native structured bonus fields exist, Frame Conn should consume those rather than parse prose.
 
 —
 
-# 50. Grapple Relationship Is Frame Helm-Specific Until Proven Otherwise
+# 50. Grapple Relationship Is Frame Conn-Specific Until Proven Otherwise
 
 No native runtime relationship structure was found during the repository search.
 
-Therefore Frame Helm will probably need a canonical relationship model.
+Therefore Frame Conn will probably need a canonical relationship model.
 
 A conceptual relationship record might include:
 
@@ -1093,10 +1093,10 @@ The exact structure should wait for full Grapple rule research.
 
 Potential storage choices include:
 
-- Frame Helm runtime state;
+- Frame Conn runtime state;
 - Foundry document flags;
 - ActiveEffect metadata;
-- another durable Frame Helm domain.
+- another durable Frame Conn domain.
 
 The relationship may need to survive:
 
@@ -1114,7 +1114,7 @@ The final storage strategy should be chosen deliberately.
 
 # 52. Grapple Status Synchronization
 
-If Frame Helm owns Grapple relationship state while native Lancer owns the `grappled` condition:
+If Frame Conn owns Grapple relationship state while native Lancer owns the `grappled` condition:
 
 relationship created
 → apply native condition
@@ -1147,7 +1147,7 @@ This is preferable to bypassing Movement state.
 
 # 54. Shared Interaction With Turn State
 
-Frame Helm Turn owns:
+Frame Conn Turn owns:
 
 - Quick Action legality;
 - Quick Action expenditure;
@@ -1165,7 +1165,7 @@ Under ordinary action economy, Grapple and Ram are separate Quick Action identit
 
 Using Grapple does not inherently count as using Ram.
 
-Frame Helm’s duplicate-action mechanism should preserve distinct IDs such as:
+Frame Conn’s duplicate-action mechanism should preserve distinct IDs such as:
 
 `quick.grapple`
 
@@ -1217,7 +1217,7 @@ mechanical maneuver execution.
 
 Native structured data recognizes Grapple and Ram as meaningful bonus/action categories.
 
-Future Frame Helm trigger events may need concepts like:
+Future Frame Conn trigger events may need concepts like:
 
 - before Grapple;
 - after Grapple;
@@ -1252,7 +1252,7 @@ native status identity
 Knockback:
 native semantic/tag data
 
-Frame Helm should use these structures before attempting rules-text parsing.
+Frame Conn should use these structures before attempting rules-text parsing.
 
 —
 
@@ -1266,7 +1266,7 @@ Committed Action
 → Native Lancer Adapter
 → `BasicAttackFlow`
 → native attack resolution
-→ Frame Helm post-hit consequence
+→ Frame Conn post-hit consequence
 → native status helper / Movement feature
 → authoritative mutation
 → presentation refresh
@@ -1279,7 +1279,7 @@ UI code should not directly understand native attack internals.
 
 No dedicated native flows were found.
 
-Frame Helm may internally expose:
+Frame Conn may internally expose:
 
 Grapple execution
 
@@ -1287,7 +1287,7 @@ and:
 
 Ram execution
 
-but these should explicitly be Frame Helm orchestration over:
+but these should explicitly be Frame Conn orchestration over:
 
 `BasicAttackFlow`
 
@@ -1301,8 +1301,8 @@ not pretend native flows.
 - [ ] Trace `BasicAttackFlow` constructor arguments.
 - [ ] Trace `initAttackData` for actor-only attacks.
 - [ ] Determine exact attack-data field for flat bonus.
-- [ ] Determine how Frame Helm can inject `flat.grapple`.
-- [ ] Determine how Frame Helm can inject `flat.ram`.
+- [ ] Determine how Frame Conn can inject `flat.grapple`.
+- [ ] Determine how Frame Conn can inject `flat.ram`.
 - [ ] Determine whether native generic melee bonuses are already applied elsewhere.
 - [ ] Avoid double-applying generic melee modifiers.
 - [ ] Trace `system.bonuses.flat.grapple` consumers.
@@ -1397,7 +1397,7 @@ Afterward:
 - [ ] Preserve Quick Action expenditure in Turn feature.
 - [ ] Mark committed actions executed.
 - [ ] Refresh authoritative actor/token state.
-- [ ] Refresh Frame Helm presentation.
+- [ ] Refresh Frame Conn presentation.
 - [ ] Emit semantic Grapple/Ram events for later trigger integration.
 
 —
@@ -1436,7 +1436,7 @@ Shared:
 - [ ] attack modifiers are not double-counted.
 - [ ] Quick Action spent exactly once.
 - [ ] Overcharge repeat works where legal.
-- [ ] Frame Helm telemetry refreshes after mutation.
+- [ ] Frame Conn telemetry refreshes after mutation.
 
 —
 
@@ -1472,7 +1472,7 @@ Ram uses native `system.bonuses.flat.ram`.
 
 **Invariant 8**
 
-Frame Helm must ensure those maneuver-specific bonuses reach the roll because BasicAttackFlow does not appear to apply them automatically.
+Frame Conn must ensure those maneuver-specific bonuses reach the roll because BasicAttackFlow does not appear to apply them automatically.
 
 **Invariant 9**
 
@@ -1484,11 +1484,11 @@ Ram should use native Prone status rather than duplicating Prone state.
 
 **Invariant 11**
 
-Ram forced movement should go through Frame Helm Movement.
+Ram forced movement should go through Frame Conn Movement.
 
 **Invariant 12**
 
-The native basic attack flow owns roll resolution; Frame Helm owns maneuver-specific post-hit consequences.
+The native basic attack flow owns roll resolution; Frame Conn owns maneuver-specific post-hit consequences.
 
 —
 
@@ -1496,7 +1496,7 @@ The native basic attack flow owns roll resolution; Frame Helm owns maneuver-spec
 
 BASIC MANEUVER ATTACK
 │
-├── Frame Helm
+├── Frame Conn
 │   ├── Quick Action legality
 │   ├── target acquisition
 │   ├── adjacency
@@ -1518,7 +1518,7 @@ BASIC MANEUVER ATTACK
 │   ├── flat bonus:
 │   │   └── `system.bonuses.flat.grapple`
 │   │
-│   └── Frame Helm post-hit
+│   └── Frame Conn post-hit
 │       ├── establish Grapple relationship
 │       ├── apply native `grappled` state as required
 │       ├── integrate with Movement
@@ -1529,7 +1529,7 @@ BASIC MANEUVER ATTACK
     ├── flat bonus:
     │   └── `system.bonuses.flat.ram`
     │
-    └── Frame Helm post-hit
+    └── Frame Conn post-hit
         ├── apply native `prone` as required
         ├── resolve Ram forced movement
         ├── route movement through Movement feature
@@ -1539,7 +1539,7 @@ The critical architectural rule is:
 
 **Grapple and Ram share the roll engine, not the entire action.**
 
-Frame Helm supplies the maneuver-specific legality and consequences.
+Frame Conn supplies the maneuver-specific legality and consequences.
 
 Native Lancer supplies the reusable basic attack roll infrastructure.
 EOF

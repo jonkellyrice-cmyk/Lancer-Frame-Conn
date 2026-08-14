@@ -8,12 +8,12 @@
 
 /**
  * ============================================================
- * FRAME HELM UI FEATURE -- APPLICATION
+ * FRAME CONN UI FEATURE -- APPLICATION
  * ============================================================
  *
  * ROLE:
  *   Owns presentation belonging specifically to the primary
- *   Frame Helm Foundry Application and its application shell.
+ *   Frame Conn Foundry Application and its application shell.
  *
  * PURPOSE:
  *   Remove application-window and application-shell styling from
@@ -28,7 +28,7 @@
  *   - Window-content surface
  *   - Window resize-handle presentation
  *   - Minimized-window presentation
- *   - Primary Frame Helm shell
+ *   - Primary Frame Conn shell
  *   - Application header presentation
  *   - Application eyebrow presentation
  *   - Application window-hint presentation
@@ -86,7 +86,7 @@
  *
  * RESPONSIVE OWNERSHIP:
  *
- *   Responsive behavior that concerns only the Frame Helm
+ *   Responsive behavior that concerns only the Frame Conn
  *   application window belongs here.
  *
  *   Responsive behavior involving the relationship between
@@ -98,14 +98,14 @@
    Application -- Foundry window
    ============================================================ */
 
-.lancer-frame-helm {
+.lancer-frame-conn {
   min-width: 680px;
   min-height: 330px;
 
-  color: var(--fh-text);
+  color: var(--fc-text);
 
   border:
-    1px solid var(--fh-cyan-muted);
+    1px solid var(--fc-cyan-muted);
 
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0.8),
@@ -118,11 +118,11 @@
    Application -- Foundry window header
    ============================================================ */
 
-.lancer-frame-helm .window-header {
+.lancer-frame-conn .window-header {
   height: 34px;
 
   border-bottom:
-    1px solid var(--fh-cyan);
+    1px solid var(--fc-cyan);
 
   background:
     linear-gradient(
@@ -132,7 +132,7 @@
       #07151a
     );
 
-  color: var(--fh-cyan-bright);
+  color: var(--fc-cyan-bright);
 
   cursor: move;
 
@@ -144,7 +144,7 @@
 }
 
 
-.lancer-frame-helm.minimized .window-header {
+.lancer-frame-conn.minimized .window-header {
   cursor: move;
 }
 
@@ -153,7 +153,7 @@
    Application -- Foundry window title
    ============================================================ */
 
-.lancer-frame-helm
+.lancer-frame-conn
 .window-header
 .window-title {
   font-family: monospace;
@@ -166,33 +166,33 @@
    Application -- Foundry window controls
    ============================================================ */
 
-.lancer-frame-helm
+.lancer-frame-conn
 .window-header
 a {
-  color: var(--fh-text-muted);
+  color: var(--fc-text-muted);
 
   text-shadow: none;
 }
 
 
-.lancer-frame-helm
+.lancer-frame-conn
 .window-header
 a:hover {
-  color: var(--fh-cyan-bright);
+  color: var(--fc-cyan-bright);
 
   text-shadow:
-    0 0 8px var(--fh-cyan);
+    0 0 8px var(--fc-cyan);
 }
 
 
-.lancer-frame-helm
+.lancer-frame-conn
 .window-header
-.frame-helm-minimize {
+.frame-conn-minimize {
   order: 98;
 }
 
 
-.lancer-frame-helm
+.lancer-frame-conn
 .window-header
 .close {
   order: 99;
@@ -203,7 +203,7 @@ a:hover {
    Application -- Foundry window content
    ============================================================ */
 
-.lancer-frame-helm
+.lancer-frame-conn
 .window-content {
   position: relative;
 
@@ -225,13 +225,13 @@ a:hover {
       rgba(42, 161, 166, 0.16),
       transparent 42%
     ),
-    var(--fh-bg-deep);
+    var(--fc-bg-deep);
 
-  color: var(--fh-text);
+  color: var(--fc-text);
 }
 
 
-.lancer-frame-helm
+.lancer-frame-conn
 .window-content::before {
   position: absolute;
   inset: 0;
@@ -255,15 +255,15 @@ a:hover {
    Application -- Foundry resize handle
    ============================================================ */
 
-.lancer-frame-helm
+.lancer-frame-conn
 .window-resizable-handle {
   border-color:
     transparent
-    var(--fh-cyan)
-    var(--fh-cyan)
+    var(--fc-cyan)
+    var(--fc-cyan)
     transparent;
 
-  color: var(--fh-cyan);
+  color: var(--fc-cyan);
 }
 
 
@@ -271,7 +271,7 @@ a:hover {
    Application -- Minimized state
    ============================================================ */
 
-.lancer-frame-helm.minimized {
+.lancer-frame-conn.minimized {
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0.8),
     0 0 18px rgba(30, 220, 218, 0.24);
@@ -282,7 +282,7 @@ a:hover {
    Application -- Primary shell
    ============================================================ */
 
-.frame-helm-shell {
+.frame-conn-shell {
   position: relative;
   z-index: 1;
 
@@ -307,7 +307,7 @@ a:hover {
    Application -- Header
    ============================================================ */
 
-.frame-helm-header {
+.frame-conn-header {
   position: relative;
 
   display: flex;
@@ -317,10 +317,10 @@ a:hover {
   min-height: 62px;
 
   border:
-    1px solid var(--fh-line);
+    1px solid var(--fc-line);
 
   border-left:
-    4px solid var(--fh-cyan);
+    4px solid var(--fc-cyan);
 
   background:
     linear-gradient(
@@ -328,12 +328,12 @@ a:hover {
       rgba(41, 111, 120, 0.25),
       transparent 65%
     ),
-    var(--fh-bg-panel);
+    var(--fc-bg-panel);
 
   padding: 0.65rem 0.75rem;
 
   box-shadow:
-    var(--fh-shadow);
+    var(--fc-shadow);
 
   clip-path:
     polygon(
@@ -346,7 +346,7 @@ a:hover {
 }
 
 
-.frame-helm-header::after {
+.frame-conn-header::after {
   position: absolute;
 
   right: 10px;
@@ -358,8 +358,8 @@ a:hover {
   background:
     repeating-linear-gradient(
       90deg,
-      var(--fh-amber) 0,
-      var(--fh-amber) 5px,
+      var(--fc-amber) 0,
+      var(--fc-amber) 5px,
       transparent 5px,
       transparent 9px
     );
@@ -374,10 +374,10 @@ a:hover {
    Application -- Header title
    ============================================================ */
 
-.frame-helm-header h2 {
+.frame-conn-header h2 {
   margin: 0;
 
-  color: var(--fh-cyan-bright);
+  color: var(--fc-cyan-bright);
 
   font-family: monospace;
   font-size: 1.25rem;
@@ -398,11 +398,11 @@ a:hover {
    Application -- Header eyebrow
    ============================================================ */
 
-.frame-helm-eyebrow {
+.frame-conn-eyebrow {
   margin:
     0 0 0.2rem;
 
-  color: var(--fh-amber);
+  color: var(--fc-amber);
 
   font-family: monospace;
   font-size: 0.7rem;
@@ -418,7 +418,7 @@ a:hover {
    Application -- Window hint
    ============================================================ */
 
-.frame-helm-window-hint {
+.frame-conn-window-hint {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -427,14 +427,14 @@ a:hover {
   height: 2rem;
 
   border:
-    1px solid var(--fh-cyan-muted);
+    1px solid var(--fc-cyan-muted);
 
   border-radius: 50%;
 
   background:
     rgba(0, 0, 0, 0.28);
 
-  color: var(--fh-cyan);
+  color: var(--fc-cyan);
 
   opacity: 0.6;
 }
@@ -452,7 +452,7 @@ a:hover {
  * ui-orchestrator.css.
  */
 @media (max-width: 820px) {
-  .lancer-frame-helm {
+  .lancer-frame-conn {
     min-width: 360px;
   }
 }

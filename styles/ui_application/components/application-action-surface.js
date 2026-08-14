@@ -111,16 +111,16 @@ function renderApplicationInner(
   data
 ) {
   return `
-    <section class="frame-helm-shell">
+    <section class="frame-conn-shell">
       ${renderMechStatsBar(data)}
 
-      <div class="frame-helm-horizontal-layout">
-        <aside class="frame-helm-overview-column">
+      <div class="frame-conn-horizontal-layout">
+        <aside class="frame-conn-overview-column">
           ${renderUnitPanel(data)}
           ${renderBudgetPanel(data)}
         </aside>
 
-        <main class="frame-helm-action-column">
+        <main class="frame-conn-action-column">
           ${renderActionList(application, data)}
         </main>
       </div>

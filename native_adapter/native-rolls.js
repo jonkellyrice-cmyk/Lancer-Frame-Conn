@@ -16,7 +16,7 @@
  *
  * @depends-on native-contract, native-actors, native-items
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumed by native-adapter.js
  * - consumed by native-execution.js
  * - consumed by native-combat.js
@@ -37,7 +37,7 @@
  * - Pilot Trigger roll invocation
  * - generic native d20 Roll primitive
  * - extraction/normalization of completed native Roll results
- * - comparison helpers for Frame Helm parent orchestration
+ * - comparison helpers for Frame Conn parent orchestration
  *
  * THIS FILE DOES NOT OWN:
  * - WeaponAttackFlow
@@ -158,7 +158,7 @@ export const NATIVE_FLOW_NAME = Object.freeze({
 });
 
 /**
- * Preferred Frame Helm semantic stat keys.
+ * Preferred Frame Conn semantic stat keys.
  *
  * These map to the prepared native Actor fields traced in
  * LancerActor preparation.
@@ -995,7 +995,7 @@ export async function rollNativePilotTrigger({
  *
  * HASE saves therefore use StatRollFlow as the roll primitive.
  *
- * Frame Helm must supply:
+ * Frame Conn must supply:
  *
  * - requested save type
  * - Save Target
@@ -1424,7 +1424,7 @@ export function getNormalizedNaturalD20(
  *
  * The native system supplies the individual rolls.
  *
- * Frame Helm supplies contested-check coordination where the action
+ * Frame Conn supplies contested-check coordination where the action
  * requires it.
  *
  * This helper compares results only.
@@ -1555,11 +1555,11 @@ export function compareNativeRollTotals(
  */
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * foundry-integration-feature.js
  * ------------------------------
@@ -1681,7 +1681,7 @@ export function compareNativeRollTotals(
  * There is no separate native SaveRollFlow in the traced repository.
  *
  * INVARIANT 8
- * Save success/failure comparison is Frame Helm orchestration over
+ * Save success/failure comparison is Frame Conn orchestration over
  * native StatRollFlow.
  *
  * INVARIANT 9

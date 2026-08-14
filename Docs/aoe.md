@@ -41,7 +41,7 @@ cat > docs/aoe.md <<‘EOF’
 
 **Native complete Blast placement Range/LOS legality:** Not found.
 
-**Frame Helm implementation status:** Frame Helm should reuse native Lancer AoE geometry, placement, token intersection, targeting, and multi-target attack machinery. Frame Helm should add the missing placement-legality, save-resolution, source-specific exception, and non-attack consequence orchestration.
+**Frame Conn implementation status:** Frame Conn should reuse native Lancer AoE geometry, placement, token intersection, targeting, and multi-target attack machinery. Frame Conn should add the missing placement-legality, save-resolution, source-specific exception, and non-attack consequence orchestration.
 
 ## Purpose
 
@@ -66,11 +66,11 @@ The AoE geometry itself is largely implemented natively.
 
 The key architectural rule is:
 
-> Frame Helm should not recreate Line, Cone, Blast, or Burst geometry.
+> Frame Conn should not recreate Line, Cone, Blast, or Burst geometry.
 
 Instead:
 
-> Frame Helm should reuse native Lancer template placement and target acquisition, then route the acquired targets into the correct attack, save, or automatic-resolution strategy.
+> Frame Conn should reuse native Lancer template placement and target acquisition, then route the acquired targets into the correct attack, save, or automatic-resolution strategy.
 
 —
 
@@ -88,7 +88,7 @@ weapon / action
 → qualifying scene tokens become targets
 → parent action resolves those targets.
 
-This gives Frame Helm a native geometry and target-acquisition subsystem.
+This gives Frame Conn a native geometry and target-acquisition subsystem.
 
 —
 
@@ -115,7 +115,7 @@ Relevant types include:
 - Blast;
 - Burst.
 
-Therefore Frame Helm should not parse strings such as:
+Therefore Frame Conn should not parse strings such as:
 
 `BLAST 2`
 
@@ -171,7 +171,7 @@ Conceptually:
 `Blast 2`
 → radius/size of affected area around that center.
 
-Frame Helm must preserve both pieces.
+Frame Conn must preserve both pieces.
 
 —
 
@@ -192,7 +192,7 @@ The helper reads the currently active weapon profile.
 
 Therefore alternate weapon profiles are naturally respected.
 
-Frame Helm should query native weapon data rather than cache AoE size separately.
+Frame Conn should query native weapon data rather than cache AoE size separately.
 
 —
 
@@ -208,7 +208,7 @@ in:
 
 This is the canonical native AoE template primitive.
 
-Frame Helm should reuse it.
+Frame Conn should reuse it.
 
 —
 
@@ -230,7 +230,7 @@ Blast
 Burst
 → Foundry circle with Burst-specific centering behavior.
 
-Frame Helm should not draw its own canvas shapes.
+Frame Conn should not draw its own canvas shapes.
 
 —
 
@@ -262,7 +262,7 @@ This is important for:
 - source metadata;
 - later Range/LOS validation.
 
-Frame Helm should provide the authoritative source token where available.
+Frame Conn should provide the authoritative source token where available.
 
 —
 
@@ -282,11 +282,11 @@ The user can:
 - confirm with left click;
 - cancel with right click.
 
-This is already the desired user interaction for Frame Helm.
+This is already the desired user interaction for Frame Conn.
 
 —
 
-# 11. Frame Helm Should Not Build a Custom Drag Tool
+# 11. Frame Conn Should Not Build a Custom Drag Tool
 
 The native placement UI already solves:
 
@@ -297,7 +297,7 @@ The native placement UI already solves:
 - placement cancellation;
 - scene template creation.
 
-Therefore Frame Helm should use the native template layer rather than build a parallel drag-and-drop system.
+Therefore Frame Conn should use the native template layer rather than build a parallel drag-and-drop system.
 
 —
 
@@ -311,7 +311,7 @@ on the current scene.
 
 The native `placeTemplate()` promise resolves after the template has rendered.
 
-Frame Helm can then immediately resolve affected targets.
+Frame Conn can then immediately resolve affected targets.
 
 —
 
@@ -321,7 +321,7 @@ If the player cancels placement:
 
 → no valid template is returned.
 
-Frame Helm should treat this as:
+Frame Conn should treat this as:
 
 `AoE placement cancelled`
 
@@ -345,7 +345,7 @@ Relevant concepts include:
 - range;
 - attack-template marker.
 
-Frame Helm should preserve these flags rather than creating separate parallel metadata.
+Frame Conn should preserve these flags rather than creating separate parallel metadata.
 
 —
 
@@ -359,7 +359,7 @@ or the equivalent system namespace.
 
 This lets native combat cleanup recognize temporary attack templates.
 
-Frame Helm should preserve this flag for AoE attacks.
+Frame Conn should preserve this flag for AoE attacks.
 
 —
 
@@ -367,7 +367,7 @@ Frame Helm should preserve this flag for AoE attacks.
 
 Native combat automation can remove attack templates on turn changes when the relevant automation setting is enabled.
 
-Therefore Frame Helm should not necessarily manually delete every attack template immediately after resolution.
+Therefore Frame Conn should not necessarily manually delete every attack template immediately after resolution.
 
 It should preserve native lifecycle where appropriate.
 
@@ -387,7 +387,7 @@ also reachable through:
 
 This is the canonical target-acquisition helper for placed templates.
 
-Frame Helm should reuse it.
+Frame Conn should reuse it.
 
 —
 
@@ -420,7 +420,7 @@ Therefore:
 any occupied space intersects AoE
 → token qualifies.
 
-Frame Helm should not replace this with a token-center test.
+Frame Conn should not replace this with a token-center test.
 
 —
 
@@ -462,7 +462,7 @@ This correctly preserves Lancer friendly fire.
 
 # 22. Friendly Fire Must Remain the Default
 
-Frame Helm should not implement:
+Frame Conn should not implement:
 
 AoE targets = hostiles only.
 
@@ -490,7 +490,7 @@ and:
 
 ignored dispositions.
 
-This gives Frame Helm a useful exception mechanism.
+This gives Frame Conn a useful exception mechanism.
 
 Example:
 
@@ -525,7 +525,7 @@ This matches Lancer’s default-friendly-fire rules.
 
 Native Cone templates automatically treat the creator appropriately so the source is not incorrectly included as a target.
 
-Frame Helm should preserve creator-token metadata.
+Frame Conn should preserve creator-token metadata.
 
 —
 
@@ -551,7 +551,7 @@ attacker
 
 Native template geometry handles the Blast area.
 
-Frame Helm must still validate legal placement.
+Frame Conn must still validate legal placement.
 
 —
 
@@ -586,7 +586,7 @@ Burst range
 token size contribution
 → correct template radius.
 
-Frame Helm should not calculate this manually.
+Frame Conn should not calculate this manually.
 
 —
 
@@ -598,7 +598,7 @@ This supports effects that originate on the user/target but do not affect the ce
 
 The parent action still determines whether the center should actually be affected.
 
-Frame Helm should preserve source-specific semantics.
+Frame Conn should preserve source-specific semantics.
 
 —
 
@@ -629,15 +629,15 @@ weapon AoE button
 → `placeTemplate()`
 → `targetsFromTemplate(...)`
 
-This is nearly the exact behavior Frame Helm wants.
+This is nearly the exact behavior Frame Conn wants.
 
 —
 
-# 34. AoE Placement Should Move Earlier in Frame Helm UX
+# 34. AoE Placement Should Move Earlier in Frame Conn UX
 
 The native sheet currently exposes AoE template placement from inside the attack HUD.
 
-Frame Helm may provide a cleaner sequence:
+Frame Conn may provide a cleaner sequence:
 
 weapon selected
 → detect AoE
@@ -667,7 +667,7 @@ Therefore AoE attack resolution correctly follows:
 
 one attack roll per affected character.
 
-Frame Helm should reuse this rather than loop custom attack formulas.
+Frame Conn should reuse this rather than loop custom attack formulas.
 
 —
 
@@ -704,7 +704,7 @@ This is likely preferable to opening one modal per target.
 
 Conceptually:
 
-Frame Helm weapon attack
+Frame Conn weapon attack
 → detect AoE
 → native template placement
 → native target acquisition
@@ -722,7 +722,7 @@ This is the safest first implementation.
 
 Eventually:
 
-Frame Helm
+Frame Conn
 → auto-compute all Accuracy/Difficulty
 → template placement
 → target acquisition
@@ -808,7 +808,7 @@ template
 
 This orchestration is not fully implemented natively.
 
-Frame Helm must supply it.
+Frame Conn must supply it.
 
 —
 
@@ -822,7 +822,7 @@ template
 → target list
 → apply effect to every valid target.
 
-This also requires Frame Helm/source-specific orchestration.
+This also requires Frame Conn/source-specific orchestration.
 
 —
 
@@ -846,7 +846,7 @@ Therefore there is no reusable native equivalent to WeaponAttackFlow for arbitra
 
 Generic item/system activation code also contains TODO-level handling around save prompting/parsing.
 
-Therefore Frame Helm should not expect:
+Therefore Frame Conn should not expect:
 
 `item.beginActivationFlow(...)`
 
@@ -854,9 +854,9 @@ to automatically perform multi-target saves simply because the ActionData contai
 
 —
 
-# 48. Frame Helm Save AoE Responsibility
+# 48. Frame Conn Save AoE Responsibility
 
-Frame Helm must eventually own:
+Frame Conn must eventually own:
 
 - target list from template;
 - save type;
@@ -871,7 +871,7 @@ Native stat/save primitives should still be reused where available.
 
 # 49. Save Target
 
-For save-based AoEs, Frame Helm must resolve the correct:
+For save-based AoEs, Frame Conn must resolve the correct:
 
 `Save Target`
 
@@ -892,7 +892,7 @@ Examples may include:
 - Systems;
 - Engineering.
 
-Frame Helm should preserve this structurally where native action data exposes it.
+Frame Conn should preserve this structurally where native action data exposes it.
 
 —
 
@@ -931,7 +931,7 @@ and:
 
 bonus damage is halved if multiple characters are affected.
 
-Therefore Frame Helm should distinguish:
+Therefore Frame Conn should distinguish:
 
 attack-roll multiplicity
 
@@ -968,7 +968,7 @@ This should be confirmed against the exact attack source before final implementa
 
 Lancer rules halve bonus damage for attacks targeting more than one character.
 
-Therefore Frame Helm’s mature automatic damage resolver must know:
+Therefore Frame Conn’s mature automatic damage resolver must know:
 
 number of targets affected by the attack
 
@@ -1004,7 +1004,7 @@ The rulebook requires attack targets to generally be within line of sight unless
 
 AoE placement therefore does not eliminate LOS rules.
 
-Frame Helm must validate source-specific LOS requirements.
+Frame Conn must validate source-specific LOS requirements.
 
 —
 
@@ -1014,7 +1014,7 @@ Seeking weapons can ignore cover and line of sight if a physical path exists.
 
 Native attack resolution already handles Cover exceptions.
 
-Frame Helm placement legality may need to respect Seeking when deciding whether a Blast center or target area is legally reachable.
+Frame Conn placement legality may need to respect Seeking when deciding whether a Blast center or target area is legally reachable.
 
 —
 
@@ -1038,7 +1038,7 @@ Native `placeTemplate()` handles canvas placement.
 
 It does not itself represent the complete tabletop legality of where the template may be placed.
 
-Therefore Frame Helm needs:
+Therefore Frame Conn needs:
 
 placement UI
 
@@ -1056,7 +1056,7 @@ For a:
 
 weapon/effect:
 
-Frame Helm should validate the Blast center against:
+Frame Conn should validate the Blast center against:
 
 - maximum Range Y;
 - LOS where required;
@@ -1072,7 +1072,7 @@ The native template then determines targets inside Blast X.
 
 Cone normally originates from the attacker.
 
-Frame Helm should ensure the native template remains correctly anchored/oriented relative to the source.
+Frame Conn should ensure the native template remains correctly anchored/oriented relative to the source.
 
 Source-specific range or tag restrictions should still be enforced.
 
@@ -1082,7 +1082,7 @@ Source-specific range or tag restrictions should still be enforced.
 
 Line similarly originates from the attacker and extends outward.
 
-Frame Helm should preserve native source anchoring and validate source-specific legality.
+Frame Conn should preserve native source anchoring and validate source-specific legality.
 
 —
 
@@ -1098,7 +1098,7 @@ The parent action should determine the valid center.
 
 If center is fixed:
 
-Frame Helm may not need arbitrary free placement at all.
+Frame Conn may not need arbitrary free placement at all.
 
 —
 
@@ -1108,7 +1108,7 @@ For:
 
 `Burst X centered on self`
 
-Frame Helm can conceptually:
+Frame Conn can conceptually:
 
 resolve source token
 → construct native Burst
@@ -1135,7 +1135,7 @@ Again, the source effect determines valid center.
 
 # 66. Template Target Snapshot
 
-After placement and acquisition, Frame Helm should preserve the target set for that specific execution.
+After placement and acquisition, Frame Conn should preserve the target set for that specific execution.
 
 Conceptually:
 
@@ -1152,7 +1152,7 @@ This avoids ambiguity if token positions change during resolution.
 
 Native target acquisition may update the user’s target set.
 
-For robust execution, Frame Helm should capture the acquired target UUIDs rather than relying indefinitely on mutable `game.user.targets`.
+For robust execution, Frame Conn should capture the acquired target UUIDs rather than relying indefinitely on mutable `game.user.targets`.
 
 The target snapshot belongs to the action execution context.
 
@@ -1254,7 +1254,7 @@ Native system/item actions may expose structured:
 
 or equivalent range metadata.
 
-Frame Helm should inspect this before falling back to prose parsing.
+Frame Conn should inspect this before falling back to prose parsing.
 
 —
 
@@ -1323,7 +1323,7 @@ Line/Cone/Burst/Blast size.
 
 The rulebook explicitly distinguishes these.
 
-Therefore Frame Helm must not automatically scale AoE size whenever ordinary Range increases.
+Therefore Frame Conn must not automatically scale AoE size whenever ordinary Range increases.
 
 —
 
@@ -1381,7 +1381,7 @@ The shared AoE resolver should support exclusion sets before consequence resolut
 
 If native template acquisition returns all intersecting tokens:
 
-Frame Helm may apply source-specific filtering afterward.
+Frame Conn may apply source-specific filtering afterward.
 
 However, geometry should remain native.
 
@@ -1418,7 +1418,7 @@ Placing the template does not itself:
 
 It only determines affected geometry.
 
-Frame Helm must treat template placement as one stage of the action execution pipeline.
+Frame Conn must treat template placement as one stage of the action execution pipeline.
 
 —
 
@@ -1450,11 +1450,11 @@ Exact names are illustrative only.
 
 —
 
-# 87. Proposed Frame Helm AoE Rules Layer
+# 87. Proposed Frame Conn AoE Rules Layer
 
 Above the native adapter:
 
-`frame-helm-aoe-resolution`
+`frame-conn-aoe-resolution`
 
 may own:
 
@@ -1578,7 +1578,7 @@ template placed
 → half/full/status consequences applied
 → one consolidated result presented.
 
-This functionality will be primarily Frame Helm-owned because native generic save AoE is incomplete.
+This functionality will be primarily Frame Conn-owned because native generic save AoE is incomplete.
 
 —
 
@@ -1607,7 +1607,7 @@ This further confirms the AoE API is an intentional native integration surface.
 
 Even though stock macros exist for common sizes:
 
-Frame Helm should use the item’s/action’s actual structured range value.
+Frame Conn should use the item’s/action’s actual structured range value.
 
 This supports:
 
@@ -1623,7 +1623,7 @@ This supports:
 
 Cone and Line placement can be rotated through the native Foundry template UI.
 
-Frame Helm should preserve this native behavior.
+Frame Conn should preserve this native behavior.
 
 Do not implement custom angle controls unless a future UI replaces native placement entirely.
 
@@ -1633,7 +1633,7 @@ Do not implement custom angle controls unless a future UI replaces native placem
 
 Native placement uses Foundry grid snapping.
 
-Frame Helm should not manually round canvas coordinates for attack templates.
+Frame Conn should not manually round canvas coordinates for attack templates.
 
 This preserves consistency across:
 
@@ -1647,7 +1647,7 @@ This preserves consistency across:
 
 The repo’s AoE template system is primarily 2D scene-template geometry.
 
-If Frame Helm needs full elevation-aware AoE resolution:
+If Frame Conn needs full elevation-aware AoE resolution:
 
 this requires separate investigation.
 
@@ -1704,7 +1704,7 @@ the attacker.
 
 This is extremely important for automated target-specific attack modifiers.
 
-Frame Helm’s cover evaluator must accept an attack origin distinct from the attacker’s token.
+Frame Conn’s cover evaluator must accept an attack origin distinct from the attacker’s token.
 
 —
 
@@ -1785,7 +1785,7 @@ The execution context should retain it until the action resolves.
 
 If an action is cancelled after template placement but before resolution:
 
-Frame Helm should determine whether the template should be removed immediately.
+Frame Conn should determine whether the template should be removed immediately.
 
 Attack templates should not remain as stale battlefield artifacts accidentally.
 
@@ -1795,7 +1795,7 @@ Attack templates should not remain as stale battlefield artifacts accidentally.
 
 Native automatic attack-template cleanup may not apply to non-attack save templates.
 
-Frame Helm may need explicit cleanup after save/automatic AoE resolution.
+Frame Conn may need explicit cleanup after save/automatic AoE resolution.
 
 This should be source/context aware.
 
@@ -1823,7 +1823,7 @@ If multiple weapons on one mount each have AoE properties:
 
 their mount targeting relationship and individual AoE expansion need explicit tabletop-rule validation.
 
-Frame Helm should preserve each weapon’s own range/profile data.
+Frame Conn should preserve each weapon’s own range/profile data.
 
 —
 
@@ -1841,7 +1841,7 @@ Target A Lock On
 Target B no Lock On
 → no bonus.
 
-Frame Helm should not attempt one global Lock On state for the AoE.
+Frame Conn should not attempt one global Lock On state for the AoE.
 
 —
 
@@ -1855,7 +1855,7 @@ Each target may independently have:
 
 Native attack HUD supports per-target values.
 
-Frame Helm’s mature automated cover evaluator should populate these individually.
+Frame Conn’s mature automated cover evaluator should populate these individually.
 
 —
 
@@ -2254,7 +2254,7 @@ Line, Cone, Blast, and Burst are structured native range types.
 
 **Invariant 2**
 
-Frame Helm should not recreate AoE geometry.
+Frame Conn should not recreate AoE geometry.
 
 **Invariant 3**
 
@@ -2294,7 +2294,7 @@ Generic multi-target save orchestration is not currently implemented natively.
 
 **Invariant 12**
 
-Frame Helm must supply save-AoE orchestration.
+Frame Conn must supply save-AoE orchestration.
 
 **Invariant 13**
 
@@ -2343,7 +2343,7 @@ AREA OF EFFECT
 │   ├── native Burst token centering
 │   └── `targetsFromTemplate(...)`
 │
-├── Frame Helm Rules Layer
+├── Frame Conn Rules Layer
 │   │
 │   ├── validate Range
 │   ├── validate LOS / physical path
@@ -2364,7 +2364,7 @@ AREA OF EFFECT
     │
     ├── SAVE
     │   │
-    │   └── Frame Helm multi-target save resolver
+    │   └── Frame Conn multi-target save resolver
     │       ├── save type
     │       ├── Save Target
     │       ├── one save per target
@@ -2372,12 +2372,12 @@ AREA OF EFFECT
     │
     └── AUTOMATIC
         │
-        └── Frame Helm source-specific resolver
+        └── Frame Conn source-specific resolver
             ├── damage
             ├── status
             └── other native mutation
 
 The critical architectural rule is:
 
-**Native Lancer already knows how to draw the area and identify who is inside it. Frame Helm should decide whether those characters are attacked, make saves, or are affected automatically, then delegate the downstream mechanics to the appropriate native subsystem wherever possible.**
+**Native Lancer already knows how to draw the area and identify who is inside it. Frame Conn should decide whether those characters are attacked, make saves, or are affected automatically, then delegate the downstream mechanics to the appropriate native subsystem wherever possible.**
 EOF

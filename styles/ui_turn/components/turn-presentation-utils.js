@@ -8,7 +8,7 @@
 
 /**
  * ============================================================
- * FRAME HELM UI TURN -- PRESENTATION UTILITIES
+ * FRAME CONN UI TURN -- PRESENTATION UTILITIES
  * ============================================================
  *
  * ROLE:
@@ -32,7 +32,7 @@
 /**
  * Normalize a number for presentation.
  */
-export function frameHelmTurnUiNumber(
+export function frameConnTurnUiNumber(
   value,
   fallback = 0
 ) {
@@ -55,7 +55,7 @@ export function frameHelmTurnUiNumber(
 /**
  * Convert a nullable value into a stable display string.
  */
-export function frameHelmTurnUiDisplayValue(
+export function frameConnTurnUiDisplayValue(
   value,
   fallback = "--"
 ) {
@@ -77,7 +77,7 @@ export function frameHelmTurnUiDisplayValue(
 /**
  * Produces a semantic availability descriptor.
  */
-export function frameHelmTurnUiAvailability(
+export function frameConnTurnUiAvailability(
   available,
   {
     availableLabel =

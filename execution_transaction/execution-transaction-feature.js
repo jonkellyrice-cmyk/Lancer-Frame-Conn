@@ -9,8 +9,8 @@
  * @file
  * @path execution_transaction/execution-transaction-feature.js
  * @module execution-transaction-feature
- * @layer frame-helm-runtime-feature
- * @responsibility expose-execution-transaction-through-the-canonical-frame-helm-feature-contract
+ * @layer frame-conn-runtime-feature
+ * @responsibility expose-execution-transaction-through-the-canonical-frame-conn-feature-contract
  * @public-boundary true
  * @side-effects delegated-through-transaction-execution-and-hook-registration
  *
@@ -27,7 +27,7 @@
  * runtime-orchestrator.js
  *
  * THIS FILE OWNS:
- * - canonical Frame Helm Execution Transaction feature definition
+ * - canonical Frame Conn Execution Transaction feature definition
  * - execution-transaction capability declaration
  * - registry-facing transaction execution API
  * - registry-facing transaction-hook API
@@ -57,7 +57,7 @@
    ============================================================ */
 
 import {
-  defineFrameHelmFeature
+  defineFrameConnFeature
 } from "../scripts/feature-contract.js";
 
 import * as executionTransactionRuntime from
@@ -67,7 +67,7 @@ import * as executionTransactionRuntime from
    FEATURE DIAGNOSTICS
    ============================================================ */
 
-function getFrameHelmExecutionTransactionDiagnostics() {
+function getFrameConnExecutionTransactionDiagnostics() {
   return Object.freeze({
     serviceId:
       executionTransactionRuntime
@@ -100,8 +100,8 @@ function getFrameHelmExecutionTransactionDiagnostics() {
  * scripts/feature-registry.js remains the application-wide registration
  * boundary.
  */
-export const frameHelmExecutionTransactionFeature =
-  defineFrameHelmFeature({
+export const frameConnExecutionTransactionFeature =
+  defineFrameConnFeature({
     id:
       "execution-transaction",
 
@@ -176,7 +176,7 @@ export const frameHelmExecutionTransactionFeature =
         executionTransactionRuntime.findExecutionTransactionHook,
 
       diagnostics:
-        getFrameHelmExecutionTransactionDiagnostics
+        getFrameConnExecutionTransactionDiagnostics
     },
 
     hooks: {},
@@ -188,7 +188,7 @@ export const frameHelmExecutionTransactionFeature =
         executionTransactionRuntime.executionTransaction,
 
       diagnostics:
-        getFrameHelmExecutionTransactionDiagnostics,
+        getFrameConnExecutionTransactionDiagnostics,
 
       runExecutionTransaction:
         executionTransactionRuntime.runExecutionTransaction,
@@ -298,7 +298,7 @@ export const frameHelmExecutionTransactionFeature =
         "Execution Transaction",
 
       description:
-        "Exposes canonical Frame Helm execution transaction sequencing and hook composition through the feature registry.",
+        "Exposes canonical Frame Conn execution transaction sequencing and hook composition through the feature registry.",
 
       serviceBoundary:
         "execution_transaction/execution-transaction.js",
@@ -322,5 +322,5 @@ export const frameHelmExecutionTransactionFeature =
    ============================================================ */
 
 export {
-  getFrameHelmExecutionTransactionDiagnostics
+  getFrameConnExecutionTransactionDiagnostics
 };

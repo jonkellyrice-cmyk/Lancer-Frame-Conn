@@ -8,7 +8,7 @@
 
 /**
  * ============================================================
- * FRAME HELM UI CONTRACT
+ * FRAME CONN UI CONTRACT
  * ============================================================
  *
  * ROLE:
@@ -16,10 +16,10 @@
  *   Helm features and domains participate in the application UI.
  *
  * PURPOSE:
- *   Give independently implemented Frame Helm features a common,
+ *   Give independently implemented Frame Conn features a common,
  *   predictable structural vocabulary without requiring them to
  *   know the implementation details of the shared UI DSL or the
- *   primary Frame Helm stylesheet.
+ *   primary Frame Conn stylesheet.
  *
  * IMPORTS:
  *   - ui-dsl.css
@@ -58,8 +58,8 @@
  *   ui-contract.css
  *     owns the stable vocabulary features may rely upon.
  *
- *   lancer-frame-helm.css
- *     owns composition of the primary Frame Helm application.
+ *   lancer-frame-conn.css
+ *     owns composition of the primary Frame Conn application.
  *
  *   feature CSS
  *     owns only the styling unique to that feature.
@@ -75,22 +75,22 @@
  *
  * PUBLIC CONTRACT ATTRIBUTES:
  *
- *   data-frame-helm-ui-feature
- *   data-frame-helm-ui-slot
- *   data-frame-helm-ui-surface
- *   data-frame-helm-ui-section
- *   data-frame-helm-ui-layout
- *   data-frame-helm-ui-card
- *   data-frame-helm-ui-metric
- *   data-frame-helm-ui-detail
- *   data-frame-helm-ui-notice
- *   data-frame-helm-ui-control
- *   data-frame-helm-ui-scroll
- *   data-frame-helm-ui-state
+ *   data-frame-conn-ui-feature
+ *   data-frame-conn-ui-slot
+ *   data-frame-conn-ui-surface
+ *   data-frame-conn-ui-section
+ *   data-frame-conn-ui-layout
+ *   data-frame-conn-ui-card
+ *   data-frame-conn-ui-metric
+ *   data-frame-conn-ui-detail
+ *   data-frame-conn-ui-notice
+ *   data-frame-conn-ui-control
+ *   data-frame-conn-ui-scroll
+ *   data-frame-conn-ui-state
  *
  * These attributes are deliberately semantic rather than tied to
  * any individual domain. New feature packages may therefore plug
- * into Frame Helm through the same UI construction vocabulary.
+ * into Frame Conn through the same UI construction vocabulary.
  */
 
 @import "./ui-dsl.css";
@@ -106,17 +106,17 @@
  * Visual identity remains owned by ui-dsl.css.
  */
 
-.lancer-frame-helm {
-  --fh-ui-contract-gap-xs: 0.25rem;
-  --fh-ui-contract-gap-sm: 0.5rem;
-  --fh-ui-contract-gap-md: 0.75rem;
-  --fh-ui-contract-gap-lg: 1rem;
+.lancer-frame-conn {
+  --fc-ui-contract-gap-xs: 0.25rem;
+  --fc-ui-contract-gap-sm: 0.5rem;
+  --fc-ui-contract-gap-md: 0.75rem;
+  --fc-ui-contract-gap-lg: 1rem;
 
-  --fh-ui-contract-control-min-height: 2.35rem;
-  --fh-ui-contract-card-min-height: 4rem;
-  --fh-ui-contract-notice-min-height: 3rem;
+  --fc-ui-contract-control-min-height: 2.35rem;
+  --fc-ui-contract-card-min-height: 4rem;
+  --fc-ui-contract-notice-min-height: 3rem;
 
-  --fh-ui-contract-narrow-breakpoint: 820px;
+  --fc-ui-contract-narrow-breakpoint: 820px;
 }
 
 
@@ -127,13 +127,13 @@
 /**
  * A registered UI feature may use:
  *
- *   data-frame-helm-ui-feature="<feature-id>"
+ *   data-frame-conn-ui-feature="<feature-id>"
  *
  * The feature root is always expected to be able to shrink inside
  * Grid/Flex containers without overflowing its host.
  */
 
-[data-frame-helm-ui-feature] {
+[data-frame-conn-ui-feature] {
   box-sizing: border-box;
 
   width: 100%;
@@ -147,8 +147,8 @@
    UI Contract -- Feature visibility
    ============================================================ */
 
-[data-frame-helm-ui-feature][hidden],
-[data-frame-helm-ui-state~="hidden"] {
+[data-frame-conn-ui-feature][hidden],
+[data-frame-conn-ui-state~="hidden"] {
   display: none !important;
 }
 
@@ -164,15 +164,15 @@
  *
  * Examples:
  *
- *   data-frame-helm-ui-slot="overview"
- *   data-frame-helm-ui-slot="actions"
- *   data-frame-helm-ui-slot="telemetry"
- *   data-frame-helm-ui-slot="plan"
- *   data-frame-helm-ui-slot="detail"
- *   data-frame-helm-ui-slot="footer"
+ *   data-frame-conn-ui-slot="overview"
+ *   data-frame-conn-ui-slot="actions"
+ *   data-frame-conn-ui-slot="telemetry"
+ *   data-frame-conn-ui-slot="plan"
+ *   data-frame-conn-ui-slot="detail"
+ *   data-frame-conn-ui-slot="footer"
  */
 
-[data-frame-helm-ui-slot] {
+[data-frame-conn-ui-slot] {
   box-sizing: border-box;
 
   min-width: 0;
@@ -192,21 +192,21 @@
  *
  * Example:
  *
- *   <section data-frame-helm-ui-surface="panel">
+ *   <section data-frame-conn-ui-surface="panel">
  */
 
-[data-frame-helm-ui-surface="panel"] {
+[data-frame-conn-ui-surface="panel"] {
   box-sizing: border-box;
 
   min-width: 0;
 
   border:
-    1px solid var(--fh-line);
+    1px solid var(--fc-line);
 
   border-radius: 0;
 
   background:
-    var(--fh-surface-background);
+    var(--fc-surface-background);
 
   box-shadow:
     inset 0 0 16px rgba(0, 0, 0, 0.45),
@@ -218,18 +218,18 @@
    UI Contract -- Inset surface
    ============================================================ */
 
-[data-frame-helm-ui-surface="inset"] {
+[data-frame-conn-ui-surface="inset"] {
   box-sizing: border-box;
 
   min-width: 0;
 
   border:
-    1px solid var(--fh-cyan-muted);
+    1px solid var(--fc-cyan-muted);
 
   border-radius: 0;
 
   background:
-    var(--fh-cell-background);
+    var(--fc-cell-background);
 }
 
 
@@ -237,7 +237,7 @@
    UI Contract -- Transparent surface
    ============================================================ */
 
-[data-frame-helm-ui-surface="transparent"] {
+[data-frame-conn-ui-surface="transparent"] {
   min-width: 0;
 
   border: 0;
@@ -256,7 +256,7 @@
  * Standard vertical feature section.
  */
 
-[data-frame-helm-ui-section] {
+[data-frame-conn-ui-section] {
   box-sizing: border-box;
 
   display: flex;
@@ -265,7 +265,7 @@
   min-width: 0;
   min-height: 0;
 
-  gap: var(--fh-ui-contract-gap-md);
+  gap: var(--fc-ui-contract-gap-md);
 }
 
 
@@ -278,7 +278,7 @@
  * inheriting knowledge of a specific action domain.
  */
 
-[data-frame-helm-ui-section] > .frame-helm-section-heading {
+[data-frame-conn-ui-section] > .frame-conn-section-heading {
   flex: 0 0 auto;
 }
 
@@ -287,14 +287,14 @@
    UI Contract -- Layout: stack
    ============================================================ */
 
-[data-frame-helm-ui-layout="stack"] {
+[data-frame-conn-ui-layout="stack"] {
   display: flex;
   flex-direction: column;
 
   min-width: 0;
   min-height: 0;
 
-  gap: var(--fh-ui-contract-gap-md);
+  gap: var(--fc-ui-contract-gap-md);
 }
 
 
@@ -302,13 +302,13 @@
    UI Contract -- Layout: row
    ============================================================ */
 
-[data-frame-helm-ui-layout="row"] {
+[data-frame-conn-ui-layout="row"] {
   display: flex;
   align-items: center;
 
   min-width: 0;
 
-  gap: var(--fh-ui-contract-gap-md);
+  gap: var(--fc-ui-contract-gap-md);
 }
 
 
@@ -316,14 +316,14 @@
    UI Contract -- Layout: wrapping row
    ============================================================ */
 
-[data-frame-helm-ui-layout="wrap"] {
+[data-frame-conn-ui-layout="wrap"] {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
 
   min-width: 0;
 
-  gap: var(--fh-ui-contract-gap-sm);
+  gap: var(--fc-ui-contract-gap-sm);
 }
 
 
@@ -331,7 +331,7 @@
    UI Contract -- Layout: two-column grid
    ============================================================ */
 
-[data-frame-helm-ui-layout="two-column"] {
+[data-frame-conn-ui-layout="two-column"] {
   display: grid;
 
   grid-template-columns:
@@ -341,7 +341,7 @@
 
   min-width: 0;
 
-  gap: var(--fh-ui-contract-gap-sm);
+  gap: var(--fc-ui-contract-gap-sm);
 }
 
 
@@ -354,7 +354,7 @@
  * action panel's exact two-column composition.
  */
 
-[data-frame-helm-ui-layout="auto-grid"] {
+[data-frame-conn-ui-layout="auto-grid"] {
   display: grid;
 
   grid-template-columns:
@@ -367,7 +367,7 @@
 
   min-width: 0;
 
-  gap: var(--fh-ui-contract-gap-sm);
+  gap: var(--fc-ui-contract-gap-sm);
 }
 
 
@@ -375,7 +375,7 @@
    UI Contract -- Flexible child
    ============================================================ */
 
-[data-frame-helm-ui-state~="grow"] {
+[data-frame-conn-ui-state~="grow"] {
   flex: 1 1 auto;
 
   min-width: 0;
@@ -387,7 +387,7 @@
    UI Contract -- Fixed child
    ============================================================ */
 
-[data-frame-helm-ui-state~="fixed"] {
+[data-frame-conn-ui-state~="fixed"] {
   flex: 0 0 auto;
 }
 
@@ -399,12 +399,12 @@
 /**
  * Public selectable-card shape for feature-provided choices.
  *
- * ui-dsl.css continues to own the established Frame Helm button
+ * ui-dsl.css continues to own the established Frame Conn button
  * implementations. This selector makes the same structural
  * contract available to future feature packages.
  */
 
-[data-frame-helm-ui-card="choice"] {
+[data-frame-conn-ui-card="choice"] {
   box-sizing: border-box;
 
   display: flex;
@@ -416,23 +416,23 @@
   height: auto;
 
   min-width: 0;
-  min-height: var(--fh-ui-contract-card-min-height);
+  min-height: var(--fc-ui-contract-card-min-height);
 
   gap: 0.7rem;
 
   margin: 0;
 
   border:
-    1px solid var(--fh-cyan-muted);
+    1px solid var(--fc-cyan-muted);
 
   border-radius: 0;
 
   background:
-    var(--fh-button-background);
+    var(--fc-button-background);
 
   padding: 0.65rem 0.7rem;
 
-  color: var(--fh-text);
+  color: var(--fc-text);
 
   cursor: pointer;
 
@@ -449,18 +449,18 @@
    UI Contract -- Selectable card hover
    ============================================================ */
 
-[data-frame-helm-ui-card="choice"]:hover:not(:disabled) {
+[data-frame-conn-ui-card="choice"]:hover:not(:disabled) {
   border-color:
-    var(--fh-cyan);
+    var(--fc-cyan);
 
   background:
-    var(--fh-button-hover-background);
+    var(--fc-button-hover-background);
 
   color:
-    var(--fh-cyan-bright);
+    var(--fc-cyan-bright);
 
   box-shadow:
-    inset 4px 0 0 var(--fh-cyan),
+    inset 4px 0 0 var(--fc-cyan),
     0 0 12px rgba(60, 228, 224, 0.16);
 }
 
@@ -469,9 +469,9 @@
    UI Contract -- Selectable card disabled
    ============================================================ */
 
-[data-frame-helm-ui-card="choice"]:disabled,
-[data-frame-helm-ui-card="choice"][aria-disabled="true"],
-[data-frame-helm-ui-state~="disabled"] {
+[data-frame-conn-ui-card="choice"]:disabled,
+[data-frame-conn-ui-card="choice"][aria-disabled="true"],
+[data-frame-conn-ui-state~="disabled"] {
   cursor: not-allowed;
 
   filter: grayscale(0.65);
@@ -484,7 +484,7 @@
    UI Contract -- Card leading icon
    ============================================================ */
 
-[data-frame-helm-ui-card="choice"]
+[data-frame-conn-ui-card="choice"]
 > i:first-child {
   flex: 0 0 1.7rem;
 
@@ -493,7 +493,7 @@
   margin-top: 0.2rem;
 
   color:
-    var(--fh-cyan);
+    var(--fc-cyan);
 
   font-size: 1.1rem;
 
@@ -513,10 +513,10 @@
  *
  * Feature markup may use:
  *
- *   data-frame-helm-ui-card-copy
+ *   data-frame-conn-ui-card-copy
  */
 
-[data-frame-helm-ui-card-copy] {
+[data-frame-conn-ui-card-copy] {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -533,13 +533,13 @@
    UI Contract -- Card primary copy
    ============================================================ */
 
-[data-frame-helm-ui-card-copy] > strong {
+[data-frame-conn-ui-card-copy] > strong {
   display: block;
 
   width: 100%;
 
   color:
-    var(--fh-text);
+    var(--fc-text);
 
   font-family: monospace;
 
@@ -555,7 +555,7 @@
    UI Contract -- Card secondary copy
    ============================================================ */
 
-[data-frame-helm-ui-card-copy] > small {
+[data-frame-conn-ui-card-copy] > small {
   display: block;
 
   width: 100%;
@@ -563,7 +563,7 @@
   margin-top: 0.25rem;
 
   color:
-    var(--fh-text-muted);
+    var(--fc-text-muted);
 
   line-height: 1.35;
 
@@ -576,7 +576,7 @@
    UI Contract -- Metric collection
    ============================================================ */
 
-[data-frame-helm-ui-metric="grid"] {
+[data-frame-conn-ui-metric="grid"] {
   display: grid;
 
   grid-template-columns:
@@ -592,7 +592,7 @@
    UI Contract -- Metric cell
    ============================================================ */
 
-[data-frame-helm-ui-metric="cell"] {
+[data-frame-conn-ui-metric="cell"] {
   display: flex;
   flex-direction: column;
 
@@ -601,12 +601,12 @@
   gap: 0.1rem;
 
   border:
-    1px solid var(--fh-cyan-muted);
+    1px solid var(--fc-cyan-muted);
 
   border-radius: 0;
 
   background:
-    var(--fh-cell-background);
+    var(--fc-cell-background);
 
   padding: 0.5rem;
 }
@@ -616,9 +616,9 @@
    UI Contract -- Metric label
    ============================================================ */
 
-[data-frame-helm-ui-metric="cell"] > span {
+[data-frame-conn-ui-metric="cell"] > span {
   color:
-    var(--fh-text-muted);
+    var(--fc-text-muted);
 
   font-family: monospace;
   font-weight: 700;
@@ -633,9 +633,9 @@
    UI Contract -- Metric value
    ============================================================ */
 
-[data-frame-helm-ui-metric="cell"] > strong {
+[data-frame-conn-ui-metric="cell"] > strong {
   color:
-    var(--fh-cyan-bright);
+    var(--fc-cyan-bright);
 
   font-family: monospace;
 }
@@ -645,7 +645,7 @@
    UI Contract -- Detail view
    ============================================================ */
 
-[data-frame-helm-ui-detail] {
+[data-frame-conn-ui-detail] {
   box-sizing: border-box;
 
   display: flex;
@@ -664,7 +664,7 @@
    UI Contract -- Detail header
    ============================================================ */
 
-[data-frame-helm-ui-detail-header] {
+[data-frame-conn-ui-detail-header] {
   display: flex;
   align-items: flex-start;
 
@@ -678,7 +678,7 @@
    UI Contract -- Detail header icon
    ============================================================ */
 
-[data-frame-helm-ui-detail-header]
+[data-frame-conn-ui-detail-header]
 > i:first-child {
   flex: 0 0 2rem;
 
@@ -687,7 +687,7 @@
   margin-top: 0.1rem;
 
   color:
-    var(--fh-cyan);
+    var(--fc-cyan);
 
   font-size: 1.5rem;
 
@@ -702,15 +702,15 @@
    UI Contract -- Detail heading copy
    ============================================================ */
 
-[data-frame-helm-ui-detail-header] > div {
+[data-frame-conn-ui-detail-header] > div {
   min-width: 0;
 }
 
-[data-frame-helm-ui-detail-header] h3 {
+[data-frame-conn-ui-detail-header] h3 {
   margin: 0;
 
   color:
-    var(--fh-text);
+    var(--fc-text);
 
   font-family: monospace;
   font-size: 1.15rem;
@@ -718,12 +718,12 @@
   letter-spacing: 0.025em;
 }
 
-[data-frame-helm-ui-detail-header] p {
+[data-frame-conn-ui-detail-header] p {
   margin:
     0.2rem 0 0;
 
   color:
-    var(--fh-text-muted);
+    var(--fc-text-muted);
 
   font-size: 0.8rem;
 
@@ -739,10 +739,10 @@
  * General feature notice.
  *
  * Tone may be declared separately through
- * data-frame-helm-ui-state.
+ * data-frame-conn-ui-state.
  */
 
-[data-frame-helm-ui-notice] {
+[data-frame-conn-ui-notice] {
   box-sizing: border-box;
 
   display: flex;
@@ -755,12 +755,12 @@
 
   min-width: 0;
   min-height:
-    var(--fh-ui-contract-notice-min-height);
+    var(--fc-ui-contract-notice-min-height);
 
   gap: 0.55rem;
 
   border:
-    1px dashed var(--fh-cyan-muted);
+    1px dashed var(--fc-cyan-muted);
 
   border-radius: 0;
 
@@ -770,7 +770,7 @@
   padding: 0.55rem;
 
   color:
-    var(--fh-text-muted);
+    var(--fc-text-muted);
 
   font-size: 0.75rem;
 
@@ -784,8 +784,8 @@
    UI Contract -- Notice copy
    ============================================================ */
 
-[data-frame-helm-ui-notice] > span,
-[data-frame-helm-ui-notice] > p {
+[data-frame-conn-ui-notice] > span,
+[data-frame-conn-ui-notice] > p {
   min-width: 0;
 
   margin-top: 0;
@@ -800,12 +800,12 @@
    UI Contract -- Informational state
    ============================================================ */
 
-[data-frame-helm-ui-state~="info"] {
-  --fh-ui-state-color:
-    var(--fh-cyan);
+[data-frame-conn-ui-state~="info"] {
+  --fc-ui-state-color:
+    var(--fc-cyan);
 
-  --fh-ui-state-muted:
-    var(--fh-cyan-muted);
+  --fc-ui-state-muted:
+    var(--fc-cyan-muted);
 }
 
 
@@ -813,12 +813,12 @@
    UI Contract -- Warning state
    ============================================================ */
 
-[data-frame-helm-ui-state~="warning"] {
-  --fh-ui-state-color:
-    var(--fh-amber);
+[data-frame-conn-ui-state~="warning"] {
+  --fc-ui-state-color:
+    var(--fc-amber);
 
-  --fh-ui-state-muted:
-    var(--fh-amber-muted);
+  --fc-ui-state-muted:
+    var(--fc-amber-muted);
 }
 
 
@@ -826,11 +826,11 @@
    UI Contract -- Danger state
    ============================================================ */
 
-[data-frame-helm-ui-state~="danger"] {
-  --fh-ui-state-color:
-    var(--fh-red);
+[data-frame-conn-ui-state~="danger"] {
+  --fc-ui-state-color:
+    var(--fc-red);
 
-  --fh-ui-state-muted:
+  --fc-ui-state-muted:
     rgba(255, 93, 103, 0.4);
 }
 
@@ -839,11 +839,11 @@
    UI Contract -- Success state
    ============================================================ */
 
-[data-frame-helm-ui-state~="success"] {
-  --fh-ui-state-color:
+[data-frame-conn-ui-state~="success"] {
+  --fc-ui-state-color:
     #65d88a;
 
-  --fh-ui-state-muted:
+  --fc-ui-state-muted:
     rgba(101, 216, 138, 0.36);
 }
 
@@ -852,20 +852,20 @@
    UI Contract -- State-accented surface
    ============================================================ */
 
-[data-frame-helm-ui-state~="info"],
-[data-frame-helm-ui-state~="warning"],
-[data-frame-helm-ui-state~="danger"],
-[data-frame-helm-ui-state~="success"] {
-  --fh-ui-effective-state-color:
+[data-frame-conn-ui-state~="info"],
+[data-frame-conn-ui-state~="warning"],
+[data-frame-conn-ui-state~="danger"],
+[data-frame-conn-ui-state~="success"] {
+  --fc-ui-effective-state-color:
     var(
-      --fh-ui-state-color,
-      var(--fh-cyan)
+      --fc-ui-state-color,
+      var(--fc-cyan)
     );
 
-  --fh-ui-effective-state-muted:
+  --fc-ui-effective-state-muted:
     var(
-      --fh-ui-state-muted,
-      var(--fh-cyan-muted)
+      --fc-ui-state-muted,
+      var(--fc-cyan-muted)
     );
 }
 
@@ -874,18 +874,18 @@
    UI Contract -- Accented notice state
    ============================================================ */
 
-[data-frame-helm-ui-notice]
-[data-frame-helm-ui-state] {
+[data-frame-conn-ui-notice]
+[data-frame-conn-ui-state] {
   border-color:
     var(
-      --fh-ui-effective-state-muted,
-      var(--fh-cyan-muted)
+      --fc-ui-effective-state-muted,
+      var(--fc-cyan-muted)
     );
 
   border-left:
     3px solid var(
-      --fh-ui-effective-state-color,
-      var(--fh-cyan)
+      --fc-ui-effective-state-color,
+      var(--fc-cyan)
     );
 }
 
@@ -894,14 +894,14 @@
    UI Contract -- Selected state
    ============================================================ */
 
-[data-frame-helm-ui-state~="selected"] {
+[data-frame-conn-ui-state~="selected"] {
   outline:
-    1px solid var(--fh-amber);
+    1px solid var(--fc-amber);
 
   outline-offset: -2px;
 
   box-shadow:
-    inset 4px 0 0 var(--fh-amber),
+    inset 4px 0 0 var(--fc-amber),
     0 0 12px rgba(255, 184, 74, 0.18);
 }
 
@@ -910,7 +910,7 @@
    UI Contract -- Pending state
    ============================================================ */
 
-[data-frame-helm-ui-state~="pending"] {
+[data-frame-conn-ui-state~="pending"] {
   opacity: 0.72;
 }
 
@@ -919,7 +919,7 @@
    UI Contract -- Unavailable state
    ============================================================ */
 
-[data-frame-helm-ui-state~="unavailable"] {
+[data-frame-conn-ui-state~="unavailable"] {
   opacity: 0.55;
 }
 
@@ -928,7 +928,7 @@
    UI Contract -- Executed state
    ============================================================ */
 
-[data-frame-helm-ui-state~="executed"] {
+[data-frame-conn-ui-state~="executed"] {
   border-color:
     #65d88a;
 
@@ -941,24 +941,24 @@
    UI Contract -- Primary control
    ============================================================ */
 
-[data-frame-helm-ui-control] {
+[data-frame-conn-ui-control] {
   box-sizing: border-box;
 
   min-height:
-    var(--fh-ui-contract-control-min-height);
+    var(--fc-ui-contract-control-min-height);
 
   margin: 0;
 
   border:
-    1px solid var(--fh-cyan-muted);
+    1px solid var(--fc-cyan-muted);
 
   border-radius: 0;
 
   background:
-    var(--fh-button-background);
+    var(--fc-button-background);
 
   color:
-    var(--fh-text);
+    var(--fc-text);
 
   cursor: pointer;
 
@@ -971,15 +971,15 @@
    UI Contract -- Control hover
    ============================================================ */
 
-[data-frame-helm-ui-control]:hover:not(:disabled) {
+[data-frame-conn-ui-control]:hover:not(:disabled) {
   border-color:
-    var(--fh-cyan);
+    var(--fc-cyan);
 
   background:
-    var(--fh-button-hover-background);
+    var(--fc-button-hover-background);
 
   color:
-    var(--fh-cyan-bright);
+    var(--fc-cyan-bright);
 }
 
 
@@ -987,7 +987,7 @@
    UI Contract -- Disabled control
    ============================================================ */
 
-[data-frame-helm-ui-control]:disabled {
+[data-frame-conn-ui-control]:disabled {
   cursor: not-allowed;
 
   filter: grayscale(0.65);
@@ -1000,7 +1000,7 @@
    UI Contract -- Destructive control
    ============================================================ */
 
-[data-frame-helm-ui-control="danger"] {
+[data-frame-conn-ui-control="danger"] {
   border-color:
     rgba(255, 93, 103, 0.52);
 
@@ -1008,18 +1008,18 @@
     #ffd9dc;
 
   box-shadow:
-    inset 3px 0 0 var(--fh-red);
+    inset 3px 0 0 var(--fc-red);
 }
 
-[data-frame-helm-ui-control="danger"]:hover:not(:disabled) {
+[data-frame-conn-ui-control="danger"]:hover:not(:disabled) {
   border-color:
-    var(--fh-red);
+    var(--fc-red);
 
   color:
     #ffffff;
 
   box-shadow:
-    inset 4px 0 0 var(--fh-red),
+    inset 4px 0 0 var(--fc-red),
     0 0 12px rgba(255, 93, 103, 0.22);
 }
 
@@ -1033,7 +1033,7 @@
  * standard cockpit scrollbar contract.
  */
 
-[data-frame-helm-ui-scroll="vertical"] {
+[data-frame-conn-ui-scroll="vertical"] {
   min-height: 0;
 
   overflow-y: auto;
@@ -1044,11 +1044,11 @@
   scrollbar-width: thin;
 
   scrollbar-color:
-    var(--fh-cyan)
-    var(--fh-scrollbar-track);
+    var(--fc-cyan)
+    var(--fc-scrollbar-track);
 }
 
-[data-frame-helm-ui-scroll="horizontal"] {
+[data-frame-conn-ui-scroll="horizontal"] {
   min-width: 0;
 
   overflow-x: auto;
@@ -1057,8 +1057,8 @@
   scrollbar-width: thin;
 
   scrollbar-color:
-    var(--fh-cyan)
-    var(--fh-scrollbar-track);
+    var(--fc-cyan)
+    var(--fc-scrollbar-track);
 }
 
 
@@ -1066,7 +1066,7 @@
    UI Contract -- Vertical WebKit scrollbar
    ============================================================ */
 
-[data-frame-helm-ui-scroll="vertical"]::-webkit-scrollbar {
+[data-frame-conn-ui-scroll="vertical"]::-webkit-scrollbar {
   width: 9px;
 }
 
@@ -1075,7 +1075,7 @@
    UI Contract -- Horizontal WebKit scrollbar
    ============================================================ */
 
-[data-frame-helm-ui-scroll="horizontal"]::-webkit-scrollbar {
+[data-frame-conn-ui-scroll="horizontal"]::-webkit-scrollbar {
   height: 7px;
 }
 
@@ -1084,9 +1084,9 @@
    UI Contract -- WebKit scrollbar track
    ============================================================ */
 
-[data-frame-helm-ui-scroll]::-webkit-scrollbar-track {
+[data-frame-conn-ui-scroll]::-webkit-scrollbar-track {
   background:
-    var(--fh-scrollbar-track);
+    var(--fc-scrollbar-track);
 }
 
 
@@ -1094,12 +1094,12 @@
    UI Contract -- WebKit scrollbar thumb
    ============================================================ */
 
-[data-frame-helm-ui-scroll]::-webkit-scrollbar-thumb {
+[data-frame-conn-ui-scroll]::-webkit-scrollbar-thumb {
   border:
-    2px solid var(--fh-scrollbar-border);
+    2px solid var(--fc-scrollbar-border);
 
   background:
-    var(--fh-cyan);
+    var(--fc-cyan);
 }
 
 
@@ -1107,7 +1107,7 @@
    UI Contract -- Empty state
    ============================================================ */
 
-[data-frame-helm-ui-state~="empty"] {
+[data-frame-conn-ui-state~="empty"] {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1118,12 +1118,12 @@
   gap: 0.6rem;
 
   border:
-    1px dashed var(--fh-cyan-muted);
+    1px dashed var(--fc-cyan-muted);
 
   padding: 1rem;
 
   color:
-    var(--fh-text-muted);
+    var(--fc-text-muted);
 
   text-align: center;
 }
@@ -1138,8 +1138,8 @@
  * than the application window.
  */
 
-[data-frame-helm-ui-feature] *,
-[data-frame-helm-ui-slot] * {
+[data-frame-conn-ui-feature] *,
+[data-frame-conn-ui-slot] * {
   box-sizing: border-box;
 }
 
@@ -1152,23 +1152,23 @@
  * This does not decide feature-specific responsive composition.
  *
  * It merely guarantees that generic contract layouts remain usable
- * when the Frame Helm window becomes narrow.
+ * when the Frame Conn window becomes narrow.
  */
 
 @media (max-width: 820px) {
-  [data-frame-helm-ui-layout="two-column"],
-  [data-frame-helm-ui-metric="grid"] {
+  [data-frame-conn-ui-layout="two-column"],
+  [data-frame-conn-ui-metric="grid"] {
     grid-template-columns: 1fr;
   }
 
-  [data-frame-helm-ui-layout="row"][data-frame-helm-ui-state~="responsive"] {
+  [data-frame-conn-ui-layout="row"][data-frame-conn-ui-state~="responsive"] {
     flex-direction: column;
     align-items: stretch;
   }
 
-  [data-frame-helm-ui-feature],
-  [data-frame-helm-ui-section],
-  [data-frame-helm-ui-detail] {
+  [data-frame-conn-ui-feature],
+  [data-frame-conn-ui-section],
+  [data-frame-conn-ui-detail] {
     width: 100%;
 
     max-width: none;

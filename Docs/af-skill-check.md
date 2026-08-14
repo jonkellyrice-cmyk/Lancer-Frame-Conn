@@ -24,11 +24,11 @@
 
 **Native `hase` semantic SynergyLocation:** Found.
 
-**Frame Helm implementation status:** Frame Helm should own the universal Skill Check Full Action, Full Action expenditure, HASE selection, committed-plan execution, and authoritative actor resolution while delegating the actual chosen HASE roll directly to native `actor.beginStatFlow(...)` / `StatRollFlow`.
+**Frame Conn implementation status:** Frame Conn should own the universal Skill Check Full Action, Full Action expenditure, HASE selection, committed-plan execution, and authoritative actor resolution while delegating the actual chosen HASE roll directly to native `actor.beginStatFlow(...)` / `StatRollFlow`.
 
 ## Purpose
 
-This document records the native Foundry Lancer findings relevant to the universal **Skill Check** Full Action and defines the intended Frame Helm integration boundary.
+This document records the native Foundry Lancer findings relevant to the universal **Skill Check** Full Action and defines the intended Frame Conn integration boundary.
 
 Repository investigation did not reveal a dedicated executable Skill Check flow such as:
 
@@ -53,11 +53,11 @@ and the native mech sheet uses that flow directly for:
 
 Therefore:
 
-> Frame Helm should not create a custom Skill Check roller.
+> Frame Conn should not create a custom Skill Check roller.
 
 Instead:
 
-> Frame Helm should provide the player-facing Skill Check action and delegate the selected HASE roll to the same native stat-roll entry point used by the character sheet.
+> Frame Conn should provide the player-facing Skill Check action and delegate the selected HASE roll to the same native stat-roll entry point used by the character sheet.
 
 —
 
@@ -65,7 +65,7 @@ Instead:
 
 Skill Check is a **Full Action**.
 
-For Frame Helm’s mech-facing universal action, the player should be able to choose one of the four mech HASE stats:
+For Frame Conn’s mech-facing universal action, the player should be able to choose one of the four mech HASE stats:
 
 - Hull;
 - Agility;
@@ -108,7 +108,7 @@ actor
 → `StatRollFlow`
 → native check resolution
 
-This is the correct native entry point for Frame Helm Skill Check execution.
+This is the correct native entry point for Frame Conn Skill Check execution.
 
 —
 
@@ -121,7 +121,7 @@ The discovered native stat-roll sequence is:
 → `rollCheck`
 → `printStatRollCard`
 
-This gives Frame Helm the complete lower-level check execution it needs.
+This gives Frame Conn the complete lower-level check execution it needs.
 
 Native Lancer already owns:
 
@@ -132,7 +132,7 @@ Native Lancer already owns:
 - roll evaluation;
 - native chat-card output.
 
-Frame Helm should preserve this.
+Frame Conn should preserve this.
 
 —
 
@@ -178,7 +178,7 @@ and:
 
 `system.sys`
 
-Therefore Frame Helm should use:
+Therefore Frame Conn should use:
 
 `system.hull`
 
@@ -210,7 +210,7 @@ Systems button
 Engineering button
 → `actor.beginStatFlow(“system.eng”)`
 
-Frame Helm should deliberately mirror this native execution path.
+Frame Conn should deliberately mirror this native execution path.
 
 —
 
@@ -224,7 +224,7 @@ Conceptually:
 
 Therefore:
 
-Frame Helm does not need to read the stat numerically and manually insert it into a roll formula.
+Frame Conn does not need to read the stat numerically and manually insert it into a roll formula.
 
 The native flow should resolve the actor’s current value.
 
@@ -236,7 +236,7 @@ The native stat-roll flow opens the HASE Accuracy/Difficulty HUD.
 
 This provides the same manual modifier input available from the native character sheet.
 
-Therefore the first Frame Helm implementation can preserve the native popup exactly.
+Therefore the first Frame Conn implementation can preserve the native popup exactly.
 
 Conceptually:
 
@@ -266,7 +266,7 @@ Conceptually:
 
 with the appropriate sign/handling according to the native check engine.
 
-Frame Helm should not reproduce this formula manually in the initial implementation.
+Frame Conn should not reproduce this formula manually in the initial implementation.
 
 —
 
@@ -274,9 +274,9 @@ Frame Helm should not reproduce this formula manually in the initial implementat
 
 The native flow evaluates the Roll itself.
 
-Frame Helm should treat the resulting native flow as the mechanical execution of the check.
+Frame Conn should treat the resulting native flow as the mechanical execution of the check.
 
-Do not create a second Frame Helm dice roller and then print a duplicate result.
+Do not create a second Frame Conn dice roller and then print a duplicate result.
 
 —
 
@@ -286,7 +286,7 @@ The flow prints a native stat-roll chat card using the native stat-roll template
 
 Therefore Skill Check can immediately behave like the character sheet.
 
-This is exactly the desired integration principle for Frame Helm:
+This is exactly the desired integration principle for Frame Conn:
 
 alternate player-facing presentation
 → native Lancer execution
@@ -314,7 +314,7 @@ The native semantic/synergy vocabulary includes:
 
 This means actor-owned structured content may be able to reference generic Skill Checks.
 
-Frame Helm should preserve the universal Skill Check semantic identity for future trigger/modifier integration.
+Frame Conn should preserve the universal Skill Check semantic identity for future trigger/modifier integration.
 
 —
 
@@ -324,7 +324,7 @@ The native semantic vocabulary also includes:
 
 `hase`
 
-This is useful because Frame Helm’s mech Skill Check action specifically performs HASE checks.
+This is useful because Frame Conn’s mech Skill Check action specifically performs HASE checks.
 
 Future actor-owned content may distinguish:
 
@@ -334,7 +334,7 @@ from:
 
 HASE check.
 
-Frame Helm should preserve enough semantic context to support this distinction.
+Frame Conn should preserve enough semantic context to support this distinction.
 
 —
 
@@ -349,11 +349,11 @@ Relevant semantic concepts include:
 - Systems;
 - Engineering.
 
-Therefore Frame Helm’s execution context should preserve which specific HASE stat was chosen.
+Therefore Frame Conn’s execution context should preserve which specific HASE stat was chosen.
 
 —
 
-# 17. Frame Helm Skill Check Selector
+# 17. Frame Conn Skill Check Selector
 
 The universal Full Action should likely present:
 
@@ -399,7 +399,7 @@ not:
 
 # 19. Committed Plan Integration
 
-A clean Frame Helm approach is:
+A clean Frame Conn approach is:
 
 Player selects Skill Check
 → chooses HASE during commitment or execution
@@ -515,13 +515,13 @@ The same native roll engine can have multiple parent contexts.
 
 # 26. Parent Action Economy
 
-Frame Helm owns:
+Frame Conn owns:
 
 **one Full Action expenditure**
 
 for Skill Check.
 
-The native StatRollFlow should not independently consume Frame Helm action budget.
+The native StatRollFlow should not independently consume Frame Conn action budget.
 
 Conceptually:
 
@@ -535,7 +535,7 @@ Native stat roll
 
 # 27. Native Action Tracker
 
-If native actor action-tracker state is synchronized with Frame Helm, the Full Action expenditure may also need to be reflected there.
+If native actor action-tracker state is synchronized with Frame Conn, the Full Action expenditure may also need to be reflected there.
 
 That should be handled through the central Turn/native-state reconciliation layer.
 
@@ -545,7 +545,7 @@ Do not add Skill Check-specific action-tracker mutation inside the stat-roll ada
 
 # 28. Duplicate Action Rules
 
-Skill Check should use the normal Frame Helm action identity for duplicate-action restrictions.
+Skill Check should use the normal Frame Conn action identity for duplicate-action restrictions.
 
 Conceptually:
 
@@ -594,33 +594,33 @@ Relevant source categories include:
 - Pilot Talents;
 - Manufacturer Core Bonuses.
 
-Where native structured effects feed the native stat/check machinery, Frame Helm should preserve that native behavior.
+Where native structured effects feed the native stat/check machinery, Frame Conn should preserve that native behavior.
 
 —
 
 # 32. Do Not Parse Prose First
 
-Because Frame Helm can delegate the actual roll to native StatRollFlow, many structured/native modifiers should already participate.
+Because Frame Conn can delegate the actual roll to native StatRollFlow, many structured/native modifiers should already participate.
 
 Preferred hierarchy:
 
 1. native actor stat;
 2. native structured effects;
 3. native HASE/Skill Check semantic metadata;
-4. explicit Frame Helm adapters;
+4. explicit Frame Conn adapters;
 5. prose interpretation only where unavoidable.
 
 —
 
 # 33. Future Automated Skill Check
 
-Eventually Frame Helm may bypass the native HASE popup.
+Eventually Frame Conn may bypass the native HASE popup.
 
 Desired mature flow:
 
 Skill Check committed
 → chosen HASE known
-→ Frame Helm derives all Accuracy/Difficulty/flat modifiers
+→ Frame Conn derives all Accuracy/Difficulty/flat modifiers
 → automatically rolls
 → prints result
 → applies any deterministic downstream consequence if the specific action requires one.
@@ -633,7 +633,7 @@ Until modifier automation is complete, preserve native HUD behavior.
 
 # 34. Initial Native Integration
 
-The initial Frame Helm integration should be almost direct.
+The initial Frame Conn integration should be almost direct.
 
 Hull:
 
@@ -703,7 +703,7 @@ The point is to keep path strings out of UI/presentation code.
 
 When the d20 button is clicked:
 
-Frame Helm should re-resolve the authoritative actor.
+Frame Conn should re-resolve the authoritative actor.
 
 Do not assume the actor reference stored at commitment time remains current.
 
@@ -711,7 +711,7 @@ Potential issues include:
 
 - actor deleted;
 - controlled token changed;
-- Frame Helm rebound;
+- Frame Conn rebound;
 - stat changed.
 
 The native flow should use current actor data.
@@ -745,7 +745,7 @@ This is appropriate because circumstances may change after commitment.
 
 # 40. Cancellation
 
-If the player launches the native HASE HUD and cancels, Frame Helm needs a policy for committed-action execution state.
+If the player launches the native HASE HUD and cancels, Frame Conn needs a policy for committed-action execution state.
 
 The action may already have been committed/spent in the plan.
 
@@ -760,7 +760,7 @@ The general committed-action execution policy should handle this rather than Ski
 
 # 41. Flow Result Capture
 
-For future automation and action history, Frame Helm should research whether `StatRollFlow.begin()` returns enough data to inspect:
+For future automation and action history, Frame Conn should research whether `StatRollFlow.begin()` returns enough data to inspect:
 
 - roll total;
 - formula;
@@ -779,7 +779,7 @@ The universal Skill Check action does not inherently define one universal target
 
 The surrounding GM/rule context determines what the check means.
 
-Therefore Frame Helm should not invent:
+Therefore Frame Conn should not invent:
 
 `10+ = success`
 
@@ -795,7 +795,7 @@ perform selected HASE check.
 
 The native stat-roll chat card should remain the initial authoritative visible result.
 
-Frame Helm may additionally annotate committed-plan state as:
+Frame Conn may additionally annotate committed-plan state as:
 
 Executed
 
@@ -805,7 +805,7 @@ but should not duplicate the entire roll in a second custom chat card unless nee
 
 # 44. Semantic Execution Event
 
-Frame Helm may eventually emit semantic context equivalent to:
+Frame Conn may eventually emit semantic context equivalent to:
 
 Skill Check executed
 
@@ -851,7 +851,7 @@ Future bonuses may say things equivalent to:
 - gain Accuracy on Systems checks;
 - gain a bonus when making a Skill Check.
 
-Frame Helm should preserve enough semantic context for these to be applied through native structured data or explicit adapters.
+Frame Conn should preserve enough semantic context for these to be applied through native structured data or explicit adapters.
 
 —
 
@@ -859,7 +859,7 @@ Frame Helm should preserve enough semantic context for these to be applied throu
 
 The intended ownership split is:
 
-**FRAME HELM OWNS:**
+**FRAME CONN OWNS:**
 
 - universal Skill Check Full Action;
 - Full Action expenditure;
@@ -868,7 +868,7 @@ The intended ownership split is:
 - selected HASE identity;
 - authoritative actor resolution;
 - execution button;
-- Frame Helm presentation/history.
+- Frame Conn presentation/history.
 
 **NATIVE LANCER OWNS:**
 
@@ -891,7 +891,7 @@ The intended ownership split is:
 
 No native SkillCheckFlow was found.
 
-Frame Helm should not wrap `StatRollFlow` in terminology suggesting the native system has a dedicated Skill Check workflow when it does not.
+Frame Conn should not wrap `StatRollFlow` in terminology suggesting the native system has a dedicated Skill Check workflow when it does not.
 
 The correct native boundary is:
 
@@ -921,13 +921,13 @@ Then:
 → commit one Full Action
 → committed card shows chosen HASE
 → player clicks d20
-→ Frame Helm resolves authoritative actor
+→ Frame Conn resolves authoritative actor
 → native-system adapter calls `actor.beginStatFlow(path, title)`
 → native `StatRollFlow`
 → native HASE Accuracy/Difficulty HUD
 → native roll
 → native chat card
-→ Frame Helm marks committed Skill Check executed
+→ Frame Conn marks committed Skill Check executed
 → refresh Turn/UI state
 
 —
@@ -979,7 +979,7 @@ Afterward:
 - [ ] Preserve native Accuracy/Difficulty HUD.
 - [ ] Preserve native chat output.
 - [ ] Mark committed action executed after flow resolution.
-- [ ] Refresh Frame Helm Turn/action state.
+- [ ] Refresh Frame Conn Turn/action state.
 - [ ] Preserve semantic `skill_check`.
 - [ ] Preserve semantic `hase`.
 - [ ] Preserve selected HASE subtype.
@@ -1075,11 +1075,11 @@ The authoritative mech HASE paths are:
 
 **Invariant 6**
 
-Frame Helm should not duplicate numeric HASE values.
+Frame Conn should not duplicate numeric HASE values.
 
 **Invariant 7**
 
-Frame Helm owns Full Action expenditure.
+Frame Conn owns Full Action expenditure.
 
 **Invariant 8**
 
@@ -1105,7 +1105,7 @@ SKILL CHECK
 │
 ├── Full Action
 │
-├── Frame Helm selector
+├── Frame Conn selector
 │   │
 │   ├── HULL
 │   │   └── `system.hull`
@@ -1119,7 +1119,7 @@ SKILL CHECK
 │   └── ENGINEERING
 │       └── `system.eng`
 │
-├── Frame Helm
+├── Frame Conn
 │   ├── spend Full Action
 │   ├── preserve chosen HASE
 │   ├── committed-plan execution
@@ -1139,4 +1139,4 @@ The critical architectural rule is:
 
 **Skill Check is already mechanically native through StatRollFlow.**
 
-Frame Helm only needs to supply the Full Action wrapper, HASE selection, and player-facing execution path.
+Frame Conn only needs to supply the Full Action wrapper, HASE selection, and player-facing execution path.

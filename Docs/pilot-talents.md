@@ -50,13 +50,13 @@ const content = String.raw`# Lancer Pilot Talents — Native Repository Integrat
 
 **Native unlocked-rank integrated-equipment flattening:** Not found.
 
-**Frame Helm requirement:** Treat Pilot Talents as structured actor-owned feature sources. Reuse native rank data, bonuses, actions, counters, and generic ActivationFlow where appropriate. Add the missing generalized frequency tracking, counter-resource orchestration, trigger/effect lifecycle, cross-actor resource behavior, and source-specific Talent mechanics.
+**Frame Conn requirement:** Treat Pilot Talents as structured actor-owned feature sources. Reuse native rank data, bonuses, actions, counters, and generic ActivationFlow where appropriate. Add the missing generalized frequency tracking, counter-resource orchestration, trigger/effect lifecycle, cross-actor resource behavior, and source-specific Talent mechanics.
 
 —
 
 # 1. Purpose
 
-This document records the native Foundry Lancer architecture for Pilot Talents and identifies the runtime behavior Frame Helm must provide.
+This document records the native Foundry Lancer architecture for Pilot Talents and identifies the runtime behavior Frame Conn must provide.
 
 Pilot Talents are not merely descriptive rank text.
 
@@ -81,7 +81,7 @@ Structured Talent actions can use generic ActivationFlow, but ordinary Talent fr
 
 Therefore:
 
-> Frame Helm should treat Talents as first-class actor-owned feature definitions over shared action, resource, frequency, trigger, and lifecycle infrastructure.
+> Frame Conn should treat Talents as first-class actor-owned feature definitions over shared action, resource, frequency, trigger, and lifecycle infrastructure.
 
 —
 
@@ -96,7 +96,7 @@ PILOT
 
 The Pilot’s Talent rank and Talent item data are authoritative.
 
-Frame Helm should not copy Talent definitions into separate module-owned content.
+Frame Conn should not copy Talent definitions into separate module-owned content.
 
 —
 
@@ -197,7 +197,7 @@ if (this.is_talent()) {
 }
 \`\`\`
 
-This is extremely useful to Frame Helm.
+This is extremely useful to Frame Conn.
 
 —
 
@@ -209,7 +209,7 @@ All unlocked rank:
 
 are aggregated into the Talent runtime action collection.
 
-Therefore Frame Helm can discover the Talent’s currently unlocked structured actions without manually interpreting rank prose.
+Therefore Frame Conn can discover the Talent’s currently unlocked structured actions without manually interpreting rank prose.
 
 —
 
@@ -223,7 +223,7 @@ are aggregated.
 
 These native bonuses can then feed the normal Lancer bonus system.
 
-Frame Helm should not duplicate them.
+Frame Conn should not duplicate them.
 
 —
 
@@ -251,7 +251,7 @@ are aggregated.
 
 These may encode context-sensitive interactions with actions, attacks, movement, or other game events.
 
-Frame Helm should preserve them for future trigger/modifier integration.
+Frame Conn should preserve them for future trigger/modifier integration.
 
 —
 
@@ -264,7 +264,7 @@ Talent ranks also contain:
 
 However, the unlocked-rank aggregation block traced in the repository does not similarly flatten them into top-level Talent runtime fields.
 
-Therefore Frame Helm should not assume:
+Therefore Frame Conn should not assume:
 
 \`talent.system.integrated\`
 
@@ -324,7 +324,7 @@ Therefore structured Talent bonuses are mechanically native.
 
 Wrong:
 
-Frame Helm reads Talent bonus
+Frame Conn reads Talent bonus
 → manually adds Accuracy
 
 while:
@@ -334,7 +334,7 @@ native bonus engine
 
 Correct:
 
-Frame Helm preserves native Talent item
+Frame Conn preserves native Talent item
 → native bonus engine remains authoritative.
 
 Only supplement rules not represented by structured native bonus data.
@@ -374,7 +374,7 @@ The Talent sheet can render actions from exact rank paths such as:
 
 \`system.ranks.2.actions.0\`.
 
-Frame Helm should preserve these exact paths.
+Frame Conn should preserve these exact paths.
 
 Do not reconstruct the action later by name.
 
@@ -434,7 +434,7 @@ Talent rank action
 → generic ActivationFlow
 → generic mechanical activation where supported.
 
-Frame Helm should preserve the distinction.
+Frame Conn should preserve the distinction.
 
 —
 
@@ -467,7 +467,7 @@ It can handle generic activation concerns, but not rules such as:
 - special reaction timing;
 - custom per-scene resources.
 
-Frame Helm must add those higher-order mechanics.
+Frame Conn must add those higher-order mechanics.
 
 —
 
@@ -490,7 +490,7 @@ Relevant fields include concepts such as:
 - tech_attack;
 - synergy locations.
 
-This allows Frame Helm to normalize Talent actions alongside other actor-owned actions.
+This allows Frame Conn to normalize Talent actions alongside other actor-owned actions.
 
 —
 
@@ -505,7 +505,7 @@ Structured Talent actions may be:
 - Reaction;
 - other native activation types.
 
-Frame Helm should use the structured activation value for action-category placement and action economy.
+Frame Conn should use the structured activation value for action-category placement and action economy.
 
 Do not infer this from Talent prose when structured data exists.
 
@@ -524,7 +524,7 @@ Conceptually:
 - 1/Encounter;
 - 1/Mission.
 
-This should feed the same generalized Frame Helm frequency tracker used for Mech Traits.
+This should feed the same generalized Frame Conn frequency tracker used for Mech Traits.
 
 —
 
@@ -548,7 +548,7 @@ automatic native scene-use state.
 
 # 26. Generic Frequency Tracker
 
-Frame Helm should use one shared actor-owned ActionData frequency tracker across:
+Frame Conn should use one shared actor-owned ActionData frequency tracker across:
 
 - Pilot Talents;
 - Frame Traits;
@@ -627,7 +627,7 @@ The native field also preserves:
 - minimum;
 - maximum.
 
-Therefore Frame Helm should strongly prefer native counters where the Talent LCP already defines the resource.
+Therefore Frame Conn should strongly prefer native counters where the Talent LCP already defines the resource.
 
 —
 
@@ -641,19 +641,19 @@ then wrong architecture is:
 
 native counter
 +
-Frame Helm leadershipDiceCount.
+Frame Conn leadershipDiceCount.
 
 Correct architecture:
 
 native Talent counter
 → authoritative numeric state
-→ Frame Helm resource adapter reads/mutates it.
+→ Frame Conn resource adapter reads/mutates it.
 
 —
 
 # 31. Counter Resource Adapter
 
-Frame Helm should provide a generic native counter adapter.
+Frame Conn should provide a generic native counter adapter.
 
 Conceptually:
 
@@ -710,7 +710,7 @@ First ask:
 2. Is it a native Talent Counter?
 3. Is it an ActionData frequency?
 4. Is some other native state present?
-5. Only then invent supplemental Frame Helm runtime state.
+5. Only then invent supplemental Frame Conn runtime state.
 
 This minimizes duplicate authorities.
 
@@ -724,7 +724,7 @@ Each rank can structurally grant:
 
 This is important for Talent-granted weapons and systems.
 
-Frame Helm should inspect unlocked ranks directly if native runtime aggregation does not flatten these grants.
+Frame Conn should inspect unlocked ranks directly if native runtime aggregation does not flatten these grants.
 
 —
 
@@ -741,7 +741,7 @@ Talent rank
 → native weapon item
 → ordinary weapon attack/loadout mechanics.
 
-Frame Helm should not create a fake Talent-specific attack implementation if the integrated weapon already exists natively.
+Frame Conn should not create a fake Talent-specific attack implementation if the integrated weapon already exists natively.
 
 —
 
@@ -755,7 +755,7 @@ If the integrated weapon item carries native Limited state:
 
 native Limited tracking should remain authoritative.
 
-Frame Helm should not create:
+Frame Conn should not create:
 
 Fuel Rod shots remaining
 
@@ -767,7 +767,7 @@ as a Talent-specific counter unless the source data actually requires that.
 
 Because Talent unlocked-rank aggregation does not flatten integrated gear in the traced runtime block:
 
-Frame Helm may need:
+Frame Conn may need:
 
 Talent
 → unlocked ranks
@@ -786,7 +786,7 @@ Each rank may contain:
 
 As with integrated gear:
 
-Frame Helm should inspect unlocked ranks directly.
+Frame Conn should inspect unlocked ranks directly.
 
 Deployment should reuse native deployable machinery once traced.
 
@@ -800,7 +800,7 @@ Talent ranks contain structured:
 
 These can express relationships to other action/mechanical contexts.
 
-Frame Helm should preserve them in actor-owned feature normalization.
+Frame Conn should preserve them in actor-owned feature normalization.
 
 Do not flatten Talent functionality to just actions and text.
 
@@ -827,7 +827,7 @@ These require trigger/event state beyond generic ActivationFlow.
 
 The repository trace did not find a general Talent engine that automatically recognizes arbitrary Talent prose triggers.
 
-Therefore Frame Helm will need:
+Therefore Frame Conn will need:
 
 - structured synergy/event matching where available;
 - explicit source adapters where necessary.
@@ -892,7 +892,7 @@ This requires at least:
 
 If structured Talent bonuses/synergies encode enough of this, prefer them.
 
-Otherwise Frame Helm needs a small source-specific trigger strategy.
+Otherwise Frame Conn needs a small source-specific trigger strategy.
 
 —
 
@@ -977,7 +977,7 @@ This is much more than ordinary action frequency.
 
 The native Talent Counter model is a likely authoritative storage mechanism if Leader’s imported Talent data encodes Leadership Dice as a counter.
 
-Frame Helm should inspect actual Leader content before inventing a separate resource field.
+Frame Conn should inspect actual Leader content before inventing a separate resource field.
 
 —
 
@@ -1025,7 +1025,7 @@ The resource may also be regained through:
 - Rest;
 - Full Repair.
 
-Frame Helm needs to connect the resource to appropriate lifecycle events.
+Frame Conn needs to connect the resource to appropriate lifecycle events.
 
 Do not reset it at every turn.
 
@@ -1066,7 +1066,7 @@ Native generic Talent counters do not by themselves model:
 
 counter value temporarily held by another actor.
 
-Frame Helm must orchestrate this.
+Frame Conn must orchestrate this.
 
 —
 
@@ -1080,7 +1080,7 @@ A transferred Leadership Die needs metadata such as:
 - whether spent;
 - whether returned.
 
-This is likely supplemental Frame Helm state unless the native content exposes a reusable structure.
+This is likely supplemental Frame Conn state unless the native content exposes a reusable structure.
 
 —
 
@@ -1127,7 +1127,7 @@ If rules say they last until:
 - returned;
 - end of scene;
 
-Frame Helm needs lifecycle cleanup.
+Frame Conn needs lifecycle cleanup.
 
 This should use the shared effect-lifecycle system.
 
@@ -1154,7 +1154,7 @@ Field Commander allows an ally to return a Leadership Die as a Free Action.
 
 This is an actor-owned action available to the recipient because of a transferred resource.
 
-Frame Helm may need to surface temporary actions granted by foreign-source state.
+Frame Conn may need to surface temporary actions granted by foreign-source state.
 
 This is a useful general architectural capability beyond Leader.
 
@@ -1218,7 +1218,7 @@ Leader explicitly interacts with Rest/Full Repair.
 
 Other Talents may also recover counters during repair lifecycle.
 
-Frame Helm should expose semantic lifecycle hooks such as:
+Frame Conn should expose semantic lifecycle hooks such as:
 
 - Rest completed;
 - Full Repair completed.
@@ -1239,7 +1239,7 @@ Only add Talent counter refresh where the native system does not already do so.
 
 # 67. Talent Actions and Action Economy
 
-Frame Helm owns action economy for structured Talent actions.
+Frame Conn owns action economy for structured Talent actions.
 
 The Talent action’s native activation type determines whether it is:
 
@@ -1321,7 +1321,7 @@ Talent action selected
 
 For an ordinary structured Talent action adequately handled by ActivationFlow:
 
-Frame Helm
+Frame Conn
 → validate action economy
 → validate frequency
 → validate counter/resource
@@ -1338,7 +1338,7 @@ Frame Helm
 
 For actions with custom semantics:
 
-Frame Helm
+Frame Conn
 → use shared primitives
 → add only the unique rule.
 
@@ -1412,7 +1412,7 @@ reuse the shared check/save infrastructure.
 
 If multi-target AoE save:
 
-use the Frame Helm save-AoE resolver.
+use the Frame Conn save-AoE resolver.
 
 —
 
@@ -1435,7 +1435,7 @@ The movement subsystem should move the token.
 
 Reaction Talents should use the shared Reaction subsystem.
 
-Frame Helm must preserve:
+Frame Conn must preserve:
 
 - trigger;
 - frequency;
@@ -1509,7 +1509,7 @@ Some Talent actions affect:
 
 ActionData contains relevant pilot/mech applicability metadata.
 
-Frame Helm should preserve this distinction.
+Frame Conn should preserve this distinction.
 
 —
 
@@ -1517,7 +1517,7 @@ Frame Helm should preserve this distinction.
 
 Many Pilot Talents mechanically affect the linked Mech while the Pilot is piloting it.
 
-Frame Helm must resolve:
+Frame Conn must resolve:
 
 Pilot Talent source
 → linked/controlled Mech execution context
@@ -1534,7 +1534,7 @@ Native Lancer already incorporates structured Talent bonuses into relevant actor
 
 This indicates the native system already understands the Pilot-to-Mech bonus relationship where designed.
 
-Frame Helm should rely on the native bonus engine.
+Frame Conn should rely on the native bonus engine.
 
 —
 
@@ -1619,7 +1619,7 @@ If:
 
 changes:
 
-Frame Helm should refresh:
+Frame Conn should refresh:
 
 - actions;
 - counters;
@@ -1637,7 +1637,7 @@ Do not retain rank-3 actions after reducing to rank 2.
 
 If a higher-rank Counter disappears due to rank reduction:
 
-Frame Helm should reconcile usage state safely.
+Frame Conn should reconcile usage state safely.
 
 Do not keep an orphan runtime resource associated with a no-longer-unlocked rank.
 
@@ -1663,7 +1663,7 @@ deployable access should follow current unlocked rank.
 
 # 94. Talent Chat Presentation
 
-Frame Helm may preserve a:
+Frame Conn may preserve a:
 
 Show Talent in Chat
 
@@ -1679,7 +1679,7 @@ Do not force every Talent rank card to become an action.
 
 A passive Talent rank with only bonuses/synergies needs no Execute button.
 
-Frame Helm should let native bonus machinery handle structured passive effects.
+Frame Conn should let native bonus machinery handle structured passive effects.
 
 —
 
@@ -1701,7 +1701,7 @@ Others may be:
 
 optional.
 
-The source-specific strategy should identify whether Frame Helm:
+The source-specific strategy should identify whether Frame Conn:
 
 - applies automatically;
 - prompts the player;
@@ -1780,7 +1780,7 @@ This allows:
 
 # 102. Talent Resource Presentation
 
-Frame Helm should present native Talent counters when they are player-relevant.
+Frame Conn should present native Talent counters when they are player-relevant.
 
 Example:
 
@@ -1810,7 +1810,7 @@ This helps the player understand both legality dimensions.
 
 If another Pilot’s Talent grants this actor a temporary resource or action:
 
-Frame Helm should be capable of showing that effect on the recipient.
+Frame Conn should be capable of showing that effect on the recipient.
 
 Leader is a canonical example.
 
@@ -1939,7 +1939,7 @@ Do not duplicate child-action execution per Talent.
 
 # 112. Native State First Principle
 
-Before adding Frame Helm state for any Talent:
+Before adding Frame Conn state for any Talent:
 
 search for:
 
@@ -2147,14 +2147,14 @@ This reveals whether their mechanics use:
 - [ ] bonuses aggregate correctly.
 - [ ] counters aggregate correctly.
 - [ ] synergies aggregate correctly.
-- [ ] Frame Helm does not show locked-rank actions.
+- [ ] Frame Conn does not show locked-rank actions.
 
 —
 
 # 126. Smoke Test — Native Talent Bonus
 
 - [ ] structured Talent bonus applies natively.
-- [ ] Frame Helm does not duplicate bonus.
+- [ ] Frame Conn does not duplicate bonus.
 - [ ] rank increase activates newly unlocked bonus.
 - [ ] rank decrease removes no-longer-unlocked bonus.
 
@@ -2182,7 +2182,7 @@ This reveals whether their mechanics use:
 - [ ] max respected.
 - [ ] min respected.
 - [ ] rank change reconciles resource.
-- [ ] Frame Helm rerender preserves state.
+- [ ] Frame Conn rerender preserves state.
 
 —
 
@@ -2221,7 +2221,7 @@ This reveals whether their mechanics use:
 - [ ] locked rank does not grant weapon.
 - [ ] native weapon data used.
 - [ ] native Limited resource used.
-- [ ] Frame Helm does not duplicate Limited tracking.
+- [ ] Frame Conn does not duplicate Limited tracking.
 - [ ] weapon attacks through normal attack flow.
 
 —
@@ -2308,7 +2308,7 @@ Conditional Talent effects require shared trigger/event handling where native sy
 
 **Invariant 13**
 
-Cross-actor Talent resource transfer requires Frame Helm orchestration.
+Cross-actor Talent resource transfer requires Frame Conn orchestration.
 
 **Invariant 14**
 
@@ -2316,7 +2316,7 @@ Talent-specific mechanics should compose shared attack, status, AoE, movement, s
 
 **Invariant 15**
 
-Frame Helm should add only the missing runtime layer rather than recreating native Talent definitions or structured bonuses.
+Frame Conn should add only the missing runtime layer rather than recreating native Talent definitions or structured bonuses.
 
 —
 
@@ -2350,7 +2350,7 @@ PILOT
     │   ├── generic ActivationFlow
     │   └── TalentFlow for chat presentation
     │
-    ├── FRAME HELM ACTOR-OWNED REGISTRY
+    ├── FRAME CONN ACTOR-OWNED REGISTRY
     │   ├── preserve Pilot source
     │   ├── preserve Talent UUID
     │   ├── preserve rank
@@ -2401,7 +2401,7 @@ PILOT
 
 The critical architectural rule is:
 
-**Native Lancer already provides the Talent definitions, unlocked-rank structure, structured bonuses, structured actions, mutable counters, synergies, and much of the underlying item machinery. Frame Helm should supply the runtime layer the native system lacks: generalized frequency tracking, counter-resource semantics, triggers, temporary effect lifecycle, cross-actor resource transfer, action-economy integration, and source-specific orchestration for complex Talents such as Leader and Nuclear Cavalier.**
+**Native Lancer already provides the Talent definitions, unlocked-rank structure, structured bonuses, structured actions, mutable counters, synergies, and much of the underlying item machinery. Frame Conn should supply the runtime layer the native system lacks: generalized frequency tracking, counter-resource semantics, triggers, temporary effect lifecycle, cross-actor resource transfer, action-economy integration, and source-specific orchestration for complex Talents such as Leader and Nuclear Cavalier.**
 `;
 
 fs.writeFileSync(“talents.md”, content, “utf8”);

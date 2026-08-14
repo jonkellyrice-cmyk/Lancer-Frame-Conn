@@ -9,8 +9,8 @@
  * @file
  * @path scripts/feature_semantic_execution_context/semantic-execution-context-feature.js
  * @module semantic-execution-context-feature
- * @layer frame-helm-runtime-feature
- * @responsibility expose-semantic-execution-context-through-the-canonical-frame-helm-feature-contract
+ * @layer frame-conn-runtime-feature
+ * @responsibility expose-semantic-execution-context-through-the-canonical-frame-conn-feature-contract
  * @public-boundary true
  * @side-effects delegated-native-resolution-during-context-building
  *
@@ -27,7 +27,7 @@
  * runtime-orchestrator.js
  *
  * THIS FILE OWNS:
- * - canonical Frame Helm Semantic Execution Context feature definition
+ * - canonical Frame Conn Semantic Execution Context feature definition
  * - execution-context capability declaration
  * - registry-facing context builder API
  * - registry-facing immutable context access helpers
@@ -58,7 +58,7 @@
    ============================================================ */
 
 import {
-  defineFrameHelmFeature
+  defineFrameConnFeature
 } from "../feature-contract.js";
 
 import * as executionContextRuntime from
@@ -68,7 +68,7 @@ import * as executionContextRuntime from
    FEATURE DIAGNOSTICS
    ============================================================ */
 
-function getFrameHelmSemanticExecutionContextDiagnostics() {
+function getFrameConnSemanticExecutionContextDiagnostics() {
   return Object.freeze({
     serviceId:
       executionContextRuntime
@@ -97,8 +97,8 @@ function getFrameHelmSemanticExecutionContextDiagnostics() {
  * scripts/feature-registry.js remains the application-wide registration
  * boundary.
  */
-export const frameHelmSemanticExecutionContextFeature =
-  defineFrameHelmFeature({
+export const frameConnSemanticExecutionContextFeature =
+  defineFrameConnFeature({
     id:
       "semantic-execution-context",
 
@@ -180,7 +180,7 @@ export const frameHelmSemanticExecutionContextFeature =
         executionContextRuntime.hasExecutionTargets,
 
       diagnostics:
-        getFrameHelmSemanticExecutionContextDiagnostics
+        getFrameConnSemanticExecutionContextDiagnostics
     },
 
     hooks: {},
@@ -192,7 +192,7 @@ export const frameHelmSemanticExecutionContextFeature =
         executionContextRuntime.executionContext,
 
       diagnostics:
-        getFrameHelmSemanticExecutionContextDiagnostics,
+        getFrameConnSemanticExecutionContextDiagnostics,
 
       buildExecutionContext:
         executionContextRuntime.buildExecutionContext,
@@ -368,7 +368,7 @@ export const frameHelmSemanticExecutionContextFeature =
         "Semantic Execution Context",
 
       description:
-        "Exposes canonical immutable Frame Helm execution-context construction and access through the feature registry.",
+        "Exposes canonical immutable Frame Conn execution-context construction and access through the feature registry.",
 
       serviceBoundary:
         "semantic_execution_context/execution-context.js",
@@ -395,5 +395,5 @@ export const frameHelmSemanticExecutionContextFeature =
    ============================================================ */
 
 export {
-  getFrameHelmSemanticExecutionContextDiagnostics
+  getFrameConnSemanticExecutionContextDiagnostics
 };

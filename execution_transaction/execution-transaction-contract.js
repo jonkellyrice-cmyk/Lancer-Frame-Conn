@@ -10,11 +10,11 @@
  * @path main/execution_transaction/execution-transaction-contract.js
  * @module execution-transaction-contract
  * @layer execution-transaction-contract
- * @responsibility define-stable-frame-helm-execution-transaction-shapes
+ * @responsibility define-stable-frame-conn-execution-transaction-shapes
  * @public-boundary true
  * @side-effects none
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumes ExecutionContext from semantic_execution_context/
  * - consumed by execution-transaction-runner.js
  * - consumed by execution-transaction-hooks.js
@@ -413,7 +413,7 @@ function generateTransactionId() {
   }
 
   return (
-    `fh-transaction-${Date.now()}-` +
+    `fc-transaction-${Date.now()}-` +
     Math.random()
       .toString(36)
       .slice(2)
@@ -709,11 +709,11 @@ export function executionTargetingSkipped(
 /**
  * @section execution-step-result
  *
- * Wraps native or Frame Helm-owned mechanic execution.
+ * Wraps native or Frame Conn-owned mechanic execution.
  *
  * `nativeResult` may hold NativeExecutionResult.
  *
- * `result` may hold Frame Helm semantic result.
+ * `result` may hold Frame Conn semantic result.
  */
 
 export function createExecutionStepResult({
@@ -900,7 +900,7 @@ export function createExecutionResolutionResult({
 /**
  * @section commit-result
  *
- * Commit is for deferred Frame Helm-owned state:
+ * Commit is for deferred Frame Conn-owned state:
  *
  * - action frequency
  * - CounterData when native execution did not consume it
@@ -1657,11 +1657,11 @@ export function normalizeNativeExecutionStepStatus(
  */
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * runtime-orchestrator.js
  * -----------------------
@@ -1742,7 +1742,7 @@ export function normalizeNativeExecutionStepStatus(
  * → native-consumed resources mutate through native Flow
  *
  * commit
- * → consume deferred Frame Helm-owned resources
+ * → consume deferred Frame Conn-owned resources
  * → verify native-consumed resources
  *
  *
@@ -1840,7 +1840,7 @@ export function normalizeNativeExecutionStepStatus(
  * Transaction snapshots/results are immutable.
  *
  * INVARIANT 12
- * Existing Frame Helm action/runtime code should converge on this result
+ * Existing Frame Conn action/runtime code should converge on this result
  * model instead of inventing feature-specific success/cancel/failure
  * shapes.
  */

@@ -9,22 +9,22 @@
 
 /**
  * ============================================================
- * FRAME HELM EXECUTABLE UI REGISTRY
+ * FRAME CONN EXECUTABLE UI REGISTRY
  * ============================================================
  *
  * ROLE:
  *   Provides the canonical declaration boundary for executable
- *   Frame Helm UI feature modules.
+ *   Frame Conn UI feature modules.
  *
  * PURPOSE:
  *   Collect independently-owned executable UI behavior into one
  *   stable feature package which is then registered through the
- *   canonical Frame Helm feature registry.
+ *   canonical Frame Conn feature registry.
  *
  * OWNS:
  *   - Executable UI feature imports.
  *   - UI feature adapters where a presentation module does not
- *     itself declare a Frame Helm feature.
+ *     itself declare a Frame Conn feature.
  *   - Canonical executable UI feature declaration order.
  *   - Executable UI feature-set export.
  *   - Lightweight UI package inspection.
@@ -79,7 +79,7 @@
  *
  * IMPORTANT:
  *
- *   ui-registry.js is NOT a second FrameHelmFeatureRegistry.
+ *   ui-registry.js is NOT a second FrameConnFeatureRegistry.
  *
  *   It is the registration/declaration boundary for the
  *   executable UI package.
@@ -88,7 +88,7 @@
  *
  *     scripts/feature-registry.js
  *
- *   That registry imports FRAME_HELM_UI_FEATURES and performs the
+ *   That registry imports FRAME_CONN_UI_FEATURES and performs the
  *   actual application-wide registration.
  *
  * UI FEATURE FORMS:
@@ -99,7 +99,7 @@
  *
  *      The module exports a complete feature produced through:
  *
- *        defineFrameHelmFeature(...)
+ *        defineFrameConnFeature(...)
  *
  *      Examples:
  *
@@ -111,7 +111,7 @@
  *   2. PRESENTATION MODULE + REGISTRY ADAPTER
  *
  *      The module exports focused presentation functions and this
- *      registry wraps them in a Frame Helm feature declaration.
+ *      registry wraps them in a Frame Conn feature declaration.
  *
  *      Example:
  *
@@ -135,9 +135,9 @@
  *
  *     scripts/feature-registry.js
  *
- *   passes FRAME_HELM_UI_FEATURES to:
+ *   passes FRAME_CONN_UI_FEATURES to:
  *
- *     frameHelmFeatureRegistry.registerMany(...)
+ *     frameConnFeatureRegistry.registerMany(...)
  */
 
 
@@ -146,7 +146,7 @@
    ============================================================ */
 
 import {
-  defineFrameHelmFeature
+  defineFrameConnFeature
 } from "../scripts/feature-contract.js";
 
 
@@ -155,10 +155,10 @@ import {
    ============================================================ */
 
 import {
-  renderFrameHelmSensorContacts,
-  destroyFrameHelmSensorContacts,
-  getFrameHelmSensorLayer,
-  getFrameHelmSensorVisualConfiguration
+  renderFrameConnSensorContacts,
+  destroyFrameConnSensorContacts,
+  getFrameConnSensorLayer,
+  getFrameConnSensorVisualConfiguration
 } from "./ui-sensors.js";
 
 
@@ -167,17 +167,17 @@ import {
    ============================================================ */
 
 import {
-  frameHelmApplicationUiFeature
+  frameConnApplicationUiFeature
 } from "./ui_application/ui-application.js";
 
 
 import {
-  frameHelmTurnUiFeature
+  frameConnTurnUiFeature
 } from "./ui_turn/ui-turn.js";
 
 
 import {
-  frameHelmMovementUiFeature
+  frameConnMovementUiFeature
 } from "./ui_movement/ui-movement.js";
 
 
@@ -197,8 +197,8 @@ import {
  *
  *   scripts/sensors-feature.js
  */
-export const frameHelmSensorsUiFeature =
-  defineFrameHelmFeature({
+export const frameConnSensorsUiFeature =
+  defineFrameConnFeature({
     id:
       "ui-sensors",
 
@@ -227,18 +227,18 @@ export const frameHelmSensorsUiFeature =
 
     commands: {
       render:
-        renderFrameHelmSensorContacts,
+        renderFrameConnSensorContacts,
 
       destroy:
-        destroyFrameHelmSensorContacts
+        destroyFrameConnSensorContacts
     },
 
     queries: {
       getLayer:
-        getFrameHelmSensorLayer,
+        getFrameConnSensorLayer,
 
       getVisualConfiguration:
-        getFrameHelmSensorVisualConfiguration
+        getFrameConnSensorVisualConfiguration
     },
 
     /**
@@ -253,16 +253,16 @@ export const frameHelmSensorsUiFeature =
 
     api: {
       render:
-        renderFrameHelmSensorContacts,
+        renderFrameConnSensorContacts,
 
       destroy:
-        destroyFrameHelmSensorContacts,
+        destroyFrameConnSensorContacts,
 
       getLayer:
-        getFrameHelmSensorLayer,
+        getFrameConnSensorLayer,
 
       getVisualConfiguration:
-        getFrameHelmSensorVisualConfiguration
+        getFrameConnSensorVisualConfiguration
     },
 
     metadata: {
@@ -270,7 +270,7 @@ export const frameHelmSensorsUiFeature =
         "Sensor Canvas UI",
 
       description:
-        "Owns executable PIXI/canvas presentation for qualified Frame Helm sensor contacts.",
+        "Owns executable PIXI/canvas presentation for qualified Frame Conn sensor contacts.",
 
       implementationModule:
         "styles/ui-sensors.js",
@@ -295,11 +295,11 @@ export const frameHelmSensorsUiFeature =
    ============================================================ */
 
 /**
- * Canonical declaration of executable Frame Helm UI features.
+ * Canonical declaration of executable Frame Conn UI features.
  *
  * This list answers:
  *
- *   "Which executable UI features are part of Frame Helm?"
+ *   "Which executable UI features are part of Frame Conn?"
  *
  * It does NOT answer:
  *
@@ -325,21 +325,21 @@ export const frameHelmSensorsUiFeature =
  *
  *     ui-application.js
  *          ↓
- *     frameHelmApplicationUiFeature
+ *     frameConnApplicationUiFeature
  *
  *
  *   Turn UI
  *
  *     ui-turn.js
  *          ↓
- *     frameHelmTurnUiFeature
+ *     frameConnTurnUiFeature
  *
  *
  *   Movement UI
  *
  *     ui-movement.js
  *          ↓
- *     frameHelmMovementUiFeature
+ *     frameConnMovementUiFeature
  *
  *     required runtime capabilities:
  *
@@ -349,17 +349,17 @@ export const frameHelmSensorsUiFeature =
  *
  *     The turn.state requirement is transitional because the
  *     authoritative movement-accounting object still currently
- *     resides on FrameHelmTurnState.
+ *     resides on FrameConnTurnState.
  *
  *
  * Future executable UI features should be added here.
  */
-export const FRAME_HELM_UI_FEATURES =
+export const FRAME_CONN_UI_FEATURES =
   Object.freeze([
-    frameHelmSensorsUiFeature,
-    frameHelmApplicationUiFeature,
-    frameHelmTurnUiFeature,
-    frameHelmMovementUiFeature
+    frameConnSensorsUiFeature,
+    frameConnApplicationUiFeature,
+    frameConnTurnUiFeature,
+    frameConnMovementUiFeature
   ]);
 
 
@@ -374,11 +374,11 @@ export const FRAME_HELM_UI_FEATURES =
  *
  * Canonical application-wide feature lookup remains owned by:
  *
- *   frameHelmFeatureRegistry
+ *   frameConnFeatureRegistry
  */
-const FRAME_HELM_UI_FEATURES_BY_ID =
+const FRAME_CONN_UI_FEATURES_BY_ID =
   new Map(
-    FRAME_HELM_UI_FEATURES.map(
+    FRAME_CONN_UI_FEATURES.map(
       feature => [
         feature.id,
         feature
@@ -397,9 +397,9 @@ const FRAME_HELM_UI_FEATURES_BY_ID =
  * Returns a new array so callers cannot mutate the canonical
  * declaration.
  */
-export function listFrameHelmUiFeatures() {
+export function listFrameConnUiFeatures() {
   return [
-    ...FRAME_HELM_UI_FEATURES
+    ...FRAME_CONN_UI_FEATURES
   ];
 }
 
@@ -411,9 +411,9 @@ export function listFrameHelmUiFeatures() {
 /**
  * Returns all declared executable UI feature ids.
  */
-export function listFrameHelmUiFeatureIds() {
+export function listFrameConnUiFeatureIds() {
   return (
-    FRAME_HELM_UI_FEATURES.map(
+    FRAME_CONN_UI_FEATURES.map(
       feature =>
         feature.id
     )
@@ -429,7 +429,7 @@ export function listFrameHelmUiFeatureIds() {
  * Returns whether the executable UI package declares the supplied
  * feature id.
  */
-export function hasFrameHelmUiFeature(
+export function hasFrameConnUiFeature(
   featureId
 ) {
   const normalizedId =
@@ -447,7 +447,7 @@ export function hasFrameHelmUiFeature(
 
 
   return (
-    FRAME_HELM_UI_FEATURES_BY_ID.has(
+    FRAME_CONN_UI_FEATURES_BY_ID.has(
       normalizedId
     )
   );
@@ -463,14 +463,14 @@ export function hasFrameHelmUiFeature(
  *
  * Runtime consumers should normally use:
  *
- *   frameHelmFeatureRegistry.get(...)
+ *   frameConnFeatureRegistry.get(...)
  *
  * instead.
  *
  * This lookup exists primarily for package inspection,
  * diagnostics, and development tooling.
  */
-export function getFrameHelmUiFeature(
+export function getFrameConnUiFeature(
   featureId
 ) {
   const normalizedId =
@@ -488,7 +488,7 @@ export function getFrameHelmUiFeature(
 
 
   return (
-    FRAME_HELM_UI_FEATURES_BY_ID.get(
+    FRAME_CONN_UI_FEATURES_BY_ID.get(
       normalizedId
     ) ??
     null
@@ -506,16 +506,16 @@ export function getFrameHelmUiFeature(
  * Runtime lifecycle state is intentionally omitted because it
  * belongs to scripts/feature-registry.js.
  */
-export function snapshotFrameHelmUiRegistry() {
+export function snapshotFrameConnUiRegistry() {
   return {
     featureCount:
-      FRAME_HELM_UI_FEATURES.length,
+      FRAME_CONN_UI_FEATURES.length,
 
     featureIds:
-      listFrameHelmUiFeatureIds(),
+      listFrameConnUiFeatureIds(),
 
     features:
-      FRAME_HELM_UI_FEATURES.map(
+      FRAME_CONN_UI_FEATURES.map(
         feature => {
           return {
             id:
@@ -584,23 +584,23 @@ export function snapshotFrameHelmUiRegistry() {
  *
  *   scripts/feature-registry.js
  */
-export const frameHelmUiRegistry =
+export const frameConnUiRegistry =
   Object.freeze({
     features:
-      FRAME_HELM_UI_FEATURES,
+      FRAME_CONN_UI_FEATURES,
 
     list:
-      listFrameHelmUiFeatures,
+      listFrameConnUiFeatures,
 
     ids:
-      listFrameHelmUiFeatureIds,
+      listFrameConnUiFeatureIds,
 
     has:
-      hasFrameHelmUiFeature,
+      hasFrameConnUiFeature,
 
     get:
-      getFrameHelmUiFeature,
+      getFrameConnUiFeature,
 
     snapshot:
-      snapshotFrameHelmUiRegistry
+      snapshotFrameConnUiRegistry
   });

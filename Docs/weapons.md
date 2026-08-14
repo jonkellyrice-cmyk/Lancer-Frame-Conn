@@ -68,7 +68,7 @@ updateItemAfterAction
 printAttackCard
 \`\`\`
 
-Frame Helm should wrap this flow, not replace it.
+Frame Conn should wrap this flow, not replace it.
 
 —
 
@@ -124,7 +124,7 @@ mod
 
 Native weapon preparation merges mod effects into the active profile.
 
-Preserve mod Item identity in Frame Helm attack context.
+Preserve mod Item identity in Frame Conn attack context.
 
 —
 
@@ -194,7 +194,7 @@ weapon.system.uses.max
 
 Native attack flow validates and consumes uses.
 
-Do not create a Frame Helm Limited counter.
+Do not create a Frame Conn Limited counter.
 
 —
 
@@ -206,7 +206,7 @@ HEAT X (SELF)
 
 is handled natively by WeaponAttackFlow.
 
-Frame Helm must only suppress it for special secondary attacks when the weapon rule explicitly says so.
+Frame Conn must only suppress it for special secondary attacks when the weapon rule explicitly says so.
 
 —
 
@@ -253,7 +253,7 @@ Seeking
 → ignore Cover
 \`\`\`
 
-Missing/general Frame Helm responsibility:
+Missing/general Frame Conn responsibility:
 
 \`\`\`text
 ignore LOS
@@ -268,7 +268,7 @@ Targeting layer must handle this.
 
 Arcing targeting rules were not found as complete native runtime enforcement.
 
-Frame Helm targeting layer must handle:
+Frame Conn targeting layer must handle:
 
 \`\`\`text
 ignore LOS
@@ -284,7 +284,7 @@ Native tag recognition exists.
 
 Runtime legality enforcement was not found.
 
-Frame Helm must enforce:
+Frame Conn must enforce:
 
 \`\`\`text
 must fire before moving/other non-Protocol actions
@@ -335,7 +335,7 @@ Burst
 
 Native WeaponAttackFlow does not fully enforce ordinary Range legality.
 
-Frame Helm must validate Range before execution.
+Frame Conn must validate Range before execution.
 
 —
 
@@ -343,7 +343,7 @@ Frame Helm must validate Range before execution.
 
 No complete generic WeaponAttackFlow LOS rejection was found.
 
-Frame Helm targeting layer must validate:
+Frame Conn targeting layer must validate:
 
 \`\`\`text
 ordinary LOS
@@ -391,7 +391,7 @@ Blast
 Burst
 \`\`\`
 
-Frame Helm responsibilities:
+Frame Conn responsibilities:
 
 \`\`\`text
 placement legality
@@ -457,7 +457,7 @@ Generic mechanical execution:
 NOT FOUND
 \`\`\`
 
-These fields are the primary Frame Helm weapon-automation gap.
+These fields are the primary Frame Conn weapon-automation gap.
 
 —
 
@@ -645,7 +645,7 @@ Do not assume Self Heat handling also covers target Heat.
 
 # 29. Attack Context
 
-Frame Helm weapon execution context should preserve:
+Frame Conn weapon execution context should preserve:
 
 \`\`\`text
 mech actor
@@ -701,7 +701,7 @@ Exact ordering must follow each rule.
 
 —
 
-# 32. Native vs Frame Helm Ownership
+# 32. Native vs Frame Conn Ownership
 
 ## Native Lancer
 
@@ -729,7 +729,7 @@ native DamageRollFlow
 damageCalc
 \`\`\`
 
-## Frame Helm
+## Frame Conn
 
 \`\`\`text
 Range legality
@@ -760,7 +760,7 @@ native implemented tags still work
 special text remains visible in chat
 \`\`\`
 
-Never block unknown/custom LCP weapons solely because Frame Helm lacks bespoke automation.
+Never block unknown/custom LCP weapons solely because Frame Conn lacks bespoke automation.
 
 —
 
@@ -797,7 +797,7 @@ Never block unknown/custom LCP weapons solely because Frame Helm lacks bespoke a
 - [ ] Reliable works on miss.
 - [ ] Overkill works.
 - [ ] AoE uses native template/targeting.
-- [ ] out-of-Range target rejected by Frame Helm.
+- [ ] out-of-Range target rejected by Frame Conn.
 - [ ] blocked LOS rejected.
 - [ ] Arcing exception works.
 - [ ] Seeking exception works.
@@ -834,11 +834,11 @@ Do not duplicate native attack, damage, Limited, Loading, Self Heat, AP, Reliabl
 
 **Invariant 3**
 
-Range and LOS legality require Frame Helm orchestration.
+Range and LOS legality require Frame Conn orchestration.
 
 **Invariant 4**
 
-Arcing, full Seeking targeting, Ordnance, and Knockback require Frame Helm rules support.
+Arcing, full Seeking targeting, Ordnance, and Knockback require Frame Conn rules support.
 
 **Invariant 5**
 
@@ -876,7 +876,7 @@ NATIVE WEAPON ITEM
 │   ├── on_hit
 │   └── on_crit
 │
-├── FRAME HELM PRE-ATTACK RULES
+├── FRAME CONN PRE-ATTACK RULES
 │   ├── mount context
 │   ├── Range
 │   ├── LOS/path
@@ -891,7 +891,7 @@ NATIVE WEAPON ITEM
 │   ├── Self Heat
 │   └── chat result
 │
-├── FRAME HELM SPECIAL RULES
+├── FRAME CONN SPECIAL RULES
 │   ├── on_attack strategy
 │   ├── on_hit strategy
 │   ├── on_crit strategy
@@ -905,7 +905,7 @@ NATIVE WEAPON ITEM
 
 Critical rule:
 
-**Use native Lancer for standardized weapon combat. Frame Helm fills targeting-legality gaps and executes weapon-specific special rules that native Lancer only stores/displays as semantic weapon text.**
+**Use native Lancer for standardized weapon combat. Frame Conn fills targeting-legality gaps and executes weapon-specific special rules that native Lancer only stores/displays as semantic weapon text.**
 `;
 
 fs.writeFileSync(“weapons.md”, content, “utf8”);

@@ -10,7 +10,7 @@
  * @path main/resource_service/resource-contract.js
  * @module resource-contract
  * @layer resource-service-contract
- * @responsibility define-stable-frame-helm-resource-descriptors-and-resource-results
+ * @responsibility define-stable-frame-conn-resource-descriptors-and-resource-results
  * @public-boundary true
  * @side-effects none
  *
@@ -22,7 +22,7 @@
  * - semantic_execution_context/*
  * - execution_transaction/*
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - native_adapter/native-resources.js remains native Lancer resource-state
  *   authority
  * - semantic_execution_context/ carries resolved resource descriptors
@@ -59,8 +59,8 @@
  * - no Foundry imports
  * - no Lancer imports
  * - no document mutation
- * - never collapse native Limited state and Frame Helm frequency state
- * - preserve native-vs-frame-helm authority explicitly
+ * - never collapse native Limited state and Frame Conn frequency state
+ * - preserve native-vs-frame-conn authority explicitly
  * - preserve native-consumed-vs-deferred distinction explicitly
  */
 
@@ -131,8 +131,8 @@ export const RESOURCE_AUTHORITY = Object.freeze({
   NATIVE:
     "native",
 
-  FRAME_HELM:
-    "frame-helm",
+  FRAME_CONN:
+    "frame-conn",
 
   DERIVED:
     "derived",
@@ -152,14 +152,14 @@ export const RESOURCE_AUTHORITY = Object.freeze({
  * Native Lancer Flow owns mutation.
  *
  * DEFERRED
- * Frame Helm validates before execution and spends during transaction
+ * Frame Conn validates before execution and spends during transaction
  * commit.
  *
  * IMMEDIATE
- * Frame Helm mechanic intentionally mutates before commit.
+ * Frame Conn mechanic intentionally mutates before commit.
  *
  * VERIFY_ONLY
- * Native execution is expected to mutate state; Frame Helm verifies it.
+ * Native execution is expected to mutate state; Frame Conn verifies it.
  *
  * NONE
  * Informational or derived resource.
@@ -703,7 +703,7 @@ export function createResourceRequirement({
 /**
  * @section resource-mutation
  *
- * Describes a requested Frame Helm-owned mutation.
+ * Describes a requested Frame Conn-owned mutation.
  *
  * It does not perform it.
  */
@@ -858,14 +858,14 @@ export function isNativeResourceDescriptor(
   );
 }
 
-export function isFrameHelmResourceDescriptor(
+export function isFrameConnResourceDescriptor(
   descriptor
 ) {
   return Boolean(
     descriptor
       ?.identity
       ?.authority ===
-        RESOURCE_AUTHORITY.FRAME_HELM
+        RESOURCE_AUTHORITY.FRAME_CONN
   );
 }
 
@@ -1393,7 +1393,7 @@ export function createResourceDeclaration({
   kind,
 
   authority =
-    RESOURCE_AUTHORITY.FRAME_HELM,
+    RESOURCE_AUTHORITY.FRAME_CONN,
 
   consumption =
     RESOURCE_CONSUMPTION.DEFERRED,
@@ -1604,7 +1604,7 @@ export function createFrequencyResourceDeclaration({
       RESOURCE_KIND.FREQUENCY,
 
     authority:
-      RESOURCE_AUTHORITY.FRAME_HELM,
+      RESOURCE_AUTHORITY.FRAME_CONN,
 
     consumption:
       RESOURCE_CONSUMPTION.DEFERRED,
@@ -2005,7 +2005,7 @@ export function validateResourceSnapshot(
  * → consumption === NATIVE or VERIFY_ONLY
  *
  * supplemental
- * → FRAME_HELM authority resources not represented natively
+ * → FRAME_CONN authority resources not represented natively
  *
  * Do not refactor ExecutionContext merely to mirror this contract.
  */
@@ -2026,7 +2026,7 @@ export function validateResourceSnapshot(
  * checkItemLimited
  * → updateItemAfterAction
  *
- * Frame Helm:
+ * Frame Conn:
  * validate before Flow
  * → let native Flow consume
  * → verify afterward
@@ -2039,7 +2039,7 @@ export function validateResourceSnapshot(
  * checkWeaponLoaded
  * → updateItemAfterAction
  *
- * Frame Helm must not unload the weapon again.
+ * Frame Conn must not unload the weapon again.
  *
  *
  * CORE ENERGY
@@ -2049,7 +2049,7 @@ export function validateResourceSnapshot(
  * checkCorePower
  * → consumeCorePower
  *
- * Frame Helm validates/observes, but does not duplicate consumption.
+ * Frame Conn validates/observes, but does not duplicate consumption.
  *
  *
  * COUNTER DATA
@@ -2058,7 +2058,7 @@ export function validateResourceSnapshot(
  * Native Lancer stores structured counters on some owned features.
  *
  * Counter semantics may be native-state-backed while actual special-rule
- * consumption remains Frame Helm-owned.
+ * consumption remains Frame Conn-owned.
  *
  * Therefore:
  *
@@ -2079,7 +2079,7 @@ export function validateResourceSnapshot(
  *
  * These are normally:
  *
- * authority = FRAME_HELM
+ * authority = FRAME_CONN
  * consumption = DEFERRED
  */
 
@@ -2144,7 +2144,7 @@ export function validateResourceSnapshot(
  * FREQUENCY
  *
  * authority:
- * FRAME_HELM
+ * FRAME_CONN
  *
  * consumption:
  * DEFERRED
@@ -2160,7 +2160,7 @@ export function validateResourceSnapshot(
  * COUNTER
  *
  * authority:
- * FRAME_HELM or NATIVE depending on persisted backing
+ * FRAME_CONN or NATIVE depending on persisted backing
  *
  * consumption:
  * DEFERRED
@@ -2215,7 +2215,7 @@ export function validateResourceSnapshot(
  * Resource authority and consumption mode are separate concepts.
  *
  * INVARIANT 3
- * A native-backed resource may still be Frame Helm-consumed.
+ * A native-backed resource may still be Frame Conn-consumed.
  *
  * INVARIANT 4
  * Native Flow-consumed resources must never be spent twice.

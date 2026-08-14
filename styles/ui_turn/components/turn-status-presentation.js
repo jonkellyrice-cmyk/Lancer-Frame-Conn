@@ -8,7 +8,7 @@
 
 /**
  * ============================================================
- * FRAME HELM UI TURN -- STATUS PRESENTATION
+ * FRAME CONN UI TURN -- STATUS PRESENTATION
  * ============================================================
  *
  * ROLE:
@@ -36,12 +36,12 @@
    ============================================================ */
 
 import {
-  getFrameHelmTurnUiSnapshot
+  getFrameConnTurnUiSnapshot
 } from "./turn-state-access.js";
 
 import {
-  frameHelmTurnUiDisplayValue,
-  frameHelmTurnUiNumber
+  frameConnTurnUiDisplayValue,
+  frameConnTurnUiNumber
 } from "./turn-presentation-utils.js";
 
 
@@ -52,9 +52,9 @@ import {
 /**
  * Presentation representation of the current combat-turn context.
  */
-export function buildFrameHelmTurnContextPresentation(
+export function buildFrameConnTurnContextPresentation(
   snapshot =
-    getFrameHelmTurnUiSnapshot()
+    getFrameConnTurnUiSnapshot()
 ) {
   const context =
     snapshot?.context ??
@@ -126,9 +126,9 @@ export function buildFrameHelmTurnContextPresentation(
 /**
  * Converts action-budget state into a UI-oriented model.
  */
-export function buildFrameHelmTurnBudgetPresentation(
+export function buildFrameConnTurnBudgetPresentation(
   snapshot =
-    getFrameHelmTurnUiSnapshot()
+    getFrameConnTurnUiSnapshot()
 ) {
   if (
     !snapshot
@@ -164,7 +164,7 @@ export function buildFrameHelmTurnBudgetPresentation(
   const quickRemaining =
     Math.max(
       0,
-      frameHelmTurnUiNumber(
+      frameConnTurnUiNumber(
         snapshot
           .quickActionsRemaining
       )
@@ -257,9 +257,9 @@ export function buildFrameHelmTurnBudgetPresentation(
    Turn UI Protocol presentation
    ============================================================ */
 
-export function buildFrameHelmTurnProtocolPresentation(
+export function buildFrameConnTurnProtocolPresentation(
   snapshot =
-    getFrameHelmTurnUiSnapshot()
+    getFrameConnTurnUiSnapshot()
 ) {
   const protocol =
     snapshot?.protocol ??
@@ -311,9 +311,9 @@ export function buildFrameHelmTurnProtocolPresentation(
    Turn UI Reaction presentation
    ============================================================ */
 
-export function buildFrameHelmTurnReactionPresentation(
+export function buildFrameConnTurnReactionPresentation(
   snapshot =
-    getFrameHelmTurnUiSnapshot()
+    getFrameConnTurnUiSnapshot()
 ) {
   const reaction =
     snapshot?.reaction ??
@@ -358,9 +358,9 @@ export function buildFrameHelmTurnReactionPresentation(
    Turn UI Overcharge presentation
    ============================================================ */
 
-export function buildFrameHelmTurnOverchargePresentation(
+export function buildFrameConnTurnOverchargePresentation(
   snapshot =
-    getFrameHelmTurnUiSnapshot()
+    getFrameConnTurnUiSnapshot()
 ) {
   const overcharge =
     snapshot?.overcharge ??
@@ -376,7 +376,7 @@ export function buildFrameHelmTurnOverchargePresentation(
   const grantedQuickRemaining =
     Math.max(
       0,
-      frameHelmTurnUiNumber(
+      frameConnTurnUiNumber(
         overcharge
           .quickActionRemaining
       )
@@ -402,7 +402,7 @@ export function buildFrameHelmTurnOverchargePresentation(
       null,
 
     heatLabel:
-      frameHelmTurnUiDisplayValue(
+      frameConnTurnUiDisplayValue(
         overcharge
           .heatFormula
       ),

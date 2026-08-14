@@ -8,7 +8,7 @@
 
 /**
  * ============================================================
- * FRAME HELM UI TURN -- RUNTIME BINDINGS
+ * FRAME CONN UI TURN -- RUNTIME BINDINGS
  * ============================================================
  *
  * ROLE:
@@ -50,7 +50,7 @@
  * The binding surface remains intentionally narrow while the
  * Application UI itself is still being decomposed.
  */
-const frameHelmTurnUiRuntimeBindings = {
+const frameConnTurnUiRuntimeBindings = {
   getTurnApi:
     null,
 
@@ -65,7 +65,7 @@ const frameHelmTurnUiRuntimeBindings = {
 /**
  * Configure transitional Turn UI dependencies.
  */
-function configureFrameHelmTurnUiRuntime(
+function configureFrameConnTurnUiRuntime(
   bindings = {}
 ) {
   if (
@@ -74,7 +74,7 @@ function configureFrameHelmTurnUiRuntime(
       "object"
   ) {
     throw new TypeError(
-      "Frame Helm Turn UI runtime bindings must be supplied as an object."
+      "Frame Conn Turn UI runtime bindings must be supplied as an object."
     );
   }
 
@@ -82,7 +82,7 @@ function configureFrameHelmTurnUiRuntime(
   const allowedKeys =
     new Set(
       Object.keys(
-        frameHelmTurnUiRuntimeBindings
+        frameConnTurnUiRuntimeBindings
       )
     );
 
@@ -102,7 +102,7 @@ function configureFrameHelmTurnUiRuntime(
       )
     ) {
       throw new Error(
-        `Frame Helm Turn UI received unknown runtime binding: ${key}`
+        `Frame Conn Turn UI received unknown runtime binding: ${key}`
       );
     }
 
@@ -113,19 +113,19 @@ function configureFrameHelmTurnUiRuntime(
         "function"
     ) {
       throw new TypeError(
-        `Frame Helm Turn UI runtime binding "${key}" must be a function or null.`
+        `Frame Conn Turn UI runtime binding "${key}" must be a function or null.`
       );
     }
 
 
-    frameHelmTurnUiRuntimeBindings[
+    frameConnTurnUiRuntimeBindings[
       key
     ] = value;
   }
 
 
   return (
-    getFrameHelmTurnUiRuntimeBindings()
+    getFrameConnTurnUiRuntimeBindings()
   );
 }
 
@@ -133,20 +133,20 @@ function configureFrameHelmTurnUiRuntime(
 /**
  * Returns binding availability without exposing bound functions.
  */
-function getFrameHelmTurnUiRuntimeBindings() {
+function getFrameConnTurnUiRuntimeBindings() {
   return Object.freeze({
     turn:
-      typeof frameHelmTurnUiRuntimeBindings
+      typeof frameConnTurnUiRuntimeBindings
         .getTurnApi ===
         "function",
 
     actions:
-      typeof frameHelmTurnUiRuntimeBindings
+      typeof frameConnTurnUiRuntimeBindings
         .getActionRegistry ===
         "function",
 
     applicationRendering:
-      typeof frameHelmTurnUiRuntimeBindings
+      typeof frameConnTurnUiRuntimeBindings
         .renderApplication ===
         "function"
   });
@@ -160,9 +160,9 @@ function getFrameHelmTurnUiRuntimeBindings() {
 /**
  * Resolve the authoritative Turn feature API.
  */
-function getFrameHelmTurnUiTurnApi() {
+function getFrameConnTurnUiTurnApi() {
   const turnApi =
-    frameHelmTurnUiRuntimeBindings
+    frameConnTurnUiRuntimeBindings
       .getTurnApi?.();
 
 
@@ -170,7 +170,7 @@ function getFrameHelmTurnUiTurnApi() {
     !turnApi
   ) {
     throw new Error(
-      "Frame Helm Turn UI could not resolve the Turn feature API."
+      "Frame Conn Turn UI could not resolve the Turn feature API."
     );
   }
 
@@ -185,9 +185,9 @@ function getFrameHelmTurnUiTurnApi() {
  * Action metadata is useful for presentation labels/icons but is
  * not required for the underlying Turn state itself.
  */
-function getFrameHelmTurnUiActionRegistry() {
+function getFrameConnTurnUiActionRegistry() {
   return (
-    frameHelmTurnUiRuntimeBindings
+    frameConnTurnUiRuntimeBindings
       .getActionRegistry?.() ??
     null
   );
@@ -199,11 +199,11 @@ function getFrameHelmTurnUiActionRegistry() {
  *
  * Turn UI runtime bindings do not own application rendering.
  */
-function renderFrameHelmTurnUiApplication(
+function renderFrameConnTurnUiApplication(
   force = false
 ) {
   return (
-    frameHelmTurnUiRuntimeBindings
+    frameConnTurnUiRuntimeBindings
       .renderApplication?.(
         Boolean(
           force
@@ -219,13 +219,13 @@ function renderFrameHelmTurnUiApplication(
    ============================================================ */
 
 export {
-  configureFrameHelmTurnUiRuntime,
+  configureFrameConnTurnUiRuntime,
 
-  getFrameHelmTurnUiRuntimeBindings,
+  getFrameConnTurnUiRuntimeBindings,
 
-  getFrameHelmTurnUiTurnApi,
+  getFrameConnTurnUiTurnApi,
 
-  getFrameHelmTurnUiActionRegistry,
+  getFrameConnTurnUiActionRegistry,
 
-  renderFrameHelmTurnUiApplication
+  renderFrameConnTurnUiApplication
 };

@@ -1,10 +1,10 @@
 const fs = require(“fs”);
 
-const content = String.raw`# Frame Helm Runtime Execution Notes
+const content = String.raw`# Frame Conn Runtime Execution Notes
 
 ## Purpose
 
-Classify Frame Helm mechanics by how much native Lancer runtime already exists.
+Classify Frame Conn mechanics by how much native Lancer runtime already exists.
 
 Primary rule:
 
@@ -28,7 +28,7 @@ CLASS 2
 Native Substrate / Missing Orchestration
 
 CLASS 3
-Frame Helm-Owned Runtime
+Frame Conn-Owned Runtime
 \`\`\`
 
 Classify before implementation.
@@ -48,14 +48,14 @@ document mutations
 roll/chat output
 \`\`\`
 
-Frame Helm should invoke the native pathway.
+Frame Conn should invoke the native pathway.
 
 Pattern:
 
 \`\`\`text
-Frame Helm
+Frame Conn
 → resolve actor/item
-→ validate Frame Helm context
+→ validate Frame Conn context
 → native entry point
 → native Flow
 → native mutations/output
@@ -115,7 +115,7 @@ Use exact traced entry points from the relevant action notes.
 
 # 4. Class 1 Responsibility
 
-Frame Helm may still own:
+Frame Conn may still own:
 
 \`\`\`text
 command presentation
@@ -165,7 +165,7 @@ document state
 
 but does not execute the complete tabletop mechanic.
 
-Frame Helm supplies only the missing orchestration/consequence.
+Frame Conn supplies only the missing orchestration/consequence.
 
 —
 
@@ -176,7 +176,7 @@ Pattern:
 \`\`\`text
 native Flow
 → native result
-→ Frame Helm extension
+→ Frame Conn extension
 → native/shared consequence primitives
 \`\`\`
 
@@ -192,20 +192,20 @@ Examples:
 Weapon special effect
 → native WeaponAttackFlow
 → OnHit/OnCrit/etc.
-→ Frame Helm effect strategy
+→ Frame Conn effect strategy
 
 Mounted System special effect
 → native ActivationFlow/TechAttackFlow
-→ Frame Helm bespoke consequence
+→ Frame Conn bespoke consequence
 
 Core Active
 → native CoreActiveFlow
-→ Frame Helm bridges missing persistent core_active state
+→ Frame Conn bridges missing persistent core_active state
 
 Cascade
 → native Structure/Overheat hook + cascade primitives
-→ Frame Helm corrects success gating
-→ Frame Helm implements control consequences
+→ Frame Conn corrects success gating
+→ Frame Conn implements control consequences
 \`\`\`
 
 Preserve native execution before/after the missing bridge.
@@ -217,10 +217,10 @@ Preserve native execution before/after the missing bridge.
 Pattern:
 
 \`\`\`text
-Frame Helm semantic parent action
+Frame Conn semantic parent action
 → native structured data
 → native child primitive/Flow
-→ Frame Helm sequencing/state
+→ Frame Conn sequencing/state
 \`\`\`
 
 Use when Lancer models the pieces but has no complete parent runtime.
@@ -234,34 +234,34 @@ Examples:
 \`\`\`text
 Skirmish
 → native mount/loadout data
-→ Frame Helm mount selection/grouping
+→ Frame Conn mount selection/grouping
 → native WeaponAttackFlow
 
 Barrage
 → native mount/loadout data
-→ Frame Helm two-mount orchestration
+→ Frame Conn two-mount orchestration
 → native WeaponAttackFlow per weapon
 
 Pilot Fight
-→ Frame Helm Fight parent
+→ Frame Conn Fight parent
 → native Pilot WeaponAttackFlow
 
 Pilot Reload
-→ Frame Helm Quick Action
+→ Frame Conn Quick Action
 → native Pilot Weapon loaded state
 
 Everest Initiative
 → native Trait ActionData
-→ Frame Helm frequency/granted-action runtime
+→ Frame Conn frequency/granted-action runtime
 → existing Quick Action execution
 
 Talent actions
 → native Talent rank/action/counter data
-→ Frame Helm orchestration
+→ Frame Conn orchestration
 
 Core Bonus actions/triggers
 → native Core Bonus data
-→ Frame Helm trigger/frequency/granted-action runtime
+→ Frame Conn trigger/frequency/granted-action runtime
 \`\`\`
 
 —
@@ -274,7 +274,7 @@ Prefer:
 
 \`\`\`text
 missing parent
-→ Frame Helm
+→ Frame Conn
 
 existing child execution
 → native Lancer
@@ -282,7 +282,7 @@ existing child execution
 
 —
 
-# 12. Class 3 — Frame Helm-Owned Runtime
+# 12. Class 3 — Frame Conn-Owned Runtime
 
 Use when Lancer lacks a meaningful runtime representation for the mechanic.
 
@@ -291,8 +291,8 @@ Native primitives may still be reused.
 Pattern:
 
 \`\`\`text
-Frame Helm domain state
-→ Frame Helm state machine/orchestrator
+Frame Conn domain state
+→ Frame Conn state machine/orchestrator
 → native/shared low-level primitives
 \`\`\`
 
@@ -317,7 +317,7 @@ damage
 token movement
 \`\`\`
 
-Frame Helm owns:
+Frame Conn owns:
 
 \`\`\`text
 Jockey relationship
@@ -339,7 +339,7 @@ Pilot actor
 normal Mech actions
 \`\`\`
 
-Frame Helm owns:
+Frame Conn owns:
 
 \`\`\`text
 controllerMode
@@ -362,7 +362,7 @@ movement mutation
 actor movement data
 \`\`\`
 
-Frame Helm owns:
+Frame Conn owns:
 
 \`\`\`text
 capability discovery
@@ -481,7 +481,7 @@ Feature code should not invent native APIs.
 Preferred dependency:
 
 \`\`\`text
-Frame Helm semantic action
+Frame Conn semantic action
 → native-system adapter
 → traced actor/item entry point
 → native Flow
@@ -564,7 +564,7 @@ Pattern:
 precheck resources
 → execute mechanic
 → native resources mutate through native pathway
-→ commit Frame Helm-owned resources
+→ commit Frame Conn-owned resources
 \`\`\`
 
 Do not double-consume native resources.
@@ -575,7 +575,7 @@ Do not double-consume native resources.
 
 Action economy is orchestration around execution.
 
-Frame Helm may validate/spend:
+Frame Conn may validate/spend:
 
 \`\`\`text
 Full
@@ -595,7 +595,7 @@ Do not assume native Flow invocation means the correct parent action cost was en
 When a Class 2/3 mechanic applies a native status:
 
 \`\`\`text
-Frame Helm semantic consequence
+Frame Conn semantic consequence
 → native/shared status infrastructure
 \`\`\`
 
@@ -610,7 +610,7 @@ Use supplemental state only for relationships/lifecycles not represented nativel
 When a Class 2/3 mechanic causes ordinary Lancer damage:
 
 \`\`\`text
-Frame Helm determines consequence
+Frame Conn determines consequence
 → native/shared damage pathway
 \`\`\`
 
@@ -641,7 +641,7 @@ StatRollFlow
 save/check primitives
 \`\`\`
 
-Frame Helm may coordinate multiple native rolls.
+Frame Conn may coordinate multiple native rolls.
 
 Example:
 
@@ -649,14 +649,14 @@ Example:
 Jockey
 → native attacker roll
 → native defender HULL roll
-→ Frame Helm compares results
+→ Frame Conn compares results
 \`\`\`
 
 —
 
 # 27. Supplemental Runtime State
 
-Create Frame Helm state only for concepts with no sufficient native representation.
+Create Frame Conn state only for concepts with no sufficient native representation.
 
 Examples:
 
@@ -799,7 +799,7 @@ Meaning:
 delegate to complete native Flow
 → extend incomplete native Flow
 → compose native primitives into missing parent action
-→ create Frame Helm runtime only when required
+→ create Frame Conn runtime only when required
 \`\`\`
 
 —
@@ -840,7 +840,7 @@ Class 2/3 mechanics still reuse native rolls, damage, statuses, resources, actor
 
 **Invariant 9**
 
-Supplemental Frame Helm state exists only where native representation is insufficient.
+Supplemental Frame Conn state exists only where native representation is insufficient.
 
 **Invariant 10**
 
@@ -851,7 +851,7 @@ Native bugs may be corrected without replacing otherwise-valid native architectu
 # 32. Final Working Model
 
 \`\`\`text
-FRAME HELM MECHANIC
+FRAME CONN MECHANIC
         │
         ▼
 TRACE NATIVE LANCER
@@ -883,7 +883,7 @@ Flow                         EXISTS            REQUIRED
 
 Critical rule:
 
-**Delegate when Lancer already executes the mechanic; extend or compose when Lancer provides the substrate; create Frame Helm runtime only for the mechanical state or orchestration that Lancer genuinely does not provide.**
+**Delegate when Lancer already executes the mechanic; extend or compose when Lancer provides the substrate; create Frame Conn runtime only for the mechanical state or orchestration that Lancer genuinely does not provide.**
 `;
 
 fs.writeFileSync(“runtime-execution-notes.md”, content, “utf8”);

@@ -2,7 +2,7 @@
    Application lifecycle configuration
    ============================================================ */
 
-const frameHelmApplicationLifecycleConfiguration = {
+const frameConnApplicationLifecycleConfiguration = {
   createApplication:
     null,
 
@@ -14,7 +14,7 @@ const frameHelmApplicationLifecycleConfiguration = {
 };
 
 
-function configureFrameHelmApplicationLifecycle({
+function configureFrameConnApplicationLifecycle({
   createApplication,
   moduleId,
   moduleTitle
@@ -23,7 +23,7 @@ function configureFrameHelmApplicationLifecycle({
     typeof createApplication ===
     "function"
   ) {
-    frameHelmApplicationLifecycleConfiguration.createApplication =
+    frameConnApplicationLifecycleConfiguration.createApplication =
       createApplication;
   }
 
@@ -31,7 +31,7 @@ function configureFrameHelmApplicationLifecycle({
   if (
     moduleId
   ) {
-    frameHelmApplicationLifecycleConfiguration.moduleId =
+    frameConnApplicationLifecycleConfiguration.moduleId =
       moduleId;
   }
 
@@ -39,13 +39,13 @@ function configureFrameHelmApplicationLifecycle({
   if (
     moduleTitle
   ) {
-    frameHelmApplicationLifecycleConfiguration.moduleTitle =
+    frameConnApplicationLifecycleConfiguration.moduleTitle =
       moduleTitle;
   }
 
 
   return {
-    ...frameHelmApplicationLifecycleConfiguration
+    ...frameConnApplicationLifecycleConfiguration
   };
 }
 
@@ -54,7 +54,7 @@ function configureFrameHelmApplicationLifecycle({
    Canonical application instance
    ============================================================ */
 
-let frameHelmApplication =
+let frameConnApplication =
   null;
 
 
@@ -62,12 +62,12 @@ let frameHelmApplication =
    Application construction
    ============================================================ */
 
-function getFrameHelmApplication() {
+function getFrameConnApplication() {
   if (
-    !frameHelmApplication
+    !frameConnApplication
   ) {
     const createApplication =
-      frameHelmApplicationLifecycleConfiguration
+      frameConnApplicationLifecycleConfiguration
         .createApplication;
 
 
@@ -76,25 +76,25 @@ function getFrameHelmApplication() {
       "function"
     ) {
       throw new Error(
-        "Frame Helm application lifecycle has not been configured with an application factory."
+        "Frame Conn application lifecycle has not been configured with an application factory."
       );
     }
 
 
-    frameHelmApplication =
+    frameConnApplication =
       createApplication();
   }
 
 
   return (
-    frameHelmApplication
+    frameConnApplication
   );
 }
 
 
-function peekFrameHelmApplication() {
+function peekFrameConnApplication() {
   return (
-    frameHelmApplication
+    frameConnApplication
   );
 }
 
@@ -103,9 +103,9 @@ function peekFrameHelmApplication() {
    Application visibility
    ============================================================ */
 
-function isFrameHelmApplicationRendered() {
+function isFrameConnApplicationRendered() {
   return Boolean(
-    frameHelmApplication
+    frameConnApplication
       ?.rendered
   );
 }
@@ -115,18 +115,18 @@ function isFrameHelmApplicationRendered() {
    Application rendering
    ============================================================ */
 
-function renderFrameHelmApplication(
+function renderFrameConnApplication(
   force = false
 ) {
   if (
-    !frameHelmApplication
+    !frameConnApplication
       ?.rendered
   ) {
     return false;
   }
 
 
-  frameHelmApplication.render(
+  frameConnApplication.render(
     Boolean(
       force
     )
@@ -137,15 +137,15 @@ function renderFrameHelmApplication(
 }
 
 
-function openFrameHelmApplication() {
+function openFrameConnApplication() {
   const moduleId =
-    frameHelmApplicationLifecycleConfiguration
+    frameConnApplicationLifecycleConfiguration
       .moduleId;
 
   const moduleTitle =
-    frameHelmApplicationLifecycleConfiguration
+    frameConnApplicationLifecycleConfiguration
       .moduleTitle ??
-    "Frame Helm";
+    "Frame Conn";
 
 
   if (
@@ -165,7 +165,7 @@ function openFrameHelmApplication() {
 
 
   const application =
-    getFrameHelmApplication();
+    getFrameConnApplication();
 
 
   application.render(
@@ -177,16 +177,16 @@ function openFrameHelmApplication() {
 }
 
 
-function closeFrameHelmApplication() {
+function closeFrameConnApplication() {
   if (
-    !frameHelmApplication
+    !frameConnApplication
   ) {
     return null;
   }
 
 
   return (
-    frameHelmApplication.close()
+    frameConnApplication.close()
   );
 }
 
@@ -195,21 +195,21 @@ function closeFrameHelmApplication() {
    Application token resolution
    ============================================================ */
 
-function getDisplayedFrameHelmToken() {
+function getDisplayedFrameConnToken() {
   return (
-    frameHelmApplication
+    frameConnApplication
       ?.getControlledToken?.() ??
     null
   );
 }
 
 
-function frameHelmApplicationDisplaysActor(
+function frameConnApplicationDisplaysActor(
   actor
 ) {
   if (
     !actor ||
-    !frameHelmApplication
+    !frameConnApplication
       ?.rendered
   ) {
     return false;
@@ -217,7 +217,7 @@ function frameHelmApplicationDisplaysActor(
 
 
   const displayedActor =
-    getDisplayedFrameHelmToken()
+    getDisplayedFrameConnToken()
       ?.actor ??
     null;
 
@@ -252,15 +252,15 @@ function frameHelmApplicationDisplaysActor(
    Application-specific Foundry hook handlers
    ============================================================ */
 
-function handleFrameHelmApplicationControlToken() {
-  renderFrameHelmApplication(
+function handleFrameConnApplicationControlToken() {
+  renderFrameConnApplication(
     false
   );
 }
 
 
-function handleFrameHelmApplicationDeleteToken() {
-  renderFrameHelmApplication(
+function handleFrameConnApplicationDeleteToken() {
+  renderFrameConnApplication(
     false
   );
 }
@@ -271,15 +271,15 @@ function handleFrameHelmApplicationDeleteToken() {
    ============================================================ */
 
 export {
-  configureFrameHelmApplicationLifecycle,
-  getFrameHelmApplication,
-  peekFrameHelmApplication,
-  isFrameHelmApplicationRendered,
-  renderFrameHelmApplication,
-  openFrameHelmApplication,
-  closeFrameHelmApplication,
-  getDisplayedFrameHelmToken,
-  frameHelmApplicationDisplaysActor,
-  handleFrameHelmApplicationControlToken,
-  handleFrameHelmApplicationDeleteToken
+  configureFrameConnApplicationLifecycle,
+  getFrameConnApplication,
+  peekFrameConnApplication,
+  isFrameConnApplicationRendered,
+  renderFrameConnApplication,
+  openFrameConnApplication,
+  closeFrameConnApplication,
+  getDisplayedFrameConnToken,
+  frameConnApplicationDisplaysActor,
+  handleFrameConnApplicationControlToken,
+  handleFrameConnApplicationDeleteToken
 };

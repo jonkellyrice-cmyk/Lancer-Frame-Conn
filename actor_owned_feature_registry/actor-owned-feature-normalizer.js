@@ -18,7 +18,7 @@
  * - actor-owned-feature-contract
  * - actor-owned-feature-discovery
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumes raw discovery candidates
  * - produces normalized ActorOwnedFeatureDescriptor values
  * - preserves native execution/provenance
@@ -94,7 +94,7 @@ import {
    ============================================================ */
 
 export const ACTOR_OWNED_FEATURE_NORMALIZER_MODULE_ID =
-  "lancer-frame-helm.actor-owned-feature-normalizer";
+  "lancer-frame-conn.actor-owned-feature-normalizer";
 
 export const ACTOR_OWNED_FEATURE_NORMALIZER_MODULE_VERSION =
   1;
@@ -2513,7 +2513,7 @@ export function getActorOwnedFeatureAugmentationNeeds(
  * because resource authority/storage semantics may depend on:
  *
  * native resource implementation
- * Frame Helm supplemental resource
+ * Frame Conn supplemental resource
  * bridge metadata
  *
  * system_bridge/resource resolver can perform final composition.
@@ -2585,7 +2585,7 @@ export function getActorOwnedFeatureAugmentationNeeds(
  *
  * SUPPLEMENTAL:
  * not assigned by this normalizer.
- * That status belongs to later Frame Helm/system bridge augmentation.
+ * That status belongs to later Frame Conn/system bridge augmentation.
  */
 
 /* ============================================================
@@ -2602,7 +2602,7 @@ export function getActorOwnedFeatureAugmentationNeeds(
  *
  * normalized actor-owned descriptor
  * +
- * existing Frame Helm registry entry
+ * existing Frame Conn registry entry
  * +
  * augmentation
  * +
@@ -2616,11 +2616,11 @@ export function getActorOwnedFeatureAugmentationNeeds(
  */
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * native_adapter/
  * ---------------
@@ -2747,7 +2747,7 @@ export function getActorOwnedFeatureNormalizerDiagnostics() {
  * NHP autopilot/cascade semantics are not inferred from NHP ownership.
  *
  * INVARIANT 13
- * Existing Frame Helm registry is not merged here.
+ * Existing Frame Conn registry is not merged here.
  *
  * INVARIANT 14
  * system_bridge remains responsible for supplementation/composition.

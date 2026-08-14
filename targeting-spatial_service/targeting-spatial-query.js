@@ -17,7 +17,7 @@
  * @depends-on
  * - targeting-spatial-contract
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumed by targeting-resolver.js
  * - consumed by targeting-validator.js
  * - consumed by targeting-spatial-service.js
@@ -95,7 +95,7 @@ import {
    ============================================================ */
 
 export const TARGETING_SPATIAL_QUERY_MODULE_ID =
-  "lancer-frame-helm.targeting-spatial-query";
+  "lancer-frame-conn.targeting-spatial-query";
 
 export const TARGETING_SPATIAL_QUERY_MODULE_VERSION =
   1;
@@ -1313,7 +1313,7 @@ export async function querySceneSpatialEntities(
 /**
  * @section sensor-entity-query
  *
- * Used by Frame Helm sensor presentation:
+ * Used by Frame Conn sensor presentation:
  *
  * return spatially detectable entities within Sensors regardless of ordinary
  * visual darkness.
@@ -1782,7 +1782,7 @@ export async function querySpatialFacts(
  *
  * "Can ordinary Foundry vision currently render this token?"
  *
- * This separation is required for Frame Helm sensor UI:
+ * This separation is required for Frame Conn sensor UI:
  *
  * enemy outline/name can remain available within Sensors even in darkness.
  *
@@ -2011,11 +2011,11 @@ export function getTargetingSpatialQueryDiagnostics() {
 }
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * native_adapter/
  * ---------------

@@ -9,11 +9,11 @@
 
 /**
  * ============================================================
- * FRAME HELM TURN -- STATE MODEL
+ * FRAME CONN TURN -- STATE MODEL
  * ============================================================
  *
  * ROLE:
- *   Owns the mutable state model for one Frame Helm Turn.
+ *   Owns the mutable state model for one Frame Conn Turn.
  *
  * PURPOSE:
  *   Separate per-turn state, legality, history, committed-action
@@ -22,7 +22,7 @@
  *   and feature composition.
  *
  * OWNS:
- *   - FrameHelmTurnState.
+ *   - FrameConnTurnState.
  *   - Turn context.
  *   - Action-budget state.
  *   - Protocol state.
@@ -90,7 +90,7 @@
    ============================================================ */
 
 import {
-  getFrameHelmTurnActionRegistry
+  getFrameConnTurnActionRegistry
 } from "./turn-runtime-bindings.js";
 
 
@@ -99,27 +99,27 @@ import {
    ============================================================ */
 
 import {
-  setFrameHelmTurnStateSpeed,
-  spendFrameHelmTurnStateMovement,
-  completeFrameHelmTurnStateMovement,
-  reopenFrameHelmTurnStateMovement,
-  commitFrameHelmTurnStateMovement,
-  refreshFrameHelmTurnStateMovementFromBoost,
-  getFrameHelmTurnStateMovementBoostEntries,
-  getFrameHelmTurnStateMovementBoostCount,
-  hasFrameHelmTurnStateProcessedMovementId,
-  rememberFrameHelmTurnStateMovementId,
-  ensureFrameHelmTurnStateAutomaticMovementBoost,
-  recalculateFrameHelmTurnStateTrackedMovement,
-  trackFrameHelmTurnStateTokenMovement
+  setFrameConnTurnStateSpeed,
+  spendFrameConnTurnStateMovement,
+  completeFrameConnTurnStateMovement,
+  reopenFrameConnTurnStateMovement,
+  commitFrameConnTurnStateMovement,
+  refreshFrameConnTurnStateMovementFromBoost,
+  getFrameConnTurnStateMovementBoostEntries,
+  getFrameConnTurnStateMovementBoostCount,
+  hasFrameConnTurnStateProcessedMovementId,
+  rememberFrameConnTurnStateMovementId,
+  ensureFrameConnTurnStateAutomaticMovementBoost,
+  recalculateFrameConnTurnStateTrackedMovement,
+  trackFrameConnTurnStateTokenMovement
 } from "./turn-state-movement.js";
 
 
 /* ============================================================
-   Frame Helm Turn state
+   Frame Conn Turn state
    ============================================================ */
 
-export class FrameHelmTurnState {
+export class FrameConnTurnState {
   constructor(
     context = {}
   ) {
@@ -313,7 +313,7 @@ export class FrameHelmTurnState {
   setSpeed(
     speed
   ) {
-    return setFrameHelmTurnStateSpeed(
+    return setFrameConnTurnStateSpeed(
       this,
       speed
     );
@@ -327,7 +327,7 @@ export class FrameHelmTurnState {
   spendMovement(
     distance
   ) {
-    return spendFrameHelmTurnStateMovement(
+    return spendFrameConnTurnStateMovement(
       this,
       distance
     );
@@ -335,14 +335,14 @@ export class FrameHelmTurnState {
 
 
   completeMovement() {
-    return completeFrameHelmTurnStateMovement(
+    return completeFrameConnTurnStateMovement(
       this
     );
   }
 
 
   reopenMovement() {
-    return reopenFrameHelmTurnStateMovement(
+    return reopenFrameConnTurnStateMovement(
       this
     );
   }
@@ -351,7 +351,7 @@ export class FrameHelmTurnState {
   commitMovement(
     actionId
   ) {
-    return commitFrameHelmTurnStateMovement(
+    return commitFrameConnTurnStateMovement(
       this,
       actionId
     );
@@ -359,21 +359,21 @@ export class FrameHelmTurnState {
 
 
   refreshMovementFromBoost() {
-    return refreshFrameHelmTurnStateMovementFromBoost(
+    return refreshFrameConnTurnStateMovementFromBoost(
       this
     );
   }
 
 
   movementBoostEntries() {
-    return getFrameHelmTurnStateMovementBoostEntries(
+    return getFrameConnTurnStateMovementBoostEntries(
       this
     );
   }
 
 
   movementBoostCount() {
-    return getFrameHelmTurnStateMovementBoostCount(
+    return getFrameConnTurnStateMovementBoostCount(
       this
     );
   }
@@ -382,7 +382,7 @@ export class FrameHelmTurnState {
   hasProcessedMovementId(
     movementId
   ) {
-    return hasFrameHelmTurnStateProcessedMovementId(
+    return hasFrameConnTurnStateProcessedMovementId(
       this,
       movementId
     );
@@ -392,7 +392,7 @@ export class FrameHelmTurnState {
   rememberMovementId(
     movementId
   ) {
-    return rememberFrameHelmTurnStateMovementId(
+    return rememberFrameConnTurnStateMovementId(
       this,
       movementId
     );
@@ -402,7 +402,7 @@ export class FrameHelmTurnState {
   ensureAutomaticMovementBoost(
     options = {}
   ) {
-    return ensureFrameHelmTurnStateAutomaticMovementBoost(
+    return ensureFrameConnTurnStateAutomaticMovementBoost(
       this,
       options
     );
@@ -410,7 +410,7 @@ export class FrameHelmTurnState {
 
 
   recalculateTrackedMovement() {
-    return recalculateFrameHelmTurnStateTrackedMovement(
+    return recalculateFrameConnTurnStateTrackedMovement(
       this
     );
   }
@@ -420,7 +420,7 @@ export class FrameHelmTurnState {
     distance,
     options = {}
   ) {
-    return trackFrameHelmTurnStateTokenMovement(
+    return trackFrameConnTurnStateTokenMovement(
       this,
       distance,
       options
@@ -617,14 +617,14 @@ export class FrameHelmTurnState {
       ignoreDuplicate = false
     } = {}
   ) {
-    const frameHelmActionRegistry =
-      getFrameHelmTurnActionRegistry();
+    const frameConnActionRegistry =
+      getFrameConnTurnActionRegistry();
 
 
     const action =
       typeof actionOrId ===
       "string"
-        ? frameHelmActionRegistry
+        ? frameConnActionRegistry
             .get(
               actionOrId
             )
@@ -947,14 +947,14 @@ export class FrameHelmTurnState {
       metadata = {}
     } = {}
   ) {
-    const frameHelmActionRegistry =
-      getFrameHelmTurnActionRegistry();
+    const frameConnActionRegistry =
+      getFrameConnTurnActionRegistry();
 
 
     const action =
       typeof actionOrId ===
       "string"
-        ? frameHelmActionRegistry
+        ? frameConnActionRegistry
             .get(
               actionOrId
             )
@@ -1260,7 +1260,7 @@ export class FrameHelmTurnState {
       this.ended
     ) {
       throw new Error(
-        "The current Frame Helm turn has ended."
+        "The current Frame Conn turn has ended."
       );
     }
   }

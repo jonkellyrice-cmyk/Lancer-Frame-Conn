@@ -8,12 +8,12 @@
 
 /**
  * ============================================================
- * FRAME HELM UI FEATURE -- SENSOR CANVAS PRESENTATION
+ * FRAME CONN UI FEATURE -- SENSOR CANVAS PRESENTATION
  * ============================================================
  *
  * ROLE:
  *   Owns the executable canvas/PIXI presentation belonging to
- *   the Frame Helm Sensors feature.
+ *   the Frame Conn Sensors feature.
  *
  * RUNTIME DOMAIN:
  *   scripts/sensors-feature.js
@@ -46,17 +46,17 @@
    ============================================================ */
 
 const MODULE_TITLE =
-  "Lancer: Frame Helm";
+  "Frame Conn";
 
 const SENSOR_LAYER_NAME =
-  "lancer-frame-helm-sensor-contacts";
+  "lancer-frame-conn-sensor-contacts";
 
 
 /* ============================================================
    Sensor UI state
    ============================================================ */
 
-let frameHelmSensorLayer =
+let frameConnSensorLayer =
   null;
 
 
@@ -64,7 +64,7 @@ let frameHelmSensorLayer =
    Sensor CSS configuration
    ============================================================ */
 
-function frameHelmSensorCssValue(
+function frameConnSensorCssValue(
   propertyName,
   fallback
 ) {
@@ -87,13 +87,13 @@ function frameHelmSensorCssValue(
 }
 
 
-function frameHelmSensorCssNumber(
+function frameConnSensorCssNumber(
   propertyName,
   fallback
 ) {
   const value =
     Number.parseFloat(
-      frameHelmSensorCssValue(
+      frameConnSensorCssValue(
         propertyName,
         String(fallback)
       )
@@ -105,7 +105,7 @@ function frameHelmSensorCssNumber(
 }
 
 
-function frameHelmCssColorToNumber(
+function frameConnCssColorToNumber(
   value,
   fallback
 ) {
@@ -139,50 +139,50 @@ function frameHelmCssColorToNumber(
 }
 
 
-function getFrameHelmSensorVisualConfiguration() {
+function getFrameConnSensorVisualConfiguration() {
   return {
     contactColor:
-      frameHelmCssColorToNumber(
-        frameHelmSensorCssValue(
-          "--fh-sensor-contact-color",
+      frameConnCssColorToNumber(
+        frameConnSensorCssValue(
+          "--fc-sensor-contact-color",
           "#ff3030"
         ),
         0xff3030
       ),
 
     reticleStrokeWidth:
-      frameHelmSensorCssNumber(
-        "--fh-sensor-reticle-stroke-width",
+      frameConnSensorCssNumber(
+        "--fc-sensor-reticle-stroke-width",
         1.5
       ),
 
     reticleAlpha:
-      frameHelmSensorCssNumber(
-        "--fh-sensor-reticle-alpha",
+      frameConnSensorCssNumber(
+        "--fc-sensor-reticle-alpha",
         0.9
       ),
 
     reticleClearance:
-      frameHelmSensorCssNumber(
-        "--fh-sensor-reticle-clearance",
+      frameConnSensorCssNumber(
+        "--fc-sensor-reticle-clearance",
         5
       ),
 
     reticleBracketMinimum:
-      frameHelmSensorCssNumber(
-        "--fh-sensor-reticle-bracket-minimum",
+      frameConnSensorCssNumber(
+        "--fc-sensor-reticle-bracket-minimum",
         8
       ),
 
     reticleBracketScale:
-      frameHelmSensorCssNumber(
-        "--fh-sensor-reticle-bracket-scale",
+      frameConnSensorCssNumber(
+        "--fc-sensor-reticle-bracket-scale",
         0.28
       ),
 
     layerZIndex:
-      frameHelmSensorCssNumber(
-        "--fh-sensor-layer-z-index",
+      frameConnSensorCssNumber(
+        "--fc-sensor-layer-z-index",
         100000
       )
   };
@@ -193,18 +193,18 @@ function getFrameHelmSensorVisualConfiguration() {
    Sensor layer ownership
    ============================================================ */
 
-function getFrameHelmSensorLayer() {
-  return frameHelmSensorLayer;
+function getFrameConnSensorLayer() {
+  return frameConnSensorLayer;
 }
 
 
-function destroyFrameHelmSensorContacts() {
-  if (!frameHelmSensorLayer) {
+function destroyFrameConnSensorContacts() {
+  if (!frameConnSensorLayer) {
     return;
   }
 
   try {
-    frameHelmSensorLayer.destroy({
+    frameConnSensorLayer.destroy({
       children: true
     });
   } catch (error) {
@@ -214,7 +214,7 @@ function destroyFrameHelmSensorContacts() {
     );
   }
 
-  frameHelmSensorLayer =
+  frameConnSensorLayer =
     null;
 }
 
@@ -223,7 +223,7 @@ function destroyFrameHelmSensorContacts() {
    Sensor presentation primitives
    ============================================================ */
 
-function createFrameHelmSensorReticle(
+function createFrameConnSensorReticle(
   contact,
   visual
 ) {
@@ -358,7 +358,7 @@ function createFrameHelmSensorReticle(
    Sensor contact composition
    ============================================================ */
 
-function createFrameHelmSensorContact(
+function createFrameConnSensorContact(
   contact,
   visual
 ) {
@@ -371,7 +371,7 @@ function createFrameHelmSensorContact(
   );
 
   container.addChild(
-    createFrameHelmSensorReticle(
+    createFrameConnSensorReticle(
       contact,
       visual
     )
@@ -385,10 +385,10 @@ function createFrameHelmSensorContact(
    Sensor overlay composition
    ============================================================ */
 
-function renderFrameHelmSensorContacts(
+function renderFrameConnSensorContacts(
   contacts = []
 ) {
-  destroyFrameHelmSensorContacts();
+  destroyFrameConnSensorContacts();
 
   if (
     !canvas?.ready ||
@@ -405,7 +405,7 @@ function renderFrameHelmSensorContacts(
   }
 
   const visual =
-    getFrameHelmSensorVisualConfiguration();
+    getFrameConnSensorVisualConfiguration();
 
   const layer =
     new PIXI.Container();
@@ -427,7 +427,7 @@ function renderFrameHelmSensorContacts(
     of contacts
   ) {
     layer.addChild(
-      createFrameHelmSensorContact(
+      createFrameConnSensorContact(
         contact,
         visual
       )
@@ -438,7 +438,7 @@ function renderFrameHelmSensorContacts(
     layer
   );
 
-  frameHelmSensorLayer =
+  frameConnSensorLayer =
     layer;
 
   return layer;
@@ -450,8 +450,8 @@ function renderFrameHelmSensorContacts(
    ============================================================ */
 
 export {
-  renderFrameHelmSensorContacts,
-  destroyFrameHelmSensorContacts,
-  getFrameHelmSensorLayer,
-  getFrameHelmSensorVisualConfiguration
+  renderFrameConnSensorContacts,
+  destroyFrameConnSensorContacts,
+  getFrameConnSensorLayer,
+  getFrameConnSensorVisualConfiguration
 };

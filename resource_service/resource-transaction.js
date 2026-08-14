@@ -18,13 +18,13 @@
  * - resource-resolver
  * - native_adapter/native-adapter
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumes ExecutionContext resource identity through resource-resolver.js
  * - consumed by resource-hooks.js
  * - consumed by resource-service.js
  * - integrates with execution_transaction/ prevalidation and commit stages
  * - verifies native resource mutation performed by native Lancer Flows
- * - commits Frame Helm-owned deferred resources
+ * - commits Frame Conn-owned deferred resources
  *
  * EXISTING ARCHITECTURE PRESERVED:
  * - native_adapter/native-resources.js remains native Lancer authority
@@ -510,14 +510,14 @@ export async function validateExecutionResources(
   });
 }
 /* ============================================================
-   FRAME HELM STATE WRITER BOUNDARY
+   FRAME CONN STATE WRITER BOUNDARY
    ============================================================ */
 /**
- * @section frame-helm-state-writer-boundary
+ * @section frame-conn-state-writer-boundary
  *
  * Supplemental persistence has not yet been built.
  *
- * This file accepts a writer function for Frame Helm-owned state:
+ * This file accepts a writer function for Frame Conn-owned state:
  *
  * writer({
  *   context,
@@ -529,7 +529,7 @@ export async function validateExecutionResources(
  *
  * This keeps persistence out of the resource contract.
  */
-async function writeFrameHelmResource({
+async function writeFrameConnResource({
   context,
   descriptor,
   before,
@@ -542,7 +542,7 @@ async function writeFrameHelmResource({
     "function"
   ) {
     throw new Error(
-      `No Frame Helm resource writer available for ${descriptor.identity.id}.`
+      `No Frame Conn resource writer available for ${descriptor.identity.id}.`
     );
   }
   return writer({
@@ -559,7 +559,7 @@ async function writeFrameHelmResource({
 /**
  * @section native-resource-writer
  *
- * Only used for resources explicitly classified as Frame Helm-consumed
+ * Only used for resources explicitly classified as Frame Conn-consumed
  * despite native backing.
  *
  * Native Flow-owned resources NEVER pass through this path.
@@ -628,7 +628,7 @@ export async function commitDeferredResource(
   descriptor,
   {
     before = null,
-    frameHelmWriter = null
+    frameConnWriter = null
   } = {}
 ) {
   if (
@@ -704,9 +704,9 @@ export async function commitDeferredResource(
         .identity
         .authority
     ) {
-      case RESOURCE_AUTHORITY.FRAME_HELM:
+      case RESOURCE_AUTHORITY.FRAME_CONN:
         rawWrite =
-          await writeFrameHelmResource({
+          await writeFrameConnResource({
             context,
             descriptor,
             before:
@@ -715,7 +715,7 @@ export async function commitDeferredResource(
             operation:
               mutation.operation,
             writer:
-              frameHelmWriter
+              frameConnWriter
           });
         break;
       case RESOURCE_AUTHORITY.NATIVE:
@@ -983,7 +983,7 @@ export async function commitDeferredResources(
   context,
   snapshot,
   {
-    frameHelmWriter = null
+    frameConnWriter = null
   } = {}
 ) {
   if (!snapshot) {
@@ -1013,7 +1013,7 @@ export async function commitDeferredResources(
         descriptor,
         {
           before,
-          frameHelmWriter
+          frameConnWriter
         }
       )
     );
@@ -1196,7 +1196,7 @@ async function resolveAfterSnapshots(
  * Order:
  *
  * 1. verify native-consumed resources
- * 2. commit deferred Frame Helm resources
+ * 2. commit deferred Frame Conn resources
  * 3. snapshot all final state
  * 4. aggregate normalized result
  */
@@ -1204,7 +1204,7 @@ export async function commitExecutionResources(
   context,
   snapshot,
   {
-    frameHelmWriter = null
+    frameConnWriter = null
   } = {}
 ) {
   if (!context) {
@@ -1232,7 +1232,7 @@ export async function commitExecutionResources(
       context,
       snapshot,
       {
-        frameHelmWriter
+        frameConnWriter
       }
     );
   const after =
@@ -1525,7 +1525,7 @@ export function toExecutionTransactionValidationResult(
  * COMMIT:
  * resource transaction verifies decreased native value
  *
- * Frame Helm NEVER decrements again.
+ * Frame Conn NEVER decrements again.
  *
  *
  * LOADED
@@ -1567,15 +1567,15 @@ export function toExecutionTransactionValidationResult(
  * this file may mutate through native_adapter resource setters.
  */
 /* ============================================================
-   FRAME HELM RESOURCE PERSISTENCE NOTES
+   FRAME CONN RESOURCE PERSISTENCE NOTES
    ============================================================ */
 /**
- * @section frame-helm-resource-persistence-notes
+ * @section frame-conn-resource-persistence-notes
  *
- * Frame Helm supplemental resource persistence is intentionally injected
+ * Frame Conn supplemental resource persistence is intentionally injected
  * through:
  *
- * frameHelmWriter
+ * frameConnWriter
  *
  * until the supplemental state/lifecycle storage module exists.
  *
@@ -1620,10 +1620,10 @@ export function toExecutionTransactionValidationResult(
  * the exact pre-execution resource state survives until commit.
  */
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * native_adapter/
  * ---------------
@@ -1679,7 +1679,7 @@ export function toExecutionTransactionValidationResult(
  * lifecycle_service/
  * ------------------
  *
- * Will restore/remove Frame Helm-owned resources according to:
+ * Will restore/remove Frame Conn-owned resources according to:
  *
  * descriptor.resetScope
  *
@@ -1725,7 +1725,7 @@ export function toExecutionTransactionValidationResult(
  * Deferred resources mutate only when commitExecutionResources() is called.
  *
  * INVARIANT 5
- * Frame Helm resource persistence remains injected until a dedicated
+ * Frame Conn resource persistence remains injected until a dedicated
  * persistence boundary exists.
  *
  * INVARIANT 6

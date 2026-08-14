@@ -9,7 +9,7 @@
  * @path main/action_economy/action-economy-contract.js
  * @module action-economy-contract
  * @layer action-economy-contract
- * @responsibility define-stable-frame-helm-action-economy-shapes-and-rules-contracts
+ * @responsibility define-stable-frame-conn-action-economy-shapes-and-rules-contracts
  * @public-boundary true
  * @side-effects none
  *
@@ -22,7 +22,7 @@
  * - execution_transaction/*
  * - future feature_runtime_bridge/*
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - feature_turn/ remains current turn-state authority
  * - semantic_execution_context/ carries activation/economy request
  * - execution_transaction/ owns validation/commit timing
@@ -87,7 +87,7 @@ export const ACTION_ECONOMY_ACTIVATION = Object.freeze({
 /**
  * @section standard-turn-limits
  *
- * Baseline Lancer turn economy represented by Frame Helm.
+ * Baseline Lancer turn economy represented by Frame Conn.
  *
  * Feature-specific grants/overrides are handled separately.
  */
@@ -686,7 +686,7 @@ export function actionEconomyValidationSkipped(
  * Describes the turn-state changes to commit.
  *
  * action-economy-state.js / transaction.js will apply them to existing
- * Frame Helm turn state.
+ * Frame Conn turn state.
  */
 export function createActionEconomyMutation({
   quickDelta = 0,
@@ -1144,7 +1144,7 @@ export function inferActionEconomyMutation(
 /**
  * @section full-quick-notes
  *
- * Existing Frame Helm turn state currently models:
+ * Existing Frame Conn turn state currently models:
  *
  * quick actions remaining
  * full action available
@@ -1259,10 +1259,10 @@ export function inferActionEconomyMutation(
  * → no economy expenditure
  */
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * feature_turn/
  * -------------

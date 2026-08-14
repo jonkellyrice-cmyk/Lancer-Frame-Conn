@@ -16,7 +16,7 @@
  *
  * @depends-on native-contract
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - extends/generalizes actor access currently performed through
  *   foundry-integration-feature.js and feature-specific code
  * - consumed by native-adapter.js
@@ -432,7 +432,7 @@ export function resolveNativeActorSync(
 
 /**
  * @section actor-classification
- * @purpose expose-native-lancer-typeguards-through-stable-frame-helm-api
+ * @purpose expose-native-lancer-typeguards-through-stable-frame-conn-api
  */
 
 export function isNativePilot(actor) {
@@ -1558,11 +1558,11 @@ export async function resolveMechanicalPilot(
 }
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * foundry-integration-feature.js
  * ------------------------------
@@ -1637,7 +1637,7 @@ export async function resolveMechanicalPilot(
  *
  * controllerMode does NOT.
  *
- * controllerMode is supplemental Frame Helm runtime state.
+ * controllerMode is supplemental Frame Conn runtime state.
  */
 
 /* ============================================================

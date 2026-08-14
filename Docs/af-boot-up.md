@@ -10,11 +10,11 @@
 
 **Native generic status/effect infrastructure:** Found.
 
-**Frame Helm implementation status:** Frame Helm should own Boot Up execution as a state-transition action that removes the native Lancer `shutdown` status and performs any additional deterministic Boot Up consequences required by the rules.
+**Frame Conn implementation status:** Frame Conn should own Boot Up execution as a state-transition action that removes the native Lancer `shutdown` status and performs any additional deterministic Boot Up consequences required by the rules.
 
 ## Purpose
 
-This document records the native Foundry Lancer findings relevant to the universal **Boot Up** Full Action and defines the intended Frame Helm implementation boundary.
+This document records the native Foundry Lancer findings relevant to the universal **Boot Up** Full Action and defines the intended Frame Conn implementation boundary.
 
 Repository investigation did not reveal a dedicated executable Boot Up flow such as:
 
@@ -28,7 +28,7 @@ The native Lancer system does, however, represent whether an actor is Shut Down 
 
 Therefore:
 
-> Frame Helm should implement the universal Boot Up action itself.
+> Frame Conn should implement the universal Boot Up action itself.
 
 while:
 
@@ -70,7 +70,7 @@ A repository search did not identify:
 - dedicated Boot Up template
 - dedicated Boot Up flow step sequence
 
-Therefore there is no known native high-level Boot Up action executor for Frame Helm to call.
+Therefore there is no known native high-level Boot Up action executor for Frame Conn to call.
 
 —
 
@@ -130,7 +130,7 @@ with:
 
 `”shutdown”: “Shut Down”`
 
-Frame Helm should use this native status identity rather than inventing a second Frame Helm-only Shutdown flag.
+Frame Conn should use this native status identity rather than inventing a second Frame Conn-only Shutdown flag.
 
 —
 
@@ -146,7 +146,7 @@ No dedicated code was found using a Boot Up-specific flow to remove:
 
 `shutdown`
 
-Therefore Frame Helm will need to perform the state transition explicitly using the native status/effect infrastructure.
+Therefore Frame Conn will need to perform the state transition explicitly using the native status/effect infrastructure.
 
 —
 
@@ -172,7 +172,7 @@ Native status handling may ultimately use Foundry mechanisms such as:
 
 The exact preferred mutation entry point should be confirmed before implementation.
 
-Frame Helm should use the highest-level native status helper available rather than directly editing raw actor data if the native system provides an appropriate helper.
+Frame Conn should use the highest-level native status helper available rather than directly editing raw actor data if the native system provides an appropriate helper.
 
 —
 
@@ -180,7 +180,7 @@ Frame Helm should use the highest-level native status helper available rather th
 
 The intended responsibility split is:
 
-**FRAME HELM OWNS:**
+**FRAME CONN OWNS:**
 
 - Boot Up action commitment
 - Full Action expenditure
@@ -190,7 +190,7 @@ The intended responsibility split is:
 - removal of the Shutdown state through native status infrastructure
 - any additional deterministic Boot Up consequences
 - committed-action execution state
-- Frame Helm presentation refresh
+- Frame Conn presentation refresh
 
 **NATIVE LANCER / FOUNDRY OWNS:**
 
@@ -205,12 +205,12 @@ The intended responsibility split is:
 
 # 8. Proposed Initial Boot Up Flow
 
-The initial Frame Helm execution should be:
+The initial Frame Conn execution should be:
 
 Player commits Boot Up
 → Boot Up appears in Committed Plan
 → player executes Boot Up
-→ Frame Helm resolves authoritative acting mech
+→ Frame Conn resolves authoritative acting mech
 → validate active Turn
 → validate Full Action commitment
 → confirm actor currently has native `shutdown` status
@@ -218,7 +218,7 @@ Player commits Boot Up
 → apply any other confirmed Boot Up consequences
 → mark committed Boot Up action executed
 → refresh authoritative actor state
-→ refresh Frame Helm presentation
+→ refresh Frame Conn presentation
 
 No attack roll is required.
 
@@ -256,7 +256,7 @@ if actor is Shut Down:
 if actor is not Shut Down:
 → Boot Up not useful / not legal
 
-Frame Helm should provide a clear legality reason rather than silently doing nothing.
+Frame Conn should provide a clear legality reason rather than silently doing nothing.
 
 Example presentation reason:
 
@@ -268,7 +268,7 @@ Exact wording can be determined during implementation.
 
 # 11. Authoritative Status Check
 
-Frame Helm should determine whether the actor is Shut Down from native authoritative state.
+Frame Conn should determine whether the actor is Shut Down from native authoritative state.
 
 Preferred source:
 
@@ -276,11 +276,11 @@ native Lancer/Foundry status representation
 
 not:
 
-Frame Helm cached presentation state
+Frame Conn cached presentation state
 
 and not:
 
-a duplicated Frame Helm boolean.
+a duplicated Frame Conn boolean.
 
 The UI may cache/display the state, but execution should re-resolve the authoritative actor at the time Boot Up is performed.
 
@@ -364,13 +364,13 @@ Boot Up consumes:
 
 **one Full Action**
 
-Frame Helm’s Turn feature should remain authoritative for that expenditure.
+Frame Conn’s Turn feature should remain authoritative for that expenditure.
 
-The native Lancer status mutation should not independently modify Frame Helm’s action budget.
+The native Lancer status mutation should not independently modify Frame Conn’s action budget.
 
 Conceptually:
 
-Frame Helm Turn
+Frame Conn Turn
 → commit/use Full Action
 
 then:
@@ -384,7 +384,7 @@ These are separate responsibilities.
 
 # 16. Commit vs Execute
 
-If Frame Helm continues to distinguish committed planning from execution:
+If Frame Conn continues to distinguish committed planning from execution:
 
 Commit Boot Up:
 → reserve/spend Full Action according to Turn rules
@@ -410,7 +410,7 @@ Boot Up execution should account for cases such as:
 - status mutation is rejected
 - actor state changes between commit and execute
 
-Frame Helm should revalidate state at execution time.
+Frame Conn should revalidate state at execution time.
 
 —
 
@@ -426,7 +426,7 @@ It should not create a second inverse state or corrupt actor status.
 
 # 19. Authoritative Refresh
 
-After Boot Up executes, Frame Helm should refresh from the authoritative actor document.
+After Boot Up executes, Frame Conn should refresh from the authoritative actor document.
 
 Do not merely assume the status removal succeeded because the helper call returned.
 
@@ -435,7 +435,7 @@ Preferred flow:
 request status removal
 → await native document mutation
 → re-read actor state
-→ update Frame Helm presentation
+→ update Frame Conn presentation
 
 This helps prevent stale UI state.
 
@@ -443,9 +443,9 @@ This helps prevent stale UI state.
 
 # 20. Status Presentation
 
-Because the native system already owns Shutdown’s icon and effect representation, Frame Helm does not need to invent a separate presentation language for the underlying status.
+Because the native system already owns Shutdown’s icon and effect representation, Frame Conn does not need to invent a separate presentation language for the underlying status.
 
-Frame Helm may display:
+Frame Conn may display:
 
 `SHUT DOWN`
 
@@ -474,7 +474,7 @@ Boot Up is a universal action rather than an actor-owned system action.
 
 It should remain part of the universal Full Action catalog.
 
-Its execution strategy can be Frame Helm-owned even though the state it manipulates is native.
+Its execution strategy can be Frame Conn-owned even though the state it manipulates is native.
 
 Conceptually:
 
@@ -482,7 +482,7 @@ action:
 `full.boot-up`
 
 execution strategy:
-Frame Helm status transition
+Frame Conn status transition
 
 Exact internal naming should follow the existing action registry.
 
@@ -499,7 +499,7 @@ Unlike:
 
 Boot Up has no discovered native Flow sequence.
 
-Therefore Frame Helm should not add unnecessary indirection such as pretending to invoke:
+Therefore Frame Conn should not add unnecessary indirection such as pretending to invoke:
 
 `BootUpFlow`
 
@@ -518,7 +518,7 @@ Actor-owned content may eventually contain effects triggered by:
 - becoming Shut Down
 - ceasing to be Shut Down
 
-If native structured data exposes such triggers, Frame Helm should preserve Boot Up as a meaningful semantic action/event.
+If native structured data exposes such triggers, Frame Conn should preserve Boot Up as a meaningful semantic action/event.
 
 The initial implementation need not solve all such triggers, but the action should not be reduced to an anonymous status toggle with no execution identity.
 
@@ -526,7 +526,7 @@ The initial implementation need not solve all such triggers, but the action shou
 
 # 25. Possible Semantic Event
 
-Conceptually, Frame Helm may eventually expose an event equivalent to:
+Conceptually, Frame Conn may eventually expose an event equivalent to:
 
 `boot-up-executed`
 
@@ -538,7 +538,7 @@ This is conceptual only.
 
 Do not invent a native hook with this name.
 
-Any event system should belong to Frame Helm’s own action/trigger architecture.
+Any event system should belong to Frame Conn’s own action/trigger architecture.
 
 —
 
@@ -645,12 +645,12 @@ Afterward:
 - [ ] Re-read actor status.
 - [ ] Apply any additional confirmed Boot Up consequences.
 - [ ] Mark committed Boot Up action executed.
-- [ ] Refresh Frame Helm presentation.
+- [ ] Refresh Frame Conn presentation.
 - [ ] Add clear failure message if actor is not Shut Down.
 - [ ] Smoke-test Boot Up from a Shut Down actor.
 - [ ] Smoke-test invalid Boot Up while not Shut Down.
 - [ ] Smoke-test status icon removal.
-- [ ] Smoke-test Frame Helm telemetry/state refresh.
+- [ ] Smoke-test Frame Conn telemetry/state refresh.
 - [ ] Smoke-test player permissions.
 
 —
@@ -679,11 +679,11 @@ Native Lancer already represents Shutdown.
 
 **Invariant 6**
 
-Frame Helm should remove the native Shutdown state rather than create a duplicate state model.
+Frame Conn should remove the native Shutdown state rather than create a duplicate state model.
 
 **Invariant 7**
 
-Turn expenditure remains owned by Frame Helm’s Turn feature.
+Turn expenditure remains owned by Frame Conn’s Turn feature.
 
 **Invariant 8**
 
@@ -713,7 +713,7 @@ BOOT UP
 │
 ├── requires actor to currently be Shut Down
 │
-├── Frame Helm-owned action execution
+├── Frame Conn-owned action execution
 │   │
 │   ├── validate actor
 │   ├── validate Shutdown state
@@ -728,7 +728,7 @@ BOOT UP
     ├── owns status icon
     └── provides generic status/effect mutation infrastructure
 
-This is the current working architecture for Boot Up in Frame Helm.
+This is the current working architecture for Boot Up in Frame Conn.
 
 The critical native integration boundary is not a Boot Up Flow.
 

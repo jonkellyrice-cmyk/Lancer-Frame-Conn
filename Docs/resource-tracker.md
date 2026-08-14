@@ -1,15 +1,15 @@
 const fs = require(“fs”);
 
-const content = String.raw`# Frame Helm Resource Tracker — Native-First Integration Guide
+const content = String.raw`# Frame Conn Resource Tracker — Native-First Integration Guide
 
 ## Purpose
 
-Generalize the native Lancer Limited-resource pathway into a shared Frame Helm resource orchestration layer.
+Generalize the native Lancer Limited-resource pathway into a shared Frame Conn resource orchestration layer.
 
 Core rule:
 
 \`\`\`text
-Frame Helm owns resource orchestration.
+Frame Conn owns resource orchestration.
 Native Lancer remains authoritative for native resource mutation where that pathway already exists.
 \`\`\`
 
@@ -102,7 +102,7 @@ Behavior:
 \`\`\`text
 validate through native Limited state
 native Flow consumes resource
-Frame Helm does not decrement again
+Frame Conn does not decrement again
 \`\`\`
 
 Applicable to:
@@ -140,7 +140,7 @@ Mounted Systems
 other structured feature sources
 \`\`\`
 
-Frame Helm may mutate native counter state when source semantics require it.
+Frame Conn may mutate native counter state when source semantics require it.
 
 Do not create duplicate counter state.
 
@@ -167,7 +167,7 @@ Unlimited
 
 Native runtime tracking was not found.
 
-Frame Helm owns:
+Frame Conn owns:
 
 \`\`\`text
 availability
@@ -188,7 +188,7 @@ actor.system.core_energy
 
 Native Core Power flows already consume CP.
 
-Frame Helm should:
+Frame Conn should:
 
 \`\`\`text
 validate state
@@ -271,7 +271,7 @@ If any requirement fails:
 
 \`\`\`text
 do not execute
-do not consume any Frame Helm-owned resource
+do not consume any Frame Conn-owned resource
 \`\`\`
 
 —
@@ -295,7 +295,7 @@ CoreActiveFlow
 shared status/movement/save resolver
 \`\`\`
 
-Do not spend Frame Helm-owned resources merely because the UI opened.
+Do not spend Frame Conn-owned resources merely because the UI opened.
 
 —
 
@@ -321,7 +321,7 @@ Native Limited/Core Power should normally already be consumed by native executio
 
 # 14. Cancellation Rule
 
-Do not consume Frame Helm-owned resources if execution is cancelled before successful resolution.
+Do not consume Frame Conn-owned resources if execution is cancelled before successful resolution.
 
 Examples:
 
@@ -347,7 +347,7 @@ invalid target
 other native validation
 \`\`\`
 
-Frame Helm-owned frequency/counters should remain unspent unless the rule explicitly says otherwise.
+Frame Conn-owned frequency/counters should remain unspent unless the rule explicitly says otherwise.
 
 —
 
@@ -383,7 +383,7 @@ Commit:
 
 \`\`\`text
 Limited → consumed natively
-frequency → Frame Helm
+frequency → Frame Conn
 Counter → native Counter adapter
 \`\`\`
 
@@ -481,11 +481,11 @@ Do not globally reset all resources at one boundary.
 
 # 21. Persistence
 
-Longer-scope Frame Helm resources must survive:
+Longer-scope Frame Conn resources must survive:
 
 \`\`\`text
 UI rerender
-Frame Helm close/reopen
+Frame Conn close/reopen
 browser refresh
 ordinary Foundry document rerender
 \`\`\`
@@ -626,7 +626,7 @@ spent/returned state
 
 # 28. Native Limited Verification
 
-For native-consumed resources, Frame Helm may verify post-execution state.
+For native-consumed resources, Frame Conn may verify post-execution state.
 
 Example:
 
@@ -681,7 +681,7 @@ prepare
 → validate resources
 → execute
 → determine success
-→ commit Frame Helm-owned resources
+→ commit Frame Conn-owned resources
 → verify native-consumed resources
 → emit result
 → refresh
@@ -806,7 +806,7 @@ Use native Limited adapter.
 
 WeaponAttackFlow consumes the charge.
 
-Do not add Frame Helm Limited consumption.
+Do not add Frame Conn Limited consumption.
 
 —
 
@@ -824,7 +824,7 @@ action.cost = 2
 
 Native ActivationFlow consumes two native uses.
 
-Frame Helm only coordinates surrounding frequency/action economy.
+Frame Conn only coordinates surrounding frequency/action economy.
 
 —
 
@@ -890,7 +890,7 @@ When discovering a resource:
 2. native CounterData?
 3. native ActionData frequency?
 4. native actor field?
-5. supplemental Frame Helm state?
+5. supplemental Frame Conn state?
 \`\`\`
 
 Choose the highest native authority available.
@@ -902,14 +902,14 @@ Choose the highest native authority available.
 Avoid:
 
 \`\`\`text
-Frame Helm limitedUses
-Frame Helm coreEnergy
-Frame Helm weaponLoaded
+Frame Conn limitedUses
+Frame Conn coreEnergy
+Frame Conn weaponLoaded
 \`\`\`
 
 when native fields already exist.
 
-Frame Helm should read/mutate through native adapters.
+Frame Conn should read/mutate through native adapters.
 
 —
 
@@ -1005,7 +1005,7 @@ Do not make source-specific mechanics depend on DOM events.
 - [ ] current/max read correctly.
 - [ ] insufficient uses block native execution.
 - [ ] successful native execution consumes once.
-- [ ] Frame Helm does not double-consume.
+- [ ] Frame Conn does not double-consume.
 - [ ] multi-cost action consumes correct amount.
 - [ ] Full Repair/native recovery remains authoritative.
 
@@ -1057,7 +1057,7 @@ Use native Limited execution as the model for generalized resource orchestration
 
 **Invariant 2**
 
-Frame Helm owns orchestration, not every underlying resource mutation.
+Frame Conn owns orchestration, not every underlying resource mutation.
 
 **Invariant 3**
 
@@ -1113,7 +1113,7 @@ ACTION / FEATURE
         ├── native-consumed resources
         │   └── verify only
         │
-        └── Frame Helm-consumed resources
+        └── Frame Conn-consumed resources
             ├── frequency
             ├── counters
             └── supplemental state
@@ -1121,7 +1121,7 @@ ACTION / FEATURE
 
 Critical rule:
 
-**Expand the native Limited check/consume pattern into a generic resource transaction layer. Preserve native mutation for native resources; Frame Helm supplies orchestration, frequency tracking, counter semantics, persistence, and lifecycle resets only where the native runtime is incomplete.**
+**Expand the native Limited check/consume pattern into a generic resource transaction layer. Preserve native mutation for native resources; Frame Conn supplies orchestration, frequency tracking, counter semantics, persistence, and lifecycle resets only where the native runtime is incomplete.**
 `;
 
 fs.writeFileSync(“resource-tracker.md”, content, “utf8”);

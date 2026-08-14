@@ -10,7 +10,7 @@
  * @path main/semantic_execution_context/execution-context.js
  * @module execution-context
  * @layer semantic-execution-context-public-boundary
- * @responsibility expose-one-stable-frame-helm-facing-semantic-execution-context-api
+ * @responsibility expose-one-stable-frame-conn-facing-semantic-execution-context-api
  * @public-boundary true
  * @side-effects delegated-native-resolution-only
  *
@@ -18,7 +18,7 @@
  * - execution-context-contract
  * - execution-context-builder
  *
- * EXISTING FRAME HELM INTEGRATION:
+ * EXISTING FRAME CONN INTEGRATION:
  * - consumed by runtime-orchestrator.js
  * - consumed by execution_transaction/*
  * - consumed by resource_service/*
@@ -82,7 +82,7 @@ import * as builder from "./execution-context-builder.js";
  */
 
 export const EXECUTION_CONTEXT_MODULE_ID =
-  "lancer-frame-helm.semantic-execution-context";
+  "lancer-frame-conn.semantic-execution-context";
 
 export const EXECUTION_CONTEXT_MODULE_VERSION =
   1;
@@ -1311,11 +1311,11 @@ export function getExecutionContextModuleDiagnostics() {
 }
 
 /* ============================================================
-   EXISTING FRAME HELM ARCHITECTURE NOTES
+   EXISTING FRAME CONN ARCHITECTURE NOTES
    ============================================================ */
 
 /**
- * @section existing-frame-helm-architecture-notes
+ * @section existing-frame-conn-architecture-notes
  *
  * runtime-orchestrator.js
  * -----------------------
@@ -1563,6 +1563,6 @@ export function getExecutionContextModuleDiagnostics() {
  * runtime prose parsing.
  *
  * INVARIANT 12
- * Existing Frame Helm architecture should migrate into this boundary
+ * Existing Frame Conn architecture should migrate into this boundary
  * incrementally rather than through parallel context models.
  */

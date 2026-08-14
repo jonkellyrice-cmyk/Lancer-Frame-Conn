@@ -12,11 +12,11 @@
 
 **Native execution object:** `WeaponAttackFlow`
 
-**Frame Helm implementation status:** Requires Frame Helm-owned Skirmish mount selection and orchestration over native Lancer weapon attack execution.
+**Frame Conn implementation status:** Requires Frame Conn-owned Skirmish mount selection and orchestration over native Lancer weapon attack execution.
 
 ## Purpose
 
-This document records the native Foundry Lancer execution architecture relevant to the **Skirmish** Quick Action and defines the current plan for integrating Skirmish execution into Frame Helm.
+This document records the native Foundry Lancer execution architecture relevant to the **Skirmish** Quick Action and defines the current plan for integrating Skirmish execution into Frame Conn.
 
 The repository findings are substantially the same as those documented for Barrage.
 
@@ -34,7 +34,7 @@ Therefore:
 
 > **Native Lancer owns execution of individual weapon attacks.**
 >
-> **Frame Helm must own the Skirmish-level mount selection and orchestration.**
+> **Frame Conn must own the Skirmish-level mount selection and orchestration.**
 
 The primary difference from Barrage is the action-level structure:
 
@@ -139,7 +139,7 @@ Therefore:
 
 There is only one target assignment for an ordinary Skirmish.
 
-This suggests a reusable Frame Helm concept:
+This suggests a reusable Frame Conn concept:
 
 **Mount Attack Group**
 
@@ -173,7 +173,7 @@ or:
 
 The native system instead exposes weapon execution at the individual weapon level.
 
-Therefore Frame Helm should construct Skirmish from the same lower-level native primitive used for Barrage.
+Therefore Frame Conn should construct Skirmish from the same lower-level native primitive used for Barrage.
 
 —
 
@@ -195,7 +195,7 @@ stock weapon attack control
 → `WeaponAttackFlow`
 → native weapon attack execution
 
-Frame Helm should preserve this native boundary.
+Frame Conn should preserve this native boundary.
 
 —
 
@@ -217,7 +217,7 @@ The native individual weapon flow identified during attack research contains the
 → `updateItemAfterAction`
 → `printAttackCard`
 
-This means Frame Helm does not need to recreate the lower-level attack machinery simply to implement Skirmish.
+This means Frame Conn does not need to recreate the lower-level attack machinery simply to implement Skirmish.
 
 Native Lancer can continue to own such concerns as:
 
@@ -236,7 +236,7 @@ Native Lancer can continue to own such concerns as:
 - post-attack item mutation
 - native attack chat output
 
-Frame Helm’s missing responsibility is the higher-level Skirmish action.
+Frame Conn’s missing responsibility is the higher-level Skirmish action.
 
 —
 
@@ -256,7 +256,7 @@ Mech Actor
 → slots
 → weapon references
 
-Frame Helm should derive the Skirmish choices directly from this authoritative actor state.
+Frame Conn should derive the Skirmish choices directly from this authoritative actor state.
 
 It should not create a second independent inventory of equipped weapons.
 
@@ -386,7 +386,7 @@ Their weapons:
 
 The exact native representation of Integrated mounts and whether/how a particular Integrated weapon participates in ordinary Skirmish must be determined from the native actor/loadout data and the weapon’s rules.
 
-Frame Helm should not assume every Integrated weapon is automatically a legal Skirmish choice merely because it exists.
+Frame Conn should not assume every Integrated weapon is automatically a legal Skirmish choice merely because it exists.
 
 —
 
@@ -412,7 +412,7 @@ and:
 
 `Superheavy -> NOT Skirmish`
 
-Frame Helm’s Skirmish selector must exclude Superheavy weapons/configurations.
+Frame Conn’s Skirmish selector must exclude Superheavy weapons/configurations.
 
 This should eventually be enforced by the action-domain legality layer rather than merely hidden by the UI.
 
@@ -436,21 +436,21 @@ The UI should present mounts rather than presenting every weapon as an unrelated
 
 —
 
-# 11. Proposed Frame Helm Skirmish Flow
+# 11. Proposed Frame Conn Skirmish Flow
 
 The initial implementation should behave approximately as follows:
 
 Player commits Skirmish
 → Skirmish appears in Committed Plan
 → player presses execution / d20 control
-→ Frame Helm reads `actor.system.loadout.weapon_mounts`
-→ Frame Helm determines legal Skirmish mounts
-→ Frame Helm opens Skirmish mount selector
+→ Frame Conn reads `actor.system.loadout.weapon_mounts`
+→ Frame Conn determines legal Skirmish mounts
+→ Frame Conn opens Skirmish mount selector
 → player selects one mount
-→ Frame Helm determines participating weapon(s)
-→ Frame Helm enters target-selection mode
+→ Frame Conn determines participating weapon(s)
+→ Frame Conn enters target-selection mode
 → player selects one target
-→ Frame Helm binds that target to the selected mount attack group
+→ Frame Conn binds that target to the selected mount attack group
 → execute first participating weapon through native attack flow
 → execute second participating weapon, if applicable, against the same target
 → Skirmish completes
@@ -582,7 +582,7 @@ Within each selected mount:
 
 `all participating weapons -> that mount’s target`
 
-This rule should be preserved when Frame Helm eventually replaces the native attack HUD with automated targeting and attack resolution.
+This rule should be preserved when Frame Conn eventually replaces the native attack HUD with automated targeting and attack resolution.
 
 —
 
@@ -598,11 +598,11 @@ and:
 
 `showAttackHUD`
 
-If Frame Helm executes two individual native weapon flows for a two-weapon mount, it must ensure the second flow retains or receives the **same target** as the first.
+If Frame Conn executes two individual native weapon flows for a two-weapon mount, it must ensure the second flow retains or receives the **same target** as the first.
 
 We therefore need to determine exactly how native target state is supplied to `WeaponAttackFlow`.
 
-Until that is understood, Frame Helm should not assume that simply calling:
+Until that is understood, Frame Conn should not assume that simply calling:
 
 `weaponA.beginWeaponAttackFlow()`
 
@@ -625,8 +625,8 @@ Before automated two-weapon Skirmish execution is implementation-ready:
 - [ ] Determine whether the attack HUD changes target state.
 - [ ] Determine whether a second native weapon flow can safely reuse the same selected target.
 - [ ] Determine how multiple targets are represented for weapons capable of attacking more than one target.
-- [ ] Determine whether native targeting can be pre-populated by Frame Helm.
-- [ ] Determine how Frame Helm should force a mount’s second weapon to use the same target.
+- [ ] Determine whether native targeting can be pre-populated by Frame Conn.
+- [ ] Determine how Frame Conn should force a mount’s second weapon to use the same target.
 
 —
 
@@ -660,7 +660,7 @@ Before implementation:
 
 # 19. Superheavy Filtering Research
 
-Frame Helm needs a reliable native-data method for determining:
+Frame Conn needs a reliable native-data method for determining:
 
 `this weapon is Superheavy`
 
@@ -683,7 +683,7 @@ Skirmish consumes:
 
 **one Quick Action**
 
-The individual weapon flows produced by the selected mount must not independently consume additional Frame Helm action budget.
+The individual weapon flows produced by the selected mount must not independently consume additional Frame Conn action budget.
 
 Therefore:
 
@@ -699,7 +699,7 @@ and:
 
 are consequences of executing that single committed action.
 
-Frame Helm must keep action-budget accounting separate from native individual weapon execution.
+Frame Conn must keep action-budget accounting separate from native individual weapon execution.
 
 —
 
@@ -716,7 +716,7 @@ Examples include:
 - self Heat
 - native weapon item mutation
 
-Frame Helm should not manually duplicate these mutations simply because it orchestrates the Skirmish.
+Frame Conn should not manually duplicate these mutations simply because it orchestrates the Skirmish.
 
 —
 
@@ -730,7 +730,7 @@ but:
 
 Weapon B is cancelled or fails.
 
-Frame Helm will eventually need a defined policy for this state.
+Frame Conn will eventually need a defined policy for this state.
 
 Possible execution states include:
 
@@ -742,7 +742,7 @@ Possible execution states include:
 - cancelled
 - failed
 
-Because the Quick Action has already begun and native document mutations may already have occurred, Frame Helm should not assume it can simply roll back the first weapon.
+Because the Quick Action has already begun and native document mutations may already have occurred, Frame Conn should not assume it can simply roll back the first weapon.
 
 A resumable execution sequence may eventually be useful.
 
@@ -781,23 +781,23 @@ Committed Skirmish
 
 The native attack HUD may still be used at this stage.
 
-This allows Frame Helm to gain functional Skirmish execution without first solving every modifier and damage automation problem.
+This allows Frame Conn to gain functional Skirmish execution without first solving every modifier and damage automation problem.
 
 —
 
 # 25. Future Automated Architecture
 
-The eventual Frame Helm Skirmish flow should become:
+The eventual Frame Conn Skirmish flow should become:
 
 Committed Skirmish
 → press d20
 → choose legal mount
-→ Frame Helm enters Foundry target-selection mode
+→ Frame Conn enters Foundry target-selection mode
 → player selects one target
 → target locked to mount attack group
-→ Frame Helm derives Accuracy
-→ Frame Helm derives Difficulty
-→ Frame Helm derives flat modifiers
+→ Frame Conn derives Accuracy
+→ Frame Conn derives Difficulty
+→ Frame Conn derives flat modifiers
 → Weapon A attack automatically rolled
 → hit/miss determined
 → Weapon A damage automatically rolled
@@ -846,15 +846,15 @@ These should be integrated through the appropriate feature/action architecture r
 
 # 27. Deterministic Status and Condition Handling
 
-As Frame Helm automation deepens, Skirmish must participate in the wider requirement that player actions automatically apply or remove deterministic statuses and conditions where appropriate.
+As Frame Conn automation deepens, Skirmish must participate in the wider requirement that player actions automatically apply or remove deterministic statuses and conditions where appropriate.
 
 The preferred order remains:
 
 native Lancer mechanism if one exists
-→ Frame Helm adapter if native execution exposes the necessary primitive
-→ Frame Helm supplemental implementation only where the native system lacks the required behavior
+→ Frame Conn adapter if native execution exposes the necessary primitive
+→ Frame Conn supplemental implementation only where the native system lacks the required behavior
 
-Frame Helm should not replace native state mutation unnecessarily.
+Frame Conn should not replace native state mutation unnecessarily.
 
 —
 
@@ -901,7 +901,7 @@ plus:
 
 # 29. Suggested Shared Architecture
 
-Rather than implementing unrelated Skirmish and Barrage engines, Frame Helm should eventually share lower-level attack orchestration primitives.
+Rather than implementing unrelated Skirmish and Barrage engines, Frame Conn should eventually share lower-level attack orchestration primitives.
 
 Conceptually:
 
@@ -941,11 +941,11 @@ They should be aligned with the final feature decomposition before implementatio
 
 # 30. Native Adapter Boundary
 
-Native weapon execution should eventually pass through a dedicated Frame Helm native-system adapter.
+Native weapon execution should eventually pass through a dedicated Frame Conn native-system adapter.
 
 Conceptually:
 
-Frame Helm Actions feature
+Frame Conn Actions feature
 → attack orchestration
 → native Lancer adapter
 → authoritative `LancerItem`
@@ -962,7 +962,7 @@ UI code should not become responsible for understanding the internals of `Weapon
 The intended dependency direction is:
 
 UI Skirmish selector
-→ Frame Helm Skirmish execution service
+→ Frame Conn Skirmish execution service
 → mount/loadout resolver
 → mount attack group
 → native-system adapter
@@ -1005,15 +1005,15 @@ Individual weapon attacks should reuse native `WeaponAttackFlow` wherever practi
 
 **Invariant 7**
 
-Frame Helm should read authoritative mount/loadout state from the mech actor.
+Frame Conn should read authoritative mount/loadout state from the mech actor.
 
 **Invariant 8**
 
-Frame Helm should not maintain a duplicate authoritative equipment inventory.
+Frame Conn should not maintain a duplicate authoritative equipment inventory.
 
 **Invariant 9**
 
-Individual native weapon attacks do not consume additional Frame Helm Quick Actions.
+Individual native weapon attacks do not consume additional Frame Conn Quick Actions.
 
 **Invariant 10**
 
@@ -1023,7 +1023,7 @@ Weapon-specific resource mutation remains native wherever native support exists.
 
 # 33. Implementation TODO
 
-Implementation should occur after the current Frame Helm organizational refactor is complete.
+Implementation should occur after the current Frame Conn organizational refactor is complete.
 
 Relevant decomposition targets include:
 
@@ -1054,7 +1054,7 @@ Afterward:
 - [ ] Preserve single Quick Action expenditure.
 - [ ] Track execution progress.
 - [ ] Handle cancellation/failure.
-- [ ] Refresh Frame Helm from authoritative actor/item state.
+- [ ] Refresh Frame Conn from authoritative actor/item state.
 - [ ] Compare execution against stock character-sheet weapon attacks.
 
 —
@@ -1071,7 +1071,7 @@ The repository findings indicate that Skirmish should use the same native indivi
 
 No dedicated native `SkirmishFlow` has been identified.
 
-Therefore Frame Helm should implement the missing higher-level action orchestration.
+Therefore Frame Conn should implement the missing higher-level action orchestration.
 
 The essential Skirmish structure is:
 
@@ -1098,7 +1098,7 @@ over:
 
 **native individual weapon attack execution**
 
-The core Frame Helm abstraction should recognize that the meaningful targeting unit is not necessarily the individual weapon.
+The core Frame Conn abstraction should recognize that the meaningful targeting unit is not necessarily the individual weapon.
 
 It is the:
 
@@ -1116,4 +1116,4 @@ For Barrage:
 → `its own target`
 → `all weapons participating from that mount`
 
-That distinction should remain central as Frame Helm moves from native-flow sequencing toward fully automated player-facing combat execution.
+That distinction should remain central as Frame Conn moves from native-flow sequencing toward fully automated player-facing combat execution.

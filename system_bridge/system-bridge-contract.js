@@ -20,8 +20,8 @@
  * - system-bridge-composer.js
  * - system-bridge.js
  *
- * EXISTING FRAME HELM INTEGRATION:
- * - existing Frame Helm registry remains one source
+ * EXISTING FRAME CONN INTEGRATION:
+ * - existing Frame Conn registry remains one source
  * - actor_owned_feature_registry/ remains one source
  * - native_adapter/ remains native Lancer authority
  * - resource_service/ remains resource authority
@@ -70,7 +70,7 @@
    ============================================================ */
 
 export const SYSTEM_BRIDGE_CONTRACT_MODULE_ID =
-  "lancer-frame-helm.system-bridge-contract";
+  "lancer-frame-conn.system-bridge-contract";
 
 export const SYSTEM_BRIDGE_CONTRACT_MODULE_VERSION =
   1;
@@ -1740,7 +1740,7 @@ export function getSystemBridgeIdentityMatchFields(
  *     >
  * structured actor-owned/native data
  *     >
- * explicit existing Frame Helm registry data
+ * explicit existing Frame Conn registry data
  *     >
  * curated augmentation
  *     >
@@ -1841,7 +1841,7 @@ export function getSystemBridgeIdentityMatchFields(
 /**
  * @section existing-registry-rule
  *
- * Existing Frame Helm registry remains a separate source.
+ * Existing Frame Conn registry remains a separate source.
  *
  * It may contribute:
  *
@@ -2076,7 +2076,7 @@ export function getSystemBridgeIdentityMatchFields(
  *
  * Intended:
  *
- * existing Frame Helm registry ─────┐
+ * existing Frame Conn registry ─────┐
  *                                   │
  * actor_owned_feature_registry ─────┤
  *                                   │
@@ -2114,7 +2114,7 @@ export function getSystemBridgeIdentityMatchFields(
  * system-bridge-contract.js is Foundry/Lancer-import free.
  *
  * INVARIANT 2
- * Existing Frame Helm registry and actor-owned registry remain separate
+ * Existing Frame Conn registry and actor-owned registry remain separate
  * source kinds.
  *
  * INVARIANT 3

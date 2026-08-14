@@ -21,8 +21,8 @@ function renderBudgetPanel(
     !data.hasTurnState
   ) {
     return `
-      <section class="frame-helm-budget frame-helm-budget-empty">
-        <div class="frame-helm-budget-message">
+      <section class="frame-conn-budget frame-conn-budget-empty">
+        <div class="frame-conn-budget-message">
           <i class="fas fa-bolt"></i>
 
           <div>
@@ -31,7 +31,7 @@ function renderBudgetPanel(
             </strong>
 
             <p>
-              Choose an action and Frame Helm will begin tracking the turn automatically.
+              Choose an action and Frame Conn will begin tracking the turn automatically.
             </p>
           </div>
         </div>
@@ -72,24 +72,24 @@ function renderBudgetPanel(
 
 
   return `
-    <section class="frame-helm-budget">
-      <div class="frame-helm-budget-grid">
-        <div class="frame-helm-budget-item">
+    <section class="frame-conn-budget">
+      <div class="frame-conn-budget-grid">
+        <div class="frame-conn-budget-item">
           <span>Movement</span>
           <strong>${foundry.utils.escapeHTML(movementValue)}</strong>
         </div>
 
-        <div class="frame-helm-budget-item">
+        <div class="frame-conn-budget-item">
           <span>Actions</span>
           <strong>${foundry.utils.escapeHTML(normalActionLabel)}</strong>
         </div>
 
-        <div class="frame-helm-budget-item">
+        <div class="frame-conn-budget-item">
           <span>Overcharge</span>
           <strong>${foundry.utils.escapeHTML(overchargeLabel)}</strong>
         </div>
 
-        <div class="frame-helm-budget-item">
+        <div class="frame-conn-budget-item">
           <span>Protocol Window</span>
 
           <strong>
@@ -102,11 +102,11 @@ function renderBudgetPanel(
         </div>
       </div>
 
-      <div class="frame-helm-budget-controls">
+      <div class="frame-conn-budget-controls">
         <button
           type="button"
-          class="frame-helm-secondary-button"
-          data-frame-helm-command="reset-turn"
+          class="frame-conn-secondary-button"
+          data-frame-conn-command="reset-turn"
         >
           <i class="fas fa-rotate-left"></i>
           Reset Plan
@@ -114,8 +114,8 @@ function renderBudgetPanel(
 
         <button
           type="button"
-          class="frame-helm-end-turn-button"
-          data-frame-helm-command="end-turn"
+          class="frame-conn-end-turn-button"
+          data-frame-conn-command="end-turn"
         >
           <i class="fas fa-flag-checkered"></i>
           End Turn

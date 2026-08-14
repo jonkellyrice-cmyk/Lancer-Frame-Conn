@@ -3,8 +3,8 @@
    ============================================================ */
 
 import {
-  getFrameHelmApplicationActionRegistry,
-  getFrameHelmApplicationTurnState
+  getFrameConnApplicationActionRegistry,
+  getFrameConnApplicationTurnState
 } from "./application-runtime-bindings.js";
 
 
@@ -16,7 +16,7 @@ function quickActionChildren(
   actionId
 ) {
   return (
-    getFrameHelmApplicationActionRegistry()
+    getFrameConnApplicationActionRegistry()
       .childrenOf(
         actionId
       )
@@ -28,7 +28,7 @@ function quickActionBreadcrumb(
   action
 ) {
   const registry =
-    getFrameHelmApplicationActionRegistry();
+    getFrameConnApplicationActionRegistry();
 
   const breadcrumb =
     [];
@@ -81,7 +81,7 @@ function renderQuickActionBudget(
 
 
   return `
-    <section class="frame-helm-quick-budget">
+    <section class="frame-conn-quick-budget">
       <div>
         <span>Normal Quick Actions</span>
         <strong>${normalRemaining}</strong>
@@ -166,7 +166,7 @@ function renderQuickActionChoice(
     state
   ) {
     const currentState =
-      getFrameHelmApplicationTurnState();
+      getFrameConnApplicationTurnState();
 
 
     const normalPermission =
@@ -243,14 +243,14 @@ function renderQuickActionChoice(
 
   const arrow =
     hasChildren
-      ? `<i class="fas fa-chevron-right frame-helm-category-arrow"></i>`
+      ? `<i class="fas fa-chevron-right frame-conn-category-arrow"></i>`
       : "";
 
 
   const status =
     requiresOvercharge
       ? `
-        <span class="frame-helm-action-overcharge-warning">
+        <span class="frame-conn-action-overcharge-warning">
           <i class="fas fa-temperature-high"></i>
           Requires Overcharge
         </span>
@@ -258,7 +258,7 @@ function renderQuickActionChoice(
       : availability.allowed
         ? ""
         : `
-          <span class="frame-helm-action-reason">
+          <span class="frame-conn-action-reason">
             ${foundry.utils.escapeHTML(
               availability.reason ??
               "Unavailable"
@@ -269,20 +269,20 @@ function renderQuickActionChoice(
 
   const overchargeClass =
     requiresOvercharge
-      ? " frame-helm-quick-choice-overcharge"
+      ? " frame-conn-quick-choice-overcharge"
       : "";
 
 
   return `
     <button
       type="button"
-      class="frame-helm-action-button frame-helm-quick-choice${overchargeClass}"
-      data-frame-helm-quick-action="${foundry.utils.escapeHTML(action.id)}"
+      class="frame-conn-action-button frame-conn-quick-choice${overchargeClass}"
+      data-frame-conn-quick-action="${foundry.utils.escapeHTML(action.id)}"
       ${disabled}
     >
       <i class="${foundry.utils.escapeHTML(action.icon)}"></i>
 
-      <span class="frame-helm-action-copy">
+      <span class="frame-conn-action-copy">
         <strong>${foundry.utils.escapeHTML(action.label)}</strong>
         <small>${foundry.utils.escapeHTML(action.shortDescription)}</small>
         ${status}
@@ -299,7 +299,7 @@ function renderQuickActionExecution(
   state
 ) {
   const currentState =
-    getFrameHelmApplicationTurnState();
+    getFrameConnApplicationTurnState();
 
 
   const normalPermission =
@@ -389,7 +389,7 @@ function renderQuickActionExecution(
   const targetNotice =
     action.requiresTarget
       ? `
-        <div class="frame-helm-quick-requirement">
+        <div class="frame-conn-quick-requirement">
           <i class="fas fa-crosshairs"></i>
 
           <span>
@@ -401,8 +401,8 @@ function renderQuickActionExecution(
 
 
   return `
-    <section class="frame-helm-quick-detail">
-      <div class="frame-helm-quick-detail-header">
+    <section class="frame-conn-quick-detail">
+      <div class="frame-conn-quick-detail-header">
         <i class="${foundry.utils.escapeHTML(action.icon)}"></i>
 
         <div>
@@ -413,12 +413,12 @@ function renderQuickActionExecution(
 
       ${targetNotice}
 
-      <div class="frame-helm-quick-execution-options">
+      <div class="frame-conn-quick-execution-options">
         <button
           type="button"
-          class="frame-helm-quick-execute-button"
-          data-frame-helm-quick-execute="normal"
-          data-frame-helm-action-id="${foundry.utils.escapeHTML(action.id)}"
+          class="frame-conn-quick-execute-button"
+          data-frame-conn-quick-execute="normal"
+          data-frame-conn-action-id="${foundry.utils.escapeHTML(action.id)}"
           ${normalPermission.allowed ? "" : "disabled"}
         >
           <i class="fas fa-bolt"></i>
@@ -431,9 +431,9 @@ function renderQuickActionExecution(
 
         <button
           type="button"
-          class="frame-helm-quick-execute-button frame-helm-overcharge-execute${willTriggerOvercharge ? " frame-helm-auto-overcharge-execute" : ""}"
-          data-frame-helm-quick-execute="overcharge"
-          data-frame-helm-action-id="${foundry.utils.escapeHTML(action.id)}"
+          class="frame-conn-quick-execute-button frame-conn-overcharge-execute${willTriggerOvercharge ? " frame-conn-auto-overcharge-execute" : ""}"
+          data-frame-conn-quick-execute="overcharge"
+          data-frame-conn-action-id="${foundry.utils.escapeHTML(action.id)}"
           ${overchargeAllowed ? "" : "disabled"}
         >
           <i class="fas fa-temperature-high"></i>
@@ -445,7 +445,7 @@ function renderQuickActionExecution(
         </button>
       </div>
 
-      <p class="frame-helm-quick-placeholder-note">
+      <p class="frame-conn-quick-placeholder-note">
         This records the selected action in the turn planner. The action's attack, tech, targeting, and dice workflow will be connected in later patches.
       </p>
     </section>
@@ -461,7 +461,7 @@ function renderQuickActionPanel(
     data.turnState;
 
   const registry =
-    getFrameHelmApplicationActionRegistry();
+    getFrameConnApplicationActionRegistry();
 
 
   const selectedAction =
@@ -533,19 +533,19 @@ function renderQuickActionPanel(
           state
         )
       : `
-        <div class="frame-helm-action-list">
+        <div class="frame-conn-action-list">
           ${actionChoices}
         </div>
       `;
 
 
   return `
-    <section class="frame-helm-action-panel">
-      <div class="frame-helm-section-heading frame-helm-section-heading-with-back">
+    <section class="frame-conn-action-panel">
+      <div class="frame-conn-section-heading frame-conn-section-heading-with-back">
         <button
           type="button"
-          class="frame-helm-back-button"
-          data-frame-helm-command="quick-back"
+          class="frame-conn-back-button"
+          data-frame-conn-command="quick-back"
           aria-label="Go back"
         >
           <i class="fas fa-arrow-left"></i>
