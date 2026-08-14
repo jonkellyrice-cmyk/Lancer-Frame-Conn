@@ -1,10 +1,53 @@
 {
   "schema_version": 2,
-  "id": "plan-brace-reaction-end-to-end",
-  "description": "Planning-only corridor for implementing Brace as a Frame Conn-owned event-bound reaction that spends reaction state and delegates damage mitigation through the native Lancer damage boundary.",
+  "description": "Implement Brace end to end as a contextual Frame Conn reaction over native Lancer damage and attack-flow boundaries, with actor-keyed reaction tracking and next-turn restrictions.",
   "planning_goal": "implement Brace end to end from a qualifying incoming event through Frame Conn reaction availability and spend, event-bound Brace state, native adapter damage mitigation using Lancer's authoritative half-damage/damageCalc pathway, and presentation/runtime updates without inventing a native Brace flow",
+  "id": "implement-brace-reaction-end-to-end-phase-1a",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 3
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "native_adapter/native-execution.js",
+      "search": "function getFlowStateData(flow) {",
+      "replace": "export function installNativeFlowStepBefore({\n  stepName,\n  beforeStep,\n  flowNames = [],\n  step\n} = {}) {\n  if (!requiredString(stepName)) {\n    throw new TypeError(\n      \"Native Flow extension stepName must be a non-empty string.\"\n    );\n  }\n\n  if (!requiredString(beforeStep)) {\n    throw new TypeError(\n      \"Native Flow extension beforeStep must be a non-empty string.\"\n    );\n  }\n\n  if (\n    !Array.isArray(flowNames) ||\n    flowNames.length === 0 ||\n    flowNames.some(flowName => !requiredString(flowName))\n  ) {\n    throw new TypeError(\n      \"Native Flow extension flowNames must be a non-empty array of Flow names.\"\n    );\n  }\n\n  if (typeof step !== \"function\") {\n    throw new TypeError(\n      \"Native Flow extension step must be a function.\"\n    );\n  }\n\n  const flowSteps =\n    globalThis.game\n      ?.lancer\n      ?.flowSteps;\n\n  if (\n    !flowSteps ||\n    typeof flowSteps.get !== \"function\" ||\n    typeof flowSteps.set !== \"function\"\n  ) {\n    throw new Error(\n      \"game.lancer.flowSteps registry is unavailable.\"\n    );\n  }\n\n  const existingStep =\n    flowSteps.get(stepName);\n\n  if (\n    existingStep &&\n    existingStep !== step\n  ) {\n    throw new Error(\n      `Native Lancer Flow step already exists with a different implementation: ${stepName}`\n    );\n  }\n\n  if (!existingStep) {\n    flowSteps.set(\n      stepName,\n      step\n    );\n  }\n\n  const installedFlows =\n    [];\n\n  for (const flowName of flowNames) {\n    const FlowConstructor =\n      getNativeFlowConstructor(\n        flowName\n      );\n\n    if (\n      !Array.isArray(FlowConstructor.steps) ||\n      !FlowConstructor.steps.includes(beforeStep)\n    ) {\n      throw new Error(\n        `Native Lancer Flow ${flowName} does not contain required step ${beforeStep}.`\n      );\n    }\n\n    if (\n      !FlowConstructor.steps.includes(stepName)\n    ) {\n      FlowConstructor.insertStepBefore(\n        beforeStep,\n        stepName\n      );\n    }\n\n    installedFlows.push(\n      flowName\n    );\n  }\n\n  return Object.freeze({\n    stepName,\n    beforeStep,\n    flowNames:\n      Object.freeze([\n        ...installedFlows\n      ])\n  });\n}\n\nfunction getFlowStateData(flow) {",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "native_adapter/native-adapter-feature.js",
+      "search": "      \"native-adapter.status\",\n      \"native-adapter.combat\"\n    ],",
+      "replace": "      \"native-adapter.status\",\n      \"native-adapter.combat\",\n      \"native-adapter.flow-extension\"\n    ],",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "native_adapter/native-adapter-feature.js",
+      "search": "    commands: {\n      executeWeaponAttack:",
+      "replace": "    commands: {\n      installFlowStepBefore:\n        nativeAdapterRuntime.nativeAdapter.execution.installNativeFlowStepBefore,\n\n      executeWeaponAttack:",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "native_adapter/native-adapter-feature.js",
+      "search": "      assertRuntimeReady:\n        nativeAdapterRuntime.assertNativeAdapterRuntimeReady,\n\n      resolveActor:",
+      "replace": "      assertRuntimeReady:\n        nativeAdapterRuntime.assertNativeAdapterRuntimeReady,\n\n      installFlowStepBefore:\n        nativeAdapterRuntime.nativeAdapter.execution.installNativeFlowStepBefore,\n\n      resolveActor:",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_turn/turn-state-manager.js",
+      "search": "    this.current =\n      null;\n  }\n\n\n  /* ==========================================================\n     Turn manager -- Begin",
+      "replace": "    this.current =\n      null;\n\n\n    /**\n     * Actor-keyed reaction usage survives active-combatant changes so\n     * out-of-turn reactions can be tracked against the actual reactor.\n     */\n    this.actorReactionUsage =\n      new Map();\n\n\n    /**\n     * Reaction locks are actor keyed and combat scoped. Brace uses this\n     * to suppress all Frame Conn reactions until its aftermath expires.\n     */\n    this.actorReactionLocks =\n      new Map();\n  }\n\n\n  normalizeReactionActorKey(\n    actorReference\n  ) {\n    const actorKey =\n      typeof actorReference ===\n        \"string\"\n        ? actorReference\n        : actorReference?.uuid ??\n          actorReference?.id ??\n          null;\n\n\n    if (!actorKey) {\n      throw new TypeError(\n        \"Frame Conn reaction tracking requires an actor reference.\"\n      );\n    }\n\n\n    return String(actorKey);\n  }\n\n\n  reactionCombatContext(\n    combat =\n      globalThis.game?.combat\n  ) {\n    if (\n      !combat?.id ||\n      !combat.started ||\n      !Number.isFinite(combat.round) ||\n      !Number.isFinite(combat.turn)\n    ) {\n      return null;\n    }\n\n\n    return {\n      combatId:\n        combat.id,\n\n      turnKey:\n        `${combat.id}:${combat.round}:${combat.turn}`\n    };\n  }\n\n\n  canUseReactionForActor(\n    actorReference,\n    actionId = null,\n    {\n      combat =\n        globalThis.game?.combat\n    } = {}\n  ) {\n    const actorKey =\n      this.normalizeReactionActorKey(\n        actorReference\n      );\n\n\n    const combatContext =\n      this.reactionCombatContext(\n        combat\n      );\n\n\n    if (!combatContext) {\n      return {\n        allowed:\n          false,\n\n        reason:\n          \"A reaction requires an active combat turn.\"\n      };\n    }\n\n\n    const lock =\n      this.actorReactionLocks.get(\n        actorKey\n      );\n\n\n    if (\n      lock?.combatId ===\n      combatContext.combatId\n    ) {\n      return {\n        allowed:\n          false,\n\n        reason:\n          lock.reason ??\n          \"Reactions are currently unavailable for this actor.\"\n      };\n    }\n\n\n    const usage =\n      this.actorReactionUsage.get(\n        actorKey\n      );\n\n\n    if (\n      usage?.turnKey ===\n      combatContext.turnKey\n    ) {\n      return {\n        allowed:\n          false,\n\n        reason:\n          \"This actor has already taken a reaction during the current turn.\"\n      };\n    }\n\n\n    return {\n      allowed:\n        true,\n\n      reason:\n        null,\n\n      actorKey,\n\n      actionId,\n\n      ...combatContext\n    };\n  }\n\n\n  useReactionForActor(\n    actorReference,\n    actionId = null,\n    options = {}\n  ) {\n    const permission =\n      this.canUseReactionForActor(\n        actorReference,\n        actionId,\n        options\n      );\n\n\n    if (!permission.allowed) {\n      throw new Error(\n        permission.reason\n      );\n    }\n\n\n    this.actorReactionUsage.set(\n      permission.actorKey,\n      {\n        combatId:\n          permission.combatId,\n\n        turnKey:\n          permission.turnKey,\n\n        actionId:\n          actionId ??\n          null,\n\n        usedAt:\n          Date.now()\n      }\n    );\n\n\n    return {\n      ...this.actorReactionUsage.get(\n        permission.actorKey\n      )\n    };\n  }\n\n\n  releaseReactionForActor(\n    actorReference,\n    actionId = null,\n    {\n      combat =\n        globalThis.game?.combat\n    } = {}\n  ) {\n    const actorKey =\n      this.normalizeReactionActorKey(\n        actorReference\n      );\n\n\n    const combatContext =\n      this.reactionCombatContext(\n        combat\n      );\n\n\n    const usage =\n      this.actorReactionUsage.get(\n        actorKey\n      );\n\n\n    if (\n      !usage ||\n      usage.turnKey !==\n        combatContext?.turnKey ||\n      (\n        actionId &&\n        usage.actionId !==\n          actionId\n      )\n    ) {\n      return false;\n    }\n\n\n    this.actorReactionUsage.delete(\n      actorKey\n    );\n\n\n    return true;\n  }\n\n\n  setReactionLockForActor(\n    actorReference,\n    locked,\n    {\n      combat =\n        globalThis.game?.combat,\n      reason = null\n    } = {}\n  ) {\n    const actorKey =\n      this.normalizeReactionActorKey(\n        actorReference\n      );\n\n\n    if (!locked) {\n      this.actorReactionLocks.delete(\n        actorKey\n      );\n\n\n      return false;\n    }\n\n\n    const combatId =\n      combat?.id ??\n      null;\n\n\n    if (!combatId) {\n      throw new Error(\n        \"Frame Conn cannot lock reactions without an active combat.\"\n      );\n    }\n\n\n    this.actorReactionLocks.set(\n      actorKey,\n      {\n        combatId,\n        reason\n      }\n    );\n\n\n    return true;\n  }\n\n\n  /* ==========================================================\n     Turn manager -- Begin",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_turn/turn-state-manager.js",
+      "search": "  clear() {\n    this.current =\n      null;\n\n\n    this.renderApplication();",
+      "replace": "  clear() {\n    this.current =\n      null;\n\n\n    this.actorReactionUsage.clear();\n\n\n    this.actorReactionLocks.clear();\n\n\n    this.renderApplication();",
+      "expected_occurrences": 1
+    }
+  ]
 }
