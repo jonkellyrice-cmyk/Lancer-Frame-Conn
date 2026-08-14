@@ -136,7 +136,7 @@ const MODULE_ID =
 
 
 const MODULE_TITLE =
-  "Lancer: Frame Helm";
+  "Pilot Conn";
 
 
 const FRAME_HELM_SCENE_CONTROL_NAME =
@@ -382,10 +382,10 @@ function registerFrameHelmSettings() {
     "enabled",
     {
       name:
-        "Enable Frame Helm",
+        "Enable Pilot Conn",
 
       hint:
-        "Enables the Frame Helm action-selection interface.",
+        "Enables the Pilot Conn action-selection interface.",
 
       scope:
         "world",

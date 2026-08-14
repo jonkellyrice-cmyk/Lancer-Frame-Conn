@@ -195,7 +195,7 @@ const MODULE_ID =
   "lancer-frame-helm";
 
 const MODULE_TITLE =
-  "Lancer: Frame Helm";
+  "Pilot Conn";
 
 
 /* ============================================================
