@@ -442,6 +442,27 @@ function runEffectAtlasAudit() {
   console.log("[github-filepatcher] Effect atlas passed.");
 }
 
+function validateDeveloperToolSyntax() {
+  const tools = [
+    path.join(ROOT, "dev-scripts", "github-filepatcher.mjs"),
+    path.join(ROOT, "dev_scripts", "repo-audit.mjs"),
+    path.join(ROOT, "dev_scripts", "symbol-family-audit.mjs"),
+    path.join(ROOT, "dev_scripts", "effect-atlas.mjs"),
+    path.join(ROOT, "dev_scripts", "patch-corridor-planner.mjs")
+  ];
+
+  for (const tool of tools) {
+    if (!fs.existsSync(tool)) fail(`Developer tool not found: ${tool}`);
+    const result = spawnSync(process.execPath, ["--check", tool], { cwd: ROOT, encoding: "utf8" });
+    if (result.stdout) process.stdout.write(result.stdout);
+    if (result.stderr) process.stderr.write(result.stderr);
+    if (result.error) fail(`Developer tool syntax check could not start for ${tool}: ${result.error}`);
+    if (result.status !== 0) fail(`Developer tool syntax check failed for ${path.relative(ROOT, tool)}.`);
+  }
+
+  console.log("[github-filepatcher] Developer tool syntax checks passed.");
+}
+
 function runPatchCorridorPlanner(goal) {
   const plannerScript = path.join(ROOT, "dev_scripts", "patch-corridor-planner.mjs");
   if (!fs.existsSync(plannerScript)) fail(`Patch corridor planner not found: ${plannerScript}`);
@@ -504,6 +525,7 @@ function main() {
     applyMutationPlan(plan);
 
     try {
+      validateDeveloperToolSyntax();
       runRepositoryAudit();
       runSymbolFamilyAudit();
       runEffectAtlasAudit();
