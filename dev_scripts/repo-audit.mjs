@@ -74,7 +74,7 @@ import { fileURLToPath } from "node:url";
    ============================================================ */
 
 const SCRIPT_VERSION =
-  "1.0.0";
+  "1.1.0";
 
 
 const SCRIPT_FILE =
@@ -1000,7 +1000,7 @@ function extractStringArrayProperty(
 ) {
   const regex =
     new RegExp(
-      `\\b${property}\\s*:\\s*\$begin:math:display$\(\[\\\\s\\\\S\]\*\?\)\\$end:math:display$`
+      `\\b${property}\\s*:\\s*\\[([\\s\\S]*?)\\]`
     );
 
 
@@ -1968,7 +1968,7 @@ function auditRuntimeFeatureRegistration(
 
 
     const importSpecifier =
-      `./${path.basename(file)}`;
+      `./${relativePath(file).slice("scripts/".length)}`;
 
 
     if (
@@ -2085,15 +2085,13 @@ function auditUiFeatureRegistration(
      * so any ui-* module is worth checking for package inclusion
      * even when it does not self-declare.
      */
-    const basename =
-      path.basename(
-        file
-      );
+    const importSpecifier =
+      `./${relativePath(file).slice("styles/".length)}`;
 
 
     if (
       !registryText.includes(
-        `./${basename}`
+        importSpecifier
       )
     ) {
       addFinding({
@@ -2113,7 +2111,7 @@ function auditUiFeatureRegistration(
 
         details: {
           expectedImport:
-            `./${basename}`,
+            importSpecifier,
 
           declaresFeature:
             declarations.length >
@@ -2626,6 +2624,984 @@ function auditDuplicateBasenames(
 }
 
 
+
+/* ============================================================
+   Dependency watershed model
+   ============================================================ */
+
+/**
+ * Extract statically named declarations so stream-size statistics
+ * describe participating code symbols rather than raw line counts.
+ *
+ * This intentionally remains conservative: anonymous expressions,
+ * object properties, and runtime-generated names are not counted.
+ */
+function extractDeclaredSymbols(
+  text
+) {
+  const symbols =
+    new Set();
+
+
+  const patterns = [
+    /(?:^|\n)[ \t]*(?:export\s+)?(?:async\s+)?function\s+([A-Za-z_$][\w$]*)/g,
+    /(?:^|\n)[ \t]*(?:export\s+)?class\s+([A-Za-z_$][\w$]*)/g,
+    /(?:^|\n)[ \t]*(?:export\s+)?(?:const|let|var)\s+([A-Za-z_$][\w$]*)/g
+  ];
+
+
+  for (
+    const regex
+    of patterns
+  ) {
+    let match;
+
+
+    while (
+      (
+        match =
+          regex.exec(
+            text
+          )
+      )
+    ) {
+      symbols.add(
+        match[1]
+      );
+    }
+  }
+
+
+  for (
+    const exported
+    of extractNamedExports(
+      text
+    )
+  ) {
+    symbols.add(
+      exported
+    );
+  }
+
+
+  return symbols;
+}
+
+
+function collectDependencyClosure(
+  entryFile,
+  dependencyGraph,
+  featureFiles
+) {
+  const visited =
+    new Set();
+
+  const stack =
+    [
+      entryFile
+    ];
+
+
+  while (
+    stack.length >
+    0
+  ) {
+    const file =
+      stack.pop();
+
+
+    if (
+      visited.has(
+        file
+      )
+    ) {
+      continue;
+    }
+
+
+    visited.add(
+      file
+    );
+
+
+    for (
+      const dependency
+      of dependencyGraph.get(
+        file
+      ) ??
+      []
+    ) {
+      if (
+        featureFiles.has(
+          dependency
+        ) &&
+        dependency !==
+        entryFile
+      ) {
+        continue;
+      }
+
+
+      if (
+        dependencyGraph.has(
+          dependency
+        )
+      ) {
+        stack.push(
+          dependency
+        );
+      }
+    }
+  }
+
+
+  return visited;
+}
+
+
+function collectReachableDependencies(
+  entryFiles,
+  dependencyGraph
+) {
+  const visited =
+    new Set();
+
+  const stack =
+    entryFiles
+      .filter(
+        file =>
+          dependencyGraph.has(
+            file
+          )
+      );
+
+
+  while (
+    stack.length >
+    0
+  ) {
+    const file =
+      stack.pop();
+
+
+    if (
+      visited.has(
+        file
+      )
+    ) {
+      continue;
+    }
+
+
+    visited.add(
+      file
+    );
+
+
+    for (
+      const dependency
+      of dependencyGraph.get(
+        file
+      ) ??
+      []
+    ) {
+      if (
+        dependencyGraph.has(
+          dependency
+        )
+      ) {
+        stack.push(
+          dependency
+        );
+      }
+    }
+  }
+
+
+  return visited;
+}
+
+
+function dependencyStreamRiver(
+  feature
+) {
+  const relative =
+    relativePath(
+      feature.file
+    );
+
+
+  return (
+    feature.domain?.startsWith(
+      "ui."
+    ) ||
+    feature.id?.startsWith(
+      "ui-"
+    ) ||
+    relative.startsWith(
+      "styles/"
+    )
+  )
+    ? "ui"
+    : "runtime";
+}
+
+
+const DEPENDENCY_TOPOLOGY_FINDING_CODES =
+  new Set([
+    "MISSING_JS_IMPORT",
+    "IMPORT_PATH_CASE_MISMATCH",
+    "MISSING_NAMED_EXPORT",
+    "DUPLICATE_FEATURE_ID",
+    "DUPLICATE_CAPABILITY_PROVIDER",
+    "MISSING_REQUIRED_CAPABILITY",
+    "RUNTIME_FEATURE_NOT_IMPORTED_BY_REGISTRY",
+    "UI_MODULE_NOT_IMPORTED_BY_UI_REGISTRY",
+    "CIRCULAR_JS_IMPORT",
+    "MODULE_ESMODULE_MISSING",
+    "MODULE_STYLESHEET_MISSING",
+    "DEPENDENCY_STREAM_DEAD_END"
+  ]);
+
+
+function dependencyProblemsForFiles(
+  streamFiles
+) {
+  const relativeFiles =
+    new Set(
+      [
+        ...streamFiles
+      ].map(
+        relativePath
+      )
+    );
+
+
+  return findings
+    .filter(
+      finding =>
+        DEPENDENCY_TOPOLOGY_FINDING_CODES.has(
+          finding.code
+        ) &&
+        (
+          !finding.file ||
+          relativeFiles.has(
+            finding.file
+          )
+        )
+    )
+    .map(
+      finding => ({
+        severity:
+          finding.severity,
+
+        code:
+          finding.code,
+
+        message:
+          finding.message,
+
+        file:
+          finding.file,
+
+        line:
+          finding.line,
+
+        details:
+          finding.details
+      })
+    );
+}
+
+
+function buildDependencyWatershed({
+  files,
+  javascriptFiles,
+  textByFile,
+  dependencyGraph,
+  features,
+  featureGraph,
+  manifest
+}) {
+  const resolvedFeatures =
+    features.filter(
+      feature =>
+        Boolean(
+          feature.id
+        )
+    );
+
+
+  const featureFiles =
+    new Set(
+      resolvedFeatures.map(
+        feature =>
+          feature.file
+      )
+    );
+
+
+  const outletFiles =
+    (
+      manifest?.esmodules ??
+      []
+    )
+      .map(
+        entry =>
+          path.resolve(
+            REPOSITORY_ROOT,
+            entry
+          )
+      )
+      .filter(
+        file =>
+          dependencyGraph.has(
+            file
+          )
+      );
+
+
+  const reachableFromOutlets =
+    collectReachableDependencies(
+      outletFiles,
+      dependencyGraph
+    );
+
+
+  const streamById =
+    new Map();
+
+
+  for (
+    const feature
+    of resolvedFeatures
+  ) {
+    const streamFiles =
+      collectDependencyClosure(
+        feature.file,
+        dependencyGraph,
+        featureFiles
+      );
+
+
+    const symbols =
+      new Set();
+
+
+    for (
+      const file
+      of streamFiles
+    ) {
+      const text =
+        textByFile.get(
+          file
+        ) ??
+        "";
+
+
+      for (
+        const symbol
+        of extractDeclaredSymbols(
+          text
+        )
+      ) {
+        symbols.add(
+          symbol
+        );
+      }
+    }
+
+
+    const requiredProviders =
+      feature.dependsOn
+        .map(
+          capability =>
+            featureGraph
+              .capabilityProviders
+              .get(
+                capability
+              )
+        )
+        .filter(
+          Boolean
+        );
+
+
+    const optionalProviders =
+      feature.optionalDependsOn
+        .map(
+          capability =>
+            featureGraph
+              .capabilityProviders
+              .get(
+                capability
+              )
+        )
+        .filter(
+          Boolean
+        );
+
+
+    const upstreamStreams =
+      [
+        ...new Set(
+          [
+            ...requiredProviders,
+            ...optionalProviders
+          ]
+            .map(
+              provider =>
+                provider.id
+            )
+            .filter(
+              id =>
+                id &&
+                id !==
+                feature.id
+            )
+        )
+      ]
+        .sort();
+
+
+    const river =
+      dependencyStreamRiver(
+        feature
+      );
+
+
+    const deadEnd =
+      outletFiles.length >
+        0 &&
+      !reachableFromOutlets.has(
+        feature.file
+      );
+
+
+    if (
+      deadEnd
+    ) {
+      addFinding({
+        severity:
+          "warning",
+
+        code:
+          "DEPENDENCY_STREAM_DEAD_END",
+
+        message:
+          `Dependency stream "${feature.id}" does not reach a declared module runtime outlet.`,
+
+        file:
+          feature.file,
+
+        line:
+          feature.line,
+
+        details: {
+          featureId:
+            feature.id,
+
+          outlets:
+            outletFiles.map(
+              relativePath
+            )
+        }
+      });
+    }
+
+
+    streamById.set(
+      feature.id,
+      {
+        id:
+          feature.id,
+
+        domain:
+          feature.domain,
+
+        river,
+
+        entryFile:
+          relativePath(
+            feature.file
+          ),
+
+        fileCount:
+          streamFiles.size,
+
+        symbolCount:
+          symbols.size,
+
+        provides:
+          [
+            ...feature.provides
+          ]
+            .sort(),
+
+        consumes:
+          [
+            ...feature.dependsOn
+          ]
+            .sort(),
+
+        optionalConsumes:
+          [
+            ...feature.optionalDependsOn
+          ]
+            .sort(),
+
+        dependencyJoinCount:
+          requiredProviders.length +
+          optionalProviders.length,
+
+        upstreamStreams,
+
+        downstreamStreams:
+          [],
+
+        convergence:
+          river ===
+          "ui"
+            ? "styles/ui-registry.js"
+            : "scripts/feature-registry.js",
+
+        outlet:
+          outletFiles.length >
+          0
+            ? relativePath(
+                outletFiles[0]
+              )
+            : null,
+
+        deadEnd,
+
+        _files:
+          streamFiles,
+
+        _symbols:
+          symbols
+      }
+    );
+  }
+
+
+  for (
+    const stream
+    of streamById.values()
+  ) {
+    for (
+      const upstreamId
+      of stream.upstreamStreams
+    ) {
+      const upstream =
+        streamById.get(
+          upstreamId
+        );
+
+
+      if (
+        upstream &&
+        !upstream
+          .downstreamStreams
+          .includes(
+            stream.id
+          )
+      ) {
+        upstream
+          .downstreamStreams
+          .push(
+            stream.id
+          );
+      }
+    }
+  }
+
+
+  for (
+    const stream
+    of streamById.values()
+  ) {
+    stream.downstreamStreams.sort();
+
+
+    const problems =
+      dependencyProblemsForFiles(
+        stream._files
+      );
+
+
+    stream.status =
+      problems.some(
+        problem =>
+          problem.severity ===
+          "error"
+      )
+        ? "error"
+        : problems.length >
+            0
+          ? "warning"
+          : "healthy";
+
+
+    stream.problems =
+      stream.status ===
+      "healthy"
+        ? []
+        : problems;
+  }
+
+
+  const riverDefinitions = [
+    {
+      id:
+        "runtime",
+
+      label:
+        "Runtime River",
+
+      convergence:
+        "scripts/feature-registry.js"
+    },
+
+    {
+      id:
+        "ui",
+
+      label:
+        "UI River",
+
+      convergence:
+        "styles/ui-registry.js"
+    }
+  ];
+
+
+  const rivers =
+    riverDefinitions
+      .map(
+        definition => {
+          const streams =
+            [
+              ...streamById.values()
+            ]
+              .filter(
+                stream =>
+                  stream.river ===
+                  definition.id
+              )
+              .sort(
+                (
+                  left,
+                  right
+                ) =>
+                  left.id.localeCompare(
+                    right.id
+                  )
+              );
+
+
+          if (
+            streams.length ===
+            0
+          ) {
+            return null;
+          }
+
+
+          const riverFiles =
+            new Set();
+
+          const riverSymbols =
+            new Set();
+
+
+          for (
+            const stream
+            of streams
+          ) {
+            for (
+              const file
+              of stream._files
+            ) {
+              riverFiles.add(
+                file
+              );
+            }
+
+
+            for (
+              const symbol
+              of stream._symbols
+            ) {
+              riverSymbols.add(
+                symbol
+              );
+            }
+          }
+
+
+          return {
+            id:
+              definition.id,
+
+            label:
+              definition.label,
+
+            streamCount:
+              streams.length,
+
+            fileCount:
+              riverFiles.size,
+
+            symbolCount:
+              riverSymbols.size,
+
+            dependencyJoinCount:
+              streams.reduce(
+                (
+                  total,
+                  stream
+                ) =>
+                  total +
+                  stream.dependencyJoinCount,
+                0
+              ),
+
+            convergence:
+              definition.convergence,
+
+            outlet:
+              outletFiles.length >
+              0
+                ? relativePath(
+                    outletFiles[0]
+                  )
+                : null,
+
+            streams:
+              streams.map(
+                stream => {
+                  const {
+                    _files,
+                    _symbols,
+                    ...serializable
+                  } =
+                    stream;
+
+
+                  return serializable;
+                }
+              )
+          };
+        }
+      )
+      .filter(
+        Boolean
+      );
+
+
+  const participatingSymbols =
+    new Set();
+
+
+  for (
+    const stream
+    of streamById.values()
+  ) {
+    for (
+      const symbol
+      of stream._symbols
+    ) {
+      participatingSymbols.add(
+        symbol
+      );
+    }
+  }
+
+
+  const dependencyEdgeCount =
+    [
+      ...dependencyGraph.values()
+    ].reduce(
+      (
+        total,
+        dependencies
+      ) =>
+        total +
+        dependencies.length,
+      0
+    );
+
+
+  const cycleCount =
+    findings.filter(
+      finding =>
+        finding.code ===
+        "CIRCULAR_JS_IMPORT"
+    ).length;
+
+
+  const missingProviderCount =
+    findings.filter(
+      finding =>
+        finding.code ===
+        "MISSING_REQUIRED_CAPABILITY"
+    ).length;
+
+
+  const deadEndCount =
+    [
+      ...streamById.values()
+    ].filter(
+      stream =>
+        stream.deadEnd
+    ).length;
+
+
+  return {
+    totals: {
+      filesScanned:
+        files.length,
+
+      javascriptFiles:
+        javascriptFiles.length,
+
+      streamCount:
+        streamById.size,
+
+      majorRiverCount:
+        rivers.length,
+
+      participatingSymbols:
+        participatingSymbols.size,
+
+      fileDependencyEdges:
+        dependencyEdgeCount,
+
+      dependencyJoins:
+        [
+          ...streamById.values()
+        ].reduce(
+          (
+            total,
+            stream
+          ) =>
+            total +
+            stream.dependencyJoinCount,
+          0
+        ),
+
+      deadEnds:
+        deadEndCount,
+
+      cycles:
+        cycleCount,
+
+      missingRequiredProviders:
+        missingProviderCount
+    },
+
+    outlets:
+      outletFiles.map(
+        relativePath
+      ),
+
+    rivers
+  };
+}
+
+
+function printDependencyWatershed(
+  dependencyFlow
+) {
+  const totals =
+    dependencyFlow.totals;
+
+
+  console.log(
+    ""
+  );
+
+
+  console.log(
+    "Frame Conn dependency watershed:"
+  );
+
+
+  console.log(
+    `${totals.streamCount} streams | ${totals.majorRiverCount} major rivers | ${totals.participatingSymbols} participating symbols | ${totals.dependencyJoins} stream joins`
+  );
+
+
+  console.log(
+    `${totals.deadEnds} dead ends | ${totals.cycles} cycles | ${totals.missingRequiredProviders} missing required providers`
+  );
+
+
+  for (
+    const river
+    of dependencyFlow.rivers
+  ) {
+    console.log(
+      ""
+    );
+
+
+    console.log(
+      `${river.label}: ${river.streamCount} streams | ${river.fileCount} files | ${river.symbolCount} symbols | ${river.dependencyJoinCount} joins`
+    );
+
+
+    console.log(
+      `  convergence: ${river.convergence} -> ${river.outlet ?? "no declared outlet"}`
+    );
+
+
+    for (
+      const stream
+      of river.streams
+    ) {
+      const upstream =
+        stream.upstreamStreams.length >
+        0
+          ? stream.upstreamStreams.join(
+              ", "
+            )
+          : "source";
+
+
+      const downstream =
+        stream.downstreamStreams.length >
+        0
+          ? stream.downstreamStreams.join(
+              ", "
+            )
+          : stream.convergence;
+
+
+      console.log(
+        `  ${stream.id}: ${stream.fileCount} files | ${stream.symbolCount} symbols | ${upstream} -> ${downstream}${stream.status === "healthy" ? "" : ` | ${stream.status.toUpperCase()}`}`
+      );
+
+
+      if (
+        stream.status !==
+        "healthy"
+      ) {
+        for (
+          const problem
+          of stream.problems
+        ) {
+          console.log(
+            `    ! ${problem.code}${problem.file ? ` @ ${problem.file}` : ""}: ${problem.message}`
+          );
+        }
+      }
+    }
+  }
+}
+
+
 /* ============================================================
    Report construction
    ============================================================ */
@@ -2649,6 +3625,7 @@ function buildReport({
   cssFiles,
   features,
   featureGraph,
+  dependencyFlow,
   manifest
 }) {
   const errors =
@@ -2727,8 +3704,32 @@ function buildReport({
 
       warnings,
 
-      info
+      info,
+
+      dependencyStreams:
+        dependencyFlow.totals.streamCount,
+
+      majorRivers:
+        dependencyFlow.totals.majorRiverCount,
+
+      participatingSymbols:
+        dependencyFlow.totals.participatingSymbols,
+
+      dependencyJoins:
+        dependencyFlow.totals.dependencyJoins,
+
+      deadEnds:
+        dependencyFlow.totals.deadEnds,
+
+      cycles:
+        dependencyFlow.totals.cycles,
+
+      missingRequiredProviders:
+        dependencyFlow.totals.missingRequiredProviders
     },
+
+
+    dependencyFlow,
 
 
     manifest: manifest
@@ -2976,6 +3977,18 @@ function runAudit() {
   );
 
 
+  const dependencyFlow =
+    buildDependencyWatershed({
+      files,
+      javascriptFiles,
+      textByFile,
+      dependencyGraph,
+      features,
+      featureGraph,
+      manifest
+    });
+
+
   const report =
     buildReport({
       files,
@@ -2983,8 +3996,14 @@ function runAudit() {
       cssFiles,
       features,
       featureGraph,
+      dependencyFlow,
       manifest
     });
+
+
+  printDependencyWatershed(
+    dependencyFlow
+  );
 
 
   fs.mkdirSync(
