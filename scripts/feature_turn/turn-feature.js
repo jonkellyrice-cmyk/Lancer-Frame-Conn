@@ -169,6 +169,12 @@ import {
   canUseFrameConnTurnAction,
   useFrameConnTurnAction,
 
+  canUseFrameConnTurnReactionForActor,
+  useFrameConnTurnReactionForActor,
+  releaseFrameConnTurnReactionForActor,
+  setFrameConnTurnReactionLockForActor,
+  applyFrameConnBraceTurnRestriction,
+
   spendFrameConnTurnMovement,
   setFrameConnTurnSpeed,
 
@@ -283,6 +289,21 @@ export const frameConnTurnFeature =
 
       useAction:
         useFrameConnTurnAction,
+
+      canUseReactionForActor:
+        canUseFrameConnTurnReactionForActor,
+
+      useReactionForActor:
+        useFrameConnTurnReactionForActor,
+
+      releaseReactionForActor:
+        releaseFrameConnTurnReactionForActor,
+
+      setReactionLockForActor:
+        setFrameConnTurnReactionLockForActor,
+
+      applyBraceRestriction:
+        applyFrameConnBraceTurnRestriction,
 
       spendMovement:
         spendFrameConnTurnMovement,
@@ -417,6 +438,21 @@ export const frameConnTurnFeature =
 
       use:
         useFrameConnTurnAction,
+
+      canUseReactionForActor:
+        canUseFrameConnTurnReactionForActor,
+
+      useReactionForActor:
+        useFrameConnTurnReactionForActor,
+
+      releaseReactionForActor:
+        releaseFrameConnTurnReactionForActor,
+
+      setReactionLockForActor:
+        setFrameConnTurnReactionLockForActor,
+
+      applyBraceRestriction:
+        applyFrameConnBraceTurnRestriction,
 
 
       /* ------------------------------------------------------
@@ -566,6 +602,16 @@ export {
   canUseFrameConnTurnAction,
 
   useFrameConnTurnAction,
+
+  canUseFrameConnTurnReactionForActor,
+
+  useFrameConnTurnReactionForActor,
+
+  releaseFrameConnTurnReactionForActor,
+
+  setFrameConnTurnReactionLockForActor,
+
+  applyFrameConnBraceTurnRestriction,
 
   spendFrameConnTurnMovement,
 

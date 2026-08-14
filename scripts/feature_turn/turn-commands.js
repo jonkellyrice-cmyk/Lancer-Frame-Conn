@@ -303,6 +303,105 @@ function useFrameConnTurnAction(
 
 
 /* ============================================================
+   Turn commands -- Actor-keyed reactions
+   ============================================================ */
+
+function canUseFrameConnTurnReactionForActor(
+  actorReference,
+  actionId = null,
+  options = {}
+) {
+  return frameConnTurnState
+    .canUseReactionForActor(
+      actorReference,
+      actionId,
+      options
+    );
+}
+
+function useFrameConnTurnReactionForActor(
+  actorReference,
+  actionId = null,
+  options = {}
+) {
+  return frameConnTurnState
+    .useReactionForActor(
+      actorReference,
+      actionId,
+      options
+    );
+}
+
+function releaseFrameConnTurnReactionForActor(
+  actorReference,
+  actionId = null,
+  options = {}
+) {
+  return frameConnTurnState
+    .releaseReactionForActor(
+      actorReference,
+      actionId,
+      options
+    );
+}
+
+function setFrameConnTurnReactionLockForActor(
+  actorReference,
+  locked,
+  options = {}
+) {
+  return frameConnTurnState
+    .setReactionLockForActor(
+      actorReference,
+      locked,
+      options
+    );
+}
+
+function applyFrameConnBraceTurnRestriction(
+  actorReference
+) {
+  const state =
+    frameConnTurnState.current;
+
+  if (!state) {
+    return null;
+  }
+
+  const actorId =
+    typeof actorReference ===
+      "string"
+      ? actorReference
+      : actorReference?.id ??
+        null;
+
+  const actorUuid =
+    typeof actorReference ===
+      "object"
+      ? actorReference?.uuid ??
+        null
+      : null;
+
+  if (
+    state.context.actorId !==
+      actorId &&
+    state.context.actorId !==
+      actorUuid
+  ) {
+    return null;
+  }
+
+  const result =
+    state.applyBraceRestriction();
+
+  frameConnTurnState
+    .renderApplication();
+
+  return result;
+}
+
+
+/* ============================================================
    Turn commands -- Movement
    ============================================================ */
 
@@ -421,6 +520,16 @@ export {
   canUseFrameConnTurnAction,
 
   useFrameConnTurnAction,
+
+  canUseFrameConnTurnReactionForActor,
+
+  useFrameConnTurnReactionForActor,
+
+  releaseFrameConnTurnReactionForActor,
+
+  setFrameConnTurnReactionLockForActor,
+
+  applyFrameConnBraceTurnRestriction,
 
   spendFrameConnTurnMovement,
 

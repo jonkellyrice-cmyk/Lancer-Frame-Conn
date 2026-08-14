@@ -278,6 +278,12 @@ export class FrameConnTurnState {
     };
 
 
+    this.restrictions = {
+      brace:
+        false
+    };
+
+
     this.usedActions =
       [];
 
@@ -536,6 +542,15 @@ export class FrameConnTurnState {
 
 
     if (
+      this.restrictions?.brace
+    ) {
+      throw new Error(
+        "Brace prevents Overcharge until the end of this turn."
+      );
+    }
+
+
+    if (
       this.overcharge.used
     ) {
       throw new Error(
@@ -614,7 +629,8 @@ export class FrameConnTurnState {
     actionOrId,
     {
       useOvercharge = false,
-      ignoreDuplicate = false
+      ignoreDuplicate = false,
+      contextualReaction = false
     } = {}
   ) {
     const frameConnActionRegistry =
@@ -668,6 +684,42 @@ export class FrameConnTurnState {
         reason:
           null
       };
+    }
+
+
+    if (
+      action.metadata?.contextualReaction ===
+        true &&
+      !contextualReaction
+    ) {
+      return {
+        allowed:
+          false,
+
+        reason:
+          "This reaction is only available when its trigger occurs."
+      };
+    }
+
+
+    if (
+      this.restrictions?.brace
+    ) {
+      if (
+        action.cost === "movement" ||
+        action.cost === "overcharge" ||
+        action.cost === "full" ||
+        action.cost === "reaction" ||
+        action.cost === "none"
+      ) {
+        return {
+          allowed:
+            false,
+
+          reason:
+            "Brace limits this turn to one Quick Action and prevents normal movement, Full Actions, Free Actions, Overcharge, and reactions."
+        };
+      }
     }
 
 
@@ -966,7 +1018,10 @@ export class FrameConnTurnState {
         action,
         {
           useOvercharge,
-          ignoreDuplicate
+          ignoreDuplicate,
+          contextualReaction:
+            metadata.contextualReaction ===
+            true
         }
       );
 
@@ -1206,6 +1261,70 @@ export class FrameConnTurnState {
 
 
   /* ==========================================================
+     Turn state -- Brace restriction
+     ========================================================== */
+
+  applyBraceRestriction() {
+    this.assertTurnActive();
+
+
+    if (
+      this.restrictions.brace
+    ) {
+      return this.snapshot();
+    }
+
+
+    this.restrictions.brace =
+      true;
+
+
+    this.quickActionsRemaining =
+      Math.min(
+        this.quickActionsRemaining,
+        1
+      );
+
+
+    this.fullActionAvailable =
+      false;
+
+
+    this.movement.remaining =
+      0;
+
+
+    this.movement.completed =
+      true;
+
+
+    this.protocol.available =
+      false;
+
+
+    this.protocol.startOfTurnOpen =
+      false;
+
+
+    this.reaction.usedThisTurn =
+      true;
+
+
+    this.reaction.actionId =
+      "reaction.brace";
+
+
+    this.recordHistory(
+      "brace-turn-restriction",
+      {}
+    );
+
+
+    return this.snapshot();
+  }
+
+
+  /* ==========================================================
      Turn state -- Reaction
      ========================================================== */
 
@@ -1349,6 +1468,10 @@ export class FrameConnTurnState {
 
       reaction: {
         ...this.reaction
+      },
+
+      restrictions: {
+        ...this.restrictions
       },
 
       usedActions:
