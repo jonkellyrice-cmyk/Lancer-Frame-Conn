@@ -240,17 +240,17 @@ function extractDeclarations(file, text) {
     {
       kind: "function",
       regex:
-        /(?:^|\n)[ \t]*(export\s+)?(?:async\s+)?function\s+([A-Za-z_$][\w$]*)/g
+        /^(export\s+)?(?:async\s+)?function\s+([A-Za-z_$][\w$]*)/gm
     },
     {
       kind: "class",
       regex:
-        /(?:^|\n)[ \t]*(export\s+)?class\s+([A-Za-z_$][\w$]*)/g
+        /^(export\s+)?class\s+([A-Za-z_$][\w$]*)/gm
     },
     {
       kind: "binding",
       regex:
-        /(?:^|\n)[ \t]*(export\s+)?(?:const|let|var)\s+([A-Za-z_$][\w$]*)/g
+        /^(export\s+)?(?:const|let|var)\s+([A-Za-z_$][\w$]*)/gm
     }
   ];
 
