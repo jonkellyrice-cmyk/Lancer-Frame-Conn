@@ -408,6 +408,25 @@ if (
 
 
 /* ------------------------------------------------------------
+   Turn UI
+   ------------------------------------------------------------ */
+
+const frameHelmTurnUiApi =
+  frameHelmFeatureRegistry.getApi(
+    "ui-turn"
+  );
+
+
+if (
+  !frameHelmTurnUiApi
+) {
+  throw new Error(
+    "Frame Helm | The registered Turn UI feature API could not be resolved."
+  );
+}
+
+
+/* ------------------------------------------------------------
    Application UI
    ------------------------------------------------------------ */
 
@@ -771,6 +790,34 @@ function configureFrameHelmRuntimeBindings() {
         options =>
           executeFrameHelmCanonicalAction(
             options
+          )
+    });
+
+
+  /* ----------------------------------------------------------
+     Turn UI bindings
+     ---------------------------------------------------------- */
+
+  /**
+   * Turn UI consumes authoritative Turn state, canonical Actions
+   * metadata, and Application rendering through explicit runtime
+   * composition. The Application's canonical committed-plan
+   * presentation depends on these bindings during getData().
+   */
+  frameHelmTurnUiApi
+    .configureRuntime?.({
+      getTurnApi:
+        () =>
+          frameHelmTurnApi,
+
+      getActionRegistry:
+        () =>
+          frameHelmActionRegistry,
+
+      renderApplication:
+        force =>
+          renderFrameHelmApplication(
+            force
           )
     });
 
