@@ -127,12 +127,145 @@ function planOperation(operation, existing) {
   fail(`Unsupported operation type: ${String(operation.type)}`);
 }
 
+function normalizeTextMigrationStrings(values, fieldName) {
+  if (!Array.isArray(values) || values.length === 0 || values.some((value) => typeof value !== "string" || !value)) {
+    fail(`${fieldName} must be a non-empty array of non-empty strings.`);
+  }
+  return values;
+}
+
+function pathMatchesExclusion(relativePath, exclusions) {
+  return exclusions.some((entry) => (
+    relativePath === entry ||
+    relativePath.startsWith(`${entry}/`)
+  ));
+}
+
+function collectTextMigrationFiles(rootPath, extensions, exclusions, protectedPaths) {
+  const root = resolveRepoPath(rootPath);
+  if (!fs.existsSync(root)) fail(`replace_tree_text root does not exist: ${rootPath}`);
+
+  const files = [];
+  const visit = (absolutePath) => {
+    const relativePath = path.relative(ROOT, absolutePath).split(path.sep).join("/");
+    if (pathMatchesExclusion(relativePath, exclusions)) return;
+    if (isProtectedPath(relativePath, protectedPaths)) return;
+
+    const stat = fs.statSync(absolutePath);
+    if (stat.isDirectory()) {
+      for (const entry of fs.readdirSync(absolutePath).sort()) {
+        visit(path.join(absolutePath, entry));
+      }
+      return;
+    }
+
+    if (!stat.isFile()) return;
+    if (!extensions.includes(path.extname(relativePath).toLowerCase())) return;
+    files.push(relativePath);
+  };
+
+  visit(root);
+  return files;
+}
+
+function planTreeTextOperation(operation, patch, stagedFiles, originalFiles) {
+  const roots = normalizeTextMigrationStrings(operation.roots, "replace_tree_text.roots")
+    .map((value) => normalizeRepoPath(value));
+
+  if (!Array.isArray(operation.excludes ?? [])) fail("replace_tree_text.excludes must be an array of strings.");
+  const exclusions = (operation.excludes ?? []).map((value) => normalizeProtectedPath(value));
+  if (exclusions.some((value) => !value)) fail("replace_tree_text.excludes must contain non-empty strings.");
+
+  const extensions = operation.extensions ?? [".js", ".mjs", ".css", ".json", ".md", ".yml", ".yaml"];
+  normalizeTextMigrationStrings(extensions, "replace_tree_text.extensions");
+  const normalizedExtensions = extensions.map((value) => value.startsWith(".") ? value.toLowerCase() : `.${value.toLowerCase()}`);
+
+  if (!Array.isArray(operation.replacements) || operation.replacements.length === 0) {
+    fail("replace_tree_text.replacements must be a non-empty array.");
+  }
+
+  const replacements = operation.replacements.map((replacement, index) => {
+    if (!replacement || typeof replacement !== "object" || Array.isArray(replacement)) {
+      fail(`replace_tree_text replacement ${index + 1} must be an object.`);
+    }
+    if (typeof replacement.search !== "string" || !replacement.search.length) {
+      fail(`replace_tree_text replacement ${index + 1} requires non-empty search text.`);
+    }
+    if (typeof replacement.replace !== "string") {
+      fail(`replace_tree_text replacement ${index + 1} requires string replacement text.`);
+    }
+    return replacement;
+  });
+
+  const occurrenceCounts = new Map(replacements.map((replacement) => [replacement.search, 0]));
+  const files = [...new Set(
+    roots.flatMap((rootPath) =>
+      collectTextMigrationFiles(rootPath, normalizedExtensions, exclusions, patch.policy.protectedPaths)
+    )
+  )].sort();
+
+  for (const relativePath of files) {
+    let existing;
+    if (stagedFiles.has(relativePath)) {
+      existing = { exists: true, content: stagedFiles.get(relativePath) };
+    } else {
+      existing = readExistingFile(relativePath);
+      originalFiles.set(relativePath, existing);
+    }
+
+    if (!existing.exists) continue;
+    let nextContent = existing.content;
+
+    for (const replacement of replacements) {
+      const occurrences = nextContent.split(replacement.search).length - 1;
+      occurrenceCounts.set(
+        replacement.search,
+        occurrenceCounts.get(replacement.search) + occurrences
+      );
+      if (occurrences > 0) {
+        nextContent = nextContent.split(replacement.search).join(replacement.replace);
+      }
+    }
+
+    stagedFiles.set(relativePath, nextContent);
+  }
+
+  if (operation.require_each_search !== false) {
+    for (const replacement of replacements) {
+      if (occurrenceCounts.get(replacement.search) === 0) {
+        fail(`replace_tree_text search text not found anywhere in selected roots: ${replacement.search}`);
+      }
+    }
+  }
+
+  const assertAbsent = operation.assert_absent ?? replacements.map((replacement) => replacement.search);
+  if (!Array.isArray(assertAbsent) || assertAbsent.some((value) => typeof value !== "string" || !value)) {
+    fail("replace_tree_text.assert_absent must be an array of non-empty strings.");
+  }
+
+  for (const relativePath of files) {
+    const content = stagedFiles.get(relativePath);
+    if (content === undefined) continue;
+    for (const forbidden of assertAbsent) {
+      if (content.includes(forbidden)) {
+        fail(`replace_tree_text postcondition failed; "${forbidden}" remains in ${relativePath}`);
+      }
+    }
+  }
+}
+
 function buildMutationPlan(patch) {
   const stagedFiles = new Map();
   const originalFiles = new Map();
 
   patch.operations.forEach((operation, index) => {
     if (!operation || typeof operation !== "object" || Array.isArray(operation)) fail(`Operation ${index + 1} is not an object.`);
+
+    if (operation.type === "replace_tree_text") {
+      planTreeTextOperation(operation, patch, stagedFiles, originalFiles);
+      return;
+    }
+
     const relativePath = normalizeRepoPath(operation.path);
     if (isProtectedPath(relativePath, patch.policy.protectedPaths)) fail(`Operation targets protected path: ${relativePath}`);
 
