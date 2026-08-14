@@ -1,24 +1,10 @@
 {
   "schema_version": 2,
-  "id": "guard-developer-tool-syntax",
-  "description": "Make GitHub FilePatcher syntax-check its own diagnostic and planning utilities after every apply so malformed dev_scripts tooling triggers rollback before a patch can commit.",
+  "id": "validate-refined-action-corridor",
+  "description": "Planning-only validation of the refined source-to-endpoint Patch Corridor Planner.",
+  "planning_goal": "wire a committed action from the committed-plan presentation through Frame Conn action execution to the authoritative native Lancer execution endpoint",
   "policy": {
     "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "dev-scripts/github-filepatcher.mjs",
-      "search": "function runPatchCorridorPlanner(goal) {",
-      "replace": "function validateDeveloperToolSyntax() {\n  const tools = [\n    path.join(ROOT, \"dev-scripts\", \"github-filepatcher.mjs\"),\n    path.join(ROOT, \"dev_scripts\", \"repo-audit.mjs\"),\n    path.join(ROOT, \"dev_scripts\", \"symbol-family-audit.mjs\"),\n    path.join(ROOT, \"dev_scripts\", \"effect-atlas.mjs\"),\n    path.join(ROOT, \"dev_scripts\", \"patch-corridor-planner.mjs\")\n  ];\n\n  for (const tool of tools) {\n    if (!fs.existsSync(tool)) fail(`Developer tool not found: ${tool}`);\n    const result = spawnSync(process.execPath, [\"--check\", tool], { cwd: ROOT, encoding: \"utf8\" });\n    if (result.stdout) process.stdout.write(result.stdout);\n    if (result.stderr) process.stderr.write(result.stderr);\n    if (result.error) fail(`Developer tool syntax check could not start for ${tool}: ${result.error}`);\n    if (result.status !== 0) fail(`Developer tool syntax check failed for ${path.relative(ROOT, tool)}.`);\n  }\n\n  console.log(\"[github-filepatcher] Developer tool syntax checks passed.\");\n}\n\nfunction runPatchCorridorPlanner(goal) {",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev-scripts/github-filepatcher.mjs",
-      "search": "    try {\n      runRepositoryAudit();\n      runSymbolFamilyAudit();\n      runEffectAtlasAudit();",
-      "replace": "    try {\n      validateDeveloperToolSyntax();\n      runRepositoryAudit();\n      runSymbolFamilyAudit();\n      runEffectAtlasAudit();",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
