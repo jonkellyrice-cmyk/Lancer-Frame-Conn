@@ -1,16 +1,16 @@
 {
   "schema_version": 2,
-  "id": "fix-execution-context-module-namespace-freeze",
-  "description": "Prevent the Semantic Execution Context facade from freezing ES module namespace objects during import while preserving the frozen outer executionContext namespace.",
+  "id": "fix-execution-transaction-module-namespace-freeze",
+  "description": "Prevent the Execution Transaction facade from freezing ES module namespace objects during import while preserving the frozen outer executionTransaction namespace.",
   "policy": {
     "max_files_changed": 1
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "semantic_execution_context/execution-context.js",
-      "search": "    contract:\n      Object.freeze(contract),\n\n    builder:\n      Object.freeze(builder)",
-      "replace": "    contract,\n    builder",
+      "path": "execution_transaction/execution-transaction.js",
+      "search": "    contract:\n      Object.freeze(contract),\n\n    runner:\n      Object.freeze(runner),\n\n    hooks:\n      Object.freeze(hooks)",
+      "replace": "    contract,\n    runner,\n    hooks",
       "expected_occurrences": 1
     }
   ]
