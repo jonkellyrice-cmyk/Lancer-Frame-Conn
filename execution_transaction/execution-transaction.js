@@ -119,14 +119,9 @@ export const executionTransaction =
     version:
       EXECUTION_TRANSACTION_MODULE_VERSION,
 
-    contract:
-      Object.freeze(contract),
-
-    runner:
-      Object.freeze(runner),
-
-    hooks:
-      Object.freeze(hooks)
+    contract,
+    runner,
+    hooks
   });
 
 /* ============================================================
