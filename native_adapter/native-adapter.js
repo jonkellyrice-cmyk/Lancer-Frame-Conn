@@ -173,32 +173,15 @@ export const nativeAdapter =
     version:
       NATIVE_ADAPTER_VERSION,
 
-    contract:
-      Object.freeze(contract),
-
-    actors:
-      Object.freeze(actors),
-
-    items:
-      Object.freeze(items),
-
-    loadout:
-      Object.freeze(loadout),
-
-    resources:
-      Object.freeze(resources),
-
-    status:
-      Object.freeze(status),
-
-    rolls:
-      Object.freeze(rolls),
-
-    combat:
-      Object.freeze(combat),
-
-    execution:
-      Object.freeze(execution)
+    contract,
+    actors,
+    items,
+    loadout,
+    resources,
+    status,
+    rolls,
+    combat,
+    execution
   });
 
 /* ============================================================
