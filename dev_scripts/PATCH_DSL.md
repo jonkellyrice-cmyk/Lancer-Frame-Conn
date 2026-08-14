@@ -77,3 +77,55 @@ raw
 ```
 
 The DSL intentionally has no loops, variables, functions, conditions, or hidden architectural macros. It compresses repetitive FilePatcher authoring; it does not replace FilePatcher semantics.
+
+## Pattern-aware shorthand
+
+For repetitive code shapes, prefer `clone-pattern` over reproducing local boilerplate. Pattern expansion is deliberately conservative:
+
+- it only works inside `within <symbol>`;
+- it copies an existing exemplar from that exact symbol;
+- if more than one exemplar matches, compilation fails unless `containing <needle>` identifies exactly one;
+- every token in the `map` block must exist in the exemplar;
+- the compiler never invents a React/HTML/runtime/registry shape when it cannot prove one locally.
+
+Supported initial shapes are:
+
+- `ui-control` — clones one local `<button>...</button>` block, preserving the file's existing markup/JSX/template-string formatting;
+- `object-entry` — clones one top-level property of an object-valued symbol and handles comma placement;
+- `switch-case` — clones one local `case`/`default` block.
+
+Example:
+
+```text
+file styles/ui_application/components/application-committed-plan.js
+within renderCommittedPlan
+
+clone-pattern ui-control after containing frame-conn-plan-execute
+map
+<<<
+{
+  "frame-conn-plan-execute": "frame-conn-plan-scan",
+  "executeLabel": "scanLabel",
+  "executeIcon": "scanIcon"
+}
+>>>
+```
+
+The generated edit reuses the exact existing button structure and formatting. If the target symbol has exactly one button, `containing ...` may be omitted.
+
+Object/runtime patterns use the same mechanism:
+
+```text
+file scripts/feature_actions/action-execution-feature.js
+within frameConnActionExecutionRuntimeBindings
+
+clone-pattern object-entry after containing executeCanonicalAction
+map
+<<<
+{
+  "executeCanonicalAction": "executeNativeScan"
+}
+>>>
+```
+
+This is intentionally exemplar-driven rather than a generic code generator. If local structure is ambiguous or unsupported, use explicit `replace`/`before`/`after` or `raw`.

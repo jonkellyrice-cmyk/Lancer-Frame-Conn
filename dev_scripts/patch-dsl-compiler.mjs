@@ -177,7 +177,7 @@ function applyTextEdit(text, kind, search, replacement, cardinality, line) {
 function scanStructuralRegions(text, kind, line) {
   if (kind === "ui-control") {
     const candidates = [];
-    const pattern = /(^[ \t]*<button\b[\s\S]*?^[ \t]*<\/button>)/gm;
+    const pattern = /(^[ \t]*<button\b[\s\S]*?<\/button>)/gm;
     let match;
     while ((match = pattern.exec(text))) {
       candidates.push({
@@ -508,12 +508,90 @@ function parseDsl(source, seededFiles = new Map()) {
 }
 
 function runSelfTest() {
-  const fixture = `patch self-test\nmax-files 1\nfile scripts/self-test.js\nwithin demo\nreplace once\n<<<\noldThing()\n>>>\nwith\n<<<\nnewThing()\n>>>\nglobal\nafter once\n<<<\nexport const y = 1;\n>>>\nadd\n<<<\n\nexport const z = 2;\n>>>`;
-  const seeded = new Map([["scripts/self-test.js", "export function demo() {\n  return oldThing();\n}\n\nexport const y = 1;\n"]]);
+  const fixture = `patch self-test
+max-files 1
+file scripts/self-test.js
+within demo
+replace once
+<<<
+oldThing()
+>>>
+with
+<<<
+newThing()
+>>>
+clone-pattern ui-control after
+map
+<<<
+{
+  "do-old": "do-new",
+  "Old": "New"
+}
+>>>
+global
+after once
+<<<
+export const y = 1;
+>>>
+add
+<<<
+
+export const z = 2;
+>>>
+file scripts/self-test.js
+within bindings
+clone-pattern object-entry after containing executeOld
+map
+<<<
+{
+  "executeOld": "executeNew"
+}
+>>>
+file scripts/self-test.js
+within route
+clone-pattern switch-case after containing oldRoute
+map
+<<<
+{
+  "OLD_ROUTE": "NEW_ROUTE",
+  "oldRoute": "newRoute"
+}
+>>>`;
+  const seeded = new Map([[
+    "scripts/self-test.js",
+    `export function demo() {
+  const view = \`
+    <button class="do-old">Old</button>
+  \`;
+  return oldThing();
+}
+
+export const bindings = {
+  executeOld:
+    null
+};
+
+export function route(kind) {
+  switch (kind) {
+    case OLD_ROUTE:
+      return oldRoute();
+    default:
+      return fallbackRoute();
+  }
+}
+
+export const y = 1;
+`
+  ]]);
   const { patch } = parseDsl(fixture, seeded);
-  if (patch.operations.length !== 2) fail(`Self-test expected 2 operations, found ${patch.operations.length}.`);
+  if (patch.operations.length !== 5) fail(`Self-test expected 5 operations, found ${patch.operations.length}.`);
   if (!patch.operations[0].replace.includes("newThing()")) fail("Self-test symbol-scoped replacement failed.");
-  if (!patch.operations[1].replace.includes("export const z = 2;")) fail("Self-test global insertion failed.");
+  if (!patch.operations[1].replace.includes('class="do-new">New</button>')) fail("Self-test UI-control pattern cloning failed.");
+  if (!patch.operations[2].replace.includes("export const z = 2;")) fail("Self-test global insertion failed.");
+  if (!patch.operations[3].replace.includes("executeNew")) fail("Self-test object-entry pattern cloning failed.");
+  if (!patch.operations[4].replace.includes("case NEW_ROUTE:") || !patch.operations[4].replace.includes("newRoute()")) {
+    fail("Self-test switch-case pattern cloning failed.");
+  }
   console.log("[patch-dsl] Self-test passed.");
 }
 
