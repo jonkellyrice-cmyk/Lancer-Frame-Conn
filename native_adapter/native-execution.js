@@ -308,6 +308,116 @@ function getNativeFlowConstructor(
   return FlowConstructor;
 }
 
+export function installNativeFlowStepBefore({
+  stepName,
+  beforeStep,
+  flowNames = [],
+  step
+} = {}) {
+  if (!requiredString(stepName)) {
+    throw new TypeError(
+      "Native Flow extension stepName must be a non-empty string."
+    );
+  }
+
+  if (!requiredString(beforeStep)) {
+    throw new TypeError(
+      "Native Flow extension beforeStep must be a non-empty string."
+    );
+  }
+
+  if (
+    !Array.isArray(flowNames) ||
+    flowNames.length === 0 ||
+    flowNames.some(flowName => !requiredString(flowName))
+  ) {
+    throw new TypeError(
+      "Native Flow extension flowNames must be a non-empty array of Flow names."
+    );
+  }
+
+  if (typeof step !== "function") {
+    throw new TypeError(
+      "Native Flow extension step must be a function."
+    );
+  }
+
+  const flowSteps =
+    globalThis.game
+      ?.lancer
+      ?.flowSteps;
+
+  if (
+    !flowSteps ||
+    typeof flowSteps.get !== "function" ||
+    typeof flowSteps.set !== "function"
+  ) {
+    throw new Error(
+      "game.lancer.flowSteps registry is unavailable."
+    );
+  }
+
+  const existingStep =
+    flowSteps.get(stepName);
+
+  if (
+    existingStep &&
+    existingStep !== step
+  ) {
+    throw new Error(
+      `Native Lancer Flow step already exists with a different implementation: ${stepName}`
+    );
+  }
+
+  if (!existingStep) {
+    flowSteps.set(
+      stepName,
+      step
+    );
+  }
+
+  const installedFlows =
+    [];
+
+  for (const flowName of flowNames) {
+    const FlowConstructor =
+      getNativeFlowConstructor(
+        flowName
+      );
+
+    if (
+      !Array.isArray(FlowConstructor.steps) ||
+      !FlowConstructor.steps.includes(beforeStep)
+    ) {
+      throw new Error(
+        `Native Lancer Flow ${flowName} does not contain required step ${beforeStep}.`
+      );
+    }
+
+    if (
+      !FlowConstructor.steps.includes(stepName)
+    ) {
+      FlowConstructor.insertStepBefore(
+        beforeStep,
+        stepName
+      );
+    }
+
+    installedFlows.push(
+      flowName
+    );
+  }
+
+  return Object.freeze({
+    stepName,
+    beforeStep,
+    flowNames:
+      Object.freeze([
+        ...installedFlows
+      ])
+  });
+}
+
 function getFlowStateData(flow) {
   return (
     flow

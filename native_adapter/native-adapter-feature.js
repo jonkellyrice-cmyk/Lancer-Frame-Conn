@@ -106,7 +106,8 @@ export const frameConnNativeAdapterFeature =
       "native-adapter.rolls",
       "native-adapter.resources",
       "native-adapter.status",
-      "native-adapter.combat"
+      "native-adapter.combat",
+      "native-adapter.flow-extension"
     ],
 
     dependsOn: [],
@@ -119,6 +120,9 @@ export const frameConnNativeAdapterFeature =
     },
 
     commands: {
+      installFlowStepBefore:
+        nativeAdapterRuntime.nativeAdapter.execution.installNativeFlowStepBefore,
+
       executeWeaponAttack:
         nativeAdapterRuntime.executeNativeWeaponAttack,
 
@@ -225,6 +229,9 @@ export const frameConnNativeAdapterFeature =
 
       assertRuntimeReady:
         nativeAdapterRuntime.assertNativeAdapterRuntimeReady,
+
+      installFlowStepBefore:
+        nativeAdapterRuntime.nativeAdapter.execution.installNativeFlowStepBefore,
 
       resolveActor:
         nativeAdapterRuntime.resolveNativeActor,
