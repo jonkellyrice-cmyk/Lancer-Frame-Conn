@@ -1,9 +1,31 @@
 {
   "schema_version": 2,
-  "id": "validate-symbol-family-audit-autotrigger",
-  "description": "No-op validation that the committed GitHub FilePatcher automatically runs both repo-audit.mjs and symbol-family-audit.mjs after every real apply.",
+  "id": "fix-symbol-family-module-scope-detection",
+  "description": "Repair symbol-family-audit.mjs so its symbol census only treats unindented module-scope declarations as family members, avoiding function-local bindings being misclassified as duplicate top-level symbols.",
   "policy": {
     "max_files_changed": 1
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/symbol-family-audit.mjs",
+      "search": "        /(?:^|\\n)[ \\t]*(export\\s+)?(?:async\\s+)?function\\s+([A-Za-z_$][\\w$]*)/g",
+      "replace": "        /^(export\\s+)?(?:async\\s+)?function\\s+([A-Za-z_$][\\w$]*)/gm",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/symbol-family-audit.mjs",
+      "search": "        /(?:^|\\n)[ \\t]*(export\\s+)?class\\s+([A-Za-z_$][\\w$]*)/g",
+      "replace": "        /^(export\\s+)?class\\s+([A-Za-z_$][\\w$]*)/gm",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/symbol-family-audit.mjs",
+      "search": "        /(?:^|\\n)[ \\t]*(export\\s+)?(?:const|let|var)\\s+([A-Za-z_$][\\w$]*)/g",
+      "replace": "        /^(export\\s+)?(?:const|let|var)\\s+([A-Za-z_$][\\w$]*)/gm",
+      "expected_occurrences": 1
+    }
+  ]
 }
