@@ -1,32 +1,9 @@
 {
   "schema_version": 2,
-  "id": "integrate-clause-aware-patch-corridor",
-  "description": "Add Clause-Aware Patch Corridor self-test coverage, npm command, and suite-guide documentation.",
-  "planning_goal": "offer Brace when a mech is hit, spend the actor reaction, halve triggering damage through native Lancer damageCalc, restrict the mech next turn, and show the Brace choice in the UI",
+  "id": "validate-clause-aware-patch-corridor-gate",
+  "description": "No-op validation that the committed FilePatcher syntax-checks and self-tests the Clause-Aware Patch Corridor before architectural audits.",
   "policy": {
-    "max_files_changed": 3
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "package.json",
-      "search": "    \"patch-corridor\": \"node ./dev_scripts/patch-corridor-planner.mjs\",\n    \"patch:dsl\":",
-      "replace": "    \"patch-corridor\": \"node ./dev_scripts/patch-corridor-planner.mjs\",\n    \"patch-corridor:self-test\": \"node ./dev_scripts/patch-corridor-planner.mjs --self-test\",\n    \"patch:dsl\":",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev-scripts/github-filepatcher.mjs",
-      "search": "  if (runtimeSignalMapSelfTest.status !== 0) fail(\"Runtime Signal Map self-test failed.\");\n\n  console.log(\"[github-filepatcher] Developer tool syntax checks passed.\");",
-      "replace": "  if (runtimeSignalMapSelfTest.status !== 0) fail(\"Runtime Signal Map self-test failed.\");\n\n  const patchCorridor = path.join(ROOT, \"dev_scripts\", \"patch-corridor-planner.mjs\");\n  const patchCorridorSelfTest = spawnSync(process.execPath, [patchCorridor, \"--self-test\"], { cwd: ROOT, encoding: \"utf8\" });\n  if (patchCorridorSelfTest.stdout) process.stdout.write(patchCorridorSelfTest.stdout);\n  if (patchCorridorSelfTest.stderr) process.stderr.write(patchCorridorSelfTest.stderr);\n  if (patchCorridorSelfTest.error) fail(`Patch Corridor self-test could not start: ${patchCorridorSelfTest.error}`);\n  if (patchCorridorSelfTest.status !== 0) fail(\"Patch Corridor self-test failed.\");\n\n  console.log(\"[github-filepatcher] Developer tool syntax checks passed.\");",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "search": "The planner takes a behavioral goal and uses the current repository diagnostics to identify a likely **patch corridor**: the feature families, files, and symbols most likely to participate in the change.\n\nIt is a planning tool, not a source editor. It helps answer:\n\n> Where should this change probably travel through the architecture?\n\nThe planner consumes the repository audit, symbol-family audit, and effect atlas. It refuses to plan against unhealthy diagnostics. It also intentionally keeps dormant architecture out of the corridor unless the goal explicitly calls for it.\n\nA corridor is guidance, not magical proof. If implementation discovers a real dependency outside the predicted corridor, expand the scope deliberately and explain why.\n\nWhen `planning_goal` is present in `dev-scripts/filepatcher.json`, the GitHub FilePatcher can run the planner and report how many changed files are inside or outside the predicted corridor.",
-      "replace": "The planner takes a behavioral goal and uses the current repository diagnostics to identify a likely **patch corridor**: the feature families, files, and symbols most likely to participate in the change.\n\nIt is now **clause-aware**. Before certifying a corridor it splits a behavioral goal into independently checkable clauses, detects the architectural concerns in each clause, resolves candidate owner families, and requires a statically known family path for every required obligation. The JSON report records each clause, its concern obligations, candidate owners, selected owner, path, and coverage status.\n\nIt helps answer both:\n\n> Where should this change probably travel through the architecture?\n\nand:\n\n> Did the proposed corridor account for every distinct behavior the request actually requires?\n\nA corridor cannot receive high confidence unless clause coverage is complete. If any clause has no deterministic owner/path, the planner writes the incomplete report and exits nonzero rather than silently certifying a partial implementation.\n\nThe planner consumes the repository audit, symbol-family audit, and effect atlas. It refuses to plan against unhealthy diagnostics. It also intentionally keeps dormant architecture out of the corridor unless the goal explicitly calls for it.\n\nA corridor is guidance, not magical proof. If implementation discovers a real dependency outside the predicted corridor, expand the scope deliberately and explain why.\n\nRun the deterministic clause-decomposition self-test with `npm run patch-corridor:self-test`. When `planning_goal` is present in `dev-scripts/filepatcher.json`, the GitHub FilePatcher runs this clause-aware planner before mutation and reports how many changed files are inside or outside the certified corridor.",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
