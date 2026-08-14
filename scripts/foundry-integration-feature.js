@@ -461,7 +461,25 @@ function getFrameHelmTokenSceneControls(
 /**
  * Constructs the Frame Helm Token scene-control launcher.
  */
-function createFrameHelmSceneControlTool() {
+function createFrameHelmSceneControlTool(
+  tokenControls =
+    null
+) {
+  const tools =
+    tokenControls?.tools;
+
+
+  const order =
+    Array.isArray(
+      tools
+    )
+      ? tools.length
+      : Object.keys(
+          tools ??
+          {}
+        ).length;
+
+
   return {
     name:
       FRAME_HELM_SCENE_CONTROL_NAME,
@@ -470,7 +488,9 @@ function createFrameHelmSceneControlTool() {
       MODULE_TITLE,
 
     icon:
-      "fas fa-robot",
+      "fa-solid fa-robot",
+
+    order,
 
     button:
       true,
@@ -478,8 +498,9 @@ function createFrameHelmSceneControlTool() {
     visible:
       true,
 
-    onClick:
-      openFrameHelmFromFoundryIntegration
+    onChange:
+      () =>
+        openFrameHelmFromFoundryIntegration()
   };
 }
 
@@ -545,7 +566,9 @@ function hasFrameHelmSceneControlTool(
 function insertFrameHelmSceneControlTool(
   tokenControls,
   tool =
-    createFrameHelmSceneControlTool()
+    createFrameHelmSceneControlTool(
+      tokenControls
+    )
 ) {
   if (
     !tokenControls
