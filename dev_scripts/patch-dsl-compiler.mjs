@@ -245,7 +245,7 @@ function parseDsl(source, seededFiles = new Map()) {
       continue;
     }
 
-    const editMatch = /^(replace|before|after|delete)(?:\\s+(once|all|optional))?$/.exec(trimmed.replace(/:$/, ""));
+    const editMatch = /^(replace|before|after|delete)(?:\s+(once|all|optional))?$/.exec(trimmed.replace(/:$/, ""));
     if (editMatch) {
       if (!currentFile) fail(`${editMatch[1]} requires a preceding file directive.`, line);
       const kind = editMatch[1];
@@ -255,7 +255,7 @@ function parseDsl(source, seededFiles = new Map()) {
       if (kind !== "delete") {
         const marker = nextMeaningful(lines, state);
         const expectedMarker = kind === "replace" ? "with" : "add";
-        if (!marker || marker.trimmed.replace(/:$/, "") !== expectedMarker) fail(`Expected ${expectedMarker} after ${dind} block.`, marker?.line ?? line);
+        if (!marker || marker.trimmed.replace(/:$/, "") !== expectedMarker) fail(`Expected ${expectedMarker} after ${kind} block.`, marker?.line ?? line);
         replacement = readBlock(lines, state, marker.line);
       }
 
@@ -299,4 +299,43 @@ function parseDsl(source, seededFiles = new Map()) {
 }
 
 function runSelfTest() {
-  const fixture = `patch self-test\nmax-files 1\nfile scripts/self-test.js\nwithin demo\nreplace once\n<<<\noldThing()\n>>>\nwith\n<<<\nnewThing()\n>>>\nglobal\nafter once\n<<<\nexport const y = 1;\n>>>\nadd\n<<<\n\nexport const z = 2;\n#�����6��7B6VVFVB��Wr����'67&�G2�6V�b�FW7B�2"�&W��'BgV�7F���FV�����&WGW&���EF���r����������W��'B6��7B�����%�ғ��6��7B�F6���'6TG6f��GW&R�6VVFVB����b�F6���W&F���2��V�wF���"�f�6V�b�FW7BW�V7FVB"�W&F���2�f�V�BG�F6���W&F���2��V�wF�������b�F6���W&F���5���&W�6R��6�VFW2�&�WuF���r��"��f�%6V�b�FW7B7��&���66�VB&W�6V�V�Bf��VB�"����b�F6���W&F���5���&W�6R��6�VFW2�&W��'B6��7B��#�"��f�%6V�b�FW7Bv��&���6W'F���f��VB�"���6��6��R���r�%�F6��G6��6V�b�FW7B76VB�"���Р�gV�7F�����ₒ���b�6V�eFW7B���'V�6V�eFW7B����&WGW&㰢Т�b�g2�W��7G57��2���WEF���f�E4�f��R��Bf�V�C�G�F��&V�F�fR�$��B���WEF������6��7B6�W&6R�g2�&VDf��U7��2���WEF��'WFc�"���6��7B�F6��7FG2��'6TG66�W&6R���6��7B&V�FW&VB��4���7G&��v�g��F6���V���"��%��#���6��6��R���r��F6��G6����WC�G�F��&V�F�fR�$��B���WEF������6��6��R���r��F6��G6��F6��G�F6��G����6��6��R���r��F6��G6���W&F���3�G�F6���W&F���2��V�wF�����6��6��R���r��F6��G6�����f��W5�6��vVC�G�F6���Ɩ7�����f��W5�6��vVG����f�"�6��7B����B�6�V�E��b����7FG2�V�G&�W2����6�'B���6��6��R���r��F6��G6��G����G��G�6�V�G������b�6�V6���ǒ���6��6��R���r�%�F6��G6��6�V6�6���WFVB7V66W76gV�ǒ����4��v2w&�GFV��"���&WGW&㰢Р�g2�ֶF�%7��2�F��F�&��R��WGWEF����&V7W'6�fS�G'VRғ��g2�w&�FTf��U7��2��WGWEF��&V�FW&VB�'WFc�"���6��6��R���r��F6��G6��w&�FS�G�F��&V�F�fR�$��B��WGWEF������Р�G'����ₓ�Ц6F6��W'&�"���6��6��R�W'&�"�W'&�"��7F�6V�bW'&�"�W'&�"��W76vR�7G&��r�W'&�"����&�6W72�W��B����Р
+  const fixture = `patch self-test\nmax-files 1\nfile scripts/self-test.js\nwithin demo\nreplace once\n<<<\noldThing()\n>>>\nwith\n<<<\nnewThing()\n>>>\nglobal\nafter once\n<<<\nexport const y = 1;\n>>>\nadd\n<<<\n\nexport const z = 2;\n>>>`;
+  const seeded = new Map([["scripts/self-test.js", "export function demo() {\n  return oldThing();\n}\n\nexport const y = 1;\n"]]);
+  const { patch } = parseDsl(fixture, seeded);
+  if (patch.operations.length !== 2) fail(`Self-test expected 2 operations, found ${patch.operations.length}.`);
+  if (!patch.operations[0].replace.includes("newThing()")) fail("Self-test symbol-scoped replacement failed.");
+  if (!patch.operations[1].replace.includes("export const z = 2;")) fail("Self-test global insertion failed.");
+  console.log("[patch-dsl] Self-test passed.");
+}
+
+function main() {
+  if (selfTest) {
+    runSelfTest();
+    return;
+  }
+  if (!fs.existsSync(inputPath)) fail(`DSL file not found: ${path.relative(ROOT, inputPath)}`);
+  const source = fs.readFileSync(inputPath, "utf8");
+  const { patch, stats } = parseDsl(source);
+  const rendered = JSON.stringify(patch, null, 2) + "\n";
+
+  console.log(`[patch-dsl] input=${path.relative(ROOT, inputPath)}`);
+  console.log(`[patch-dsl] patch=${patch.id}`);
+  console.log(`[patch-dsl] operations=${patch.operations.length}`);
+  console.log(`[patch-dsl] max_files_changed=${patch.policy.max_files_changed}`);
+  for (const [kind, count] of [...stats.entries()].sort()) console.log(`[patch-dsl] ${kind}=${count}`);
+
+  if (checkOnly) {
+    console.log("[patch-dsl] Check completed successfully. No JSON was written.");
+    return;
+  }
+
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  fs.writeFileSync(outputPath, rendered, "utf8");
+  console.log(`[patch-dsl] wrote=${path.relative(ROOT, outputPath)}`);
+}
+
+try { main(); }
+catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exit(1);
+}
