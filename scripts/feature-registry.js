@@ -282,6 +282,11 @@ import {
 } from "../native_adapter/native-adapter-feature.js";
 
 
+import {
+  frameConnBraceFeature
+} from "./feature_brace/brace-feature.js";
+
+
 /* ============================================================
    Imports -- Executable UI package
    ============================================================ */
@@ -333,7 +338,8 @@ export const FRAME_CONN_RUNTIME_FEATURES =
     frameConnSystemBridgeFeature,
     frameConnSemanticExecutionContextFeature,
     frameConnExecutionTransactionFeature,
-    frameConnNativeAdapterFeature
+    frameConnNativeAdapterFeature,
+    frameConnBraceFeature
   ]);
 
 

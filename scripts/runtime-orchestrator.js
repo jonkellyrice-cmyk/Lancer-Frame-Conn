@@ -408,6 +408,25 @@ if (
 
 
 /* ------------------------------------------------------------
+   Brace
+   ------------------------------------------------------------ */
+
+const frameConnBraceApi =
+  frameConnFeatureRegistry.getApi(
+    "brace"
+  );
+
+
+if (
+  !frameConnBraceApi
+) {
+  throw new Error(
+    "Frame Conn | The registered Brace feature API could not be resolved."
+  );
+}
+
+
+/* ------------------------------------------------------------
    Turn UI
    ------------------------------------------------------------ */
 
@@ -814,6 +833,56 @@ function configureFrameConnRuntimeBindings() {
 
 
   /* ----------------------------------------------------------
+     Brace bindings
+     ---------------------------------------------------------- */
+
+  frameConnBraceApi
+    .configureRuntime?.({
+      canUseReaction:
+        (...args) =>
+          frameConnTurnApi
+            .canUseReactionForActor(
+              ...args
+            ),
+
+      useReaction:
+        (...args) =>
+          frameConnTurnApi
+            .useReactionForActor(
+              ...args
+            ),
+
+      releaseReaction:
+        (...args) =>
+          frameConnTurnApi
+            .releaseReactionForActor(
+              ...args
+            ),
+
+      setReactionLock:
+        (...args) =>
+          frameConnTurnApi
+            .setReactionLockForActor(
+              ...args
+            ),
+
+      applyTurnRestriction:
+        actor =>
+          frameConnTurnApi
+            .applyBraceRestriction(
+              actor
+            ),
+
+      installNativeFlowStepBefore:
+        options =>
+          frameConnNativeAdapterApi
+            .installFlowStepBefore(
+              options
+            )
+    });
+
+
+  /* ----------------------------------------------------------
      Turn UI bindings
      ---------------------------------------------------------- */
 
@@ -997,6 +1066,19 @@ function validateFrameConnRuntimeComposition() {
   );
 
   assertFrameConnRuntimeBindings(
+    "Brace",
+    frameConnBraceApi.runtimeBindings,
+    [
+      "reactionAvailability",
+      "reactionSpending",
+      "reactionRollback",
+      "reactionLocking",
+      "turnRestriction",
+      "nativeFlowExtension"
+    ]
+  );
+
+  assertFrameConnRuntimeBindings(
     "Turn UI",
     frameConnTurnUiApi.runtimeBindings,
     [
@@ -1118,7 +1200,11 @@ Hooks.once(
 
 Hooks.once(
   "ready",
-  () => {
+  async () => {
+    await frameConnBraceApi
+      .initializeRuntime?.();
+
+
     game.lancerFrameConn = {
       open:
         openFrameConn,
@@ -1182,6 +1268,9 @@ Hooks.once(
 
       nativeAdapter:
         frameConnNativeAdapterApi,
+
+      brace:
+        frameConnBraceApi,
 
 
       /* --------------------------------------------------------
