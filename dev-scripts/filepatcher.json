@@ -1,11 +1,18 @@
 {
   "schema_version": 2,
-  "id": "validate-and-document-pattern-aware-dsl",
-  "description": "Expand the Patch DSL self-test to cover all conservative pattern-aware shapes and document safe exemplar-driven usage.",
+  "id": "finish-safe-pattern-aware-dsl",
+  "description": "Allow the conservative UI-control resolver to recognize both single-line and multi-line button exemplars, then activate full pattern-aware self-tests and documentation.",
   "policy": {
     "max_files_changed": 2
   },
   "operations": [
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/patch-dsl-compiler.mjs",
+      "search": "    const pattern = /(^[ \\t]*<button\\b[\\s\\S]*?^[ \\t]*<\\/button>)/gm;",
+      "replace": "    const pattern = /(^[ \\t]*<button\\b[\\s\\S]*?<\\/button>)/gm;",
+      "expected_occurrences": 1
+    },
     {
       "type": "replace_text",
       "path": "dev_scripts/patch-dsl-compiler.mjs",
