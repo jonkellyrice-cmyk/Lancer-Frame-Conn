@@ -2,100 +2,100 @@
   "schema_version": 2,
   "description": "Implement Brace end to end as a contextual Frame Conn reaction over native Lancer damage and attack-flow boundaries, with actor-keyed reaction tracking and next-turn restrictions.",
   "planning_goal": "implement Brace end to end from a qualifying incoming event through Frame Conn reaction availability and spend, event-bound Brace state, native adapter damage mitigation using Lancer's authoritative half-damage/damageCalc pathway, and presentation/runtime updates without inventing a native Brace flow",
-  "id": "implement-brace-reaction-end-to-end-phase-1b",
+  "id": "implement-brace-reaction-end-to-end-phase-1c",
   "policy": {
     "max_files_changed": 3
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "scripts/feature_turn/turn-commands.js",
-      "search": "/* ============================================================\n   Turn commands -- Movement",
-      "replace": "/* ============================================================\n   Turn commands -- Actor-keyed reactions\n   ============================================================ */\n\nfunction canUseFrameConnTurnReactionForActor(\n  actorReference,\n  actionId = null,\n  options = {}\n) {\n  return frameConnTurnState\n    .canUseReactionForActor(\n      actorReference,\n      actionId,\n      options\n    );\n}\n\nfunction useFrameConnTurnReactionForActor(\n  actorReference,\n  actionId = null,\n  options = {}\n) {\n  return frameConnTurnState\n    .useReactionForActor(\n      actorReference,\n      actionId,\n      options\n    );\n}\n\nfunction releaseFrameConnTurnReactionForActor(\n  actorReference,\n  actionId = null,\n  options = {}\n) {\n  return frameConnTurnState\n    .releaseReactionForActor(\n      actorReference,\n      actionId,\n      options\n    );\n}\n\nfunction setFrameConnTurnReactionLockForActor(\n  actorReference,\n  locked,\n  options = {}\n) {\n  return frameConnTurnState\n    .setReactionLockForActor(\n      actorReference,\n      locked,\n      options\n    );\n}\n\nfunction applyFrameConnBraceTurnRestriction(\n  actorReference\n) {\n  const state =\n    frameConnTurnState.current;\n\n  if (!state) {\n    return null;\n  }\n\n  const actorId =\n    typeof actorReference ===\n      \"string\"\n      ? actorReference\n      : actorReference?.id ??\n        null;\n\n  const actorUuid =\n    typeof actorReference ===\n      \"object\"\n      ? actorReference?.uuid ??\n        null\n      : null;\n\n  if (\n    state.context.actorId !==\n      actorId &&\n    state.context.actorId !==\n      actorUuid\n  ) {\n    return null;\n  }\n\n  const result =\n    state.applyBraceRestriction();\n\n  frameConnTurnState\n    .renderApplication();\n\n  return result;\n}\n\n\n/* ============================================================\n   Turn commands -- Movement",
+      "path": "scripts/feature_turn/turn-state-movement.js",
+      "search": "  state.assertTurnActive();\n\n\n  const frameConnActionRegistry =",
+      "replace": "  state.assertTurnActive();\n\n\n  if (\n    forceOvercharge &&\n    state.restrictions?.brace\n  ) {\n    return {\n      committed:\n        false,\n\n      reason:\n        \"Brace prevents Overcharge until the end of this turn.\"\n    };\n  }\n\n\n  const frameConnActionRegistry =",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/feature_turn/turn-commands.js",
-      "search": "  useFrameConnTurnAction,\n\n  spendFrameConnTurnMovement,",
-      "replace": "  useFrameConnTurnAction,\n\n  canUseFrameConnTurnReactionForActor,\n\n  useFrameConnTurnReactionForActor,\n\n  releaseFrameConnTurnReactionForActor,\n\n  setFrameConnTurnReactionLockForActor,\n\n  applyFrameConnBraceTurnRestriction,\n\n  spendFrameConnTurnMovement,",
+      "path": "scripts/feature_turn/turn-state-movement.js",
+      "search": "  const standardUsed =\n    Math.min(\n      total,\n      speed\n    );",
+      "replace": "  const standardAllowance =\n    state.restrictions?.brace\n      ? 0\n      : speed;\n\n\n  const standardUsed =\n    Math.min(\n      total,\n      standardAllowance\n    );",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/feature_turn/turn-feature.js",
-      "search": "  canUseFrameConnTurnAction,\n  useFrameConnTurnAction,\n\n  spendFrameConnTurnMovement,",
-      "replace": "  canUseFrameConnTurnAction,\n  useFrameConnTurnAction,\n\n  canUseFrameConnTurnReactionForActor,\n  useFrameConnTurnReactionForActor,\n  releaseFrameConnTurnReactionForActor,\n  setFrameConnTurnReactionLockForActor,\n  applyFrameConnBraceTurnRestriction,\n\n  spendFrameConnTurnMovement,",
+      "path": "scripts/feature_turn/turn-state-movement.js",
+      "search": "          Math.max(\n            total -\n              speed,\n            0\n          ),",
+      "replace": "          Math.max(\n            total -\n              standardAllowance,\n            0\n          ),",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/feature_turn/turn-feature.js",
-      "search": "      useAction:\n        useFrameConnTurnAction,\n\n      spendMovement:",
-      "replace": "      useAction:\n        useFrameConnTurnAction,\n\n      canUseReactionForActor:\n        canUseFrameConnTurnReactionForActor,\n\n      useReactionForActor:\n        useFrameConnTurnReactionForActor,\n\n      releaseReactionForActor:\n        releaseFrameConnTurnReactionForActor,\n\n      setReactionLockForActor:\n        setFrameConnTurnReactionLockForActor,\n\n      applyBraceRestriction:\n        applyFrameConnBraceTurnRestriction,\n\n      spendMovement:",
+      "path": "scripts/feature_turn/turn-state-movement.js",
+      "search": "  const overchargeStart =\n    speed *\n    (\n      1 +\n      normalBoostCount\n    );",
+      "replace": "  const overchargeStart =\n    standardAllowance +\n    speed *\n      normalBoostCount;",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/feature_turn/turn-feature.js",
-      "search": "      use:\n        useFrameConnTurnAction,\n\n\n      /* ------------------------------------------------------\n         Transitional movement state",
-      "replace": "      use:\n        useFrameConnTurnAction,\n\n      canUseReactionForActor:\n        canUseFrameConnTurnReactionForActor,\n\n      useReactionForActor:\n        useFrameConnTurnReactionForActor,\n\n      releaseReactionForActor:\n        releaseFrameConnTurnReactionForActor,\n\n      setReactionLockForActor:\n        setFrameConnTurnReactionLockForActor,\n\n      applyBraceRestriction:\n        applyFrameConnBraceTurnRestriction,\n\n\n      /* ------------------------------------------------------\n         Transitional movement state",
+      "path": "scripts/feature_turn/turn-state-movement.js",
+      "search": "  const legalAllowanceCount =\n    1 +\n    normalBoostCount +\n    overchargeBoostCount;\n\n\n  const legalMaximum =\n    speed *\n    legalAllowanceCount;",
+      "replace": "  const legalMaximum =\n    standardAllowance +\n    speed *\n      (\n        normalBoostCount +\n        overchargeBoostCount\n      );",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/feature_turn/turn-feature.js",
-      "search": "  canUseFrameConnTurnAction,\n\n  useFrameConnTurnAction,\n\n  spendFrameConnTurnMovement,",
-      "replace": "  canUseFrameConnTurnAction,\n\n  useFrameConnTurnAction,\n\n  canUseFrameConnTurnReactionForActor,\n\n  useFrameConnTurnReactionForActor,\n\n  releaseFrameConnTurnReactionForActor,\n\n  setFrameConnTurnReactionLockForActor,\n\n  applyFrameConnBraceTurnRestriction,\n\n  spendFrameConnTurnMovement,",
+      "path": "scripts/feature_turn/turn-state-movement.js",
+      "search": "    normalBoostCount > 0 &&\n    total > speed",
+      "replace": "    normalBoostCount > 0 &&\n    total > standardAllowance",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/feature_turn/turn-state.js",
-      "search": "    this.reaction = {\n      usedThisTurn:\n        false,\n\n      actionId:\n        null\n    };\n\n\n    this.usedActions =",
-      "replace": "    this.reaction = {\n      usedThisTurn:\n        false,\n\n      actionId:\n        null\n    };\n\n\n    this.restrictions = {\n      brace:\n        false\n    };\n\n\n    this.usedActions =",
+      "path": "scripts/feature_turn/turn-state-movement.js",
+      "search": "  const previousBoostCount =\n    getFrameConnTurnStateMovementBoostCount(\n      state\n    );\n\n\n  const automaticActions =",
+      "replace": "  const previousBoostCount =\n    getFrameConnTurnStateMovementBoostCount(\n      state\n    );\n\n\n  const standardAllowance =\n    state.restrictions?.brace\n      ? 0\n      : speed;\n\n\n  const automaticActions =",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/feature_turn/turn-state.js",
-      "search": "  useOvercharge({\n    previousOvercharges = 0\n  } = {}) {\n    this.assertTurnActive();\n\n\n    if (\n      this.overcharge.used",
-      "replace": "  useOvercharge({\n    previousOvercharges = 0\n  } = {}) {\n    this.assertTurnActive();\n\n\n    if (\n      this.restrictions?.brace\n    ) {\n      throw new Error(\n        \"Brace prevents Overcharge until the end of this turn.\"\n      );\n    }\n\n\n    if (\n      this.overcharge.used",
+      "path": "scripts/feature_turn/turn-state-movement.js",
+      "search": "    newTotal > speed &&\n    getFrameConnTurnStateMovementBoostCount(",
+      "replace": "    newTotal > standardAllowance &&\n    getFrameConnTurnStateMovementBoostCount(",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/feature_turn/turn-state.js",
-      "search": "      useOvercharge = false,\n      ignoreDuplicate = false\n    } = {}",
-      "replace": "      useOvercharge = false,\n      ignoreDuplicate = false,\n      contextualReaction = false\n    } = {}",
+      "path": "scripts/feature_turn/turn-state-movement.js",
+      "search": "      threshold:\n        speed,",
+      "replace": "      threshold:\n        standardAllowance,",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/feature_turn/turn-state.js",
-      "search": "    if (\n      action.id ===\n      \"special.end-turn\"\n    ) {\n      return {\n        allowed:\n          true,\n\n        reason:\n          null\n      };\n    }\n\n\n    if (\n      action.cost ===",
-      "replace": "    if (\n      action.id ===\n      \"special.end-turn\"\n    ) {\n      return {\n        allowed:\n          true,\n\n        reason:\n          null\n      };\n    }\n\n\n    if (\n      action.metadata?.contextualReaction ===\n        true &&\n      !contextualReaction\n    ) {\n      return {\n        allowed:\n          false,\n\n        reason:\n          \"This reaction is only available when its trigger occurs.\"\n      };\n    }\n\n\n    if (\n      this.restrictions?.brace\n    ) {\n      if (\n        action.cost === \"movement\" ||\n        action.cost === \"overcharge\" ||\n        action.cost === \"full\" ||\n        action.cost === \"reaction\" ||\n        action.cost === \"none\"\n      ) {\n        return {\n          allowed:\n            false,\n\n          reason:\n            \"Brace limits this turn to one Quick Action and prevents normal movement, Full Actions, Free Actions, Overcharge, and reactions.\"\n        };\n      }\n    }\n\n\n    if (\n      action.cost ===",
+      "path": "scripts/feature_turn/turn-state-movement.js",
+      "search": "    newTotal >\n      speed * 2 &&",
+      "replace": "    newTotal >\n      standardAllowance +\n        speed &&",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/feature_turn/turn-state.js",
-      "search": "          useOvercharge,\n          ignoreDuplicate\n        }",
-      "replace": "          useOvercharge,\n          ignoreDuplicate,\n          contextualReaction:\n            metadata.contextualReaction ===\n            true\n        }",
+      "path": "scripts/feature_turn/turn-state-movement.js",
+      "search": "      threshold:\n        speed * 2,",
+      "replace": "      threshold:\n        standardAllowance +\n          speed,",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/feature_turn/turn-state.js",
-      "search": "  /* ==========================================================\n     Turn state -- Reaction\n     ========================================================== */\n\n  markReactionAvailable()",
-      "replace": "  /* ==========================================================\n     Turn state -- Brace restriction\n     ========================================================== */\n\n  applyBraceRestriction() {\n    this.assertTurnActive();\n\n\n    if (\n      this.restrictions.brace\n    ) {\n      return this.snapshot();\n    }\n\n\n    this.restrictions.brace =\n      true;\n\n\n    this.quickActionsRemaining =\n      Math.min(\n        this.quickActionsRemaining,\n        1\n      );\n\n\n    this.fullActionAvailable =\n      false;\n\n\n    this.movement.remaining =\n      0;\n\n\n    this.movement.completed =\n      true;\n\n\n    this.protocol.available =\n      false;\n\n\n    this.protocol.startOfTurnOpen =\n      false;\n\n\n    this.reaction.usedThisTurn =\n      true;\n\n\n    this.reaction.actionId =\n      \"reaction.brace\";\n\n\n    this.recordHistory(\n      \"brace-turn-restriction\",\n      {}\n    );\n\n\n    return this.snapshot();\n  }\n\n\n  /* ==========================================================\n     Turn state -- Reaction\n     ========================================================== */\n\n  markReactionAvailable()",
+      "path": "scripts/feature_actions/actions-feature.js",
+      "search": "        icon:\n          \"fas fa-shield-halved\"\n      }),",
+      "replace": "        icon:\n          \"fas fa-shield-halved\",\n\n        metadata: {\n          contextualReaction:\n            true,\n\n          trigger:\n            \"hit-after-damage-roll\"\n        }\n      }),",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/feature_turn/turn-state.js",
-      "search": "      reaction: {\n        ...this.reaction\n      },\n\n      usedActions:",
-      "replace": "      reaction: {\n        ...this.reaction\n      },\n\n      restrictions: {\n        ...this.restrictions\n      },\n\n      usedActions:",
+      "path": "scripts/feature_actions/action-execution-feature.js",
+      "search": "      \"full.mount-dismount\",\n\n      \"special.end-turn\"",
+      "replace": "      \"full.mount-dismount\",\n\n      \"reaction.brace\",\n\n      \"special.end-turn\"",
       "expected_occurrences": 1
     }
   ]
