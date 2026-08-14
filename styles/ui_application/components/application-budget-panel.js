@@ -23,28 +23,18 @@ function renderBudgetPanel(
     return `
       <section class="frame-helm-budget frame-helm-budget-empty">
         <div class="frame-helm-budget-message">
-          <i class="fas fa-circle-play"></i>
+          <i class="fas fa-bolt"></i>
 
           <div>
             <strong>
-              No turn plan is active.
+              Turn plan ready.
             </strong>
 
             <p>
-              Begin a plan to track movement, actions, and Overcharge.
+              Choose an action and Frame Helm will begin tracking the turn automatically.
             </p>
           </div>
         </div>
-
-        <button
-          type="button"
-          class="frame-helm-primary-button"
-          data-frame-helm-command="begin-turn"
-          ${data.hasSelectedToken ? "" : "disabled"}
-        >
-          <i class="fas fa-play"></i>
-          Begin Turn Plan
-        </button>
       </section>
     `;
   }
