@@ -1,38 +1,9 @@
 {
   "schema_version": 2,
-  "id": "integrate-corridor-context-pack",
-  "description": "Add Corridor Context Pack npm commands, syntax/self-test gate coverage, and suite-guide documentation.",
+  "id": "validate-corridor-context-pack-gate",
+  "description": "No-op validation that the committed FilePatcher syntax-checks and self-tests the Corridor Context Pack before architectural audits.",
   "policy": {
-    "max_files_changed": 3
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "package.json",
-      "search": "    \"patch-corridor:self-test\": \"node ./dev_scripts/patch-corridor-planner.mjs --self-test\",\n    \"patch:dsl\":",
-      "replace": "    \"patch-corridor:self-test\": \"node ./dev_scripts/patch-corridor-planner.mjs --self-test\",\n    \"corridor-context\": \"node ./dev_scripts/corridor-context-pack.mjs\",\n    \"corridor-context:self-test\": \"node ./dev_scripts/corridor-context-pack.mjs --self-test\",\n    \"patch:dsl\":",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev-scripts/github-filepatcher.mjs",
-      "search": "    path.join(ROOT, \"dev_scripts\", \"integration-surface-atlas.mjs\"),\n    path.join(ROOT, \"dev_scripts\", \"runtime-signal-map.mjs\")\n  ];",
-      "replace": "    path.join(ROOT, \"dev_scripts\", \"integration-surface-atlas.mjs\"),\n    path.join(ROOT, \"dev_scripts\", \"runtime-signal-map.mjs\"),\n    path.join(ROOT, \"dev_scripts\", \"corridor-context-pack.mjs\")\n  ];",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev-scripts/github-filepatcher.mjs",
-      "search": "  if (patchCorridorSelfTest.status !== 0) fail(\"Patch Corridor self-test failed.\");\n\n  console.log(\"[github-filepatcher] Developer tool syntax checks passed.\");",
-      "replace": "  if (patchCorridorSelfTest.status !== 0) fail(\"Patch Corridor self-test failed.\");\n\n  const corridorContextPack = path.join(ROOT, \"dev_scripts\", \"corridor-context-pack.mjs\");\n  const corridorContextPackSelfTest = spawnSync(process.execPath, [corridorContextPack, \"--self-test\"], { cwd: ROOT, encoding: \"utf8\" });\n  if (corridorContextPackSelfTest.stdout) process.stdout.write(corridorContextPackSelfTest.stdout);\n  if (corridorContextPackSelfTest.stderr) process.stderr.write(corridorContextPackSelfTest.stderr);\n  if (corridorContextPackSelfTest.error) fail(`Corridor Context Pack self-test could not start: ${corridorContextPackSelfTest.error}`);\n  if (corridorContextPackSelfTest.status !== 0) fail(\"Corridor Context Pack self-test failed.\");\n\n  console.log(\"[github-filepatcher] Developer tool syntax checks passed.\");",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "search": "Run the deterministic clause-decomposition self-test with `npm run patch-corridor:self-test`. When `planning_goal` is present in `dev-scripts/filepatcher.json`, the GitHub FilePatcher runs this clause-aware planner before mutation and reports how many changed files are inside or outside the certified corridor.\n\n---\n\n## 8. DSL Level 1 — Structural Patch DSL",
-      "replace": "Run the deterministic clause-decomposition self-test with `npm run patch-corridor:self-test`. When `planning_goal` is present in `dev-scripts/filepatcher.json`, the GitHub FilePatcher runs this clause-aware planner before mutation and reports how many changed files are inside or outside the certified corridor.\n\n---\n\n## Corridor Context Pack — `corridor-context-pack.mjs`\n\nGenerate a compact authoring packet directly from a certified behavioral goal with:\n\n```bash\nnpm run corridor-context -- --goal \"show Brace after damage, spend the reaction, apply native Resistance, and restrict the next turn\"\n```\n\nOr consume an existing Patch Corridor report with:\n\n```bash\nnpm run corridor-context -- --corridor patch-corridor-report.json\n```\n\nThe Context Pack is downstream of the clause-aware planner and cannot broaden its scope. For each planner-selected symbol it returns the exact source slice and line range, only imports actually referenced by that slice, lexical callers/consumers with source evidence, the clause/concern ownership reason that selected the family, and a nearby structural exemplar only when one candidate wins unambiguously. Missing or ambiguous symbol boundaries and exemplar ties are reported as omissions rather than guessed.\n\nIt answers:\n\n> What exact source context do I need to author this certified patch without reopening whole files?\n\nRun its deterministic self-test with `npm run corridor-context:self-test`. See `dev_scripts/CORRIDOR_CONTEXT_PACK.md` for the full contract.\n\n---\n\n## 8. DSL Level 1 — Structural Patch DSL",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
