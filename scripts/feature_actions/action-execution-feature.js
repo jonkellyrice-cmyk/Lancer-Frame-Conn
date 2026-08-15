@@ -247,7 +247,6 @@ export const FRAME_CONN_NO_ROLL_ACTIONS =
       "quick.boost",
       "quick.hide",
       "quick.quick-tech.bolster",
-      "quick.quick-tech.lock-on",
       "quick.prepare",
       "quick.self-destruct",
 
@@ -396,6 +395,14 @@ function frameConnActionExecutionKind(
     )
   ) {
     return "basic-tech-attack";
+  }
+
+
+  if (
+    action.id ===
+      "quick.quick-tech.lock-on"
+  ) {
+    return "lock-on";
   }
 
 
@@ -806,6 +813,7 @@ async function frameConnExecuteActionRoll(
   if (
     [
       "full.improvised-attack",
+      "quick.quick-tech.lock-on",
       "quick.shut-down",
       "full.boot-up"
     ].includes(
