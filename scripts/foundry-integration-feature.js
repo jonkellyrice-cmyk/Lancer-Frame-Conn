@@ -659,6 +659,129 @@ function addFrameConnControlButton(
 
 
 /* ============================================================
+   Foundry integration -- Target acquisition
+   ============================================================ */
+
+/**
+ * Return the current user's Foundry token targets as Token objects.
+ * Selection state only; legality belongs to Targeting / Spatial.
+ */
+function getFrameConnUserTargets() {
+  return Array.from(
+    game?.user?.targets ??
+    []
+  );
+}
+
+
+/**
+ * Activate Foundry's Token layer with its built-in target tool.
+ */
+function activateFrameConnTargetTool() {
+  const tokenLayer =
+    canvas?.tokens ??
+    null;
+
+  if (
+    !tokenLayer ||
+    typeof tokenLayer.activate !==
+      "function"
+  ) {
+    throw new Error(
+      "Frame Conn could not activate Foundry's Token target tool."
+    );
+  }
+
+  tokenLayer.activate({
+    tool:
+      "target"
+  });
+
+  return true;
+}
+
+
+/**
+ * Prefer existing targets; otherwise switch to Foundry's target tool
+ * and wait for this user to target a token. Escape cancels.
+ */
+async function promptFrameConnForTarget() {
+  const existingTargets =
+    getFrameConnUserTargets();
+
+  if (
+    existingTargets.length > 0
+  ) {
+    return existingTargets;
+  }
+
+  activateFrameConnTargetTool();
+
+  ui.notifications.info(
+    "Select a target for this action. Press Escape to cancel."
+  );
+
+  return new Promise(
+    resolve => {
+      let settled = false;
+      let targetHookId = null;
+
+      const cleanup = () => {
+        if (targetHookId != null) {
+          Hooks.off("targetToken", targetHookId);
+        }
+
+        window.removeEventListener(
+          "keydown",
+          handleKeyDown,
+          true
+        );
+      };
+
+      const finish = value => {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+        cleanup();
+        resolve(value);
+      };
+
+      const handleKeyDown = event => {
+        if (event.key === "Escape") {
+          finish(null);
+        }
+      };
+
+      targetHookId = Hooks.on(
+        "targetToken",
+        (user, token, targeted) => {
+          if (
+            user?.id !== game?.user?.id ||
+            !targeted ||
+            !token
+          ) {
+            return;
+          }
+
+          finish(
+            getFrameConnUserTargets()
+          );
+        }
+      );
+
+      window.addEventListener(
+        "keydown",
+        handleKeyDown,
+        true
+      );
+    }
+  );
+}
+
+
+/* ============================================================
    Foundry integration diagnostics
    ============================================================ */
 
@@ -757,7 +880,13 @@ export const frameConnFoundryIntegrationFeature =
         closeFrameConnFromFoundryIntegration,
 
       addSceneControl:
-        addFrameConnControlButton
+        addFrameConnControlButton,
+
+      activateTargetTool:
+        activateFrameConnTargetTool,
+
+      promptForTarget:
+        promptFrameConnForTarget
     },
 
     queries: {
@@ -769,6 +898,9 @@ export const frameConnFoundryIntegrationFeature =
 
       hasSceneControl:
         hasFrameConnSceneControlTool,
+
+      selectedTargets:
+        getFrameConnUserTargets,
 
       diagnostics:
         getFrameConnFoundryIntegrationDiagnostics,
@@ -821,6 +953,15 @@ export const frameConnFoundryIntegrationFeature =
 
       insertSceneControl:
         insertFrameConnSceneControlTool,
+
+      getSelectedTargets:
+        getFrameConnUserTargets,
+
+      activateTargetTool:
+        activateFrameConnTargetTool,
+
+      promptForTarget:
+        promptFrameConnForTarget,
 
       diagnostics:
         getFrameConnFoundryIntegrationDiagnostics,
