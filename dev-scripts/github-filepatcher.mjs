@@ -655,6 +655,40 @@ function runAutomaticPatchStaging(goal, corridorReport) {
   }
 }
 
+function runRuntimeContractProbePlanning(goal, corridorReport) {
+  const probeScript = path.join(ROOT, "dev_scripts", "runtime-contract-probes.mjs");
+  if (!fs.existsSync(probeScript)) fail(`Runtime Contract Probes tool not found: ${probeScript}`);
+
+  const corridorFile = path.join(os.tmpdir(), `frame-conn-probe-corridor-${process.pid}.json`);
+  const outputDir = path.join(os.tmpdir(), `frame-conn-runtime-probes-${process.pid}`);
+  fs.writeFileSync(corridorFile, `${JSON.stringify(corridorReport, null, 2)}\n`, "utf8");
+
+  const result = spawnSync(
+    process.execPath,
+    [probeScript, "--goal", goal, "--corridor", corridorFile, "--output-dir", outputDir],
+    { cwd: ROOT, encoding: "utf8", maxBuffer: 8 * 1024 * 1024 }
+  );
+
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+  if (result.error) fail(`Runtime Contract Probe planning could not start: ${result.error}`);
+  if (result.status !== 0) fail(`Runtime Contract Probe planning failed with exit code ${result.status}.`);
+
+  const manifestFile = path.join(outputDir, "probe-manifest.json");
+  try {
+    const manifest = JSON.parse(fs.readFileSync(manifestFile, "utf8"));
+    const objectives = manifest.objectives ?? [];
+    const instrumented = objectives.filter((entry) => entry.status === "instrumented").length;
+    console.log(`[github-filepatcher] runtime_probe_clauses=${objectives.length}`);
+    console.log(`[github-filepatcher] runtime_probe_instrumented=${instrumented}`);
+    console.log(`[github-filepatcher] runtime_probe_manual=${objectives.length - instrumented}`);
+    console.log(`[github-filepatcher] runtime_probe_observers=${manifest.probes?.length ?? 0}`);
+    return manifest;
+  } catch (error) {
+    fail(`Runtime Contract Probe manifest could not be read: ${error}`);
+  }
+}
+
 function reportCorridorScope(plan, corridorReport) {
   if (!corridorReport) return;
   const predicted = new Set((corridorReport.files ?? []).map(entry => entry.file));
@@ -694,6 +728,7 @@ function main() {
     if (corridorReport) {
       runCorridorContextPack(corridorReport);
       queryNativeContractCatalog(patch.planningGoal);
+      runRuntimeContractProbePlanning(patch.planningGoal, corridorReport);
     }
 
     console.log(`[github-filepatcher] patch=${patch.id ?? "unnamed"}`);
