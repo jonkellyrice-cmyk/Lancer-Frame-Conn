@@ -1,49 +1,10 @@
 {
   "schema_version": 2,
-  "id": "document-end-to-end-boot-up",
-  "description": "Update Boot Up and action runtime documentation to record the implemented canonical status-mutation architecture and pending live Foundry proof.",
+  "id": "validate-completed-boot-up-vertical-slice",
+  "description": "No-op acceptance proof for the fully committed end-to-end Boot Up implementation.",
+  "planning_goal": "Implement Boot Up end to end as the universal full.boot-up action: keep Frame Conn authoritative for Full Action commitment and exact committed-entry execution; show an Execute control for committed Boot Up without presenting Boot Up as a dice roll; resolve the authoritative acting actor through Native Adapter actor resolution; require the actor to actually have the native Lancer shutdown status; execute Boot Up through the canonical System Bridge -> Semantic Execution Context -> Execution Transaction -> Native Adapter spine; remove only the native shutdown status using the existing native status adapter and Actor.toggleStatusEffect pathway; do not create or mutate any duplicate Frame Conn shutdown state; treat missing shutdown state or failed native mutation as execution failure so the committed entry remains pending; after native mutation succeeds, mark only that exact committed entry executed and refresh Frame Conn from authoritative actor and Turn state; preserve all unrelated action behavior.",
   "policy": {
-    "max_files_changed": 2,
-    "allowed_paths": [
-      "Docs/af-boot-up.md",
-      "Docs/action-runtime-wiring-guide.md"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "Docs/af-boot-up.md",
-      "search": "**Frame Conn implementation status:** Frame Conn should own Boot Up execution as a state-transition action that removes the native Lancer `shutdown` status and performs any additional deterministic Boot Up consequences required by the rules.",
-      "replace": "**Frame Conn implementation status:** Implemented end to end through the canonical Frame Conn execution spine. Committed `full.boot-up` receives a non-roll Execute control; execution enters System Bridge → Semantic Execution Context → Execution Transaction → Native Adapter, removes authoritative native `shutdown` through `removeStatus()` / `Actor.toggleStatusEffect(..., { active: false })`, and only then allows the exact committed entry to be marked executed. Static/tool validation is complete; live Foundry validation remains required.",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "Docs/af-boot-up.md",
-      "search": "Boot Up should be treated as the inverse state-transition partner of Shut Down.\n\n—\n\n# 1. Boot Up Rules Role",
-      "replace": "Boot Up should be treated as the inverse state-transition partner of Shut Down.\n\n## Implemented Frame Conn Path\n\nThe current implementation is intentionally:\n\n```text\nfull.boot-up committed as a Full Action\n        ↓\nui-turn exposes a non-roll Execute control\n        ↓\nAction Execution classifies executionKind = boot-up\n        ↓\nSystem Bridge\n        ↓\nSemantic Execution Context\n        ↓\nExecution Transaction\n        ↓\nNative Adapter removeStatus(actor, shutdown)\n        ↓\nnative-status resolves the authoritative actor\n        ↓\nActor.toggleStatusEffect(shutdown, { active: false })\n        ↓\nNative Adapter verifies shutdown is no longer active\n        ↓\ntransaction succeeds\n        ↓\nApplication marks only the exact committed entry executed\n        ↓\nFrame Conn re-renders from authoritative Turn/actor state\n```\n\nIf `shutdown` was not active, or native removal does not produce a real state change, Boot Up fails through the execution transaction and the committed entry remains pending. Frame Conn does not create a separate Shutdown flag.\n\nThe native boundary is now persisted as `native.actor.shutdown-status-boundary` in the Native Contract Catalog for Lancer 3.1.3 with source and evidence hashes.\n\n—\n\n# 1. Boot Up Rules Role",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "Docs/af-boot-up.md",
-      "search": "Native status handling may ultimately use Foundry mechanisms such as:\n\n`toggleStatusEffect(...)`\n\nThe exact preferred mutation entry point should be confirmed before implementation.\n\nFrame Conn should use the highest-level native status helper available rather than directly editing raw actor data if the native system provides an appropriate helper.",
-      "replace": "The preferred native mutation boundary has now been confirmed. Native Lancer status-item handling delegates status application through `Actor.toggleStatusEffect(...)`, and Frame Conn's existing `native-status.js` adapter mirrors that authoritative pathway for both application and removal. Boot Up therefore calls the registered Native Adapter `removeStatus(actor, \"shutdown\")`, which ultimately performs `Actor.toggleStatusEffect(\"shutdown\", { active: false })` and verifies the resulting native status state.\n\nDo not replace this with direct mutation of `system.statuses.shutdown`; that field is derived status state, not a second storage authority.",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "Docs/af-boot-up.md",
-      "search": "# 8. Proposed Initial Boot Up Flow\n\nThe initial Frame Conn execution should be:\n\nPlayer commits Boot Up\n→ Boot Up appears in Committed Plan\n→ player executes Boot Up\n→ Frame Conn resolves authoritative acting mech\n→ validate active Turn\n→ validate Full Action commitment\n→ confirm actor currently has native `shutdown` status\n→ remove native `shutdown` status\n→ apply any other confirmed Boot Up consequences\n→ mark committed Boot Up action executed\n→ refresh authoritative actor state\n→ refresh Frame Conn presentation",
-      "replace": "# 8. Implemented Boot Up Flow\n\nFrame Conn now executes:\n\nPlayer commits Boot Up\n→ Boot Up appears in Committed Plan with a plain Execute control\n→ player executes Boot Up\n→ Frame Conn re-resolves the authoritative actor\n→ canonical execution spine composes the semantic action\n→ Execution Transaction calls Native Adapter `removeStatus(actor, \"shutdown\")`\n→ Native Adapter verifies Shutdown was active and is now inactive\n→ transaction succeeds\n→ exact committed Boot Up entry is marked executed\n→ authoritative Turn/actor presentation refreshes",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "Docs/action-runtime-wiring-guide.md",
-      "search": "This distinction is useful when auditing action coverage:\n\n- **canonical and runtime-proven:** Improvised Attack;\n- **transitional native delegation and runtime-proven:** Stabilize;\n- **not yet end-to-end proven:** evaluate individually from the corresponding action-flow notes.",
-      "replace": "### Canonical state-mutation example: Boot Up\n\nBoot Up is the proof case for a universal action whose semantics belong to Frame Conn but whose underlying status mutation belongs to native Lancer/Foundry:\n\n```text\ncommitted full.boot-up\n        ↓\nnon-roll Execute control\n        ↓\nAction Execution: executionKind = boot-up\n        ↓\nSystem Bridge\n        ↓\nSemantic Execution Context\n        ↓\nExecution Transaction\n        ↓\nNative Adapter removeStatus(actor, shutdown)\n        ↓\nActor.toggleStatusEffect(shutdown, { active: false })\n        ↓\nverify native shutdown is inactive\n        ↓\ntransaction success\n        ↓\nexact committed entry marked executed\n```\n\nThis is distinct from native Flow delegation. There is no native `BootUpFlow`; Frame Conn owns the action-level state transition while reusing the authoritative native status identity and mutation primitive. Failure to remove an actually-active Shutdown status fails the transaction, so UI bookkeeping cannot falsely claim execution.\n\nThis distinction is useful when auditing action coverage:\n\n- **canonical and runtime-proven:** Improvised Attack;\n- **canonical implementation complete, live Foundry proof pending:** Boot Up;\n- **transitional native delegation and runtime-proven:** Stabilize;\n- **not yet end-to-end proven:** evaluate individually from the corresponding action-flow notes.",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
