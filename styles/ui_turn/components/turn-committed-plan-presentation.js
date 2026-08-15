@@ -50,9 +50,8 @@ function getFrameConnTurnUiAction(
  * actor-sheet roll/workflow.
  *
  * This presentation-only mirror exists so the canonical committed
- * plan can decide whether to expose a d20 execution control without
- * importing the Action Execution feature directly across feature
- * boundaries.
+ * plan can suppress execution controls without importing the Action
+ * Execution feature directly across feature boundaries.
  */
 const FRAME_CONN_TURN_UI_NO_ROLL_ACTION_IDS =
   Object.freeze(
@@ -78,11 +77,49 @@ const FRAME_CONN_TURN_UI_NO_ROLL_ACTION_IDS =
 
 
 /**
- * Determine whether a committed action has an actor-sheet roll or
- * execution workflow available through the current universal-action
- * execution surface.
+ * Executable workflows which do not represent an attack/check roll.
+ *
+ * These actions receive an Execute control without a d20 affordance.
+ */
+const FRAME_CONN_TURN_UI_EXECUTE_ONLY_ACTION_IDS =
+  Object.freeze(
+    new Set([
+      "full.boot-up"
+    ])
+  );
+
+
+/**
+ * Determine whether a committed action represents a d20-style roll.
  */
 function frameConnTurnUiCommittedActionCanRoll(
+  action
+) {
+  if (
+    !action?.id
+  ) {
+    return false;
+  }
+
+
+  return (
+    !FRAME_CONN_TURN_UI_NO_ROLL_ACTION_IDS
+      .has(
+        action.id
+      ) &&
+    !FRAME_CONN_TURN_UI_EXECUTE_ONLY_ACTION_IDS
+      .has(
+        action.id
+      )
+  );
+}
+
+
+/**
+ * Determine whether a committed action has a current execution
+ * workflow, regardless of whether that workflow rolls dice.
+ */
+function frameConnTurnUiCommittedActionCanExecute(
   action
 ) {
   if (
@@ -138,10 +175,15 @@ function buildFrameConnTurnCommittedActionExecutionPresentation(
       action
     );
 
+  const canExecute =
+    frameConnTurnUiCommittedActionCanExecute(
+      action
+    );
+
   const showExecuteControl =
     Boolean(
       executable &&
-      canRoll &&
+      canExecute &&
       !executed
     );
 
@@ -154,6 +196,8 @@ function buildFrameConnTurnCommittedActionExecutionPresentation(
     executable,
 
     canRoll,
+
+    canExecute,
 
     showExecuteControl,
 
@@ -172,10 +216,14 @@ function buildFrameConnTurnCommittedActionExecutionPresentation(
           showExecuteControl,
 
         kind:
-          "roll",
+          canRoll
+            ? "roll"
+            : "execute",
 
         icon:
-          "fas fa-dice-d20",
+          canRoll
+            ? "fas fa-dice-d20"
+            : "fas fa-play",
 
         label:
           "Execute",
