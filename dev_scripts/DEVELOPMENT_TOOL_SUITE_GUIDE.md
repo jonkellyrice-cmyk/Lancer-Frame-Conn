@@ -39,20 +39,49 @@ dev-scripts/
 The package scripts are:
 
 ```bash
+# Executors
 npm run patch
 npm run github:patch
+
+# Architecture diagnostics
 npm run audit
 npm run symbol-family-audit
 npm run effect-atlas
 npm run dependency-graph
+
+# 1 — Integration Surface Atlas
+npm run integration-atlas
+npm run integration-atlas:self-test
+
+# 2 — Runtime Signal Map
+npm run runtime-signal-map
+npm run runtime-signal-map:self-test
+
+# 3 — Clause-Aware Patch Corridor
 npm run patch-corridor
+npm run patch-corridor:self-test
+
+# 4 — Corridor Context Pack
+npm run corridor-context
+npm run corridor-context:self-test
+
+# 5 — Native Contract Catalog
+npm run native-contracts
+npm run native-contracts:verify
+npm run native-contracts:self-test
+
+# 6 — Automatic Patch Staging
 npm run patch-staging
 npm run patch-staging:self-test
-npm run runtime-probes
-npm run runtime-probes:self-test
+
+# 7 — Structural / Pattern-Aware DSL
 npm run patch:dsl
 npm run patch:dsl:check
 npm run patch:dsl:self-test
+
+# 8 — Runtime Contract Probes
+npm run runtime-probes
+npm run runtime-probes:self-test
 ```
 
 ---
@@ -62,30 +91,38 @@ npm run patch:dsl:self-test
 The normal remote path is:
 
 ```text
-behavioral goal
+behavioral request
     ↓
-Patch Corridor Planner
+Native Contract Catalog first
+  reuse proven native facts when current
+    ↓
+Integration Surface Atlas + Runtime Signal Map when proof is missing/drifted
+  discover legitimate native surfaces + trace causal runtime paths
+    ↓
+planning_goal
+    ↓
+Clause-Aware Patch Corridor
+  every requested behavior gets an owner/path
     ↓
 Automatic Patch Staging
-  dependency-safe phases + exact scope locks
+  provider-before-consumer phases + exact scope locks
     ↓
-Corridor Context Pack + Native Contract Catalog
-  exact local context + already-proven native facts
+Corridor Context Pack
+  exact local source slices/imports/callers/exemplars
+    ↓
+Native Contract Catalog
+  surface matching proven contracts for authoring
     ↓
 Runtime Contract Probe plan
   live-observable clauses + explicit manual checkpoints
     ↓
-Patch DSL authoring
-    ↓
-pattern-aware DSL shorthand when safe
+Patch DSL / pattern-aware shorthand / raw schema-v2 JSON
     ↓
 dev-scripts/filepatcher.json
     ↓
-GitHub FilePatcher dry-run
+GitHub FilePatcher dry-run + apply
     ↓
-GitHub FilePatcher apply
-    ↓
-Patch DSL self-test + developer-tool syntax checks
+permanent developer-tool self-tests
     ↓
 Repository Audit
     ↓
@@ -96,11 +133,60 @@ Effect Atlas
 git diff validation
     ↓
 github-actions[bot] commit
+    ↓
+live Foundry Runtime Contract Probe test when runtime-sensitive
 ```
 
 The detailed dependency graph is a deeper manual diagnostic. It is not part of the automatic blocking gate.
 
 The local Python FilePatcher is the richer fallback/recovery path and maintains its own backup/history facilities.
+
+### The eight capability upgrades
+
+The planning/authoring/runtime-validation stack now has eight explicit capabilities. They are designed as one evidence-reduction pipeline rather than eight unrelated utilities:
+
+```text
+1. Integration Surface Atlas
+   authoritative native Lancer source -> legitimate integration surfaces
+
+2. Runtime Signal Map
+   native/Frame Conn surfaces -> statically evidenced runtime causal paths
+
+3. Clause-Aware Patch Corridor
+   behavioral goal -> clause coverage + owner families/files/symbols
+
+4. Corridor Context Pack
+   certified corridor -> exact source slices/imports/callers/exemplars
+
+5. Native Contract Catalog
+   proven native facts -> version/hash-backed reusable contracts
+
+6. Automatic Patch Staging
+   clause-complete corridor -> provider-before-consumer implementation phases
+
+7. Expanded Pattern-Aware DSL
+   proven local exemplar -> compact deterministic FilePatcher operations
+
+8. Runtime Contract Probes
+   behavioral clauses/runtime evidence -> reversible Foundry instrumentation + manual checkpoints
+```
+
+The workflow effect is equally important:
+
+- native integration is discovered from authoritative source instead of memory;
+- runtime paths are traced before implementation instead of inferred from names;
+- a cross-cutting request must cover every behavioral clause before it can be high-confidence;
+- patch authors can work from exact local context rather than repeatedly reopening whole files;
+- already-proven native contracts are reused until evidence/version drift invalidates them;
+- large patches can remain one end-to-end behavior while implementation is decomposed into dependency-safe stages;
+- repetitive boilerplate is compressed only when a real local exemplar proves the shape;
+- runtime-sensitive work can finish with structured Foundry evidence instead of informal console impressions.
+
+A useful shorthand is:
+
+```text
+discover -> trace -> certify -> contextualize -> reuse proof -> stage -> author -> observe live
+```
 
 ---
 
@@ -472,7 +558,15 @@ Important safety behavior:
 After a real apply, the current gate performs:
 
 ```text
-Patch DSL self-test / developer-tool syntax
+Patch DSL self-test
+Integration Surface Atlas self-test
+Runtime Signal Map self-test
+Clause-Aware Patch Corridor self-test
+Corridor Context Pack self-test
+Native Contract Catalog self-test + committed catalog verification
+Automatic Patch Staging self-test
+Runtime Contract Probes self-test
+developer-tool syntax checks
 Repository Audit
 Symbol Family Audit
 Effect Atlas
@@ -546,16 +640,26 @@ The workflow is serialized with `cancel-in-progress: false`, so one patch run is
 
 ### Preferred remote operating procedure
 
-1. Inspect the current source and diagnostics.
-2. Run or reason from a patch corridor when the change crosses architecture boundaries.
-3. Author the smallest useful Patch DSL or JSON patch.
-4. Keep `max_files_changed` narrow; one file/one commit is the default when practical.
-5. Update only `dev-scripts/filepatcher.json`.
-6. Wait for the GitHub FilePatcher workflow.
-7. Confirm dry-run succeeded.
-8. Confirm apply + diagnostics succeeded.
-9. Confirm the bot-created source commit exists.
-10. Inspect that commit before authoring the next patch.
+For a small localized change whose ownership/native contract is already known:
+
+1. Inspect the exact current target source.
+2. Author the smallest useful structural DSL, pattern-aware DSL, or raw JSON patch.
+3. Keep `max_files_changed` narrow and use exact `policy.allowed_paths`; one file/one commit remains the safe default when practical.
+4. Update only `dev-scripts/filepatcher.json`.
+5. Confirm dry-run, apply, permanent self-tests, architectural audits, and the bot-created source commit.
+
+For a cross-cutting, native-integration, or runtime-sensitive change:
+
+1. Write the **complete behavior** into `planning_goal`.
+2. Require clause-complete Patch Corridor coverage.
+3. Inspect Automatic Patch Staging and preserve provider-before-consumer order; a single conceptual behavior may legitimately require several implementation commits.
+4. Use the Corridor Context Pack for exact authoring slices.
+5. Query the Native Contract Catalog before rediscovering native Lancer behavior.
+6. Use the Integration Surface Atlas and Runtime Signal Map when a native contract is missing, ambiguous, or drifted.
+7. Author each dependency-safe stage with exact scope locks.
+8. Confirm the permanent trust gate and all architectural audits after every accepted stage.
+9. After static implementation is complete, run the Runtime Contract Probe scenario in Foundry and resolve automatic plus manual checkpoints.
+10. Call `FrameConnRuntimeProbe.stop()` after the live test and keep the structured report as runtime evidence.
 
 Do not assume that a successful patch-spec commit means the source change happened. The source change is the later `github-actions[bot]` commit.
 
@@ -670,9 +774,23 @@ Preferred order:
 
 1. Use `node --check` / Python syntax checks on the affected tool.
 2. Make one narrow repair at a time.
-3. Run `npm run patch:dsl:self-test` if the DSL compiler changed.
-4. Run the repository, symbol-family, and effect diagnostics.
-5. Run a no-op GitHub FilePatcher patch after repair to prove the committed toolchain can execute independently.
+3. Run the affected tool's deterministic self-test.
+4. Run the permanent tool self-test set:
+
+```bash
+npm run integration-atlas:self-test
+npm run runtime-signal-map:self-test
+npm run patch-corridor:self-test
+npm run corridor-context:self-test
+npm run native-contracts:self-test
+npm run patch-staging:self-test
+npm run patch:dsl:self-test
+npm run runtime-probes:self-test
+```
+
+5. Run Repository Audit, Symbol Family Audit, and Effect Atlas.
+6. Commit the repaired trust gate/tool.
+7. Run an **independent no-op GitHub FilePatcher planning/apply proof from the already committed new gate**. A tool change is not fully proven merely because it passed under the older validator that was in memory while the change was being applied.
 
 Do not weaken or remove a failing self-test merely to make the patch pipeline green. Fix the reason the test is failing or explicitly revise the contract if the intended behavior truly changed.
 
@@ -682,13 +800,25 @@ Do not weaken or remove a failing self-test merely to make the patch pipeline gr
 
 ## 17. Decision guide
 
-Use the **Patch Corridor Planner** when the main uncertainty is *where the change belongs*.
+Use **Integration Surface Atlas** when the uncertainty is *what legitimate native Lancer integration point exists?*
+
+Use **Runtime Signal Map** when the uncertainty is *how does the runtime signal travel from UI/event/Flow to effect?*
+
+Use the **Clause-Aware Patch Corridor** when the uncertainty is *where the change belongs and whether every requested behavioral clause has an owner/path*.
+
+Use **Corridor Context Pack** when the corridor is known but the author needs *exact source slices, imports, callers, and a safe local exemplar*.
+
+Use **Native Contract Catalog** when the uncertainty is *whether this native fact was already proven and whether that proof is still current*.
+
+Use **Automatic Patch Staging** when the uncertainty is *what provider-before-consumer order a cross-cutting patch should use*.
 
 Use **Pattern-aware DSL** when the location is known and the desired change is a repeated local structural shape that already has a trustworthy exemplar.
 
 Use **Structural Patch DSL** when the location is known but the change needs explicit text-level control.
 
 Use **raw GitHub FilePatcher JSON** when the DSL cannot express the required supported operation cleanly.
+
+Use **Runtime Contract Probes** when the uncertainty is *whether the expected runtime path actually fired in Foundry and which postconditions still need manual proof*.
 
 Use the **GitHub FilePatcher** for normal remote execution.
 
@@ -729,10 +859,17 @@ Likewise, diagnostics are not substitutes for runtime testing inside Foundry. Th
 ## 19. Quick reference
 
 ```bash
-# Planning
-npm run patch-corridor -- --goal "<behavioral goal>"
+# Native discovery / tracing
+npm run integration-atlas -- --native-root /path/to/foundryvtt-lancer --query "<query>"
+npm run runtime-signal-map -- --native-root /path/to/foundryvtt-lancer --query "<query>"
 
-# DSL
+# Planning / context / contract reuse / staging
+npm run patch-corridor -- --goal "<behavioral goal>"
+npm run corridor-context -- --goal "<behavioral goal>"
+npm run native-contracts -- --query "<native concept>"
+npm run patch-staging -- --goal "<behavioral goal>"
+
+# DSL authoring
 npm run patch:dsl:check
 npm run patch:dsl
 npm run patch:dsl:self-test
@@ -745,11 +882,14 @@ npm run github:patch
 npm run patch -- --dry-run
 npm run patch
 
-# Diagnostics
+# Static diagnostics
 npm run audit
 npm run symbol-family-audit
 npm run effect-atlas
 npm run dependency-graph
+
+# Live runtime validation
+npm run runtime-probes -- --goal "<behavioral goal>"
 ```
 
 The normal standard is simple: **small patch, deterministic executor, diagnostics pass, inspect the resulting commit, then continue.**
