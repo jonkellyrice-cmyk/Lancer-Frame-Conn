@@ -1,10 +1,8 @@
 {
   "schema_version": 2,
-  "id": "validate-no-check-action-audit",
-  "description": "Planning-only acceptance checkpoint after auditing no-check universal action routing and presentation.",
-  "planning_goal": "Verify Action Execution keeps no-check universal actions out of the generic mech-skill chooser and presents non-roll workflows without d20 roll affordances.",
-  "policy": {
-    "max_files_changed": 1
-  },
+  "id": "plan-targeted-lock-on-execution",
+  "description": "Planning-only certification for targeted Lock On execution and reusable Foundry target acquisition.",
+  "planning_goal": "Implement Quick Tech Lock On as a no-roll targeted canonical action: present committed Lock On with a plain Execute control; resolve an already-targeted Foundry token when exactly one valid target exists; when no target exists, acquire one through the Targeting/Spatial acquisition boundary by activating the Foundry token target tool and waiting for the current user to target a token; preserve target cancellation/failure as transaction failure so the committed action remains pending; execute Lock On through the canonical System Bridge -> Semantic Execution Context -> Execution Transaction spine; apply the authoritative native Lancer lockon status to the resolved target actor through Native Adapter applyStatus without creating Frame Conn shadow status; mark only the exact committed Lock On entry executed after successful native status application; expose the target-acquisition behavior as a reusable runtime adapter suitable for Improvised Attack and future weapon/system actions; preserve existing attack and status behavior.",
+  "policy": {"max_files_changed": 1},
   "operations": []
 }
