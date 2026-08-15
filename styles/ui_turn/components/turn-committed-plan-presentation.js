@@ -70,7 +70,6 @@ const FRAME_CONN_TURN_UI_NO_ROLL_ACTION_IDS =
       "quick.self-destruct",
 
       "full.disengage",
-      "full.boot-up",
       "full.mount-dismount",
 
       "special.end-turn"

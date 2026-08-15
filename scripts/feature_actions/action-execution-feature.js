@@ -251,7 +251,6 @@ export const FRAME_CONN_NO_ROLL_ACTIONS =
       "quick.self-destruct",
 
       "full.disengage",
-      "full.boot-up",
       "full.mount-dismount",
 
       "reaction.brace",
@@ -385,6 +384,14 @@ function frameConnActionExecutionKind(
       "quick.quick-tech.scan"
   ) {
     return "scan";
+  }
+
+
+  if (
+    action.id ===
+      "full.boot-up"
+  ) {
+    return "boot-up";
   }
 
 
@@ -763,15 +770,18 @@ async function frameConnExecuteActionRoll(
 
 
   /**
-   * Improvised Attack is the first universal action migrated to
-   * the canonical Frame Conn execution spine.
-   *
-   * All cross-cutting execution concerns remain outside this
-   * feature and are supplied through runtime composition.
+   * Canonically migrated actions enter the runtime-composed
+   * System Bridge / Semantic Context / Transaction / Native Adapter
+   * spine here. Cross-cutting execution concerns remain outside
+   * this feature.
    */
   if (
-    action.id ===
-    "full.improvised-attack"
+    [
+      "full.improvised-attack",
+      "full.boot-up"
+    ].includes(
+      action.id
+    )
   ) {
     return executeFrameConnCanonicalAction(
       actor,
