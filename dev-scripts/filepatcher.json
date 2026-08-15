@@ -1,8 +1,50 @@
 {
   "schema_version": 2,
-  "id": "plan-targeted-lock-on-execution",
-  "description": "Planning-only certification for targeted Lock On execution and reusable Foundry target acquisition.",
-  "planning_goal": "Implement Quick Tech Lock On as a no-roll targeted canonical action: present committed Lock On with a plain Execute control; resolve an already-targeted Foundry token when exactly one valid target exists; when no target exists, acquire one through the Targeting/Spatial acquisition boundary by activating the Foundry token target tool and waiting for the current user to target a token; preserve target cancellation/failure as transaction failure so the committed action remains pending; execute Lock On through the canonical System Bridge -> Semantic Execution Context -> Execution Transaction spine; apply the authoritative native Lancer lockon status to the resolved target actor through Native Adapter applyStatus without creating Frame Conn shadow status; mark only the exact committed Lock On entry executed after successful native status application; expose the target-acquisition behavior as a reusable runtime adapter suitable for Improvised Attack and future weapon/system actions; preserve existing attack and status behavior.",
-  "policy": {"max_files_changed": 1},
-  "operations": []
+  "id": "lock-on-phase-1-action-and-presentation",
+  "description": "Move Quick Tech Lock On from no-workflow suppression into canonical non-roll execution and plain Execute presentation.",
+  "planning_goal": "Implement Quick Tech Lock On as a no-roll targeted canonical action with a plain Execute control and canonical execution routing.",
+  "policy": {
+    "max_files_changed": 2,
+    "allowed_paths": [
+      "scripts/feature_actions/action-execution-feature.js",
+      "styles/ui_turn/components/turn-committed-plan-presentation.js"
+    ]
+  },
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_actions/action-execution-feature.js",
+      "search": "      \"quick.quick-tech.bolster\",\n      \"quick.quick-tech.lock-on\",\n      \"quick.prepare\",",
+      "replace": "      \"quick.quick-tech.bolster\",\n      \"quick.prepare\",",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_actions/action-execution-feature.js",
+      "search": "  if (\n    action.id ===\n      \"quick.quick-tech.scan\"\n  ) {\n    return \"scan\";\n  }",
+      "replace": "  if (\n    action.id ===\n      \"quick.quick-tech.lock-on\"\n  ) {\n    return \"lock-on\";\n  }\n\n\n  if (\n    action.id ===\n      \"quick.quick-tech.scan\"\n  ) {\n    return \"scan\";\n  }",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_actions/action-execution-feature.js",
+      "search": "      \"full.improvised-attack\",\n      \"quick.shut-down\",\n      \"full.boot-up\"",
+      "replace": "      \"full.improvised-attack\",\n      \"quick.quick-tech.lock-on\",\n      \"quick.shut-down\",\n      \"full.boot-up\"",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_turn/components/turn-committed-plan-presentation.js",
+      "search": "      \"quick.quick-tech.bolster\",\n      \"quick.quick-tech.lock-on\",\n      \"quick.prepare\",",
+      "replace": "      \"quick.quick-tech.bolster\",\n      \"quick.prepare\",",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_turn/components/turn-committed-plan-presentation.js",
+      "search": "    new Set([\n      \"quick.quick-tech.scan\",\n      \"quick.shut-down\",",
+      "replace": "    new Set([\n      \"quick.quick-tech.lock-on\",\n      \"quick.quick-tech.scan\",\n      \"quick.shut-down\",",
+      "expected_occurrences": 1
+    }
+  ]
 }
