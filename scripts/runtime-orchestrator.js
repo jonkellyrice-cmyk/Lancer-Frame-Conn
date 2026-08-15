@@ -937,6 +937,43 @@ async function executeFrameConnCanonicalAction({
       break;
     }
 
+    case "end-grapple": {
+      const targetToken = await resolveFrameConnRequiredTarget(action);
+      const targetActor = targetToken?.actor ?? null;
+      if (!targetActor) throw new Error("End Grapple requires an authoritative grapple opponent.");
+      if (!frameConnStatusOrchestrationApi.getGrappleBetween(actor, targetActor)) {
+        throw new Error("The selected character is not in a tracked Grapple relationship with the acting mech.");
+      }
+
+      transaction =
+        await frameConnExecutionTransactionApi
+          .runNativeExecutionTransactionWithGlobalHooks({
+            context: executionContext,
+            execute: async () => {
+              const escapeExecution = assertFrameConnNativeExecutionSucceeded(
+                await frameConnNativeAdapterApi.rollStat({ actor, path: "hull", title: "End Grapple — HULL" }),
+                "End Grapple HULL check"
+              );
+              const opposingExecution = assertFrameConnNativeExecutionSucceeded(
+                await frameConnNativeAdapterApi.rollStat({ actor: targetActor, path: "hull", title: "Grapple Opposition — HULL" }),
+                "Grapple opposing HULL check"
+              );
+              const escapeTotal = Number(escapeExecution?.result?.roll?.total);
+              const opposingTotal = Number(opposingExecution?.result?.roll?.total);
+              if (!Number.isFinite(escapeTotal) || !Number.isFinite(opposingTotal)) {
+                throw new Error("End Grapple contested check did not produce native roll totals.");
+              }
+              const escaped = escapeTotal >= opposingTotal;
+              if (escaped) {
+                await frameConnStatusOrchestrationApi.endGrappleBetween(actor, targetActor);
+              }
+              return Object.freeze({ escapeExecution, opposingExecution, escaped, escapeTotal, opposingTotal });
+            },
+            metadata: { actionId: action.id, executionKind, source: "action-execution", targetActorUuid: targetActor.uuid ?? null, contestedCheck: "hull-vs-hull", successRemovesRelationship: "grapple" }
+          });
+      break;
+    }
+
     case "grapple": {
       const targetToken = await resolveFrameConnRequiredTarget(action);
       assertFrameConnAdjacentTarget(actor, targetToken);
