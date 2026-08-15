@@ -152,32 +152,64 @@ function verifyCatalog(catalog, nativeRoot, requireSource) {
   return result;
 }
 
-function searchable(contract) {
-  return [
-    contract.id,
-    contract.title,
-    contract.summary,
-    contract.contract_kind,
-    ...(contract.keywords ?? []),
-    contract.boundary?.owner_family,
-    contract.boundary?.rule,
-    ...(contract.boundary?.frame_conn_consumers ?? []),
-    ...(contract.evidence ?? []).flatMap(e => [e.source_path, e.symbol, e.proof])
-  ].filter(Boolean).join(" ").toLowerCase();
+const QUERY_STOPWORDS = new Set([
+  "a", "an", "and", "authoritative", "choice", "committed",
+  "conn", "entrypoint", "execution", "for", "frame", "from", "in", "into",
+  "lancer", "native", "of", "on", "show", "the", "through", "to",
+  "ui", "use", "via", "with", "wire"
+]);
+
+function queryTerms(query) {
+  return [...new Set(
+    String(query ?? "")
+      .toLowerCase()
+      .match(/[a-z0-9][a-z0-9._-]*/g) ?? []
+  )].filter(term => term.length > 1 && !QUERY_STOPWORDS.has(term));
+}
+
+function fieldContains(field, term) {
+  return String(field ?? "").toLowerCase().includes(term);
+}
+
+function scoreContractForTerms(contract, terms) {
+  let score = 0;
+  let specificHits = 0;
+  const keywords = contract.keywords ?? [];
+  const evidence = contract.evidence ?? [];
+
+  for (const term of terms) {
+    let termScore = 0;
+    if (fieldContains(contract.id, term)) termScore = Math.max(termScore, 8);
+    if (fieldContains(contract.title, term)) termScore = Math.max(termScore, 7);
+    if (keywords.some(keyword => fieldContains(keyword, term))) termScore = Math.max(termScore, 7);
+    if (evidence.some(item => fieldContains(item.symbol, term))) termScore = Math.max(termScore, 5);
+    if (fieldContains(contract.summary, term)) termScore = Math.max(termScore, 4);
+    if (evidence.some(item => fieldContains(item.proof, term))) termScore = Math.max(termScore, 3);
+    if (evidence.some(item => fieldContains(item.source_path, term))) termScore = Math.max(termScore, 2);
+    if (fieldContains(contract.boundary?.rule, term)) termScore = Math.max(termScore, 1);
+
+    if (termScore > 0) {
+      score += termScore;
+      specificHits += 1;
+    }
+  }
+
+  return { score, specificHits };
 }
 
 function queryContracts(catalog, query) {
-  const terms = String(query ?? "").toLowerCase().split(/\s+/).filter(Boolean);
-  if (!terms.length) return catalog.contracts ?? [];
-  return (catalog.contracts ?? [])
-    .map(contract => {
-      const haystack = searchable(contract);
-      const score = terms.reduce((sum, term) => sum + (haystack.includes(term) ? 1 : 0), 0);
-      return { contract, score };
-    })
-    .filter(item => item.score > 0)
-    .sort((a, b) => b.score - a.score || a.contract.id.localeCompare(b.contract.id))
-    .map(item => item.contract);
+  const terms = queryTerms(query);
+  if (!terms.length) return [];
+
+  const ranked = (catalog.contracts ?? [])
+    .map(contract => ({ contract, ...scoreContractForTerms(contract, terms) }))
+    .filter(item => item.specificHits > 0 && item.score >= 4)
+    .sort((a, b) => b.score - a.score || b.specificHits - a.specificHits || a.contract.id.localeCompare(b.contract.id));
+
+  if (!ranked.length) return [];
+  const bestScore = ranked[0].score;
+  const relevanceFloor = Math.max(4, Math.ceil(bestScore * 0.5));
+  return ranked.filter(item => item.score >= relevanceFloor).slice(0, 5).map(item => item.contract);
 }
 
 function printContract(contract, nativeSystem) {
@@ -235,6 +267,22 @@ function selfTest() {
     const report = verifyCatalog(catalog, nativeRoot, true);
     if (verificationFailed(report)) throw new Error("fresh evidence did not verify");
     if (queryContracts(catalog, "demo").length !== 1) throw new Error("query failed");
+    const specificityCatalog = {
+      ...catalog,
+      contracts: [
+        ...catalog.contracts,
+        {
+          ...catalog.contracts[0],
+          id: "native.other",
+          title: "Other native execution entrypoint",
+          summary: "An unrelated attack contract",
+          keywords: ["attack"],
+          evidence: catalog.contracts[0].evidence.map(item => ({ ...item, symbol: "attackHandler" }))
+        }
+      ]
+    };
+    const specific = queryContracts(specificityCatalog, "wire committed demo through the authoritative native execution entrypoint");
+    if (specific.length !== 1 || specific[0].id !== "native.demo") throw new Error("query specificity failed");
     fs.appendFileSync(path.join(nativeRoot, "src", "demo.ts"), "// unrelated drift\n");
     const drift = verifyCatalog(catalog, nativeRoot, true);
     if (drift.evidence[0]?.status !== "source-drift") throw new Error("source drift was not detected");
