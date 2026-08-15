@@ -1,14 +1,28 @@
 {
   "schema_version": 2,
-  "id": "add-end-grapple-universal-action",
-  "description": "Add the Quick Action used to contest and end an existing Grapple relationship.",
-  "policy": {"max_files_changed":1,"allowed_paths":["scripts/feature_actions/actions-feature.js"]},
+  "id": "route-end-grapple-canonically",
+  "description": "Classify End Grapple as its own canonical contested HULL execution kind.",
+  "policy": {"max_files_changed":1,"allowed_paths":["scripts/feature_actions/action-execution-feature.js"]},
   "operations": [
     {
       "type":"replace_text",
-      "path":"scripts/feature_actions/actions-feature.js",
-      "search":"      defineFrameConnQuickAction({\n        id:\n          \"quick.hide\",",
-      "replace":"      defineFrameConnQuickAction({\n        id:\n          \"quick.end-grapple\",\n\n        label:\n          \"End Grapple\",\n\n        shortDescription:\n          \"Contest HULL against a character grappling you to end that Grapple.\",\n\n        order:\n          35,\n\n        icon:\n          \"fas fa-hand\",\n\n        ...defineFrameConnTargetRequirement(\n          \"grappled-character\"\n        )\n      }),\n\n      defineFrameConnQuickAction({\n        id:\n          \"quick.hide\",",
+      "path":"scripts/feature_actions/action-execution-feature.js",
+      "search":"  if (\n    action.id ===\n      \"quick.grapple\"\n  ) {\n    return \"grapple\";\n  }",
+      "replace":"  if (\n    action.id ===\n      \"quick.grapple\"\n  ) {\n    return \"grapple\";\n  }\n\n\n  if (\n    action.id ===\n      \"quick.end-grapple\"\n  ) {\n    return \"end-grapple\";\n  }",
+      "expected_occurrences":1
+    },
+    {
+      "type":"replace_text",
+      "path":"scripts/feature_actions/action-execution-feature.js",
+      "search":"      \"quick.grapple\",\n      \"quick.hide\",",
+      "replace":"      \"quick.grapple\",\n      \"quick.end-grapple\",\n      \"quick.hide\",",
+      "expected_occurrences":1
+    },
+    {
+      "type":"replace_text",
+      "path":"scripts/feature_actions/action-execution-feature.js",
+      "search":"        \"quick.grapple\",\n        \"quick.hide\",",
+      "replace":"        \"quick.grapple\",\n        \"quick.end-grapple\",\n        \"quick.hide\",",
       "expected_occurrences":1
     }
   ]
