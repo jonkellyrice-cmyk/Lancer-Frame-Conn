@@ -1,27 +1,27 @@
 {
   "schema_version": 2,
-  "id": "shut-down-phase-1-action-execution",
-  "description": "Make quick.shut-down an executable canonical action and classify it as executionKind shut-down.",
+  "id": "shut-down-phase-2-execute-presentation",
+  "description": "Present committed quick.shut-down with a plain Execute control instead of suppressing execution or showing a d20 roll.",
   "planning_goal": "Implement Shut Down end to end as the universal quick.shut-down action: keep Frame Conn authoritative for Quick Action commitment and exact committed-entry execution; show a plain Execute control for committed Shut Down without presenting it as a dice roll; resolve the authoritative acting actor through Native Adapter actor resolution; require the actor to not already have the native Lancer shutdown status; execute Shut Down through the canonical System Bridge -> Semantic Execution Context -> Execution Transaction -> Native Adapter spine; apply only the authoritative native shutdown status through the existing native status adapter and Actor.toggleStatusEffect pathway; do not create or mutate any duplicate Frame Conn shutdown state; treat already-active shutdown state or failed native mutation as execution failure so the committed entry remains pending; after native mutation succeeds, mark only that exact committed entry executed and refresh Frame Conn from authoritative actor and Turn state; preserve the existing centralized ownership of broader Shutdown consequences and action legality rather than duplicating those rules inside the action executor; correct stale documentation that incorrectly labels Shut Down as a Full Action when the canonical action is quick.shut-down; preserve all unrelated action behavior.",
   "policy": {
     "max_files_changed": 1,
     "allowed_paths": [
-      "scripts/feature_actions/action-execution-feature.js"
+      "styles/ui_turn/components/turn-committed-plan-presentation.js"
     ]
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "scripts/feature_actions/action-execution-feature.js",
+      "path": "styles/ui_turn/components/turn-committed-plan-presentation.js",
       "search": "      \"quick.boost\",\n      \"quick.hide\",\n      \"quick.prepare\",\n      \"quick.shut-down\",\n      \"quick.self-destruct\",",
       "replace": "      \"quick.boost\",\n      \"quick.hide\",\n      \"quick.prepare\",\n      \"quick.self-destruct\",",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/feature_actions/action-execution-feature.js",
-      "search": "  if (\n    action.id ===\n      \"full.boot-up\"\n  ) {\n    return \"boot-up\";\n  }\n\n\n  if (\n    action.id ===\n      \"full.stabilize\"",
-      "replace": "  if (\n    action.id ===\n      \"quick.shut-down\"\n  ) {\n    return \"shut-down\";\n  }\n\n\n  if (\n    action.id ===\n      \"full.boot-up\"\n  ) {\n    return \"boot-up\";\n  }\n\n\n  if (\n    action.id ===\n      \"full.stabilize\"",
+      "path": "styles/ui_turn/components/turn-committed-plan-presentation.js",
+      "search": "    new Set([\n      \"full.boot-up\"\n    ])",
+      "replace": "    new Set([\n      \"quick.shut-down\",\n      \"full.boot-up\"\n    ])",
       "expected_occurrences": 1
     }
   ]
