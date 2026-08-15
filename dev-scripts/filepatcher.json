@@ -1,14 +1,15 @@
 {
   "schema_version": 2,
-  "id": "enable-canonical-disengage-execution",
-  "description": "Move Disengage from no-workflow suppression into canonical non-roll execution.",
-  "policy": {"max_files_changed": 2,"allowed_paths":["scripts/feature_actions/action-execution-feature.js","styles/ui_turn/components/turn-committed-plan-presentation.js"]},
+  "id": "execute-disengage-through-status-orchestration",
+  "description": "Implement Disengage as a canonical non-roll action which clears Engaged and suppresses derived reapplication through the end of the current turn.",
+  "policy": {"max_files_changed":1,"allowed_paths":["scripts/runtime-orchestrator.js"]},
   "operations": [
-    {"type":"replace_text","path":"scripts/feature_actions/action-execution-feature.js","search":"      \"full.disengage\",\n      \"full.activate\",","replace":"      \"full.activate\",","expected_occurrences":1},
-    {"type":"replace_text","path":"scripts/feature_actions/action-execution-feature.js","search":"  if (\n    action.id ===\n      \"quick.hide\"\n  ) {\n    return \"hide\";\n  }","replace":"  if (\n    action.id ===\n      \"quick.hide\"\n  ) {\n    return \"hide\";\n  }\n\n\n  if (\n    action.id ===\n      \"full.disengage\"\n  ) {\n    return \"disengage\";\n  }","expected_occurrences":1},
-    {"type":"replace_text","path":"scripts/feature_actions/action-execution-feature.js","search":"      \"quick.search\",\n      \"quick.shut-down\",\n      \"full.boot-up\"\n    ].includes(","replace":"      \"quick.search\",\n      \"quick.shut-down\",\n      \"full.boot-up\",\n      \"full.disengage\"\n    ].includes(","expected_occurrences":1},
-    {"type":"replace_text","path":"scripts/feature_actions/action-execution-feature.js","search":"        \"quick.search\",\n        \"quick.shut-down\",\n        \"full.boot-up\"\n      ].includes(","replace":"        \"quick.search\",\n        \"quick.shut-down\",\n        \"full.boot-up\",\n        \"full.disengage\"\n      ].includes(","expected_occurrences":1},
-    {"type":"replace_text","path":"styles/ui_turn/components/turn-committed-plan-presentation.js","search":"      \"full.disengage\",\n      \"full.activate\",","replace":"      \"full.activate\",","expected_occurrences":1},
-    {"type":"replace_text","path":"styles/ui_turn/components/turn-committed-plan-presentation.js","search":"      \"full.stabilize\",\n      \"full.boot-up\"","replace":"      \"full.stabilize\",\n      \"full.boot-up\",\n      \"full.disengage\"","expected_occurrences":1}
+    {
+      "type":"replace_text",
+      "path":"scripts/runtime-orchestrator.js",
+      "search":"    case \"lock-on\": {",
+      "replace":"    case \"disengage\": {\n      transaction =\n        await frameConnExecutionTransactionApi\n          .runNativeExecutionTransactionWithGlobalHooks({\n            context: executionContext,\n            execute: async () =>\n              frameConnStatusOrchestrationApi.applyDisengage(actor),\n            metadata: {\n              actionId: action.id,\n              executionKind,\n              source: \"action-execution\",\n              removesStatusId: \"engaged\",\n              suppression: \"through-end-of-current-turn\"\n            }\n          });\n      break;\n    }\n\n    case \"lock-on\": {",
+      "expected_occurrences":1
+    }
   ]
 }
