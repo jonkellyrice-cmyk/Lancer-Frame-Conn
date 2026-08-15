@@ -728,6 +728,122 @@ function assertFrameConnTargetWithinSensors(
 }
 
 
+async function executeFrameConnAuthoritativeLockOnRequest({
+  requesterUserId = null,
+  sceneId = null,
+  sourceTokenId = null,
+  targetTokenId = null,
+  actingActorUuid = null
+} = {}) {
+  if (!game?.user?.isGM) {
+    throw new Error(
+      "Only a GM client may execute an authoritative Lock On mutation."
+    );
+  }
+
+  const requester =
+    game?.users?.get(
+      requesterUserId
+    ) ??
+    null;
+
+  if (!requester) {
+    throw new Error(
+      "Lock On authority request came from an unknown user."
+    );
+  }
+
+  const scene =
+    game?.scenes?.get(
+      sceneId
+    ) ??
+    null;
+
+  const sourceTokenDocument =
+    scene?.tokens?.get(
+      sourceTokenId
+    ) ??
+    null;
+
+  const targetTokenDocument =
+    scene?.tokens?.get(
+      targetTokenId
+    ) ??
+    null;
+
+  const sourceToken =
+    sourceTokenDocument?.object ??
+    null;
+
+  const targetToken =
+    targetTokenDocument?.object ??
+    null;
+
+  const sourceActor =
+    sourceTokenDocument?.actor ??
+    sourceToken?.actor ??
+    null;
+
+  const targetActor =
+    targetTokenDocument?.actor ??
+    targetToken?.actor ??
+    null;
+
+  if (
+    !sourceActor ||
+    !targetActor ||
+    !sourceToken ||
+    !targetToken
+  ) {
+    throw new Error(
+      "The GM could not resolve the Lock On source and target tokens on the requested Scene."
+    );
+  }
+
+  if (
+    actingActorUuid &&
+    sourceActor.uuid !== actingActorUuid
+  ) {
+    throw new Error(
+      "Lock On authority request did not match the acting actor."
+    );
+  }
+
+  if (
+    typeof sourceActor.testUserPermission !==
+      "function" ||
+    !sourceActor.testUserPermission(
+      requester,
+      CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER
+    )
+  ) {
+    throw new Error(
+      "The requesting user does not own the acting mech for Lock On."
+    );
+  }
+
+  assertFrameConnTargetWithinSensors(
+    sourceActor,
+    targetToken
+  );
+
+  const statusResult =
+    await frameConnNativeAdapterApi
+      .applyStatus(
+        targetActor,
+        "lockon"
+      );
+
+  if (!statusResult?.active) {
+    throw new Error(
+      "Native Lock On application failed on the GM client."
+    );
+  }
+
+  return statusResult;
+}
+
+
 /* ============================================================
    Canonical action execution composition
    ============================================================ */
@@ -1111,18 +1227,17 @@ async function executeFrameConnCanonicalAction({
             execute:
               async () => {
                 const statusResult =
-                  await frameConnNativeAdapterApi
-                    .applyStatus(
-                      targetActor,
-                      "lockon"
-                    );
+                  await frameConnFoundryIntegrationApi
+                    .requestLockOnApplication({
+                      actor,
+                      sourceToken:
+                        targeting.sourceToken,
+                      targetToken
+                    });
 
-                if (
-                  !statusResult?.changed ||
-                  !statusResult?.active
-                ) {
+                if (!statusResult?.active) {
                   throw new Error(
-                    "The selected target already has Lock On or native Lock On application failed."
+                    "Native Lock On application failed."
                   );
                 }
 
@@ -1371,6 +1486,12 @@ function configureFrameConnRuntimeBindings() {
         (...args) =>
           closeFrameConn(
             ...args
+          ),
+
+      executeLockOnAuthorityRequest:
+        request =>
+          executeFrameConnAuthoritativeLockOnRequest(
+            request
           )
     });
 
@@ -1687,7 +1808,8 @@ function validateFrameConnRuntimeComposition() {
     frameConnFoundryIntegrationApi.runtimeBindings,
     [
       "applicationOpening",
-      "applicationClosing"
+      "applicationClosing",
+      "lockOnAuthorityExecution"
     ]
   );
 
@@ -1846,6 +1968,9 @@ Hooks.once(
 Hooks.once(
   "ready",
   async () => {
+    frameConnFoundryIntegrationApi
+      .registerSocket?.();
+
     await frameConnBraceApi
       .initializeRuntime?.();
 

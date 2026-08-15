@@ -158,6 +158,9 @@ const frameConnFoundryIntegrationRuntimeBindings = {
     null,
 
   closeApplication:
+    null,
+
+  executeLockOnAuthorityRequest:
     null
 };
 
@@ -248,6 +251,11 @@ function getFrameConnFoundryIntegrationRuntimeBindings() {
     applicationClosing:
       typeof frameConnFoundryIntegrationRuntimeBindings
         .closeApplication ===
+        "function",
+
+    lockOnAuthorityExecution:
+      typeof frameConnFoundryIntegrationRuntimeBindings
+        .executeLockOnAuthorityRequest ===
         "function"
   });
 }
@@ -782,6 +790,340 @@ async function promptFrameConnForTarget() {
 
 
 /* ============================================================
+   Foundry integration -- GM-authoritative Lock On relay
+   ============================================================ */
+
+const FRAME_CONN_SOCKET_CHANNEL =
+  `module.${MODULE_ID}`;
+
+const FRAME_CONN_SOCKET_KIND =
+  Object.freeze({
+    LOCK_ON_REQUEST:
+      "lock-on-request",
+
+    LOCK_ON_RESPONSE:
+      "lock-on-response"
+  });
+
+const frameConnPendingSocketRequests =
+  new Map();
+
+let frameConnModuleSocketRegistered =
+  false;
+
+
+function getFrameConnLockOnAuthorityExecutor() {
+  const executor =
+    frameConnFoundryIntegrationRuntimeBindings
+      .executeLockOnAuthorityRequest;
+
+  if (
+    typeof executor !==
+    "function"
+  ) {
+    throw new Error(
+      "Frame Conn Lock On authority execution has not been configured."
+    );
+  }
+
+  return executor;
+}
+
+
+function buildFrameConnLockOnAuthorityPayload({
+  actor,
+  sourceToken,
+  targetToken
+} = {}) {
+  const sourceDocument =
+    sourceToken?.document ??
+    sourceToken ??
+    null;
+
+  const targetDocument =
+    targetToken?.document ??
+    targetToken ??
+    null;
+
+  const sourceSceneId =
+    sourceDocument?.parent?.id ??
+    canvas?.scene?.id ??
+    null;
+
+  const targetSceneId =
+    targetDocument?.parent?.id ??
+    canvas?.scene?.id ??
+    null;
+
+  if (
+    !sourceSceneId ||
+    sourceSceneId !== targetSceneId ||
+    !sourceDocument?.id ||
+    !targetDocument?.id
+  ) {
+    throw new Error(
+      "Frame Conn Lock On requires source and target tokens on the same active Scene."
+    );
+  }
+
+  return Object.freeze({
+    requesterUserId:
+      game?.user?.id ??
+      null,
+
+    sceneId:
+      sourceSceneId,
+
+    sourceTokenId:
+      sourceDocument.id,
+
+    targetTokenId:
+      targetDocument.id,
+
+    actingActorUuid:
+      actor?.uuid ??
+      null
+  });
+}
+
+
+async function requestFrameConnLockOnApplication(
+  options = {}
+) {
+  const payload =
+    buildFrameConnLockOnAuthorityPayload(
+      options
+    );
+
+  const executor =
+    getFrameConnLockOnAuthorityExecutor();
+
+  if (game?.user?.isGM) {
+    return executor(
+      payload
+    );
+  }
+
+  const activeGM =
+    game?.users?.activeGM ??
+    null;
+
+  if (!activeGM) {
+    throw new Error(
+      "Lock On requires an active GM client to apply the native status to an enemy actor."
+    );
+  }
+
+  if (
+    !game?.socket ||
+    typeof game.socket.emit !==
+      "function"
+  ) {
+    throw new Error(
+      "Frame Conn module socket is unavailable for Lock On."
+    );
+  }
+
+  registerFrameConnModuleSocket();
+
+  const requestId =
+    [
+      game.user.id,
+      Date.now(),
+      Math.random()
+        .toString(36)
+        .slice(2)
+    ].join("-");
+
+  return new Promise(
+    (resolve, reject) => {
+      const timeoutId =
+        window.setTimeout(
+          () => {
+            frameConnPendingSocketRequests
+              .delete(
+                requestId
+              );
+
+            reject(
+              new Error(
+                "Frame Conn timed out waiting for the GM to apply Lock On."
+              )
+            );
+          },
+          10000
+        );
+
+      frameConnPendingSocketRequests
+        .set(
+          requestId,
+          {
+            resolve,
+            reject,
+            timeoutId
+          }
+        );
+
+      game.socket.emit(
+        FRAME_CONN_SOCKET_CHANNEL,
+        {
+          kind:
+            FRAME_CONN_SOCKET_KIND
+              .LOCK_ON_REQUEST,
+
+          requestId,
+
+          gmUserId:
+            activeGM.id,
+
+          payload
+        }
+      );
+    }
+  );
+}
+
+
+async function handleFrameConnModuleSocketMessage(
+  message
+) {
+  if (
+    !message ||
+    typeof message !==
+      "object"
+  ) {
+    return;
+  }
+
+  if (
+    message.kind ===
+      FRAME_CONN_SOCKET_KIND
+        .LOCK_ON_RESPONSE
+  ) {
+    if (
+      message.requesterUserId !==
+        game?.user?.id
+    ) {
+      return;
+    }
+
+    const pending =
+      frameConnPendingSocketRequests
+        .get(
+          message.requestId
+        );
+
+    if (!pending) {
+      return;
+    }
+
+    frameConnPendingSocketRequests
+      .delete(
+        message.requestId
+      );
+
+    window.clearTimeout(
+      pending.timeoutId
+    );
+
+    if (message.ok) {
+      pending.resolve(
+        message.result ??
+        null
+      );
+    } else {
+      pending.reject(
+        new Error(
+          message.error ??
+          "The GM could not apply Lock On."
+        )
+      );
+    }
+
+    return;
+  }
+
+  if (
+    message.kind !==
+      FRAME_CONN_SOCKET_KIND
+        .LOCK_ON_REQUEST ||
+    !game?.user?.isGM ||
+    game.user.id !==
+      message.gmUserId
+  ) {
+    return;
+  }
+
+  let ok = false;
+  let result = null;
+  let error = null;
+
+  try {
+    result =
+      await getFrameConnLockOnAuthorityExecutor()(
+        message.payload ??
+        {}
+      );
+
+    ok = true;
+  } catch (caught) {
+    error =
+      caught instanceof Error
+        ? caught.message
+        : String(caught);
+  }
+
+  game.socket.emit(
+    FRAME_CONN_SOCKET_CHANNEL,
+    {
+      kind:
+        FRAME_CONN_SOCKET_KIND
+          .LOCK_ON_RESPONSE,
+
+      requestId:
+        message.requestId,
+
+      requesterUserId:
+        message.payload
+          ?.requesterUserId ??
+        null,
+
+      ok,
+      result,
+      error
+    }
+  );
+}
+
+
+function registerFrameConnModuleSocket() {
+  if (frameConnModuleSocketRegistered) {
+    return true;
+  }
+
+  if (
+    !game?.socket ||
+    typeof game.socket.on !==
+      "function"
+  ) {
+    throw new Error(
+      "Frame Conn module socket is unavailable."
+    );
+  }
+
+  game.socket.on(
+    FRAME_CONN_SOCKET_CHANNEL,
+    handleFrameConnModuleSocketMessage
+  );
+
+  frameConnModuleSocketRegistered =
+    true;
+
+  return true;
+}
+
+
+/* ============================================================
    Foundry integration diagnostics
    ============================================================ */
 
@@ -853,7 +1195,9 @@ export const frameConnFoundryIntegrationFeature =
     provides: [
       "foundry.integration",
       "foundry.settings",
-      "foundry.scene-controls"
+      "foundry.scene-controls",
+      "foundry.socket",
+      "foundry.lock-on-authority"
     ],
 
     dependsOn: [
@@ -886,7 +1230,13 @@ export const frameConnFoundryIntegrationFeature =
         activateFrameConnTargetTool,
 
       promptForTarget:
-        promptFrameConnForTarget
+        promptFrameConnForTarget,
+
+      registerSocket:
+        registerFrameConnModuleSocket,
+
+      requestLockOnApplication:
+        requestFrameConnLockOnApplication
     },
 
     queries: {
@@ -962,6 +1312,12 @@ export const frameConnFoundryIntegrationFeature =
 
       promptForTarget:
         promptFrameConnForTarget,
+
+      registerSocket:
+        registerFrameConnModuleSocket,
+
+      requestLockOnApplication:
+        requestFrameConnLockOnApplication,
 
       diagnostics:
         getFrameConnFoundryIntegrationDiagnostics,

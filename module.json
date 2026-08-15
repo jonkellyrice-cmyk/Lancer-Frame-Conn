@@ -24,6 +24,8 @@
     "styles/ui-orchestrator.css"
   ],
 
+  "socket": true,
+
   "relationships": {
     "systems": [
       {
