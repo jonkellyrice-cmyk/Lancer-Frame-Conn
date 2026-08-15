@@ -193,9 +193,28 @@ async function clearGrapple(record) {
   return true;
 }
 
-async function endGrappleForActor(actor) {
+function getGrapplesForActor(actor) {
   const uuid = actorUuid(actor);
-  const matches = [...grapples.values()].filter(record => record.attackerActorUuid === uuid || record.targetActorUuid === uuid);
+  return Object.freeze(
+    [...grapples.values()]
+      .filter(record => record.attackerActorUuid === uuid || record.targetActorUuid === uuid)
+      .map(record => Object.freeze({ ...record }))
+  );
+}
+
+function getGrappleBetween(leftActor, rightActor) {
+  return grapples.get(grappleId(leftActor, rightActor)) ?? null;
+}
+
+async function endGrappleBetween(leftActor, rightActor) {
+  const record = getGrappleBetween(leftActor, rightActor);
+  if (!record) return false;
+  await clearGrapple(record);
+  return true;
+}
+
+async function endGrappleForActor(actor) {
+  const matches = getGrapplesForActor(actor);
   for (const record of matches) await clearGrapple(record);
   return matches.length;
 }
@@ -299,10 +318,10 @@ export const frameConnStatusOrchestrationFeature = defineFrameConnFeature({
   dependsOn: ["native-adapter.status", "sensors.measurement"],
   optionalDependsOn: [],
   state: {},
-  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleForActor, applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged },
-  queries: { diagnostics, runtimeBindings, isDisengaged },
+  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged },
+  queries: { diagnostics, runtimeBindings, isDisengaged, getGrapplesForActor, getGrappleBetween },
   hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, deleteCombat: handleCombatDelete, canvasReady: syncEngaged },
   lifecycle: {},
-  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleForActor, applyDisengage, isDisengaged, syncTimedStatuses, syncGrapples, syncEngaged, diagnostics, runtimeBindings },
+  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage, isDisengaged, syncTimedStatuses, syncGrapples, syncEngaged, diagnostics, runtimeBindings },
   metadata: { label: "Status Orchestration", nativeStatusAuthority: "native-adapter.status", coverPolicy: "Cover remains attacker-relative and is not represented as one global persistent status." }
 });
