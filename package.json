@@ -12,6 +12,8 @@
     "integration-atlas:self-test": "node ./dev_scripts/integration-surface-atlas.mjs --self-test",
     "runtime-signal-map": "node ./dev_scripts/runtime-signal-map.mjs",
     "runtime-signal-map:self-test": "node ./dev_scripts/runtime-signal-map.mjs --self-test",
+    "runtime-probes": "node ./dev_scripts/runtime-contract-probes.mjs",
+    "runtime-probes:self-test": "node ./dev_scripts/runtime-contract-probes.mjs --self-test",
     "patch-corridor": "node ./dev_scripts/patch-corridor-planner.mjs",
     "patch-corridor:self-test": "node ./dev_scripts/patch-corridor-planner.mjs --self-test",
     "patch-staging": "node ./dev_scripts/automatic-patch-staging.mjs",

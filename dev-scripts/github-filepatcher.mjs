@@ -480,7 +480,8 @@ function validateDeveloperToolSyntax() {
     path.join(ROOT, "dev_scripts", "runtime-signal-map.mjs"),
     path.join(ROOT, "dev_scripts", "corridor-context-pack.mjs"),
     path.join(ROOT, "dev_scripts", "native-contract-catalog.mjs"),
-    path.join(ROOT, "dev_scripts", "automatic-patch-staging.mjs")
+    path.join(ROOT, "dev_scripts", "automatic-patch-staging.mjs"),
+    path.join(ROOT, "dev_scripts", "runtime-contract-probes.mjs")
   ];
 
   for (const tool of tools) {
@@ -546,6 +547,13 @@ function validateDeveloperToolSyntax() {
   if (automaticPatchStagingSelfTest.stderr) process.stderr.write(automaticPatchStagingSelfTest.stderr);
   if (automaticPatchStagingSelfTest.error) fail(`Automatic Patch Staging self-test could not start: ${automaticPatchStagingSelfTest.error}`);
   if (automaticPatchStagingSelfTest.status !== 0) fail("Automatic Patch Staging self-test failed.");
+
+  const runtimeContractProbes = path.join(ROOT, "dev_scripts", "runtime-contract-probes.mjs");
+  const runtimeContractProbesSelfTest = spawnSync(process.execPath, [runtimeContractProbes, "--self-test"], { cwd: ROOT, encoding: "utf8" });
+  if (runtimeContractProbesSelfTest.stdout) process.stdout.write(runtimeContractProbesSelfTest.stdout);
+  if (runtimeContractProbesSelfTest.stderr) process.stderr.write(runtimeContractProbesSelfTest.stderr);
+  if (runtimeContractProbesSelfTest.error) fail(`Runtime Contract Probes self-test could not start: ${runtimeContractProbesSelfTest.error}`);
+  if (runtimeContractProbesSelfTest.status !== 0) fail("Runtime Contract Probes self-test failed.");
 
   console.log("[github-filepatcher] Developer tool syntax checks passed.");
 }
