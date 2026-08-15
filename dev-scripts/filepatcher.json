@@ -1,8 +1,63 @@
 {
   "schema_version": 2,
-  "id": "plan-native-attack-outcome-capture",
-  "description": "Planning-only certification for reusable native attack Flow outcome capture used by post-hit status consequences.",
-  "planning_goal": "Add reusable native attack Flow outcome capture at the Native Adapter execution boundary: preserve authoritative BasicAttackFlow and TechAttackFlow construction, HUD, rolls, chat output, and mutations; observe the matching lancer.postFlow lifecycle event for the exact invocation; return the completed native Flow hit_results to Frame Conn callers without scraping chat or reimplementing attack resolution; remove temporary hook listeners after success, cancellation, or failure; keep action economy, target legality, and status consequences outside Native Adapter.",
-  "policy": {"max_files_changed": 1},
-  "operations": []
+  "id": "route-status-universal-actions-canonically",
+  "description": "Give status-producing/removing universal actions explicit canonical execution kinds so post-resolution status orchestration can be attached without generic fallbacks.",
+  "policy": {
+    "max_files_changed": 2,
+    "allowed_paths": [
+      "scripts/feature_actions/action-execution-feature.js",
+      "styles/ui_turn/components/turn-committed-plan-presentation.js"
+    ]
+  },
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_actions/action-execution-feature.js",
+      "search": "      \"quick.boost\",\n      \"quick.hide\",\n      \"quick.quick-tech.bolster\",",
+      "replace": "      \"quick.boost\",\n      \"quick.quick-tech.bolster\",",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_actions/action-execution-feature.js",
+      "search": "      \"quick.skirmish\",\n      \"quick.grapple\",\n      \"quick.ram\",\n      \"full.barrage\",",
+      "replace": "      \"quick.skirmish\",\n      \"full.barrage\",",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_actions/action-execution-feature.js",
+      "search": "  if (\n    [\n      \"quick.quick-tech.invade\",\n      \"quick.quick-tech.invade.fragment-signal\"\n    ].includes(\n      action.id\n    )\n  ) {\n    return \"basic-tech-attack\";\n  }",
+      "replace": "  if (\n    action.id ===\n      \"quick.quick-tech.invade\"\n  ) {\n    return \"basic-tech-attack\";\n  }\n\n\n  if (\n    action.id ===\n      \"quick.quick-tech.invade.fragment-signal\"\n  ) {\n    return \"fragment-signal\";\n  }\n\n\n  if (\n    action.id ===\n      \"quick.grapple\"\n  ) {\n    return \"grapple\";\n  }\n\n\n  if (\n    action.id ===\n      \"quick.ram\"\n  ) {\n    return \"ram\";\n  }\n\n\n  if (\n    action.id ===\n      \"quick.hide\"\n  ) {\n    return \"hide\";\n  }\n\n\n  if (\n    action.id ===\n      \"quick.search\"\n  ) {\n    return \"search\";\n  }",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_actions/action-execution-feature.js",
+      "search": "      \"full.improvised-attack\",\n      \"quick.quick-tech.lock-on\",\n      \"quick.shut-down\",\n      \"full.boot-up\"",
+      "replace": "      \"full.improvised-attack\",\n      \"quick.grapple\",\n      \"quick.hide\",\n      \"quick.quick-tech.invade.fragment-signal\",\n      \"quick.quick-tech.lock-on\",\n      \"quick.ram\",\n      \"quick.search\",\n      \"quick.shut-down\",\n      \"full.boot-up\"",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_actions/action-execution-feature.js",
+      "search": "      [\n        \"full.improvised-attack\",\n        \"quick.shut-down\",\n        \"full.boot-up\"\n      ].includes(",
+      "replace": "      [\n        \"full.improvised-attack\",\n        \"quick.grapple\",\n        \"quick.hide\",\n        \"quick.quick-tech.invade.fragment-signal\",\n        \"quick.quick-tech.lock-on\",\n        \"quick.ram\",\n        \"quick.search\",\n        \"quick.shut-down\",\n        \"full.boot-up\"\n      ].includes(",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_turn/components/turn-committed-plan-presentation.js",
+      "search": "      \"quick.boost\",\n      \"quick.hide\",\n      \"quick.quick-tech.bolster\",",
+      "replace": "      \"quick.boost\",\n      \"quick.quick-tech.bolster\",",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_turn/components/turn-committed-plan-presentation.js",
+      "search": "    new Set([\n      \"quick.quick-tech.lock-on\",",
+      "replace": "    new Set([\n      \"quick.hide\",\n      \"quick.quick-tech.lock-on\",",
+      "expected_occurrences": 1
+    }
+  ]
 }
