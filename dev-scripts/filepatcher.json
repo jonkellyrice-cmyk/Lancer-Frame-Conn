@@ -1,20 +1,27 @@
 {
   "schema_version": 2,
-  "id": "audit-no-check-actions-phase-1-routing",
-  "description": "Prevent Bolster, Lock On, and Activate from falling through to the generic mech-skill chooser while their dedicated workflows remain unimplemented.",
-  "planning_goal": "In Action Execution, classify Quick Tech Bolster, Quick Tech Lock On, and Activate as no-roll actions with no current execution workflow so they cannot route to the generic HULL/AGI/SYS/ENG mech-skill chooser.",
+  "id": "audit-no-check-actions-phase-2-presentation",
+  "description": "Suppress execution controls for no-workflow no-check actions and present Scan/Stabilize as non-roll Execute workflows.",
+  "planning_goal": "In committed-plan presentation, ensure Quick Tech Bolster, Quick Tech Lock On, and Activate have no execution control until their dedicated workflows exist, and ensure Scan and Stabilize use plain non-roll Execute controls rather than d20 roll controls.",
   "policy": {
     "max_files_changed": 1,
     "allowed_paths": [
-      "scripts/feature_actions/action-execution-feature.js"
+      "styles/ui_turn/components/turn-committed-plan-presentation.js"
     ]
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "scripts/feature_actions/action-execution-feature.js",
+      "path": "styles/ui_turn/components/turn-committed-plan-presentation.js",
       "search": "      \"quick.boost\",\n      \"quick.hide\",\n      \"quick.prepare\",\n      \"quick.self-destruct\",\n\n      \"full.disengage\",\n      \"full.mount-dismount\",",
       "replace": "      \"quick.boost\",\n      \"quick.hide\",\n      \"quick.quick-tech.bolster\",\n      \"quick.quick-tech.lock-on\",\n      \"quick.prepare\",\n      \"quick.self-destruct\",\n\n      \"full.disengage\",\n      \"full.activate\",\n      \"full.mount-dismount\",",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_turn/components/turn-committed-plan-presentation.js",
+      "search": "    new Set([\n      \"quick.shut-down\",\n      \"full.boot-up\"\n    ])",
+      "replace": "    new Set([\n      \"quick.quick-tech.scan\",\n      \"quick.shut-down\",\n      \"full.stabilize\",\n      \"full.boot-up\"\n    ])",
       "expected_occurrences": 1
     }
   ]
