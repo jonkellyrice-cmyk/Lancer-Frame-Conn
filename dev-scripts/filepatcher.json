@@ -1,49 +1,39 @@
 {
   "schema_version": 2,
-  "id": "lock-on-phase-1-action-and-presentation",
-  "description": "Move Quick Tech Lock On from no-workflow suppression into canonical non-roll execution and plain Execute presentation.",
-  "planning_goal": "Implement Quick Tech Lock On as a no-roll targeted canonical action with a plain Execute control and canonical execution routing.",
+  "id": "lock-on-phase-2-foundry-target-acquisition",
+  "description": "Add reusable Foundry target discovery and prompt behavior for targeted Frame Conn actions.",
+  "planning_goal": "Implement reusable Foundry target acquisition for targeted actions: read the current user's existing token targets; when none exist activate the Token layer target tool and wait for the current user to target a token; allow Escape cancellation; expose the behavior through Foundry Integration without performing gameplay mechanics.",
   "policy": {
-    "max_files_changed": 2,
-    "allowed_paths": [
-      "scripts/feature_actions/action-execution-feature.js",
-      "styles/ui_turn/components/turn-committed-plan-presentation.js"
-    ]
+    "max_files_changed": 1,
+    "allowed_paths": ["scripts/foundry-integration-feature.js"]
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "scripts/feature_actions/action-execution-feature.js",
-      "search": "      \"quick.quick-tech.bolster\",\n      \"quick.quick-tech.lock-on\",\n      \"quick.prepare\",",
-      "replace": "      \"quick.quick-tech.bolster\",\n      \"quick.prepare\",",
+      "path": "scripts/foundry-integration-feature.js",
+      "search": "\n\n/* ============================================================\n   Foundry integration diagnostics\n   ============================================================ */",
+      "replace": "\n\n/* ============================================================\n   Foundry integration -- Target acquisition\n   ============================================================ */\n\n/**\n * Return the current user's Foundry token targets as Token objects.\n *\n * This is selection state only. Target legality belongs to the\n * Targeting / Spatial domain and action-specific rules.\n */\nfunction getFrameConnUserTargets() {\n  return Array.from(\n    game?.user?.targets ??\n    []\n  );\n}\n\n\n/**\n * Activate Foundry's Token layer with its built-in target tool.\n *\n * Foundry v13 exposes TokenLayer.activate({ tool: \"target\" }); this\n * keeps Frame Conn on the native target-selection interaction rather\n * than inventing a parallel canvas click mode.\n */\nfunction activateFrameConnTargetTool() {\n  const tokenLayer =\n    canvas?.tokens ??\n    null;\n\n  if (\n    !tokenLayer ||\n    typeof tokenLayer.activate !==\n      \"function\"\n  ) {\n    throw new Error(\n      \"Frame Conn could not activate Foundry's Token target tool.\"\n    );\n  }\n\n  tokenLayer.activate({\n    tool:\n      \"target\"\n  });\n\n  return true;\n}\n\n\n/**\n * Wait for the current user to acquire a Foundry token target.\n *\n * Existing targets win immediately. When no target exists, this\n * switches Foundry to the native target tool and resolves on the next\n * targetToken hook for the current user. Escape cancels the prompt.\n */\nasync function promptFrameConnForTarget() {\n  const existingTargets =\n    getFrameConnUserTargets();\n\n  if (\n    existingTargets.length > 0\n  ) {\n    return existingTargets;\n  }\n\n  activateFrameConnTargetTool();\n\n  ui.notifications.info(\n    \"Select a target for this action. Press Escape to cancel.\"\n  );\n\n  return new Promise(\n    resolve => {\n      let settled =\n        false;\n\n      const cleanup =\n        () => {\n          Hooks.off(\n            \"targetToken\",\n            targetHookId\n          );\n\n          window.removeEventListener(\n            \"keydown\",\n            handleKeyDown,\n            true\n          );\n        };\n\n      const finish =\n        value => {\n          if (settled) {\n            return;\n          }\n\n          settled =\n            true;\n\n          cleanup();\n          resolve(value);\n        };\n\n      const handleKeyDown =\n        event => {\n          if (\n            event.key ===\n              \"Escape\"\n          ) {\n            finish(null);\n          }\n        };\n\n      const targetHookId =\n        Hooks.on(\n          \"targetToken\",\n          (\n            user,\n            token,\n            targeted\n          ) => {\n            if (\n              user?.id !==\n                game?.user?.id ||\n              !targeted ||\n              !token\n            ) {\n              return;\n            }\n\n            finish(\n              getFrameConnUserTargets()\n            );\n          }\n        );\n\n      window.addEventListener(\n        \"keydown\",\n        handleKeyDown,\n        true\n      );\n    }\n  );\n}\n\n\n/* ============================================================\n   Foundry integration diagnostics\n   ============================================================ */",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/feature_actions/action-execution-feature.js",
-      "search": "  if (\n    action.id ===\n      \"quick.quick-tech.scan\"\n  ) {\n    return \"scan\";\n  }",
-      "replace": "  if (\n    action.id ===\n      \"quick.quick-tech.lock-on\"\n  ) {\n    return \"lock-on\";\n  }\n\n\n  if (\n    action.id ===\n      \"quick.quick-tech.scan\"\n  ) {\n    return \"scan\";\n  }",
+      "path": "scripts/foundry-integration-feature.js",
+      "search": "      addSceneControl:\n        addFrameConnControlButton\n    },",
+      "replace": "      addSceneControl:\n        addFrameConnControlButton,\n\n      activateTargetTool:\n        activateFrameConnTargetTool,\n\n      promptForTarget:\n        promptFrameConnForTarget\n    },",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/feature_actions/action-execution-feature.js",
-      "search": "      \"full.improvised-attack\",\n      \"quick.shut-down\",\n      \"full.boot-up\"",
-      "replace": "      \"full.improvised-attack\",\n      \"quick.quick-tech.lock-on\",\n      \"quick.shut-down\",\n      \"full.boot-up\"",
+      "path": "scripts/foundry-integration-feature.js",
+      "search": "      hasSceneControl:\n        hasFrameConnSceneControlTool,\n\n      diagnostics:",
+      "replace": "      hasSceneControl:\n        hasFrameConnSceneControlTool,\n\n      selectedTargets:\n        getFrameConnUserTargets,\n\n      diagnostics:",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "styles/ui_turn/components/turn-committed-plan-presentation.js",
-      "search": "      \"quick.quick-tech.bolster\",\n      \"quick.quick-tech.lock-on\",\n      \"quick.prepare\",",
-      "replace": "      \"quick.quick-tech.bolster\",\n      \"quick.prepare\",",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "styles/ui_turn/components/turn-committed-plan-presentation.js",
-      "search": "    new Set([\n      \"quick.quick-tech.scan\",\n      \"quick.shut-down\",",
-      "replace": "    new Set([\n      \"quick.quick-tech.lock-on\",\n      \"quick.quick-tech.scan\",\n      \"quick.shut-down\",",
+      "path": "scripts/foundry-integration-feature.js",
+      "search": "      insertSceneControl:\n        insertFrameConnSceneControlTool,\n\n      diagnostics:",
+      "replace": "      insertSceneControl:\n        insertFrameConnSceneControlTool,\n\n      getSelectedTargets:\n        getFrameConnUserTargets,\n\n      activateTargetTool:\n        activateFrameConnTargetTool,\n\n      promptForTarget:\n        promptFrameConnForTarget,\n\n      diagnostics:",
       "expected_occurrences": 1
     }
   ]
