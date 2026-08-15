@@ -174,6 +174,107 @@ function applyTextEdit(text, kind, search, replacement, cardinality, line) {
   };
 }
 
+function findMatchingParen(text, openIndex) {
+  let depth = 0;
+  let quote = null;
+  let escaped = false;
+  let lineComment = false;
+  let blockComment = false;
+
+  for (let i = openIndex; i < text.length; i += 1) {
+    const c = text[i];
+    const n = text[i + 1];
+
+    if (lineComment) {
+      if (c === '\n') lineComment = false;
+      continue;
+    }
+    if (blockComment) {
+      if (c === '*' && n === '/') { blockComment = false; i += 1; }
+      continue;
+    }
+    if (quote) {
+      if (escaped) { escaped = false; continue; }
+      if (c === '\\') { escaped = true; continue; }
+      if (c === quote) quote = null;
+      continue;
+    }
+    if (c === '/' && n === '/') { lineComment = true; i += 1; continue; }
+    if (c === '/' && n === '*') { blockComment = true; i += 1; continue; }
+    if (c === '"' || c === "'" || c === '`') { quote = c; continue; }
+    if (c === '(') depth += 1;
+    else if (c === ')') {
+      depth -= 1;
+      if (depth === 0) return i;
+    }
+  }
+  return -1;
+}
+
+function scanFeatureRegistrationEntries(text, kind) {
+  const candidates = [];
+  const pattern = /^([ \t]*)([A-Za-z_$][\w$]*Feature)(,?)[ \t]*$/gm;
+  let match;
+  while ((match = pattern.exec(text))) {
+    const source = match[0].replace(/[ \t]+$/, '');
+    candidates.push({
+      start: match.index,
+      end: match.index + source.length,
+      source,
+      kind,
+      hasComma: match[3] === ','
+    });
+  }
+  return candidates;
+}
+
+function scanNamedObjectEntries(text, propertyName, kind, line) {
+  const escaped = propertyName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = new RegExp(`\\b${escaped}\\s*:\\s*\\{`, 'g');
+  const candidates = [];
+  let match;
+
+  while ((match = pattern.exec(text))) {
+    const open = text.indexOf('{', match.index);
+    const close = findMatchingBrace(text, open);
+    if (close < 0) fail(`${kind} could not resolve ${propertyName} object boundary.`, line);
+    const wrapper = `{${text.slice(open + 1, close)}}`;
+    const entries = scanStructuralRegions(wrapper, 'object-entry', line);
+    for (const entry of entries) {
+      candidates.push({
+        ...entry,
+        start: open + entry.start,
+        end: open + entry.end,
+        source: entry.source,
+        kind
+      });
+    }
+  }
+
+  return candidates;
+}
+
+function scanCallStatements(text, pattern, kind, line) {
+  const candidates = [];
+  let match;
+  while ((match = pattern.exec(text))) {
+    const prefix = text.slice(Math.max(0, match.index - 32), match.index);
+    if (/function\s*$/.test(prefix)) continue;
+
+    const open = text.indexOf('(', match.index);
+    const close = findMatchingParen(text, open);
+    if (close < 0) fail(`${kind} could not resolve call boundary.`, line);
+
+    const start = text.lastIndexOf('\n', match.index) + 1;
+    let end = close + 1;
+    while (end < text.length && /[ \t]/.test(text[end])) end += 1;
+    if (text[end] === ';') end += 1;
+    const source = text.slice(start, end).replace(/[ \t]+$/, '');
+    candidates.push({ start, end: start + source.length, source, kind });
+  }
+  return candidates;
+}
+
 function scanStructuralRegions(text, kind, line) {
   if (kind === "ui-control") {
     const candidates = [];
@@ -278,11 +379,51 @@ function scanStructuralRegions(text, kind, line) {
     return candidates;
   }
 
-  fail(`Unsupported pattern kind: ${kind}. Supported: ui-control, object-entry, switch-case.`, line);
+  if (kind === 'feature-registration') {
+    return scanFeatureRegistrationEntries(text, kind);
+  }
+
+  if (kind === 'runtime-binding') {
+    return scanStructuralRegions(text, 'object-entry', line).map(candidate => ({ ...candidate, kind }));
+  }
+
+  if (kind === 'feature-api-member') {
+    return scanNamedObjectEntries(text, 'api', kind, line);
+  }
+
+  if (kind === 'hook-handler') {
+    return [
+      ...scanNamedObjectEntries(text, 'hooks', kind, line),
+      ...scanCallStatements(text, /\bHooks\.(?:on|once)\s*\(/g, kind, line)
+    ];
+  }
+
+  if (kind === 'flow-step') {
+    return scanCallStatements(
+      text,
+      /\b(?:installNativeFlowStepBefore|installNativeFlowStepAfter|insertNativeFlowStep|appendNativeFlowStep)\s*\(/g,
+      kind,
+      line
+    );
+  }
+
+  if (kind === 'actor-flag') {
+    return scanCallStatements(
+      text,
+      /\b[A-Za-z_$][\w$]*\.(?:getFlag|setFlag|unsetFlag)\s*\(/g,
+      kind,
+      line
+    );
+  }
+
+  fail(
+    `Unsupported pattern kind: ${kind}. Supported: ui-control, object-entry, switch-case, feature-registration, runtime-binding, feature-api-member, hook-handler, flow-step, actor-flag.`,
+    line
+  );
 }
 
 function parseClonePatternStatement(trimmed, line) {
-  const match = /^clone-pattern\s+(ui-control|object-entry|switch-case)(?:\s+(before|after))?(?:\s+containing\s+(.+))?$/.exec(trimmed.replace(/:$/, ""));
+  const match = /^clone-pattern\s+(ui-control|object-entry|switch-case|feature-registration|runtime-binding|feature-api-member|hook-handler|flow-step|actor-flag)(?:\s+(before|after))?(?:\s+containing\s+(.+))?$/.exec(trimmed.replace(/:$/, ""));
   if (!match) return null;
   return {
     kind: match[1],
@@ -324,7 +465,7 @@ function clonePatternInRegion(regionSource, statement, mappings, line) {
   let clone = applyPatternMappings(exemplar.source, mappings, line);
   let replacement;
 
-  if (statement.kind === "object-entry") {
+  if (typeof exemplar.hasComma === "boolean") {
     const exemplarBare = exemplar.hasComma ? exemplar.source.slice(0, -1) : exemplar.source;
     const cloneBare = clone.endsWith(",") ? clone.slice(0, -1) : clone;
     if (statement.placement === "before") {
