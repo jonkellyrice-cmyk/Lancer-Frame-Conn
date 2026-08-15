@@ -144,9 +144,9 @@ function frameConnSensorDistance(
      * exactly once into Lancer grid spaces.
      */
     const measuredDistance =
-      Number(
-        measured?.distance
-      );
+      typeof measured?.distance === "number"
+        ? measured.distance
+        : NaN;
 
     const sceneDistance =
       Number(
