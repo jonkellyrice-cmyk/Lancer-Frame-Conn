@@ -16,11 +16,11 @@
 
 **Native Boot Up executor:** Not found.
 
-**Frame Conn implementation status:** Frame Conn should own Shut Down execution as a Full Action state transition that applies the native Lancer `shutdown` status and any additional confirmed Shut Down consequences, while native Lancer/Foundry remains authoritative for the underlying actor status/effect state.
+**Frame Conn implementation status:** Implemented end to end as the canonical `quick.shut-down` state transition. Committed Shut Down receives a non-roll Execute control; execution enters System Bridge → Semantic Execution Context → Execution Transaction → Native Adapter, applies authoritative native `shutdown` through `applyStatus()` / `Actor.toggleStatusEffect(..., { active: true })`, verifies the native status became active, and only then allows the exact committed entry to be marked executed. Static/tool validation is complete; live Foundry validation is deferred to the group test.
 
 ## Purpose
 
-This document records the native Foundry Lancer findings relevant to the universal **Shut Down** Full Action and defines the intended Frame Conn integration boundary.
+This document records the native Foundry Lancer findings relevant to the universal **Shut Down** Quick Action and defines the Frame Conn integration boundary.
 
 Repository investigation did not reveal a dedicated executable Shut Down flow such as:
 
@@ -42,11 +42,45 @@ while:
 
 Shut Down should be treated as the inverse state-transition partner of Boot Up.
 
+## Implemented Frame Conn Path
+
+```text
+quick.shut-down committed as a Quick Action
+        ↓
+ui-turn exposes a non-roll Execute control
+        ↓
+Action Execution classifies executionKind = shut-down
+        ↓
+System Bridge
+        ↓
+Semantic Execution Context
+        ↓
+Execution Transaction
+        ↓
+Native Adapter applyStatus(actor, shutdown)
+        ↓
+native-status resolves the authoritative actor
+        ↓
+Actor.toggleStatusEffect(shutdown, { active: true })
+        ↓
+Native Adapter verifies shutdown is active
+        ↓
+transaction succeeds
+        ↓
+Application marks only the exact committed entry executed
+        ↓
+Frame Conn re-renders from authoritative Turn/actor state
+```
+
+If `shutdown` was already active, or native application does not produce a real state change, Shut Down fails through the execution transaction and the committed entry remains pending. Frame Conn does not create a second Shutdown flag.
+
+The broader rules that apply while a mech is Shut Down are cross-cutting gameplay contracts. They belong in their centralized status, action-legality, tech-effect, and NHP/lifecycle owners rather than being duplicated inside this action executor.
+
 —
 
 # 1. Shut Down Classification
 
-Shut Down is a **Full Action**.
+Shut Down is a **Quick Action**.
 
 At the software architecture level, its core state transition is:
 
@@ -54,7 +88,7 @@ actor operational
 → Shut Down
 → actor has native `shutdown` state
 
-The exact tabletop consequences of entering Shutdown should be implemented only from confirmed rules.
+The tabletop consequences of Shutdown are confirmed rules, but their ongoing enforcement must remain centralized rather than being embedded opportunistically in this one execution branch.
 
 The repository findings establish the software boundary:
 
@@ -175,9 +209,7 @@ along with Foundry status APIs such as:
 
 `toggleStatusEffect(...)`
 
-The exact preferred method for **applying** `shutdown` should be traced before implementation.
-
-Frame Conn should use the highest-level native status helper available rather than manually editing raw status data if possible.
+The preferred application boundary has now been confirmed. Frame Conn's existing Native Adapter exposes `applyStatus(actor, statusId)`, backed by `native-status.js`, which delegates to `Actor.toggleStatusEffect(statusId, { active: true })` and verifies the authoritative post-mutation state. Shut Down uses that existing boundary rather than directly editing derived actor status data.
 
 —
 
@@ -197,9 +229,7 @@ rather than:
 Frame Conn
 → directly set arbitrary raw document internals.
 
-The exact helper signature must be confirmed from the native API.
-
-Do not invent a helper call without tracing it.
+The confirmed Frame Conn boundary is `applyStatus(actor, "shutdown")`; its native mutation path is `Actor.toggleStatusEffect("shutdown", { active: true })`. Do not replace it with raw mutation of derived `system.statuses.shutdown` state.
 
 —
 
@@ -210,7 +240,7 @@ The intended responsibility split is:
 **FRAME CONN OWNS:**
 
 - Shut Down action commitment;
-- Full Action expenditure;
+- Quick Action expenditure;
 - Shut Down legality;
 - resolving the authoritative acting mech;
 - applying Shutdown through native status infrastructure;
@@ -230,23 +260,20 @@ The intended responsibility split is:
 
 —
 
-# 10. Proposed Initial Shut Down Flow
+# 10. Implemented Shut Down Flow
 
-The initial Frame Conn execution should be:
+Frame Conn now executes:
 
-Player commits Shut Down
-→ Shut Down appears in Committed Plan
+Player commits Shut Down as a Quick Action
+→ Shut Down appears in Committed Plan with a plain Execute control
 → player executes Shut Down
-→ Frame Conn resolves authoritative acting mech
-→ validate active Turn
-→ validate Full Action
-→ confirm actor is not already Shut Down
-→ apply native `shutdown` status
-→ apply any additional confirmed Shut Down consequences
-→ await authoritative actor mutation
-→ re-read actor state
-→ mark committed Shut Down executed
-→ refresh Frame Conn presentation
+→ Frame Conn re-resolves the authoritative actor
+→ canonical execution spine composes the semantic action
+→ Execution Transaction calls Native Adapter `applyStatus(actor, "shutdown")`
+→ Native Adapter verifies Shutdown was inactive and is now active
+→ transaction succeeds
+→ exact committed Shut Down entry is marked executed
+→ authoritative Turn/actor presentation refreshes
 
 No attack roll is inherently required.
 
@@ -295,7 +322,7 @@ if actor is already Shut Down:
 → attempting Shut Down again should fail cleanly or be disabled
 
 if actor is operational:
-→ Shut Down may proceed subject to normal Full Action legality
+→ Shut Down may proceed subject to normal Quick Action legality
 
 Additional legality may come from:
 
@@ -357,7 +384,7 @@ The important architectural rule is:
 The paired documents should remain separate because:
 
 Shut Down:
-→ Full Action
+→ Quick Action
 → enters Shutdown
 
 Boot Up:
@@ -378,16 +405,16 @@ However, implementation should share:
 
 Shut Down consumes:
 
-**one Full Action**
+**one Quick Action**
 
 Frame Conn Turn state should own that expenditure.
 
-The native status application should not independently modify the Frame Conn Full Action budget.
+The native status application should not independently modify the Frame Conn Quick Action budget.
 
 Conceptually:
 
 Turn
-→ spend Full Action
+→ spend Quick Action
 
 then:
 
@@ -403,7 +430,7 @@ These are separate responsibilities.
 If Frame Conn preserves planning/execution separation:
 
 Commit Shut Down:
-→ reserve/spend Full Action according to Turn rules
+→ reserve/spend Quick Action according to Turn rules
 → add action to Committed Plan
 
 Execute Shut Down:

@@ -373,9 +373,35 @@ This works because `action-execution-feature.js` contains a dedicated Stabilize 
 
 Treat this path as intentionally supported transitional behavior. It may later be migrated behind System Bridge → Semantic Execution Context → Execution Transaction → Native Adapter for architectural consistency, but migration is not required merely to make Stabilize functional. Any such migration must preserve the stock `actor.beginStabilizeFlow()` authority and the already-validated player behavior.
 
-### Canonical state-mutation example: Boot Up
+### Canonical state-mutation pair: Shut Down and Boot Up
 
-Boot Up is the proof case for a universal action whose semantics belong to Frame Conn but whose underlying status mutation belongs to native Lancer/Foundry:
+Shut Down and Boot Up are the paired proof cases for universal actions whose semantics belong to Frame Conn but whose underlying status mutation belongs to native Lancer/Foundry. Shut Down applies the authoritative native status; Boot Up removes it.
+
+```text
+committed quick.shut-down
+        ↓
+non-roll Execute control
+        ↓
+Action Execution: executionKind = shut-down
+        ↓
+System Bridge
+        ↓
+Semantic Execution Context
+        ↓
+Execution Transaction
+        ↓
+Native Adapter applyStatus(actor, shutdown)
+        ↓
+Actor.toggleStatusEffect(shutdown, { active: true })
+        ↓
+verify native shutdown is active
+        ↓
+transaction success
+        ↓
+exact committed entry marked executed
+```
+
+The inverse path is Boot Up:
 
 ```text
 committed full.boot-up
@@ -401,12 +427,12 @@ transaction success
 exact committed entry marked executed
 ```
 
-This is distinct from native Flow delegation. There is no native `BootUpFlow`; Frame Conn owns the action-level state transition while reusing the authoritative native status identity and mutation primitive. Failure to remove an actually-active Shutdown status fails the transaction, so UI bookkeeping cannot falsely claim execution.
+These are distinct from native Flow delegation. No dedicated native Shut Down or Boot Up Flow is used; Frame Conn owns the action-level state transitions while reusing the authoritative native status identity and mutation primitive. Shut Down requires a real inactive→active transition, and Boot Up requires a real active→inactive transition. A failed or redundant mutation fails the transaction so UI bookkeeping cannot falsely claim execution. Broader ongoing Shutdown rules remain owned by centralized gameplay-rule boundaries rather than either action executor.
 
 This distinction is useful when auditing action coverage:
 
 - **canonical and runtime-proven:** Improvised Attack;
-- **canonical implementation complete, live Foundry proof pending:** Boot Up;
+- **canonical implementation complete, live group proof pending:** Shut Down and Boot Up;
 - **transitional native delegation and runtime-proven:** Stabilize;
 - **not yet end-to-end proven:** evaluate individually from the corresponding action-flow notes.
 
