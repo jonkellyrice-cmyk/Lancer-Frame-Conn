@@ -249,7 +249,6 @@ export const FRAME_CONN_NO_ROLL_ACTIONS =
       "quick.prepare",
       "quick.self-destruct",
 
-      "full.disengage",
       "full.activate",
       "full.mount-dismount",
 
@@ -420,6 +419,14 @@ function frameConnActionExecutionKind(
       "quick.hide"
   ) {
     return "hide";
+  }
+
+
+  if (
+    action.id ===
+      "full.disengage"
+  ) {
+    return "disengage";
   }
 
 
@@ -853,7 +860,8 @@ async function frameConnExecuteActionRoll(
       "quick.ram",
       "quick.search",
       "quick.shut-down",
-      "full.boot-up"
+      "full.boot-up",
+      "full.disengage"
     ].includes(
       action.id
     )
@@ -997,7 +1005,8 @@ function getFrameConnActionExecutionDiagnostics(
         "quick.ram",
         "quick.search",
         "quick.shut-down",
-        "full.boot-up"
+        "full.boot-up",
+        "full.disengage"
       ].includes(
         actionId
       ),

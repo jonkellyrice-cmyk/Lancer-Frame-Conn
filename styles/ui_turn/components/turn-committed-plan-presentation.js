@@ -67,7 +67,6 @@ const FRAME_CONN_TURN_UI_NO_ROLL_ACTION_IDS =
       "quick.prepare",
       "quick.self-destruct",
 
-      "full.disengage",
       "full.activate",
       "full.mount-dismount",
 
@@ -89,7 +88,8 @@ const FRAME_CONN_TURN_UI_EXECUTE_ONLY_ACTION_IDS =
       "quick.quick-tech.scan",
       "quick.shut-down",
       "full.stabilize",
-      "full.boot-up"
+      "full.boot-up",
+      "full.disengage"
     ])
   );
 
