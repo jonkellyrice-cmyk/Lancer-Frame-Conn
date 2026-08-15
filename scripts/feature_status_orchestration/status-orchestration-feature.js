@@ -11,8 +11,10 @@ import { defineFrameConnFeature } from "../feature-contract.js";
 const MODULE_ID = "lancer-frame-conn";
 const TIMED_FLAG = "timed-statuses";
 const GRAPPLE_FLAG = "grapple-relationships";
+const THERMAL_RUNAWAY_FLOW_STEP = "frameConnApplyThermalRunawayExposed";
+const THERMAL_RUNAWAY_FLOW = "OverheatFlow";
 
-const runtime = { applyStatus: null, removeStatus: null, distance: null };
+const runtime = { applyStatus: null, removeStatus: null, distance: null, installNativeFlowStepBefore: null };
 const timedStatuses = new Map();
 const grapples = new Map();
 const disengagedActors = new Map();
@@ -33,7 +35,8 @@ function runtimeBindings() {
   return Object.freeze({
     statusApplication: typeof runtime.applyStatus === "function",
     statusRemoval: typeof runtime.removeStatus === "function",
-    spatialDistance: typeof runtime.distance === "function"
+    spatialDistance: typeof runtime.distance === "function",
+    nativeFlowExtension: typeof runtime.installNativeFlowStepBefore === "function"
   });
 }
 
@@ -149,6 +152,35 @@ async function syncDangerZones() {
     results.push(await syncDangerZone(actor));
   }
   return Object.freeze(results);
+}
+
+/**
+ * Native Lancer already owns the Thermal Runaway reactor transition through
+ * OverheatFlow. By the time this step runs, preOverheatRollChecks has verified
+ * Heat > Heat Cap, spent 1 Stress, and replaced current Heat with only the
+ * overflow beyond Heat Cap. Frame Conn adds only the missing persistent
+ * Exposed consequence. Native overheat rerolls are not new Thermal Runaway
+ * events and must not reapply this consequence.
+ */
+async function applyThermalRunawayExposed(state) {
+  if (state?.data?.reroll_data) return true;
+  const actor = state?.actor ?? null;
+  const isMech = Boolean(actor && (typeof actor.is_mech === "function" ? actor.is_mech() : actor.type === "mech"));
+  if (!isMech) return true;
+  await applyNativeStatus(actor, "exposed");
+  return true;
+}
+
+function installThermalRunawayExtension() {
+  if (typeof runtime.installNativeFlowStepBefore !== "function") {
+    throw new Error("Frame Conn Status Orchestration native Flow extension is not configured.");
+  }
+  return runtime.installNativeFlowStepBefore({
+    stepName: THERMAL_RUNAWAY_FLOW_STEP,
+    beforeStep: "rollOverheatTable",
+    flowNames: [THERMAL_RUNAWAY_FLOW],
+    step: applyThermalRunawayExposed
+  });
 }
 
 async function applyStatuses(actor, statusIds = []) {
@@ -444,14 +476,14 @@ function diagnostics() { return Object.freeze({ runtimeBindings: runtimeBindings
 export const frameConnStatusOrchestrationFeature = defineFrameConnFeature({
   id: "status-orchestration",
   domain: "status.orchestration",
-  provides: ["status.orchestration", "status.timed", "status.grapple", "status.engaged.derived", "status.danger-zone.derived"],
-  dependsOn: ["native-adapter.status", "sensors.measurement"],
+  provides: ["status.orchestration", "status.timed", "status.grapple", "status.engaged.derived", "status.danger-zone.derived", "status.thermal-runaway"],
+  dependsOn: ["native-adapter.status", "native-adapter.flow-extension", "sensors.measurement"],
   optionalDependsOn: [],
   state: {},
-  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged, syncDangerZone, syncDangerZones },
+  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged, syncDangerZone, syncDangerZones, installThermalRunawayExtension },
   queries: { diagnostics, runtimeBindings, isDisengaged, getGrapplesForActor, getGrappleBetween, hydrateStatusOrchestrationState },
-  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, updateActor: handleActorUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { hydrateStatusOrchestrationState(); await syncGrapples(); await syncEngaged(); return syncDangerZones(); } },
+  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, updateActor: handleActorUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { installThermalRunawayExtension(); hydrateStatusOrchestrationState(); await syncGrapples(); await syncEngaged(); return syncDangerZones(); } },
   lifecycle: {},
-  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage, isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged, dangerZoneThreshold, syncDangerZone, syncDangerZones, diagnostics, runtimeBindings },
+  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage, isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged, dangerZoneThreshold, syncDangerZone, syncDangerZones, installThermalRunawayExtension, diagnostics, runtimeBindings },
   metadata: { label: "Status Orchestration", nativeStatusAuthority: "native-adapter.status", coverPolicy: "Cover remains attacker-relative and is not represented as one global persistent status." }
 });

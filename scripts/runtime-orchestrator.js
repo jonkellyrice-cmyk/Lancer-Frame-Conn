@@ -1435,7 +1435,14 @@ function configureFrameConnRuntimeBindings() {
 
       distance:
         (sourceToken, targetToken) =>
-          frameConnSensorsApi.distance(sourceToken, targetToken)
+          frameConnSensorsApi.distance(sourceToken, targetToken),
+
+      installNativeFlowStepBefore:
+        options =>
+          frameConnNativeAdapterApi
+            .installFlowStepBefore(
+              options
+            )
     });
 
 
@@ -1689,6 +1696,17 @@ function validateFrameConnRuntimeComposition() {
     frameConnActionExecutionApi.runtimeBindings,
     [
       "executeCanonicalAction"
+    ]
+  );
+
+  assertFrameConnRuntimeBindings(
+    "Status Orchestration",
+    frameConnStatusOrchestrationApi.runtimeBindings,
+    [
+      "statusApplication",
+      "statusRemoval",
+      "spatialDistance",
+      "nativeFlowExtension"
     ]
   );
 

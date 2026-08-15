@@ -80,6 +80,32 @@ Heat < threshold
 
 For example, Heat Cap 7 enters Danger Zone at 4 Heat, while Heat Cap 8 enters at 4 Heat. The synchronizer runs on actor updates and initial/canvas synchronization, so Overcharge, Stabilize, systems, direct Heat changes, and future Heat sources all converge on the same derived rule. Native Adapter remains responsible for the actual ActiveEffect mutation. When an active GM exists, the GM client owns this shared automatic mutation to avoid multi-client races; otherwise an owning client may synchronize its own mech.
 
+## Thermal Runaway and Exposed
+
+Thermal Runaway is not implemented as a second Frame Conn reactor engine. Native Lancer 3.1.3 already owns the authoritative overheat transition through `triggerStrussFlow()` → `actor.beginOverheatFlow()` → `OverheatFlow`. When Heat rises above Heat Cap, native `preOverheatRollChecks` spends 1 Stress and changes Heat to `current Heat - Heat Cap`, which preserves only the overflow Heat before continuing into the native overheating table/check/chat workflow.
+
+Frame Conn extends that native Flow with one status consequence inserted immediately after the native pre-overheat transition and before `rollOverheatTable`:
+
+```text
+Heat rises above Heat Cap
+        ↓
+native Lancer triggerStrussFlow
+        ↓
+native OverheatFlow
+        ↓
+native preOverheatRollChecks
+  - verify Heat > Heat Cap
+  - spend 1 Stress
+  - retain only overflow Heat
+        ↓
+Frame Conn Thermal Runaway step
+  - apply native exposed
+        ↓
+native overheat table/check/chat continues
+```
+
+Native overheat rerolls are explicitly ignored by the Frame Conn extension because they are follow-up resolution of the same reactor event, not a new Thermal Runaway. `exposed` is persistent and is **not** removed when Heat later falls below Heat Cap or leaves Danger Zone. Normal removal remains authoritative through Stabilize/Full Repair or explicit GM status removal. Frame Conn never represents Exposed with a parallel flag and does not duplicate native Stress loss, Heat clearing/overflow, overheat rolls, or chat output.
+
 ## Lifecycle persistence
 
 Timed Fragment Signal records and Grapple relationships are stored in memory and best-effort actor flags. On canvas/combat/token events, Frame Conn rehydrates valid records from those flags before synchronization. This protects ordinary reload/scene re-entry where the current user has permission to read/write those flags.
