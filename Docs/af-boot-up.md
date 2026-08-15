@@ -10,7 +10,7 @@
 
 **Native generic status/effect infrastructure:** Found.
 
-**Frame Conn implementation status:** Frame Conn should own Boot Up execution as a state-transition action that removes the native Lancer `shutdown` status and performs any additional deterministic Boot Up consequences required by the rules.
+**Frame Conn implementation status:** Implemented end to end through the canonical Frame Conn execution spine. Committed `full.boot-up` receives a non-roll Execute control; execution enters System Bridge → Semantic Execution Context → Execution Transaction → Native Adapter, removes authoritative native `shutdown` through `removeStatus()` / `Actor.toggleStatusEffect(..., { active: false })`, and only then allows the exact committed entry to be marked executed. Static/tool validation is complete; live Foundry validation remains required.
 
 ## Purpose
 
@@ -35,6 +35,42 @@ while:
 > Native Lancer should remain authoritative for the underlying Shutdown status representation and Foundry effect state.
 
 Boot Up should be treated as the inverse state-transition partner of Shut Down.
+
+## Implemented Frame Conn Path
+
+The current implementation is intentionally:
+
+```text
+full.boot-up committed as a Full Action
+        ↓
+ui-turn exposes a non-roll Execute control
+        ↓
+Action Execution classifies executionKind = boot-up
+        ↓
+System Bridge
+        ↓
+Semantic Execution Context
+        ↓
+Execution Transaction
+        ↓
+Native Adapter removeStatus(actor, shutdown)
+        ↓
+native-status resolves the authoritative actor
+        ↓
+Actor.toggleStatusEffect(shutdown, { active: false })
+        ↓
+Native Adapter verifies shutdown is no longer active
+        ↓
+transaction succeeds
+        ↓
+Application marks only the exact committed entry executed
+        ↓
+Frame Conn re-renders from authoritative Turn/actor state
+```
+
+If `shutdown` was not active, or native removal does not produce a real state change, Boot Up fails through the execution transaction and the committed entry remains pending. Frame Conn does not create a separate Shutdown flag.
+
+The native boundary is now persisted as `native.actor.shutdown-status-boundary` in the Native Contract Catalog for Lancer 3.1.3 with source and evidence hashes.
 
 —
 
@@ -166,13 +202,9 @@ and:
 
 `removeActiveEffects(...)`
 
-Native status handling may ultimately use Foundry mechanisms such as:
+The preferred native mutation boundary has now been confirmed. Native Lancer status-item handling delegates status application through `Actor.toggleStatusEffect(...)`, and Frame Conn's existing `native-status.js` adapter mirrors that authoritative pathway for both application and removal. Boot Up therefore calls the registered Native Adapter `removeStatus(actor, "shutdown")`, which ultimately performs `Actor.toggleStatusEffect("shutdown", { active: false })` and verifies the resulting native status state.
 
-`toggleStatusEffect(...)`
-
-The exact preferred mutation entry point should be confirmed before implementation.
-
-Frame Conn should use the highest-level native status helper available rather than directly editing raw actor data if the native system provides an appropriate helper.
+Do not replace this with direct mutation of `system.statuses.shutdown`; that field is derived status state, not a second storage authority.
 
 —
 
@@ -203,22 +235,20 @@ The intended responsibility split is:
 
 —
 
-# 8. Proposed Initial Boot Up Flow
+# 8. Implemented Boot Up Flow
 
-The initial Frame Conn execution should be:
+Frame Conn now executes:
 
 Player commits Boot Up
-→ Boot Up appears in Committed Plan
+→ Boot Up appears in Committed Plan with a plain Execute control
 → player executes Boot Up
-→ Frame Conn resolves authoritative acting mech
-→ validate active Turn
-→ validate Full Action commitment
-→ confirm actor currently has native `shutdown` status
-→ remove native `shutdown` status
-→ apply any other confirmed Boot Up consequences
-→ mark committed Boot Up action executed
-→ refresh authoritative actor state
-→ refresh Frame Conn presentation
+→ Frame Conn re-resolves the authoritative actor
+→ canonical execution spine composes the semantic action
+→ Execution Transaction calls Native Adapter `removeStatus(actor, "shutdown")`
+→ Native Adapter verifies Shutdown was active and is now inactive
+→ transaction succeeds
+→ exact committed Boot Up entry is marked executed
+→ authoritative Turn/actor presentation refreshes
 
 No attack roll is required.
 
