@@ -347,6 +347,38 @@ Once the adapter invokes the correct native entry point, Frame Conn should get o
 
 The validated proof case is Improvised Attack opening stock Lancer's **Basic Attack** dialog from a Frame Conn committed action. That is the success criterion for native delegation.
 
+### Known intentional transitional delegation: Stabilize
+
+Stabilize is also runtime-confirmed from Frame Conn, but it currently reaches native Lancer through an older explicit compatibility path rather than the full canonical execution spine:
+
+```text
+committed full.stabilize
+        ↓
+Application Execute
+        ↓
+Action Execution
+        ↓
+executionKind = stabilize
+        ↓
+executeFrameConnStabilize(actor)
+        ↓
+actor.beginStabilizeFlow()
+        ↓
+stock StabilizeFlow
+        ↓
+committed entry marked executed after await succeeds
+```
+
+This works because `action-execution-feature.js` contains a dedicated Stabilize classifier and a dedicated `executeFrameConnStabilize()` actor-native delegation. It is **not** a generic fallback accidentally discovering Stabilize.
+
+Treat this path as intentionally supported transitional behavior. It may later be migrated behind System Bridge → Semantic Execution Context → Execution Transaction → Native Adapter for architectural consistency, but migration is not required merely to make Stabilize functional. Any such migration must preserve the stock `actor.beginStabilizeFlow()` authority and the already-validated player behavior.
+
+This distinction is useful when auditing action coverage:
+
+- **canonical and runtime-proven:** Improvised Attack;
+- **transitional native delegation and runtime-proven:** Stabilize;
+- **not yet end-to-end proven:** evaluate individually from the corresponding action-flow notes.
+
 ---
 
 ## 13. Post-execution bookkeeping

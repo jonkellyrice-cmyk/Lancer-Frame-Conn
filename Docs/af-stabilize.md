@@ -25,11 +25,39 @@
 
 **Native Stabilize semantic SynergyLocation:** Found.
 
-**Frame Conn implementation status:** Frame Conn should delegate Stabilize directly to native `actor.beginStabilizeFlow(...)` for the first implementation, while owning Full Action expenditure and committed-plan execution. Later Frame Conn automation should extend only the missing condition-clearing branches rather than recreating the native Stabilize engine.
+**Frame Conn implementation status:** **Working and runtime-confirmed through the existing transitional execution path.** Frame Conn currently classifies `full.stabilize` as execution kind `stabilize`, routes the exact committed action through Action Execution, and explicitly delegates to native `actor.beginStabilizeFlow()`. Frame Conn owns Full Action commitment and committed-entry bookkeeping; native Lancer owns the Stabilize prompt, mutations, and chat output. This predates the newer canonical System Bridge → Semantic Execution Context → Execution Transaction → Native Adapter spine and should be treated as an intentional known-good compatibility path until it is deliberately migrated, not as an accidental fallback. Later Frame Conn automation should extend only the missing condition-clearing branches rather than recreating the native Stabilize engine.
 
 ## Purpose
 
 This document records the native Foundry Lancer findings relevant to the universal **Stabilize** Full Action and defines the intended Frame Conn integration boundary.
+
+## Runtime confirmation
+
+Stabilize has now been manually exercised from the Frame Conn committed-plan UI and confirmed to work end to end. The reason is explicit in current source rather than emergent behavior:
+
+```text
+full.stabilize committed in Turn state
+        ↓
+committed-plan Execute control
+        ↓
+Application executeCommittedAction(...)
+        ↓
+Action Execution classifies "stabilize"
+        ↓
+executeFrameConnStabilize(actor)
+        ↓
+actor.beginStabilizeFlow()
+        ↓
+stock Lancer StabilizeFlow / prompt / mutations / chat
+        ↓
+await resolves successfully
+        ↓
+exact committed entry marked executed
+        ↓
+Frame Conn re-renders
+```
+
+This path was present before the newer canonical execution spine was introduced. Its current direct actor-native delegation is therefore **intentional transitional support**. A future migration may move the same native entry point behind Native Adapter + Execution Transaction, but that migration must preserve the already-proven behavior rather than replacing it merely for architectural uniformity.
 
 Unlike many universal actions researched so far, Stabilize has a complete native Lancer execution flow.
 

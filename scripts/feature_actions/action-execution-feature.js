@@ -77,6 +77,21 @@
  *
  *     full.improvised-attack
  *
+ *   INTENTIONAL TRANSITIONAL NATIVE DELEGATIONS:
+ *
+ *   Some actions already had explicit, proven actor-native delegation
+ *   before the canonical execution spine was introduced. Stabilize is
+ *   one such known-good compatibility path:
+ *
+ *     full.stabilize
+ *       -> executionKind "stabilize"
+ *       -> executeFrameConnStabilize(actor)
+ *       -> actor.beginStabilizeFlow()
+ *
+ *   Preserve this behavior until Stabilize is deliberately migrated to
+ *   the canonical System Bridge / Execution Transaction / Native Adapter
+ *   spine. Do not mistake the direct native call for an accidental fallback.
+ *
  * STABILITY CONTRACT:
  *
  *   Existing execution classification and non-migrated actor
@@ -626,6 +641,14 @@ function executeFrameConnScan(
 }
 
 
+/**
+ * Intentional known-good transitional delegation.
+ *
+ * Runtime testing confirmed that committed Frame Conn Stabilize reaches
+ * the stock Lancer Stabilize workflow correctly through this exact actor
+ * entry point. This remains explicit until Stabilize is consciously moved
+ * behind the canonical Native Adapter transaction spine.
+ */
 function executeFrameConnStabilize(
   actor
 ) {
