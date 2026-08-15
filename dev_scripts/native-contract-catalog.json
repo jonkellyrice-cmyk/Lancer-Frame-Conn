@@ -202,6 +202,48 @@
           "proof": "The native chat damage control resolves the target LancerActor and delegates final application to actor.damageCalc with multiple/addBurn/AP/paracausal options."
         }
       ]
+    },
+    {
+      "id": "native.actor.shutdown-status-boundary",
+      "title": "Shutdown is a native Lancer status mutated through Actor.toggleStatusEffect",
+      "status": "proven",
+      "contract_kind": "native-effect-boundary",
+      "summary": "Native Lancer defines shutdown as a first-class status identity and derived actor status, while embedded Status items apply their LID through Actor.toggleStatusEffect(..., { active: true }). Frame Conn therefore uses the corresponding native toggleStatusEffect pathway for authoritative shutdown removal.",
+      "keywords": ["boot up", "boot-up", "shutdown", "status", "toggleStatusEffect", "condition", "active effect"],
+      "boundary": {
+        "owner_family": "native-adapter",
+        "frame_conn_consumers": ["native_adapter/native-status.js", "scripts/runtime-orchestrator.js"],
+        "rule": "Frame Conn may own Boot Up legality and action semantics, but native Lancer/Foundry owns shutdown status identity and mutation. Read native status state and apply/remove shutdown through Actor.toggleStatusEffect rather than directly mutating derived system.statuses.shutdown or creating a Frame Conn shadow flag."
+      },
+      "evidence": [
+        {
+          "source_path": "src/module/status-icons.ts",
+          "symbol": "shutdown status definition",
+          "line_start": 121,
+          "line_end": 124,
+          "source_sha256": "82f08da03734a3cfb14b4890ee68fef6256459b299e8f398e7e21c46237f7b54",
+          "slice_sha256": "4bd36d8311ccd8962f6f6df7f48b1099f0353972d8b3aeee0794090f5ce948ca",
+          "proof": "The native Lancer status registry defines the first-class status id shutdown and its presentation asset."
+        },
+        {
+          "source_path": "src/module/actor/lancer-actor.ts",
+          "symbol": "LancerActor._prepareDerivedData shutdown status initialization",
+          "line_start": 281,
+          "line_end": 297,
+          "source_sha256": "6086f6b69689bdff1eb0f70b1fe59df5a5abd052d530fe80224fca46faaaacdd",
+          "slice_sha256": "f96d8970e7bdd64a05fe242e95e4ed5067f1c256eb6844344fe136b1ac392668",
+          "proof": "The native actor initializes shutdown inside its derived system.statuses state alongside the other authoritative status identities."
+        },
+        {
+          "source_path": "src/module/models/items/status.ts",
+          "symbol": "StatusModel._preCreate",
+          "line_start": 35,
+          "line_end": 48,
+          "source_sha256": "68c4ec325b258bd734e70b3544223a07f1148461de2632fa79e83c517ec9f6d5",
+          "slice_sha256": "34972bcbe7a32819eafdf5c9c75a775c007a3fd4c8c0595cb7186f099dcfb20e",
+          "proof": "When a native Status item is embedded in an actor, Lancer delegates status application to actor.toggleStatusEffect(this.lid, { active: true }), establishing toggleStatusEffect as the native status-mutation pathway."
+        }
+      ]
     }
   ]
 }
