@@ -246,10 +246,13 @@ export const FRAME_CONN_NO_ROLL_ACTIONS =
 
       "quick.boost",
       "quick.hide",
+      "quick.quick-tech.bolster",
+      "quick.quick-tech.lock-on",
       "quick.prepare",
       "quick.self-destruct",
 
       "full.disengage",
+      "full.activate",
       "full.mount-dismount",
 
       "reaction.brace",
