@@ -1,25 +1,10 @@
 {
   "schema_version": 2,
-  "id": "expose-runtime-probe-planning",
-  "description": "Generate a temporary Runtime Contract Probe plan for every certified planning_goal and print clause/probe coverage without committing generated probe artifacts.",
+  "id": "validate-runtime-contract-probes-brace",
+  "description": "Independent no-op proof that the committed planning toolchain derives Runtime Contract Probes for a real multi-clause Brace behavior without mutating source.",
+  "planning_goal": "offer Brace when a mech is hit, spend the actor reaction, halve triggering damage through native Lancer damageCalc, restrict the mech next turn, and show the Brace choice in the UI",
   "policy": {
-    "max_files_changed": 1,
-    "allowed_paths": ["dev-scripts/github-filepatcher.mjs"]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "dev-scripts/github-filepatcher.mjs",
-      "search": "function reportCorridorScope(plan, corridorReport) {",
-      "replace": "function runRuntimeContractProbePlanning(goal, corridorReport) {\n  const probeScript = path.join(ROOT, \"dev_scripts\", \"runtime-contract-probes.mjs\");\n  if (!fs.existsSync(probeScript)) fail(`Runtime Contract Probes tool not found: ${probeScript}`);\n\n  const corridorFile = path.join(os.tmpdir(), `frame-conn-probe-corridor-${process.pid}.json`);\n  const outputDir = path.join(os.tmpdir(), `frame-conn-runtime-probes-${process.pid}`);\n  fs.writeFileSync(corridorFile, `${JSON.stringify(corridorReport, null, 2)}\\n`, \"utf8\");\n\n  const result = spawnSync(\n    process.execPath,\n    [probeScript, \"--goal\", goal, \"--corridor\", corridorFile, \"--output-dir\", outputDir],\n    { cwd: ROOT, encoding: \"utf8\", maxBuffer: 8 * 1024 * 1024 }\n  );\n\n  if (result.stdout) process.stdout.write(result.stdout);\n  if (result.stderr) process.stderr.write(result.stderr);\n  if (result.error) fail(`Runtime Contract Probe planning could not start: ${result.error}`);\n  if (result.status !== 0) fail(`Runtime Contract Probe planning failed with exit code ${result.status}.`);\n\n  const manifestFile = path.join(outputDir, \"probe-manifest.json\");\n  try {\n    const manifest = JSON.parse(fs.readFileSync(manifestFile, \"utf8\"));\n    const objectives = manifest.objectives ?? [];\n    const instrumented = objectives.filter((entry) => entry.status === \"instrumented\").length;\n    console.log(`[github-filepatcher] runtime_probe_clauses=${objectives.length}`);\n    console.log(`[github-filepatcher] runtime_probe_instrumented=${instrumented}`);\n    console.log(`[github-filepatcher] runtime_probe_manual=${objectives.length - instrumented}`);\n    console.log(`[github-filepatcher] runtime_probe_observers=${manifest.probes?.length ?? 0}`);\n    return manifest;\n  } catch (error) {\n    fail(`Runtime Contract Probe manifest could not be read: ${error}`);\n  }\n}\n\nfunction reportCorridorScope(plan, corridorReport) {",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev-scripts/github-filepatcher.mjs",
-      "search": "    if (corridorReport) {\n      runCorridorContextPack(corridorReport);\n      queryNativeContractCatalog(patch.planningGoal);\n    }",
-      "replace": "    if (corridorReport) {\n      runCorridorContextPack(corridorReport);\n      queryNativeContractCatalog(patch.planningGoal);\n      runRuntimeContractProbePlanning(patch.planningGoal, corridorReport);\n    }",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
