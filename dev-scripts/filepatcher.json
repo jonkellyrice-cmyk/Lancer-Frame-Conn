@@ -1,81 +1,13 @@
 {
   "schema_version": 2,
-  "id": "add-disengage-and-grapple-lifecycle-state",
-  "description": "Extend Status Orchestration with end-of-turn Disengage suppression and optional native grappled presentation while preserving Frame Conn relationship authority.",
-  "policy": {
-    "max_files_changed": 1,
-    "allowed_paths": ["scripts/feature_status_orchestration/status-orchestration-feature.js"]
-  },
+  "id": "enable-canonical-disengage-execution",
+  "description": "Move Disengage from no-workflow suppression into canonical non-roll execution.",
+  "policy": {"max_files_changed": 2,"allowed_paths":["scripts/feature_actions/action-execution-feature.js","styles/ui_turn/components/turn-committed-plan-presentation.js"]},
   "operations": [
-    {
-      "type": "replace_text",
-      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search": "const timedStatuses = new Map();\nconst grapples = new Map();",
-      "replace": "const timedStatuses = new Map();\nconst grapples = new Map();\nconst disengagedActors = new Map();",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search": "async function applyStatuses(actor, statusIds = []) {",
-      "replace": "function nativeStatusConfigured(statusId) {\n  return Array.isArray(globalThis.CONFIG?.statusEffects) &&\n    globalThis.CONFIG.statusEffects.some(status => status?.id === statusId);\n}\n\nasync function applyStatuses(actor, statusIds = []) {",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search": "  await applyStatuses(attacker, [\"grappled\", \"engaged\"]);\n  await applyStatuses(target, [\"grappled\", \"engaged\"]);",
-      "replace": "  const relationshipStatuses = nativeStatusConfigured(\"grappled\")\n    ? [\"grappled\", \"engaged\"]\n    : [\"engaged\"];\n  await applyStatuses(attacker, relationshipStatuses);\n  await applyStatuses(target, relationshipStatuses);",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search": "    await removeNativeStatus(actor, \"grappled\");\n    if (actor.uuid === record?.immobilizedActorUuid)",
-      "replace": "    if (nativeStatusConfigured(\"grappled\")) await removeNativeStatus(actor, \"grappled\");\n    if (actor.uuid === record?.immobilizedActorUuid)",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search": "const hiddenActor = actor => Boolean(actor?.system?.statuses?.hidden);\nconst grappleForcesPair = (leftActor, rightActor) => grapples.has(grappleId(leftActor, rightActor));",
-      "replace": "const hiddenActor = actor => Boolean(actor?.system?.statuses?.hidden);\nconst grappleForcesPair = (leftActor, rightActor) => grapples.has(grappleId(leftActor, rightActor));\n\nasync function applyDisengage(actor, combat = globalThis.game?.combat) {\n  const uuid = actorUuid(actor);\n  const activeTurnKey = turnKey(combat);\n  if (!uuid || !activeTurnKey) throw new Error(\"Disengage requires an active combat turn and authoritative actor.\");\n  disengagedActors.set(uuid, { actorUuid: uuid, turnKey: activeTurnKey });\n  await removeNativeStatus(actor, \"engaged\");\n  return Object.freeze({ actorUuid: uuid, turnKey: activeTurnKey });\n}\n\nfunction syncDisengage(combat = globalThis.game?.combat) {\n  const currentTurnKey = turnKey(combat);\n  for (const [uuid, record] of disengagedActors.entries()) {\n    if (!currentTurnKey || record.turnKey !== currentTurnKey) disengagedActors.delete(uuid);\n  }\n  return true;\n}\n\nfunction isDisengaged(actor) {\n  const record = disengagedActors.get(actorUuid(actor));\n  return Boolean(record && record.turnKey === turnKey(globalThis.game?.combat));\n}",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search": "    const shouldBeEngaged = expected.get(actor.uuid) === true;\n    const isEngaged = Boolean(actor.system?.statuses?.engaged);",
-      "replace": "    const shouldBeEngaged = expected.get(actor.uuid) === true && !isDisengaged(actor);\n    const isEngaged = Boolean(actor.system?.statuses?.engaged);",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search": "async function handleCombatUpdate(combat) {\n  await syncTimedStatuses(combat);",
-      "replace": "async function handleCombatUpdate(combat) {\n  syncDisengage(combat);\n  await syncTimedStatuses(combat);",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search": "function diagnostics() { return Object.freeze({ runtimeBindings: runtimeBindings(), timedStatuses: [...timedStatuses.values()].map(record => ({ ...record })), grapples: [...grapples.values()].map(record => ({ ...record })) }); }",
-      "replace": "function diagnostics() { return Object.freeze({ runtimeBindings: runtimeBindings(), timedStatuses: [...timedStatuses.values()].map(record => ({ ...record })), grapples: [...grapples.values()].map(record => ({ ...record })), disengagedActors: [...disengagedActors.values()].map(record => ({ ...record })) }); }",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search": "  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleForActor, syncTimedStatuses, syncGrapples, syncEngaged },\n  queries: { diagnostics, runtimeBindings },",
-      "replace": "  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleForActor, applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged },\n  queries: { diagnostics, runtimeBindings, isDisengaged },",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search": "  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleForActor, syncTimedStatuses, syncGrapples, syncEngaged, diagnostics, runtimeBindings },",
-      "replace": "  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleForActor, applyDisengage, isDisengaged, syncTimedStatuses, syncGrapples, syncEngaged, diagnostics, runtimeBindings },",
-      "expected_occurrences": 1
-    }
+    {"type":"replace_text","path":"scripts/feature_actions/action-execution-feature.js","search":"      \"full.disengage\",\n      \"full.activate\",","replace":"      \"full.activate\",","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/feature_actions/action-execution-feature.js","search":"  if (\n    action.id ===\n      \"quick.hide\"\n  ) {\n    return \"hide\";\n  }","replace":"  if (\n    action.id ===\n      \"quick.hide\"\n  ) {\n    return \"hide\";\n  }\n\n\n  if (\n    action.id ===\n      \"full.disengage\"\n  ) {\n    return \"disengage\";\n  }","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/feature_actions/action-execution-feature.js","search":"      \"quick.search\",\n      \"quick.shut-down\",\n      \"full.boot-up\"","replace":"      \"quick.search\",\n      \"quick.shut-down\",\n      \"full.boot-up\",\n      \"full.disengage\"","expected_occurrences":2},
+    {"type":"replace_text","path":"styles/ui_turn/components/turn-committed-plan-presentation.js","search":"      \"full.disengage\",\n      \"full.activate\",","replace":"      \"full.activate\",","expected_occurrences":1},
+    {"type":"replace_text","path":"styles/ui_turn/components/turn-committed-plan-presentation.js","search":"      \"full.stabilize\",\n      \"full.boot-up\"","replace":"      \"full.stabilize\",\n      \"full.boot-up\",\n      \"full.disengage\"","expected_occurrences":1}
   ]
 }
