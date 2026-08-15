@@ -181,6 +181,25 @@ const frameConnActionRegistry =
   frameConnActionsApi.registry;
 
 
+/* ------------------------------------------------------------
+   Sensors
+   ------------------------------------------------------------ */
+
+const frameConnSensorsApi =
+  frameConnFeatureRegistry.getApi(
+    "sensors"
+  );
+
+
+if (
+  !frameConnSensorsApi
+) {
+  throw new Error(
+    "Frame Conn | The registered Sensors feature API could not be resolved."
+  );
+}
+
+
 const initializeFrameConnActionRegistry =
   frameConnActionsApi.initialize;
 
@@ -513,6 +532,120 @@ function renderFrameConnApplication(
 
 
 /* ============================================================
+   Canonical target acquisition helpers
+   ============================================================ */
+
+/**
+ * Resolve exactly one Foundry target for an action which requires one.
+ * Existing user targets are preferred; otherwise Foundry Integration
+ * switches to the native Token target tool and waits for selection.
+ */
+async function resolveFrameConnRequiredTarget(
+  action
+) {
+  if (!action?.requiresTarget) {
+    return null;
+  }
+
+  let targets =
+    frameConnFoundryIntegrationApi
+      .getSelectedTargets?.() ??
+    [];
+
+  if (targets.length === 0) {
+    targets =
+      await frameConnFoundryIntegrationApi
+        .promptForTarget?.();
+  }
+
+  if (targets == null) {
+    throw new Error(
+      `Target selection cancelled for ${action.label ?? action.id}.`
+    );
+  }
+
+  if (targets.length !== 1) {
+    throw new Error(
+      `${action.label ?? action.id} requires exactly one target.`
+    );
+  }
+
+  return targets[0];
+}
+
+
+/**
+ * Resolve the canvas token representing the acting actor.
+ */
+function resolveFrameConnActorToken(
+  actor
+) {
+  return (
+    canvas?.tokens?.placeables
+      ?.find(
+        token =>
+          token?.actor?.uuid === actor?.uuid ||
+          token?.actor?.id === actor?.id
+      ) ??
+    frameConnSensorsApi
+      .getSourceToken?.() ??
+    null
+  );
+}
+
+
+/**
+ * Validate a selected target against the acting mech's Sensors.
+ */
+function assertFrameConnTargetWithinSensors(
+  actor,
+  targetToken
+) {
+  const sourceToken =
+    resolveFrameConnActorToken(
+      actor
+    );
+
+  const sensorRange =
+    Number(
+      actor?.system?.sensor_range
+    );
+
+  if (
+    !sourceToken ||
+    !targetToken ||
+    !Number.isFinite(sensorRange)
+  ) {
+    throw new Error(
+      "Frame Conn could not resolve Sensors targeting geometry."
+    );
+  }
+
+  const distance =
+    frameConnSensorsApi.distance(
+      sourceToken,
+      targetToken
+    );
+
+  if (
+    !Number.isFinite(distance) ||
+    distance > sensorRange
+  ) {
+    throw new Error(
+      `${targetToken.name ?? "Selected target"} is outside Sensors ${sensorRange}.`
+    );
+  }
+
+  return Object.freeze({
+    sourceToken,
+    targetToken,
+    sensorRange,
+    distance
+  });
+}
+
+
+/* ============================================================
    Canonical action execution composition
    ============================================================ */
 
@@ -620,7 +753,13 @@ async function executeFrameConnCanonicalAction({
     null;
 
   switch (executionKind) {
-    case "basic-attack":
+    case "basic-attack": {
+      if (action.requiresTarget) {
+        await resolveFrameConnRequiredTarget(
+          action
+        );
+      }
+
       transaction =
         await frameConnExecutionTransactionApi
           .runNativeExecutionTransactionWithGlobalHooks({
@@ -656,6 +795,87 @@ async function executeFrameConnCanonicalAction({
             }
           });
       break;
+    }
+
+    case "lock-on": {
+      const targetToken =
+        await resolveFrameConnRequiredTarget(
+          action
+        );
+
+      const targeting =
+        assertFrameConnTargetWithinSensors(
+          actor,
+          targetToken
+        );
+
+      const targetActor =
+        targetToken?.actor ??
+        null;
+
+      if (!targetActor) {
+        throw new Error(
+          "Lock On requires a target with an authoritative actor."
+        );
+      }
+
+      transaction =
+        await frameConnExecutionTransactionApi
+          .runNativeExecutionTransactionWithGlobalHooks({
+            context:
+              executionContext,
+
+            execute:
+              async () => {
+                const statusResult =
+                  await frameConnNativeAdapterApi
+                    .applyStatus(
+                      targetActor,
+                      "lockon"
+                    );
+
+                if (
+                  !statusResult?.changed ||
+                  !statusResult?.active
+                ) {
+                  throw new Error(
+                    "The selected target already has Lock On or native Lock On application failed."
+                  );
+                }
+
+                return statusResult;
+              },
+
+            metadata: {
+              actionId:
+                action.id,
+
+              executionKind,
+
+              source:
+                "action-execution",
+
+              targetActorUuid:
+                targetActor.uuid ??
+                null,
+
+              targetTokenUuid:
+                targetToken.document?.uuid ??
+                targetToken.uuid ??
+                null,
+
+              targetDistance:
+                targeting.distance,
+
+              sensorRange:
+                targeting.sensorRange,
+
+              nativeStatusId:
+                "lockon"
+            }
+          });
+      break;
+    }
 
     case "shut-down":
       transaction =
