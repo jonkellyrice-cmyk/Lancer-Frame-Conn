@@ -1,63 +1,9 @@
 {
   "schema_version": 2,
-  "id": "derive-danger-zone-from-heat",
-  "description": "Automatically apply/remove native dangerzone for mech actors from authoritative current Heat and Heat Cap.",
+  "id": "validate-danger-zone-derived-status",
+  "description": "No-op acceptance state after automatic Danger Zone derivation was implemented and documented.",
   "policy": {
-    "max_files_changed": 2,
-    "allowed_paths": [
-      "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "Docs/status-orchestration.md"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search": "function nativeStatusConfigured(statusId) {\n  return Array.isArray(globalThis.CONFIG?.statusEffects) &&\n    globalThis.CONFIG.statusEffects.some(status => status?.id === statusId);\n}\n\nasync function applyStatuses(actor, statusIds = []) {",
-      "replace": "function nativeStatusConfigured(statusId) {\n  return Array.isArray(globalThis.CONFIG?.statusEffects) &&\n    globalThis.CONFIG.statusEffects.some(status => status?.id === statusId);\n}\n\nfunction canAuthoritativelyMutateActor(actor) {\n  const users = [...(globalThis.game?.users ?? [])];\n  const activeGmExists = users.some(user => user?.active && user?.isGM);\n  if (activeGmExists) return Boolean(globalThis.game?.user?.isGM);\n  return Boolean(actor?.isOwner);\n}\n\nfunction dangerZoneThreshold(actor) {\n  const heatCap = Number(actor?.system?.heat?.max);\n  if (!Number.isFinite(heatCap) || heatCap <= 0) return null;\n  return Math.ceil(heatCap / 2);\n}\n\nasync function syncDangerZone(actor) {\n  if (!actor || actor.type !== \"mech\") return false;\n\n  const heat = Number(actor?.system?.heat?.value);\n  const threshold = dangerZoneThreshold(actor);\n  if (!Number.isFinite(heat) || threshold === null) return false;\n\n  const shouldBeInDangerZone = heat >= threshold;\n  const isInDangerZone = Boolean(actor?.system?.statuses?.dangerzone);\n\n  if (shouldBeInDangerZone === isInDangerZone) {\n    return Object.freeze({\n      actorUuid: actorUuid(actor),\n      heat,\n      heatCap: Number(actor.system.heat.max),\n      threshold,\n      active: isInDangerZone,\n      changed: false\n    });\n  }\n\n  if (!canAuthoritativelyMutateActor(actor)) return false;\n\n  const result = shouldBeInDangerZone\n    ? await applyNativeStatus(actor, \"dangerzone\")\n    : await removeNativeStatus(actor, \"dangerzone\");\n\n  return Object.freeze({\n    actorUuid: actorUuid(actor),\n    heat,\n    heatCap: Number(actor.system.heat.max),\n    threshold,\n    active: shouldBeInDangerZone,\n    changed: Boolean(result?.changed)\n  });\n}\n\nasync function syncDangerZones() {\n  const actors = [...(globalThis.game?.actors?.contents ?? [])];\n  const results = [];\n  for (const actor of actors) {\n    if (actor?.type !== \"mech\") continue;\n    results.push(await syncDangerZone(actor));\n  }\n  return Object.freeze(results);\n}\n\nasync function applyStatuses(actor, statusIds = []) {",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search": "async function handleCombatUpdate(combat) {\n  hydrateStatusOrchestrationState();\n  syncDisengage(combat);\n  await syncTimedStatuses(combat);\n  await syncGrapples();\n  await syncEngaged();\n  return true;\n}\nasync function handleTokenUpdate() { hydrateStatusOrchestrationState(); await syncGrapples(); await syncEngaged(); return true; }",
-      "replace": "async function handleCombatUpdate(combat) {\n  hydrateStatusOrchestrationState();\n  syncDisengage(combat);\n  await syncTimedStatuses(combat);\n  await syncGrapples();\n  await syncEngaged();\n  await syncDangerZones();\n  return true;\n}\nasync function handleTokenUpdate() { hydrateStatusOrchestrationState(); await syncGrapples(); await syncEngaged(); return true; }\nasync function handleActorUpdate(actor) { return syncDangerZone(actor); }",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search": "  provides: [\"status.orchestration\", \"status.timed\", \"status.grapple\", \"status.engaged.derived\"],",
-      "replace": "  provides: [\"status.orchestration\", \"status.timed\", \"status.grapple\", \"status.engaged.derived\", \"status.danger-zone.derived\"],",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search": "  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged },",
-      "replace": "  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged, syncDangerZone, syncDangerZones },",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search": "  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { hydrateStatusOrchestrationState(); await syncGrapples(); return syncEngaged(); } },",
-      "replace": "  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, updateActor: handleActorUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { hydrateStatusOrchestrationState(); await syncGrapples(); await syncEngaged(); return syncDangerZones(); } },",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search": "  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage, isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged, diagnostics, runtimeBindings },",
-      "replace": "  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage, isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged, dangerZoneThreshold, syncDangerZone, syncDangerZones, diagnostics, runtimeBindings },",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "Docs/status-orchestration.md",
-      "search": "## Derived Engaged state\n\nStatus Orchestration listens to token/combat/canvas lifecycle events and derives Engaged from hostile adjacency using the existing Sensors distance measurement. Hidden participants are excluded unless a tracked Grapple explicitly forces the relationship. Shared Engaged mutation is GM-only to reduce multi-client write races. Disengage suppresses reapplication for its current-turn duration.\n\n## Lifecycle persistence",
-      "replace": "## Derived Engaged state\n\nStatus Orchestration listens to token/combat/canvas lifecycle events and derives Engaged from hostile adjacency using the existing Sensors distance measurement. Hidden participants are excluded unless a tracked Grapple explicitly forces the relationship. Shared Engaged mutation is GM-only to reduce multi-client write races. Disengage suppresses reapplication for its current-turn duration.\n\n## Derived Danger Zone state\n\nDanger Zone is derived continuously from authoritative native Heat state rather than stored as independent Frame Conn state. For mech actors, Frame Conn reads `actor.system.heat.value` and `actor.system.heat.max`, calculates the threshold as `Math.ceil(heatCap / 2)`, and synchronizes the native `dangerzone` status.\n\n```text\nthreshold = ceil(Heat Cap / 2)\n\nHeat >= threshold\n→ apply native dangerzone\n\nHeat < threshold\n→ remove native dangerzone\n```\n\nFor example, Heat Cap 7 enters Danger Zone at 4 Heat, while Heat Cap 8 enters at 4 Heat. The synchronizer runs on actor updates and initial/canvas synchronization, so Overcharge, Stabilize, systems, direct Heat changes, and future Heat sources all converge on the same derived rule. Native Adapter remains responsible for the actual ActiveEffect mutation. When an active GM exists, the GM client owns this shared automatic mutation to avoid multi-client races; otherwise an owning client may synchronize its own mech.\n\n## Lifecycle persistence",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
