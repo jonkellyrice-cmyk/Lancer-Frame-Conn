@@ -65,7 +65,6 @@ const FRAME_CONN_TURN_UI_NO_ROLL_ACTION_IDS =
       "quick.boost",
       "quick.hide",
       "quick.prepare",
-      "quick.shut-down",
       "quick.self-destruct",
 
       "full.disengage",
@@ -84,6 +83,7 @@ const FRAME_CONN_TURN_UI_NO_ROLL_ACTION_IDS =
 const FRAME_CONN_TURN_UI_EXECUTE_ONLY_ACTION_IDS =
   Object.freeze(
     new Set([
+      "quick.shut-down",
       "full.boot-up"
     ])
   );
