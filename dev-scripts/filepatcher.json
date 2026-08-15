@@ -1,15 +1,55 @@
 {
   "schema_version": 2,
-  "id": "execute-end-grapple-contested-hull",
-  "description": "Resolve End Grapple as a native HULL-vs-HULL contested check and remove the selected Grapple relationship on success.",
-  "policy": {"max_files_changed":1,"allowed_paths":["scripts/runtime-orchestrator.js"]},
+  "id": "harden-status-orchestration-ownership-and-rehydration",
+  "description": "Ensure timed status cleanup removes only Frame Conn-owned statuses and rehydrate timed/Grapple lifecycle records from actor flags after reloads.",
+  "policy": {
+    "max_files_changed": 1,
+    "allowed_paths": [
+      "scripts/feature_status_orchestration/status-orchestration-feature.js"
+    ]
+  },
   "operations": [
     {
-      "type":"replace_text",
-      "path":"scripts/runtime-orchestrator.js",
-      "search":"    case \"grapple\": {",
-      "replace":"    case \"end-grapple\": {\n      const targetToken = await resolveFrameConnRequiredTarget(action);\n      const targetActor = targetToken?.actor ?? null;\n      if (!targetActor) throw new Error(\"End Grapple requires an authoritative grapple opponent.\");\n      if (!frameConnStatusOrchestrationApi.getGrappleBetween(actor, targetActor)) {\n        throw new Error(\"The selected character is not in a tracked Grapple relationship with the acting mech.\");\n      }\n\n      transaction =\n        await frameConnExecutionTransactionApi\n          .runNativeExecutionTransactionWithGlobalHooks({\n            context: executionContext,\n            execute: async () => {\n              const escapeExecution = assertFrameConnNativeExecutionSucceeded(\n                await frameConnNativeAdapterApi.rollStat({ actor, path: \"hull\", title: \"End Grapple — HULL\" }),\n                \"End Grapple HULL check\"\n              );\n              const opposingExecution = assertFrameConnNativeExecutionSucceeded(\n                await frameConnNativeAdapterApi.rollStat({ actor: targetActor, path: \"hull\", title: \"Grapple Opposition — HULL\" }),\n                \"Grapple opposing HULL check\"\n              );\n              const escapeTotal = Number(escapeExecution?.result?.roll?.total);\n              const opposingTotal = Number(opposingExecution?.result?.roll?.total);\n              if (!Number.isFinite(escapeTotal) || !Number.isFinite(opposingTotal)) {\n                throw new Error(\"End Grapple contested check did not produce native roll totals.\");\n              }\n              const escaped = escapeTotal >= opposingTotal;\n              if (escaped) {\n                await frameConnStatusOrchestrationApi.endGrappleBetween(actor, targetActor);\n              }\n              return Object.freeze({ escapeExecution, opposingExecution, escaped, escapeTotal, opposingTotal });\n            },\n            metadata: { actionId: action.id, executionKind, source: \"action-execution\", targetActorUuid: targetActor.uuid ?? null, contestedCheck: \"hull-vs-hull\", successRemovesRelationship: \"grapple\" }\n          });\n      break;\n    }\n\n    case \"grapple\": {",
-      "expected_occurrences":1
+      "type": "replace_text",
+      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
+      "search": "/** Statuses persist until the end of this target's next turn, not its current turn. */\nasync function applyUntilEndOfNextTurn(actor, statusIds, { combat = globalThis.game?.combat, sourceActionId = null } = {}) {\n  const uuid = actorUuid(actor);\n  if (!uuid) throw new Error(\"Timed native statuses require an authoritative target actor.\");\n  await applyStatuses(actor, statusIds);\n  const record = {\n    targetActorUuid: uuid,\n    statusIds: [...statusIds],\n    combatId: combat?.id ?? null,\n    appliedTurnKey: turnKey(combat),\n    activeTargetTurnKey: null,\n    sourceActionId,\n    appliedAt: Date.now()\n  };\n  timedStatuses.set(uuid, record);\n  await bestEffortSetFlag(actor, TIMED_FLAG, record);\n  return Object.freeze({ ...record });\n}",
+      "replace": "/**\n * Statuses persist until the end of this target's next turn, not its current\n * turn. Cleanup owns only statuses that Frame Conn actually introduced.\n * Reapplying the same Frame Conn effect refreshes the duration of statuses\n * already owned by the existing timed record.\n */\nasync function applyUntilEndOfNextTurn(actor, statusIds, { combat = globalThis.game?.combat, sourceActionId = null } = {}) {\n  const uuid = actorUuid(actor);\n  if (!uuid) throw new Error(\"Timed native statuses require an authoritative target actor.\");\n\n  const existing = timedStatuses.get(uuid) ?? null;\n  const ownedStatusIds = new Set(existing?.statusIds ?? []);\n\n  for (const statusId of statusIds) {\n    const result = await applyNativeStatus(actor, statusId);\n    if (result?.changed && result?.active) {\n      ownedStatusIds.add(statusId);\n    }\n  }\n\n  if (ownedStatusIds.size === 0) {\n    return Object.freeze({\n      targetActorUuid: uuid,\n      statusIds: [],\n      combatId: combat?.id ?? null,\n      appliedTurnKey: turnKey(combat),\n      activeTargetTurnKey: null,\n      sourceActionId,\n      appliedAt: Date.now(),\n      tracked: false\n    });\n  }\n\n  const record = {\n    targetActorUuid: uuid,\n    statusIds: [...ownedStatusIds],\n    combatId: combat?.id ?? existing?.combatId ?? null,\n    appliedTurnKey: turnKey(combat),\n    activeTargetTurnKey: null,\n    sourceActionId,\n    appliedAt: Date.now()\n  };\n  timedStatuses.set(uuid, record);\n  await bestEffortSetFlag(actor, TIMED_FLAG, record);\n  return Object.freeze({ ...record, tracked: true });\n}",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
+      "search": "async function handleCombatUpdate(combat) {\n  syncDisengage(combat);",
+      "replace": "function validTimedRecord(record) {\n  return Boolean(\n    record?.targetActorUuid &&\n    Array.isArray(record?.statusIds)\n  );\n}\n\nfunction validGrappleRecord(record) {\n  return Boolean(\n    record?.id &&\n    record?.attackerActorUuid &&\n    record?.targetActorUuid\n  );\n}\n\nfunction hydrateStatusOrchestrationState() {\n  const tokens = globalThis.canvas?.tokens?.placeables ?? [];\n\n  for (const token of tokens) {\n    const actor = token?.actor ?? null;\n    if (!actor || typeof actor.getFlag !== \"function\") continue;\n\n    const timedRecord = actor.getFlag(MODULE_ID, TIMED_FLAG);\n    if (validTimedRecord(timedRecord)) {\n      timedStatuses.set(timedRecord.targetActorUuid, { ...timedRecord });\n    }\n\n    const grappleRecord = actor.getFlag(MODULE_ID, GRAPPLE_FLAG);\n    if (validGrappleRecord(grappleRecord)) {\n      grapples.set(grappleRecord.id, { ...grappleRecord });\n    }\n  }\n\n  return Object.freeze({\n    timedStatuses: timedStatuses.size,\n    grapples: grapples.size\n  });\n}\n\nasync function handleCombatUpdate(combat) {\n  hydrateStatusOrchestrationState();\n  syncDisengage(combat);",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
+      "search": "async function handleTokenUpdate() { await syncGrapples(); await syncEngaged(); return true; }",
+      "replace": "async function handleTokenUpdate() { hydrateStatusOrchestrationState(); await syncGrapples(); await syncEngaged(); return true; }",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
+      "search": "  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, deleteCombat: handleCombatDelete, canvasReady: syncEngaged },",
+      "replace": "  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { hydrateStatusOrchestrationState(); await syncGrapples(); return syncEngaged(); } },",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
+      "search": "  queries: { diagnostics, runtimeBindings, isDisengaged, getGrapplesForActor, getGrappleBetween },",
+      "replace": "  queries: { diagnostics, runtimeBindings, isDisengaged, getGrapplesForActor, getGrappleBetween, hydrateStatusOrchestrationState },",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
+      "search": "  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage, isDisengaged, syncTimedStatuses, syncGrapples, syncEngaged, diagnostics, runtimeBindings },",
+      "replace": "  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage, isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged, diagnostics, runtimeBindings },",
+      "expected_occurrences": 1
     }
   ]
 }
