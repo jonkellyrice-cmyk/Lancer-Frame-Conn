@@ -19,6 +19,7 @@ dev_scripts/
   patch-dsl-compiler.mjs          DSL compiler for GitHub FilePatcher JSON
   patch-corridor-planner.mjs      goal -> likely patch corridor planner
   automatic-patch-staging.mjs     corridor -> dependency-ordered staged patch specs
+  runtime-contract-probes.mjs      goal -> reversible Foundry runtime probe bundle
   repo-audit.mjs                  repository integrity + dependency watershed
   symbol-family-audit.mjs         symbol-family topology / ownership audit
   effect-atlas.mjs                side-effect ownership audit
@@ -47,6 +48,8 @@ npm run dependency-graph
 npm run patch-corridor
 npm run patch-staging
 npm run patch-staging:self-test
+npm run runtime-probes
+npm run runtime-probes:self-test
 npm run patch:dsl
 npm run patch:dsl:check
 npm run patch:dsl:self-test
@@ -68,6 +71,9 @@ Automatic Patch Staging
     ↓
 Corridor Context Pack + Native Contract Catalog
   exact local context + already-proven native facts
+    ↓
+Runtime Contract Probe plan
+  live-observable clauses + explicit manual checkpoints
     ↓
 Patch DSL authoring
     ↓
@@ -320,6 +326,24 @@ Query it with `npm run native-contracts -- --query "basic attack"`, inspect one 
 When FilePatcher receives a `planning_goal`, it now prints matching proven contracts after the Corridor Context Pack. The intended rule is **catalog first; rediscover only when no proven contract exists or the stored evidence has drifted**. Post-apply developer-tool validation also syntax-checks and self-tests the catalog tool and validates the committed catalog schema.
 
 Run `npm run native-contracts:self-test` for the deterministic drift-detection test. See `dev_scripts/NATIVE_CONTRACT_CATALOG.md` for the complete contract and update discipline.
+
+---
+
+## Runtime Contract Probes — `runtime-contract-probes.mjs`
+
+Generate a targeted live-test bundle with:
+
+```bash
+npm run runtime-probes -- --goal "offer Brace when hit, spend the reaction, halve damage, and restrict the next turn"
+```
+
+Runtime Contract Probes are the live-validation layer downstream of the clause-aware corridor, Runtime Signal Map, and Native Contract Catalog. They generate a machine-readable manifest, a reversible Foundry browser-console harness, and a short test checklist. The harness observes source-backed hooks, native Flow lifecycle boundaries, selector-aware DOM events, and selected reversible global effects such as `ChatMessage.create`; it does not trigger gameplay actions or mutate actor/combat state merely to satisfy a test.
+
+Each behavioral clause is marked `instrumented` when the static tools can justify a safe observer, or becomes an explicit manual checkpoint when they cannot. In Foundry, `FrameConnRuntimeProbe.evaluate()` reports `OBSERVED`, `NOT_OBSERVED`, or `MANUAL`, while `.report()` returns the structured event evidence. Use `.mark()` and `.snapshot()` for postconditions that cannot be proven by observer firing alone, and always call `.stop()` to restore installed listeners/wrappers.
+
+When `planning_goal` is present, GitHub FilePatcher automatically generates the probe bundle under temporary runner storage and prints probe coverage into the planning log; generated instrumentation is not committed. The permanent developer-tool gate syntax-checks the generator and runs `npm run runtime-probes:self-test`.
+
+See `dev_scripts/RUNTIME_CONTRACT_PROBES.md` for the complete live-testing and safety contract.
 
 ---
 
