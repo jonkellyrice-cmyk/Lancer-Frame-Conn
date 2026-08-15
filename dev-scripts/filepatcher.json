@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
-  "id": "validate-completed-lock-on-vertical-slice",
-  "description": "Planning-only acceptance proof for targeted Lock On and reusable required-target acquisition.",
-  "planning_goal": "Implement Quick Tech Lock On as a no-roll targeted canonical action: present committed Lock On with a plain Execute control; resolve an already-targeted Foundry token when exactly one valid target exists; when no target exists, acquire one by activating the Foundry token target tool and waiting for the current user's target selection; target cancellation or invalid targeting must stop execution and leave the committed entry pending; validate the selected target is within the acting mech's Sensors; execute Lock On through the canonical System Bridge -> Semantic Execution Context -> Execution Transaction -> Native Adapter spine; apply only authoritative native lockon status to the resolved target actor; mark only the exact committed Lock On entry executed after successful native status application; reuse the required-target acquisition behavior for canonical Improvised Attack without changing its native attack Flow semantics.",
+  "id": "plan-native-attack-outcome-capture",
+  "description": "Planning-only certification for reusable native attack Flow outcome capture used by post-hit status consequences.",
+  "planning_goal": "Add reusable native attack Flow outcome capture at the Native Adapter execution boundary: preserve authoritative BasicAttackFlow and TechAttackFlow construction, HUD, rolls, chat output, and mutations; observe the matching lancer.postFlow lifecycle event for the exact invocation; return the completed native Flow hit_results to Frame Conn callers without scraping chat or reimplementing attack resolution; remove temporary hook listeners after success, cancellation, or failure; keep action economy, target legality, and status consequences outside Native Adapter.",
   "policy": {"max_files_changed": 1},
   "operations": []
 }
