@@ -408,6 +408,14 @@ function frameConnActionExecutionKind(
 
   if (
     action.id ===
+      "quick.end-grapple"
+  ) {
+    return "end-grapple";
+  }
+
+
+  if (
+    action.id ===
       "quick.ram"
   ) {
     return "ram";
@@ -854,6 +862,7 @@ async function frameConnExecuteActionRoll(
     [
       "full.improvised-attack",
       "quick.grapple",
+      "quick.end-grapple",
       "quick.hide",
       "quick.quick-tech.invade.fragment-signal",
       "quick.quick-tech.lock-on",
@@ -999,6 +1008,7 @@ function getFrameConnActionExecutionDiagnostics(
       [
         "full.improvised-attack",
         "quick.grapple",
+        "quick.end-grapple",
         "quick.hide",
         "quick.quick-tech.invade.fragment-signal",
         "quick.quick-tech.lock-on",
