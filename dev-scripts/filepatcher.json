@@ -1,51 +1,8 @@
 {
   "schema_version": 2,
-  "id": "lock-on-phase-4-document-and-catalog",
-  "description": "Document implemented Lock On targeting/status execution and persist the proven native lockon contract.",
-  "policy": {
-    "max_files_changed": 4,
-    "allowed_paths": [
-      "Docs/af-quick-tech.md",
-      "Docs/status.md",
-      "Docs/universal-action-testing-inventory.md",
-      "dev_scripts/native-contract-catalog.json"
-    ]
-  },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "Docs/af-quick-tech.md",
-      "search": "# 5. Frame Conn Lock On Boundary\n\nFrame Conn should implement only the missing application side of the universal Quick Tech action.\n\nDesired architecture:\n\nCommitted Quick Tech: Lock On\n    ↓\nExecute\n    ↓\nEnter Frame Conn target-selection mode\n    ↓\nSelect valid character within Sensors\n    ↓\nValidate target\n    ↓\nApply native Lancer “lockon” condition\n    ↓\nSpend Quick Action\n    ↓\nProduce appropriate feedback\n    ↓\nRefresh Frame Conn",
-      "replace": "# 5. Frame Conn Lock On Boundary\n\n**Implementation status: source-side complete; live group validation pending.**\n\nFrame Conn now implements the missing application side of the universal Quick Tech action.\n\nImplemented architecture:\n\nCommitted Quick Tech: Lock On\n    ↓\nplain Execute control (no roll)\n    ↓\nreuse exactly one current Foundry target when present\n    ↓\notherwise activate Foundry's native Token target tool\n    ↓\nwait for the current user's target selection\n    ↓\nvalidate the selected token is within the acting mech's Sensors\n    ↓\ncanonical System Bridge / Semantic Context / Execution Transaction path\n    ↓\nNative Adapter applyStatus(targetActor, \"lockon\")\n    ↓\nnative ActiveEffect / derived system.statuses.lockon\n    ↓\nmark only the exact committed Lock On entry executed\n    ↓\nrefresh Frame Conn\n\nCancelling target acquisition or failing target/status validation leaves the committed entry pending rather than falsely marking it executed.",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "Docs/af-quick-tech.md",
-      "search": "FRAME CONN EXECUTION:\nAPPLICATION SIDE REQUIRED",
-      "replace": "FRAME CONN EXECUTION:\nIMPLEMENTED — LIVE VALIDATION PENDING",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "Docs/status.md",
-      "search": "# 38. Lock On — Frame Conn Responsibility\n\nFrame Conn should primarily own:\n\n- selecting the Lock On target;\n- validating Sensors/range;\n- applying native Lock On;\n- Quick Action economy.\n\nNative attacks own Lock On consumption.",
-      "replace": "# 38. Lock On — Frame Conn Responsibility\n\nFrame Conn now owns the Lock On application side end to end:\n\n- Quick Action commitment/economy;\n- reusing an existing Foundry target when exactly one is selected;\n- activating Foundry's native Token target tool when no target is selected;\n- waiting for current-user target acquisition, with cancellation leaving execution pending;\n- validating the selected token against the acting mech's Sensors;\n- applying authoritative native `lockon` through Native Adapter `applyStatus`;\n- marking the exact committed entry executed only after successful native status mutation.\n\nFrame Conn does not create a parallel Lock On flag. Native attacks remain authoritative for Lock On Accuracy and consumption/removal.\n\nThe Foundry target-acquisition surface is intentionally reusable by other actions which require a target, including the canonical Improvised Attack path and future weapon/system execution.",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "Docs/universal-action-testing-inventory.md",
-      "search": "- Quick Tech — Lock On",
-      "replace": "- Quick Tech — Lock On — **implemented; live group validation pending**",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/native-contract-catalog.json",
-      "search": "    }\n  ]\n}\n",
-      "replace": "    },\n    {\n      \"id\": \"native.actor.lockon-status-boundary\",\n      \"title\": \"Lock On is a native Lancer status consumed by native attack execution\",\n      \"status\": \"proven\",\n      \"contract_kind\": \"native-effect-boundary\",\n      \"summary\": \"Native Lancer defines lockon as a first-class status identity and derived actor status. Native attack execution removes the lockon effect when its targeting data records Lock On consumption.\",\n      \"keywords\": [\"lock on\", \"lock-on\", \"lockon\", \"status\", \"accuracy\", \"target\", \"attack\"],\n      \"boundary\": {\n        \"owner_family\": \"native-adapter\",\n        \"frame_conn_consumers\": [\"native_adapter/native-status.js\", \"scripts/runtime-orchestrator.js\"],\n        \"rule\": \"Frame Conn may own Lock On target acquisition, Sensors legality, Quick Action semantics, and application of the native status. Native Lancer/Foundry owns lockon status identity and native attacks own later consumption/removal. Apply lockon through the native status pathway rather than writing system.statuses.lockon or creating a Frame Conn shadow flag.\"\n      },\n      \"evidence\": [\n        {\n          \"source_path\": \"src/module/status-icons.ts\",\n          \"symbol\": \"lockon status definition\",\n          \"line_start\": 59,\n          \"line_end\": 65,\n          \"source_sha256\": \"82f08da03734a3cfb14b4890ee68fef6256459b299e8f398e7e21c46237f7b54\",\n          \"slice_sha256\": \"389ecb89305761844b7597c6da838cdb4d1e3609a9e5175c43df61ae4163cc85\",\n          \"proof\": \"The native Lancer status registry defines the first-class status id lockon and its condition icon.\"\n        },\n        {\n          \"source_path\": \"src/module/actor/lancer-actor.ts\",\n          \"symbol\": \"LancerActor._prepareDerivedData lockon status initialization\",\n          \"line_start\": 281,\n          \"line_end\": 297,\n          \"source_sha256\": \"6086f6b69689bdff1eb0f70b1fe59df5a5abd052d530fe80224fca46faaaacdd\",\n          \"slice_sha256\": \"f96d8970e7bdd64a05fe242e95e4ed5067f1c256eb6844344fe136b1ac392668\",\n          \"proof\": \"The native actor initializes lockon inside derived system.statuses alongside other authoritative status identities.\"\n        },\n        {\n          \"source_path\": \"src/module/models/items/status.ts\",\n          \"symbol\": \"StatusModel._preCreate\",\n          \"line_start\": 35,\n          \"line_end\": 48,\n          \"source_sha256\": \"68c4ec325b258bd734e70b3544223a07f1148461de2632fa79e83c517ec9f6d5\",\n          \"slice_sha256\": \"34972bcbe7a32819eafdf5c9c75a775c007a3fd4c8c0595cb7186f099dcfb20e\",\n          \"proof\": \"Embedded native Status items delegate application to Actor.toggleStatusEffect(this.lid, { active: true }).\"\n        },\n        {\n          \"source_path\": \"src/module/flows/attack.ts\",\n          \"symbol\": \"native attack Lock On consumption\",\n          \"line_start\": 440,\n          \"line_end\": 455,\n          \"source_sha256\": \"a5e1c903faed5fcb17958c6fbf2901534d329d4773320e912b74324bdd735d90\",\n          \"slice_sha256\": \"87afac09e0a315b45a0eb3bc6a52038bd46f67ab473658a75e8f11308c5a10d7\",\n          \"proof\": \"When native attack targeting data records usedLockOn, native attack execution removes the target actor's lockon ActiveEffect.\"\n        }\n      ]\n    }\n  ]\n}\n",
-      "expected_occurrences": 1
-    }
-  ]
+  "id": "validate-completed-lock-on-vertical-slice",
+  "description": "Planning-only acceptance proof for targeted Lock On and reusable required-target acquisition.",
+  "planning_goal": "Implement Quick Tech Lock On as a no-roll targeted canonical action: present committed Lock On with a plain Execute control; resolve an already-targeted Foundry token when exactly one valid target exists; when no target exists, acquire one by activating the Foundry token target tool and waiting for the current user's target selection; target cancellation or invalid targeting must stop execution and leave the committed entry pending; validate the selected target is within the acting mech's Sensors; execute Lock On through the canonical System Bridge -> Semantic Execution Context -> Execution Transaction -> Native Adapter spine; apply only authoritative native lockon status to the resolved target actor; mark only the exact committed Lock On entry executed after successful native status application; reuse the required-target acquisition behavior for canonical Improvised Attack without changing its native attack Flow semantics.",
+  "policy": {"max_files_changed": 1},
+  "operations": []
 }
