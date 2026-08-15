@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
-  "id": "fix-shut-down-canonical-routing",
-  "description": "Route quick.shut-down through canonical execution instead of the generic mech-skill fallback, and report it correctly in diagnostics.",
-  "planning_goal": "Fix the live Shut Down execution defect revealed in Foundry: quick.shut-down is already classified as executionKind shut-down and must route directly into the canonical System Bridge -> Semantic Execution Context -> Execution Transaction -> Native Adapter path with no mech skill chooser or dice check. Preserve all other action routing and update diagnostics so Shut Down is identified as canonical execution.",
+  "id": "audit-no-check-actions-phase-1-routing",
+  "description": "Prevent Bolster, Lock On, and Activate from falling through to the generic mech-skill chooser while their dedicated workflows remain unimplemented.",
+  "planning_goal": "Audit Frame Conn actions that do not traditionally require an action check or mech skill roll. Preserve already-correct Boot Up, Shut Down, Hide, Scan, Disengage, Stabilize, Prepare, Self-Destruct, Overcharge, Brace, and Protocol behavior. Fix Bolster, Lock On, and Activate so they cannot fall through to the generic HULL/AGI/SYS/ENG chooser; until dedicated target/system workflows are implemented they should be classified as no-roll/no-current-workflow rather than executable stat checks. Preserve all attack, contested-check, and ordinary skill-check routing.",
   "policy": {
     "max_files_changed": 1,
     "allowed_paths": [
@@ -13,15 +13,8 @@
     {
       "type": "replace_text",
       "path": "scripts/feature_actions/action-execution-feature.js",
-      "search": "    [\n      \"full.improvised-attack\",\n      \"full.boot-up\"\n    ].includes(",
-      "replace": "    [\n      \"full.improvised-attack\",\n      \"quick.shut-down\",\n      \"full.boot-up\"\n    ].includes(",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/feature_actions/action-execution-feature.js",
-      "search": "    canonicalExecution:\n      actionId ===\n      \"full.improvised-attack\",",
-      "replace": "    canonicalExecution:\n      [\n        \"full.improvised-attack\",\n        \"quick.shut-down\",\n        \"full.boot-up\"\n      ].includes(\n        actionId\n      ),",
+      "search": "      \"quick.boost\",\n      \"quick.hide\",\n      \"quick.prepare\",\n      \"quick.self-destruct\",\n\n      \"full.disengage\",\n      \"full.mount-dismount\",",
+      "replace": "      \"quick.boost\",\n      \"quick.hide\",\n      \"quick.quick-tech.bolster\",\n      \"quick.quick-tech.lock-on\",\n      \"quick.prepare\",\n      \"quick.self-destruct\",\n\n      \"full.disengage\",\n      \"full.activate\",\n      \"full.mount-dismount\",",
       "expected_occurrences": 1
     }
   ]
