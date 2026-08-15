@@ -126,9 +126,9 @@ function frameConnSensorDistance(
      * enemies far outside a mech's Sensors to qualify.
      */
     const measuredCost =
-      Number(
-        measured?.cost
-      );
+      typeof measured?.cost === "number"
+        ? measured.cost
+        : NaN;
 
     if (
       Number.isFinite(
