@@ -1,21 +1,10 @@
 {
   "schema_version": 2,
-  "id": "audit-no-check-actions-phase-3-protocol-guard",
-  "description": "Make Protocol actions semantically no-roll so future dynamically registered protocols cannot fall through to the mech-skill chooser.",
-  "planning_goal": "In Action Execution, classify every Protocol-category action as no-roll so activating a protocol cannot route to the generic HULL/AGI/SYS/ENG mech-skill chooser.",
+  "id": "validate-no-check-action-audit",
+  "description": "Planning-only acceptance checkpoint after auditing no-check universal action routing and presentation.",
+  "planning_goal": "Verify Action Execution keeps no-check universal actions out of the generic mech-skill chooser and presents non-roll workflows without d20 roll affordances.",
   "policy": {
-    "max_files_changed": 1,
-    "allowed_paths": [
-      "scripts/feature_actions/action-execution-feature.js"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "scripts/feature_actions/action-execution-feature.js",
-      "search": "  const actionId =\n    typeof actionOrId ===\n      \"string\"\n      ? actionOrId\n      : actionOrId?.id;\n\n\n  if (\n    !actionId\n  ) {\n    return false;\n  }\n\n\n  return (\n    FRAME_CONN_NO_ROLL_ACTIONS\n      .has(\n        actionId\n      )\n  );",
-      "replace": "  const actionId =\n    typeof actionOrId ===\n      \"string\"\n      ? actionOrId\n      : actionOrId?.id;\n\n  const actionCategory =\n    typeof actionOrId ===\n      \"object\"\n      ? actionOrId?.category ?? null\n      : null;\n\n\n  if (\n    !actionId\n  ) {\n    return false;\n  }\n\n\n  if (\n    actionCategory ===\n      \"protocol\" ||\n    String(actionId)\n      .startsWith(\n        \"protocol.\"\n      )\n  ) {\n    return true;\n  }\n\n\n  return (\n    FRAME_CONN_NO_ROLL_ACTIONS\n      .has(\n        actionId\n      )\n  );",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
