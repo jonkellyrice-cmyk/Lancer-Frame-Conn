@@ -1,28 +1,14 @@
 {
   "schema_version": 2,
-  "id": "route-end-grapple-canonically",
-  "description": "Classify End Grapple as its own canonical contested HULL execution kind.",
-  "policy": {"max_files_changed":1,"allowed_paths":["scripts/feature_actions/action-execution-feature.js"]},
+  "id": "execute-end-grapple-contested-hull",
+  "description": "Resolve End Grapple as a native HULL-vs-HULL contested check and remove the selected Grapple relationship on success.",
+  "policy": {"max_files_changed":1,"allowed_paths":["scripts/runtime-orchestrator.js"]},
   "operations": [
     {
       "type":"replace_text",
-      "path":"scripts/feature_actions/action-execution-feature.js",
-      "search":"  if (\n    action.id ===\n      \"quick.grapple\"\n  ) {\n    return \"grapple\";\n  }",
-      "replace":"  if (\n    action.id ===\n      \"quick.grapple\"\n  ) {\n    return \"grapple\";\n  }\n\n\n  if (\n    action.id ===\n      \"quick.end-grapple\"\n  ) {\n    return \"end-grapple\";\n  }",
-      "expected_occurrences":1
-    },
-    {
-      "type":"replace_text",
-      "path":"scripts/feature_actions/action-execution-feature.js",
-      "search":"      \"quick.grapple\",\n      \"quick.hide\",",
-      "replace":"      \"quick.grapple\",\n      \"quick.end-grapple\",\n      \"quick.hide\",",
-      "expected_occurrences":1
-    },
-    {
-      "type":"replace_text",
-      "path":"scripts/feature_actions/action-execution-feature.js",
-      "search":"        \"quick.grapple\",\n        \"quick.hide\",",
-      "replace":"        \"quick.grapple\",\n        \"quick.end-grapple\",\n        \"quick.hide\",",
+      "path":"scripts/runtime-orchestrator.js",
+      "search":"    case \"grapple\": {",
+      "replace":"    case \"end-grapple\": {\n      const targetToken = await resolveFrameConnRequiredTarget(action);\n      const targetActor = targetToken?.actor ?? null;\n      if (!targetActor) throw new Error(\"End Grapple requires an authoritative grapple opponent.\");\n      if (!frameConnStatusOrchestrationApi.getGrappleBetween(actor, targetActor)) {\n        throw new Error(\"The selected character is not in a tracked Grapple relationship with the acting mech.\");\n      }\n\n      transaction =\n        await frameConnExecutionTransactionApi\n          .runNativeExecutionTransactionWithGlobalHooks({\n            context: executionContext,\n            execute: async () => {\n              const escapeExecution = assertFrameConnNativeExecutionSucceeded(\n                await frameConnNativeAdapterApi.rollStat({ actor, path: \"hull\", title: \"End Grapple — HULL\" }),\n                \"End Grapple HULL check\"\n              );\n              const opposingExecution = assertFrameConnNativeExecutionSucceeded(\n                await frameConnNativeAdapterApi.rollStat({ actor: targetActor, path: \"hull\", title: \"Grapple Opposition — HULL\" }),\n                \"Grapple opposing HULL check\"\n              );\n              const escapeTotal = Number(escapeExecution?.result?.roll?.total);\n              const opposingTotal = Number(opposingExecution?.result?.roll?.total);\n              if (!Number.isFinite(escapeTotal) || !Number.isFinite(opposingTotal)) {\n                throw new Error(\"End Grapple contested check did not produce native roll totals.\");\n              }\n              const escaped = escapeTotal >= opposingTotal;\n              if (escaped) {\n                await frameConnStatusOrchestrationApi.endGrappleBetween(actor, targetActor);\n              }\n              return Object.freeze({ escapeExecution, opposingExecution, escaped, escapeTotal, opposingTotal });\n            },\n            metadata: { actionId: action.id, executionKind, source: \"action-execution\", targetActorUuid: targetActor.uuid ?? null, contestedCheck: \"hull-vs-hull\", successRemovesRelationship: \"grapple\" }\n          });\n      break;\n    }\n\n    case \"grapple\": {",
       "expected_occurrences":1
     }
   ]
