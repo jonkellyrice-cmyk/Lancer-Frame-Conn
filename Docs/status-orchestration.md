@@ -64,6 +64,22 @@ These previously implemented actions continue through Native Adapter status appl
 
 Status Orchestration listens to token/combat/canvas lifecycle events and derives Engaged from hostile adjacency using the existing Sensors distance measurement. Hidden participants are excluded unless a tracked Grapple explicitly forces the relationship. Shared Engaged mutation is GM-only to reduce multi-client write races. Disengage suppresses reapplication for its current-turn duration.
 
+## Derived Danger Zone state
+
+Danger Zone is derived continuously from authoritative native Heat state rather than stored as independent Frame Conn state. For mech actors, Frame Conn reads `actor.system.heat.value` and `actor.system.heat.max`, calculates the threshold as `Math.ceil(heatCap / 2)`, and synchronizes the native `dangerzone` status.
+
+```text
+threshold = ceil(Heat Cap / 2)
+
+Heat >= threshold
+→ apply native dangerzone
+
+Heat < threshold
+→ remove native dangerzone
+```
+
+For example, Heat Cap 7 enters Danger Zone at 4 Heat, while Heat Cap 8 enters at 4 Heat. The synchronizer runs on actor updates and initial/canvas synchronization, so Overcharge, Stabilize, systems, direct Heat changes, and future Heat sources all converge on the same derived rule. Native Adapter remains responsible for the actual ActiveEffect mutation. When an active GM exists, the GM client owns this shared automatic mutation to avoid multi-client races; otherwise an owning client may synchronize its own mech.
+
 ## Lifecycle persistence
 
 Timed Fragment Signal records and Grapple relationships are stored in memory and best-effort actor flags. On canvas/combat/token events, Frame Conn rehydrates valid records from those flags before synchronization. This protects ordinary reload/scene re-entry where the current user has permission to read/write those flags.

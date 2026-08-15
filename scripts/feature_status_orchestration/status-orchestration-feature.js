@@ -91,6 +91,66 @@ function nativeStatusConfigured(statusId) {
     globalThis.CONFIG.statusEffects.some(status => status?.id === statusId);
 }
 
+function canAuthoritativelyMutateActor(actor) {
+  const users = [...(globalThis.game?.users ?? [])];
+  const activeGmExists = users.some(user => user?.active && user?.isGM);
+  if (activeGmExists) return Boolean(globalThis.game?.user?.isGM);
+  return Boolean(actor?.isOwner);
+}
+
+function dangerZoneThreshold(actor) {
+  const heatCap = Number(actor?.system?.heat?.max);
+  if (!Number.isFinite(heatCap) || heatCap <= 0) return null;
+  return Math.ceil(heatCap / 2);
+}
+
+async function syncDangerZone(actor) {
+  if (!actor || actor.type !== "mech") return false;
+
+  const heat = Number(actor?.system?.heat?.value);
+  const threshold = dangerZoneThreshold(actor);
+  if (!Number.isFinite(heat) || threshold === null) return false;
+
+  const shouldBeInDangerZone = heat >= threshold;
+  const isInDangerZone = Boolean(actor?.system?.statuses?.dangerzone);
+
+  if (shouldBeInDangerZone === isInDangerZone) {
+    return Object.freeze({
+      actorUuid: actorUuid(actor),
+      heat,
+      heatCap: Number(actor.system.heat.max),
+      threshold,
+      active: isInDangerZone,
+      changed: false
+    });
+  }
+
+  if (!canAuthoritativelyMutateActor(actor)) return false;
+
+  const result = shouldBeInDangerZone
+    ? await applyNativeStatus(actor, "dangerzone")
+    : await removeNativeStatus(actor, "dangerzone");
+
+  return Object.freeze({
+    actorUuid: actorUuid(actor),
+    heat,
+    heatCap: Number(actor.system.heat.max),
+    threshold,
+    active: shouldBeInDangerZone,
+    changed: Boolean(result?.changed)
+  });
+}
+
+async function syncDangerZones() {
+  const actors = [...(globalThis.game?.actors?.contents ?? [])];
+  const results = [];
+  for (const actor of actors) {
+    if (actor?.type !== "mech") continue;
+    results.push(await syncDangerZone(actor));
+  }
+  return Object.freeze(results);
+}
+
 async function applyStatuses(actor, statusIds = []) {
   const results = [];
   for (const statusId of statusIds) results.push(await applyNativeStatus(actor, statusId));
@@ -368,9 +428,11 @@ async function handleCombatUpdate(combat) {
   await syncTimedStatuses(combat);
   await syncGrapples();
   await syncEngaged();
+  await syncDangerZones();
   return true;
 }
 async function handleTokenUpdate() { hydrateStatusOrchestrationState(); await syncGrapples(); await syncEngaged(); return true; }
+async function handleActorUpdate(actor) { return syncDangerZone(actor); }
 async function handleCombatDelete(combat) {
   for (const record of [...timedStatuses.values()]) if (!record.combatId || record.combatId === combat?.id) await clearTimedRecord(record);
   for (const record of [...grapples.values()]) await clearGrapple(record);
@@ -382,14 +444,14 @@ function diagnostics() { return Object.freeze({ runtimeBindings: runtimeBindings
 export const frameConnStatusOrchestrationFeature = defineFrameConnFeature({
   id: "status-orchestration",
   domain: "status.orchestration",
-  provides: ["status.orchestration", "status.timed", "status.grapple", "status.engaged.derived"],
+  provides: ["status.orchestration", "status.timed", "status.grapple", "status.engaged.derived", "status.danger-zone.derived"],
   dependsOn: ["native-adapter.status", "sensors.measurement"],
   optionalDependsOn: [],
   state: {},
-  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged },
+  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged, syncDangerZone, syncDangerZones },
   queries: { diagnostics, runtimeBindings, isDisengaged, getGrapplesForActor, getGrappleBetween, hydrateStatusOrchestrationState },
-  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { hydrateStatusOrchestrationState(); await syncGrapples(); return syncEngaged(); } },
+  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, updateActor: handleActorUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { hydrateStatusOrchestrationState(); await syncGrapples(); await syncEngaged(); return syncDangerZones(); } },
   lifecycle: {},
-  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage, isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged, diagnostics, runtimeBindings },
+  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage, isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged, dangerZoneThreshold, syncDangerZone, syncDangerZones, diagnostics, runtimeBindings },
   metadata: { label: "Status Orchestration", nativeStatusAuthority: "native-adapter.status", coverPolicy: "Cover remains attacker-relative and is not represented as one global persistent status." }
 });
