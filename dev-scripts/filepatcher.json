@@ -1,38 +1,80 @@
 {
   "schema_version": 2,
-  "id": "wire-status-action-execution-through-orchestration",
-  "description": "Configure Status Orchestration and implement Hide, Ram, Grapple, Fragment Signal, and Search status consequences through canonical execution.",
+  "id": "add-disengage-and-grapple-lifecycle-state",
+  "description": "Extend Status Orchestration with end-of-turn Disengage suppression and optional native grappled presentation while preserving Frame Conn relationship authority.",
   "policy": {
     "max_files_changed": 1,
-    "allowed_paths": ["scripts/runtime-orchestrator.js"]
+    "allowed_paths": ["scripts/feature_status_orchestration/status-orchestration-feature.js"]
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "if (\n  !frameConnSensorsApi\n) {\n  throw new Error(\n    \"Frame Conn | The registered Sensors feature API could not be resolved.\"\n  );\n}\n\n\nconst initializeFrameConnActionRegistry =",
-      "replace": "if (\n  !frameConnSensorsApi\n) {\n  throw new Error(\n    \"Frame Conn | The registered Sensors feature API could not be resolved.\"\n  );\n}\n\n\nconst frameConnStatusOrchestrationApi =\n  frameConnFeatureRegistry.getApi(\n    \"status-orchestration\"\n  );\n\n\nif (\n  !frameConnStatusOrchestrationApi\n) {\n  throw new Error(\n    \"Frame Conn | The registered Status Orchestration feature API could not be resolved.\"\n  );\n}\n\n\nconst initializeFrameConnActionRegistry =",
+      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
+      "search": "const timedStatuses = new Map();\nconst grapples = new Map();",
+      "replace": "const timedStatuses = new Map();\nconst grapples = new Map();\nconst disengagedActors = new Map();",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "function assertFrameConnTargetWithinSensors(\n  actor,\n  targetToken\n) {",
-      "replace": "function assertFrameConnAdjacentTarget(\n  actor,\n  targetToken\n) {\n  const sourceToken =\n    resolveFrameConnActorToken(\n      actor\n    );\n\n  if (!sourceToken || !targetToken) {\n    throw new Error(\n      \"Frame Conn could not resolve adjacency targeting geometry.\"\n    );\n  }\n\n  const distance =\n    frameConnSensorsApi.distance(\n      sourceToken,\n      targetToken\n    );\n\n  if (!Number.isFinite(distance) || distance > 1) {\n    throw new Error(\n      `${targetToken.name ?? \"Selected target\"} is not adjacent.`\n    );\n  }\n\n  return Object.freeze({ sourceToken, targetToken, distance });\n}\n\n\nfunction nativeExecutionHitTarget(\n  execution,\n  targetActor\n) {\n  const targetUuid =\n    targetActor?.uuid ??\n    null;\n\n  return (\n    execution?.status === \"succeeded\" &&\n    Array.isArray(execution?.result?.targets) &&\n    execution.result.targets.some(result =>\n      result?.hit === true &&\n      (\n        !targetUuid ||\n        result?.target?.actorUuid === targetUuid\n      )\n    )\n  );\n}\n\n\nfunction assertFrameConnNativeExecutionSucceeded(\n  execution,\n  label\n) {\n  if (execution?.status !== \"succeeded\") {\n    const error = new Error(\n      `${label} native execution did not succeed: ${execution?.status ?? \"unknown\"}`\n    );\n    error.nativeExecution = execution;\n    throw error;\n  }\n  return execution;\n}\n\n\nfunction assertFrameConnTargetWithinSensors(\n  actor,\n  targetToken\n) {",
+      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
+      "search": "async function applyStatuses(actor, statusIds = []) {",
+      "replace": "function nativeStatusConfigured(statusId) {\n  return Array.isArray(globalThis.CONFIG?.statusEffects) &&\n    globalThis.CONFIG.statusEffects.some(status => status?.id === statusId);\n}\n\nasync function applyStatuses(actor, statusIds = []) {",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "    case \"lock-on\": {",
-      "replace": "    case \"hide\": {\n      if (actor?.system?.statuses?.hidden) {\n        throw new Error(\n          \"Hide requires the acting mech to not already be Hidden.\"\n        );\n      }\n\n      if (actor?.system?.statuses?.engaged) {\n        throw new Error(\n          \"Hide cannot be taken while Engaged.\"\n        );\n      }\n\n      transaction =\n        await frameConnExecutionTransactionApi\n          .runNativeExecutionTransactionWithGlobalHooks({\n            context: executionContext,\n            execute: async () => {\n              const results =\n                await frameConnStatusOrchestrationApi\n                  .applyStatuses(actor, [\"hidden\"]);\n              const applied = results?.[0];\n              if (!applied?.active) {\n                throw new Error(\"Native Hidden application failed.\");\n              }\n              return applied;\n            },\n            metadata: { actionId: action.id, executionKind, source: \"action-execution\", nativeStatusId: \"hidden\" }\n          });\n      break;\n    }\n\n    case \"ram\": {\n      const targetToken = await resolveFrameConnRequiredTarget(action);\n      assertFrameConnAdjacentTarget(actor, targetToken);\n      const targetActor = targetToken?.actor ?? null;\n      if (!targetActor) throw new Error(\"Ram requires an authoritative target actor.\");\n\n      transaction =\n        await frameConnExecutionTransactionApi\n          .runNativeExecutionTransactionWithGlobalHooks({\n            context: executionContext,\n            execute: async () => {\n              const execution = assertFrameConnNativeExecutionSucceeded(\n                await frameConnNativeAdapterApi.executeBasicAttack({ actor, title: action.label ?? \"Ram\" }),\n                \"Ram\"\n              );\n              if (nativeExecutionHitTarget(execution, targetActor)) {\n                await frameConnStatusOrchestrationApi.applyStatuses(targetActor, [\"prone\"]);\n              }\n              return execution;\n            },\n            metadata: { actionId: action.id, executionKind, source: \"action-execution\", targetActorUuid: targetActor.uuid ?? null, postHitStatusId: \"prone\" }\n          });\n      break;\n    }\n\n    case \"grapple\": {\n      const targetToken = await resolveFrameConnRequiredTarget(action);\n      assertFrameConnAdjacentTarget(actor, targetToken);\n      const targetActor = targetToken?.actor ?? null;\n      if (!targetActor) throw new Error(\"Grapple requires an authoritative target actor.\");\n\n      transaction =\n        await frameConnExecutionTransactionApi\n          .runNativeExecutionTransactionWithGlobalHooks({\n            context: executionContext,\n            execute: async () => {\n              const execution = assertFrameConnNativeExecutionSucceeded(\n                await frameConnNativeAdapterApi.executeBasicAttack({ actor, title: action.label ?? \"Grapple\" }),\n                \"Grapple\"\n              );\n              if (nativeExecutionHitTarget(execution, targetActor)) {\n                await frameConnStatusOrchestrationApi.establishGrapple(actor, targetActor);\n              }\n              return execution;\n            },\n            metadata: { actionId: action.id, executionKind, source: \"action-execution\", targetActorUuid: targetActor.uuid ?? null, statusRelationship: \"grapple\" }\n          });\n      break;\n    }\n\n    case \"fragment-signal\": {\n      const targetToken = await resolveFrameConnRequiredTarget(action);\n      assertFrameConnTargetWithinSensors(actor, targetToken);\n      const targetActor = targetToken?.actor ?? null;\n      if (!targetActor) throw new Error(\"Fragment Signal requires an authoritative target actor.\");\n\n      transaction =\n        await frameConnExecutionTransactionApi\n          .runNativeExecutionTransactionWithGlobalHooks({\n            context: executionContext,\n            execute: async () => {\n              const execution = assertFrameConnNativeExecutionSucceeded(\n                await frameConnNativeAdapterApi.executeBasicTechAttack({ actor, title: action.label ?? \"Fragment Signal\" }),\n                \"Fragment Signal\"\n              );\n              if (nativeExecutionHitTarget(execution, targetActor)) {\n                await frameConnStatusOrchestrationApi.applyUntilEndOfNextTurn(\n                  targetActor,\n                  [\"impaired\", \"slow\"],\n                  { sourceActionId: action.id }\n                );\n              }\n              return execution;\n            },\n            metadata: { actionId: action.id, executionKind, source: \"action-execution\", targetActorUuid: targetActor.uuid ?? null, postHitStatusIds: [\"impaired\", \"slow\"] }\n          });\n      break;\n    }\n\n    case \"search\": {\n      const targetToken = await resolveFrameConnRequiredTarget(action);\n      assertFrameConnTargetWithinSensors(actor, targetToken);\n      const targetActor = targetToken?.actor ?? null;\n      if (!targetActor) throw new Error(\"Search requires an authoritative target actor.\");\n\n      transaction =\n        await frameConnExecutionTransactionApi\n          .runNativeExecutionTransactionWithGlobalHooks({\n            context: executionContext,\n            execute: async () => {\n              const searchExecution = assertFrameConnNativeExecutionSucceeded(\n                await frameConnNativeAdapterApi.rollStat({ actor, path: \"sys\", title: \"Search — Systems\" }),\n                \"Search Systems check\"\n              );\n              const defenseExecution = assertFrameConnNativeExecutionSucceeded(\n                await frameConnNativeAdapterApi.rollStat({ actor: targetActor, path: \"agi\", title: \"Search Defense — Agility\" }),\n                \"Search Agility defense\"\n              );\n              const searchTotal = Number(searchExecution?.result?.roll?.total);\n              const defenseTotal = Number(defenseExecution?.result?.roll?.total);\n              if (!Number.isFinite(searchTotal) || !Number.isFinite(defenseTotal)) {\n                throw new Error(\"Search contested check did not produce native roll totals.\");\n              }\n              if (searchTotal >= defenseTotal) {\n                await frameConnStatusOrchestrationApi.removeStatuses(targetActor, [\"hidden\"]);\n              }\n              return Object.freeze({ searchExecution, defenseExecution, succeeded: searchTotal >= defenseTotal, searchTotal, defenseTotal });\n            },\n            metadata: { actionId: action.id, executionKind, source: \"action-execution\", targetActorUuid: targetActor.uuid ?? null, contestedCheck: \"sys-vs-agi\", successRemovesStatusId: \"hidden\" }\n          });\n      break;\n    }\n\n    case \"lock-on\": {",
+      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
+      "search": "  await applyStatuses(attacker, [\"grappled\", \"engaged\"]);\n  await applyStatuses(target, [\"grappled\", \"engaged\"]);",
+      "replace": "  const relationshipStatuses = nativeStatusConfigured(\"grappled\")\n    ? [\"grappled\", \"engaged\"]\n    : [\"engaged\"];\n  await applyStatuses(attacker, relationshipStatuses);\n  await applyStatuses(target, relationshipStatuses);",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "  /* ----------------------------------------------------------\n     Action Execution bindings\n     ---------------------------------------------------------- */",
-      "replace": "  /* ----------------------------------------------------------\n     Status Orchestration bindings\n     ---------------------------------------------------------- */\n\n  frameConnStatusOrchestrationApi\n    .configureRuntime?.({\n      applyStatus:\n        (actor, statusId) =>\n          frameConnNativeAdapterApi.applyStatus(actor, statusId),\n\n      removeStatus:\n        (actor, statusId) =>\n          frameConnNativeAdapterApi.removeStatus(actor, statusId),\n\n      distance:\n        (sourceToken, targetToken) =>\n          frameConnSensorsApi.distance(sourceToken, targetToken)\n    });\n\n\n  /* ----------------------------------------------------------\n     Action Execution bindings\n     ---------------------------------------------------------- */",
+      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
+      "search": "    await removeNativeStatus(actor, \"grappled\");\n    if (actor.uuid === record?.immobilizedActorUuid)",
+      "replace": "    if (nativeStatusConfigured(\"grappled\")) await removeNativeStatus(actor, \"grappled\");\n    if (actor.uuid === record?.immobilizedActorUuid)",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
+      "search": "const hiddenActor = actor => Boolean(actor?.system?.statuses?.hidden);\nconst grappleForcesPair = (leftActor, rightActor) => grapples.has(grappleId(leftActor, rightActor));",
+      "replace": "const hiddenActor = actor => Boolean(actor?.system?.statuses?.hidden);\nconst grappleForcesPair = (leftActor, rightActor) => grapples.has(grappleId(leftActor, rightActor));\n\nasync function applyDisengage(actor, combat = globalThis.game?.combat) {\n  const uuid = actorUuid(actor);\n  const activeTurnKey = turnKey(combat);\n  if (!uuid || !activeTurnKey) throw new Error(\"Disengage requires an active combat turn and authoritative actor.\");\n  disengagedActors.set(uuid, { actorUuid: uuid, turnKey: activeTurnKey });\n  await removeNativeStatus(actor, \"engaged\");\n  return Object.freeze({ actorUuid: uuid, turnKey: activeTurnKey });\n}\n\nfunction syncDisengage(combat = globalThis.game?.combat) {\n  const currentTurnKey = turnKey(combat);\n  for (const [uuid, record] of disengagedActors.entries()) {\n    if (!currentTurnKey || record.turnKey !== currentTurnKey) disengagedActors.delete(uuid);\n  }\n  return true;\n}\n\nfunction isDisengaged(actor) {\n  const record = disengagedActors.get(actorUuid(actor));\n  return Boolean(record && record.turnKey === turnKey(globalThis.game?.combat));\n}",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
+      "search": "    const shouldBeEngaged = expected.get(actor.uuid) === true;\n    const isEngaged = Boolean(actor.system?.statuses?.engaged);",
+      "replace": "    const shouldBeEngaged = expected.get(actor.uuid) === true && !isDisengaged(actor);\n    const isEngaged = Boolean(actor.system?.statuses?.engaged);",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
+      "search": "async function handleCombatUpdate(combat) {\n  await syncTimedStatuses(combat);",
+      "replace": "async function handleCombatUpdate(combat) {\n  syncDisengage(combat);\n  await syncTimedStatuses(combat);",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
+      "search": "function diagnostics() { return Object.freeze({ runtimeBindings: runtimeBindings(), timedStatuses: [...timedStatuses.values()].map(record => ({ ...record })), grapples: [...grapples.values()].map(record => ({ ...record })) }); }",
+      "replace": "function diagnostics() { return Object.freeze({ runtimeBindings: runtimeBindings(), timedStatuses: [...timedStatuses.values()].map(record => ({ ...record })), grapples: [...grapples.values()].map(record => ({ ...record })), disengagedActors: [...disengagedActors.values()].map(record => ({ ...record })) }); }",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
+      "search": "  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleForActor, syncTimedStatuses, syncGrapples, syncEngaged },\n  queries: { diagnostics, runtimeBindings },",
+      "replace": "  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleForActor, applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged },\n  queries: { diagnostics, runtimeBindings, isDisengaged },",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
+      "search": "  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleForActor, syncTimedStatuses, syncGrapples, syncEngaged, diagnostics, runtimeBindings },",
+      "replace": "  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleForActor, applyDisengage, isDisengaged, syncTimedStatuses, syncGrapples, syncEngaged, diagnostics, runtimeBindings },",
       "expected_occurrences": 1
     }
   ]
