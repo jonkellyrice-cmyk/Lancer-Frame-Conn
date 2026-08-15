@@ -785,6 +785,7 @@ async function frameConnExecuteActionRoll(
   if (
     [
       "full.improvised-attack",
+      "quick.shut-down",
       "full.boot-up"
     ].includes(
       action.id
@@ -920,8 +921,13 @@ function getFrameConnActionExecutionDiagnostics(
       kind,
 
     canonicalExecution:
-      actionId ===
-      "full.improvised-attack",
+      [
+        "full.improvised-attack",
+        "quick.shut-down",
+        "full.boot-up"
+      ].includes(
+        actionId
+      ),
 
     runtimeBindings:
       getFrameConnActionExecutionRuntimeBindings(),
