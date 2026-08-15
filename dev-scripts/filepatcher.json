@@ -1,9 +1,20 @@
 {
   "schema_version": 2,
-  "id": "validate-engaged-distance-fix",
-  "description": "No-op acceptance state after correcting Foundry path-cost coercion that caused false global Engaged application.",
+  "id": "fix-engaged-null-distance-coercion",
+  "description": "Prevent Foundry null/non-numeric measured distance metadata from being coerced to 0 and falsely making every hostile token pair adjacent and Engaged.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 1,
+    "allowed_paths": [
+      "scripts/sensors-feature.js"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "scripts/sensors-feature.js",
+      "search": "    const measuredDistance =\n      Number(\n        measured?.distance\n      );",
+      "replace": "    const measuredDistance =\n      typeof measured?.distance === \"number\"\n        ? measured.distance\n        : NaN;",
+      "expected_occurrences": 1
+    }
+  ]
 }
