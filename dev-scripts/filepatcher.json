@@ -1,54 +1,141 @@
 {
   "schema_version": 2,
-  "id": "harden-status-orchestration-ownership-and-rehydration",
-  "description": "Ensure timed status cleanup removes only Frame Conn-owned statuses and rehydrate timed/Grapple lifecycle records from actor flags after reloads.",
+  "id": "document-status-orchestration-implementation",
+  "description": "Document the implemented universal-action status orchestration pass and its deliberate boundaries.",
   "policy": {
-    "max_files_changed": 1,
+    "max_files_changed": 6,
     "allowed_paths": [
-      "scripts/feature_status_orchestration/status-orchestration-feature.js"
+      "Docs/status-orchestration.md",
+      "Docs/status-effect-action-and-state-notes.md",
+      "Docs/universal-action-testing-inventory.md",
+      "Docs/af-hide.md",
+      "Docs/af-disengage.md",
+      "Docs/af-stabilize.md"
     ]
   },
   "operations": [
     {
+      "type": "create_file",
+      "path": "Docs/status-orchestration.md",
+      "content": "# Frame Conn Status Orchestration\n\n## Purpose\n\nThis document records the implemented Frame Conn layer that decides **when** native Lancer statuses should be applied or removed. Native Adapter remains authoritative for **how** those statuses are represented and mutated in Foundry.\n\nThe implementation lives in `scripts/feature_status_orchestration/status-orchestration-feature.js`.\n\n## Architectural boundary\n\n```text\naction / combat / token-position event\n        ↓\nFrame Conn Status Orchestration\n        ↓\nrule determines desired native status transition\n        ↓\nNative Adapter applyStatus/removeStatus\n        ↓\nFoundry/Lancer ActiveEffect\n        ↓\nauthoritative system.statuses.* derived state\n```\n\nFrame Conn does not create parallel persistent status booleans. Lifecycle records such as timed Fragment Signal effects and Grapple relationships may use Frame Conn state/flags because the native status icon alone does not encode their source, duration, or relationship semantics.\n\n## Implemented action consequences\n\n### Hide\n\n`quick.hide` is a canonical non-roll Execute action. It applies native `hidden`. The current execution prevents hiding while already Hidden or Engaged. Full cover/invisibility/observer legality and every Hidden-breaking condition still require the later visibility/cover rules layer.\n\n### Fragment Signal\n\n`quick.quick-tech.invade.fragment-signal` executes the native Tech Attack. Only after a normalized native hit does Frame Conn apply native `impaired` and `slow`. The timed record lasts through the end of the target's next turn. Cleanup owns only statuses that Frame Conn actually introduced, so a pre-existing unrelated Impaired/Slowed effect is not removed. Reapplication refreshes Frame Conn-owned duration.\n\n### Ram\n\n`quick.ram` executes the native basic attack. Only on a normalized native hit is native `prone` applied. The optional one-space push is forced movement and remains outside status orchestration.\n\n### Grapple\n\n`quick.grapple` executes the native basic attack. On a hit, Frame Conn records the specific Grapple relationship, makes both participants Engaged, and applies native Immobilized to the smaller participant. If the installed Lancer status registry exposes a `grappled` presentation status, Frame Conn may mirror the relationship with that status, but the relationship record remains semantic authority. Breaking adjacency ends the tracked Grapple and removes Grapple-owned status effects.\n\n`quick.end-grapple` is now a separate Quick Action. It resolves a native HULL-vs-HULL contested check against the selected tracked Grapple opponent and ends only that relationship on success.\n\n### Search\n\n`quick.search` resolves native Systems and Agility stat flows as a contested check. It does not inspect/reveal whether the target is Hidden before resolving. On success it removes native `hidden`.\n\n### Disengage\n\n`full.disengage` is a canonical non-roll Execute action. It removes current native `engaged` and records suppression through the end of the current turn so the derived Engaged evaluator does not immediately reapply it. The same state is available to the future Overwatch/reaction trigger system; Overwatch itself is not yet implemented.\n\n### Shut Down / Boot Up / Lock On\n\nThese previously implemented actions continue through Native Adapter status application/removal:\n\n- Shut Down → apply `shutdown`;\n- Boot Up → remove `shutdown`;\n- Lock On → apply `lockon` to the acquired target.\n\n## Derived Engaged state\n\nStatus Orchestration listens to token/combat/canvas lifecycle events and derives Engaged from hostile adjacency using the existing Sensors distance measurement. Hidden participants are excluded unless a tracked Grapple explicitly forces the relationship. Shared Engaged mutation is GM-only to reduce multi-client write races. Disengage suppresses reapplication for its current-turn duration.\n\n## Lifecycle persistence\n\nTimed Fragment Signal records and Grapple relationships are stored in memory and best-effort actor flags. On canvas/combat/token events, Frame Conn rehydrates valid records from those flags before synchronization. This protects ordinary reload/scene re-entry where the current user has permission to read/write those flags.\n\nEnemy-document mutation still depends on Foundry permissions. Live group testing should specifically verify player-applied enemy statuses and may reveal the need for a GM-authoritative socket service.\n\n## Deliberate non-implementations\n\n### Stabilize condition clearing\n\nNative Stabilize already automates Cool/Exposed, Burn, Reload, HP/Repair, and chat. Its Clear Own Condition and Clear Ally Condition branches explicitly leave condition selection/removal manual. Frame Conn will not guess which condition should be cleared. A future enhancement needs a condition picker or a deliberate native Flow extension.\n\n### Cover\n\nCover is attacker-relative: flanking or geometry can negate cover against one attacker while preserving it against another. Therefore Frame Conn does **not** persist one global `cover_soft` or `cover_hard` truth from terrain adjacency. Cover belongs in attack-context geometry once terrain/cover support exists.\n\n### Eject\n\nEject shares the current `full.mount-dismount` action with Mount and Dismount. Applying `impaired` at that undifferentiated action boundary would incorrectly affect ordinary Mount/Dismount. Eject automation is deferred until Eject has its own semantic execution mode; the once-per-Full-Repair restriction also requires persistent action/resource state.\n\n### Ram push\n\nThe optional one-space displacement from Ram is forced movement, not a status effect, and belongs to Movement.\n\n### Complete Grapple rules\n\nThis pass automates status/relationship application and cleanup. Controller contests, dragging/mirroring movement, reaction/Boost restrictions, and free release are broader Grapple-rule work rather than status mutation.\n\n## Live validation status\n\nAll source-side changes pass the permanent FilePatcher/toolchain gates. These new status interactions remain queued for the planned grouped Foundry live test.\n"
+    },
+    {
       "type": "replace_text",
-      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search": "/** Statuses persist until the end of this target's next turn, not its current turn. */\nasync function applyUntilEndOfNextTurn(actor, statusIds, { combat = globalThis.game?.combat, sourceActionId = null } = {}) {\n  const uuid = actorUuid(actor);\n  if (!uuid) throw new Error(\"Timed native statuses require an authoritative target actor.\");\n  await applyStatuses(actor, statusIds);\n  const record = {\n    targetActorUuid: uuid,\n    statusIds: [...statusIds],\n    combatId: combat?.id ?? null,\n    appliedTurnKey: turnKey(combat),\n    activeTargetTurnKey: null,\n    sourceActionId,\n    appliedAt: Date.now()\n  };\n  timedStatuses.set(uuid, record);\n  await bestEffortSetFlag(actor, TIMED_FLAG, record);\n  return Object.freeze({ ...record });\n}",
-      "replace": "/**\n * Statuses persist until the end of this target's next turn, not its current\n * turn. Cleanup owns only statuses that Frame Conn actually introduced.\n * Reapplying the same Frame Conn effect refreshes the duration of statuses\n * already owned by the existing timed record.\n */\nasync function applyUntilEndOfNextTurn(actor, statusIds, { combat = globalThis.game?.combat, sourceActionId = null } = {}) {\n  const uuid = actorUuid(actor);\n  if (!uuid) throw new Error(\"Timed native statuses require an authoritative target actor.\");\n\n  const existing = timedStatuses.get(uuid) ?? null;\n  const ownedStatusIds = new Set(existing?.statusIds ?? []);\n\n  for (const statusId of statusIds) {\n    const result = await applyNativeStatus(actor, statusId);\n    if (result?.changed && result?.active) {\n      ownedStatusIds.add(statusId);\n    }\n  }\n\n  if (ownedStatusIds.size === 0) {\n    return Object.freeze({\n      targetActorUuid: uuid,\n      statusIds: [],\n      combatId: combat?.id ?? null,\n      appliedTurnKey: turnKey(combat),\n      activeTargetTurnKey: null,\n      sourceActionId,\n      appliedAt: Date.now(),\n      tracked: false\n    });\n  }\n\n  const record = {\n    targetActorUuid: uuid,\n    statusIds: [...ownedStatusIds],\n    combatId: combat?.id ?? existing?.combatId ?? null,\n    appliedTurnKey: turnKey(combat),\n    activeTargetTurnKey: null,\n    sourceActionId,\n    appliedAt: Date.now()\n  };\n  timedStatuses.set(uuid, record);\n  await bestEffortSetFlag(actor, TIMED_FLAG, record);\n  return Object.freeze({ ...record, tracked: true });\n}",
+      "path": "Docs/status-effect-action-and-state-notes.md",
+      "search": "This document records implementation-planning notes for universal actions and game states that apply, remove, or automatically derive Lancer status effects.",
+      "replace": "This document records implementation and planning notes for universal actions and game states that apply, remove, or automatically derive Lancer status effects. The implemented runtime architecture is summarized in `Docs/status-orchestration.md`.",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search": "async function handleCombatUpdate(combat) {\n  syncDisengage(combat);",
-      "replace": "function validTimedRecord(record) {\n  return Boolean(\n    record?.targetActorUuid &&\n    Array.isArray(record?.statusIds)\n  );\n}\n\nfunction validGrappleRecord(record) {\n  return Boolean(\n    record?.id &&\n    record?.attackerActorUuid &&\n    record?.targetActorUuid\n  );\n}\n\nfunction hydrateStatusOrchestrationState() {\n  const tokens = globalThis.canvas?.tokens?.placeables ?? [];\n\n  for (const token of tokens) {\n    const actor = token?.actor ?? null;\n    if (!actor || typeof actor.getFlag !== \"function\") continue;\n\n    const timedRecord = actor.getFlag(MODULE_ID, TIMED_FLAG);\n    if (validTimedRecord(timedRecord)) {\n      timedStatuses.set(timedRecord.targetActorUuid, { ...timedRecord });\n    }\n\n    const grappleRecord = actor.getFlag(MODULE_ID, GRAPPLE_FLAG);\n    if (validGrappleRecord(grappleRecord)) {\n      grapples.set(grappleRecord.id, { ...grappleRecord });\n    }\n  }\n\n  return Object.freeze({\n    timedStatuses: timedStatuses.size,\n    grapples: grapples.size\n  });\n}\n\nasync function handleCombatUpdate(combat) {\n  hydrateStatusOrchestrationState();\n  syncDisengage(combat);",
+      "path": "Docs/status-effect-action-and-state-notes.md",
+      "search": "On a successful Grapple, apply the Grappled state/status to the target.",
+      "replace": "**Implemented, live validation pending.** On a successful native Grapple attack, Frame Conn records the specific Grapple relationship, derives Engaged for both participants, and applies Immobilized to the smaller participant. A native `grappled` presentation status is used only when that status ID exists in the installed Lancer status registry; the relationship record remains authority.",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search": "async function handleTokenUpdate() { await syncGrapples(); await syncEngaged(); return true; }",
-      "replace": "async function handleTokenUpdate() { hydrateStatusOrchestrationState(); await syncGrapples(); await syncEngaged(); return true; }",
+      "path": "Docs/status-effect-action-and-state-notes.md",
+      "search": "Hide applies `hidden`.",
+      "replace": "**Implemented, live validation pending.** Hide applies native `hidden` through Status Orchestration. Current execution blocks duplicate Hidden and Engaged actors; complete cover/invisibility/observer legality remains pending the visibility/cover rules layer.",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search": "  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, deleteCombat: handleCombatDelete, canvasReady: syncEngaged },",
-      "replace": "  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { hydrateStatusOrchestrationState(); await syncGrapples(); return syncEngaged(); } },",
+      "path": "Docs/status-effect-action-and-state-notes.md",
+      "search": "These effects last until the end of the target's next turn.",
+      "replace": "**Implemented, live validation pending.** These effects are applied only after a normalized native Tech Attack hit and last until the end of the target's next turn. Cleanup removes only statuses that this Frame Conn timed effect actually introduced.",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search": "  queries: { diagnostics, runtimeBindings, isDisengaged, getGrapplesForActor, getGrappleBetween },",
-      "replace": "  queries: { diagnostics, runtimeBindings, isDisengaged, getGrapplesForActor, getGrappleBetween, hydrateStatusOrchestrationState },",
+      "path": "Docs/status-effect-action-and-state-notes.md",
+      "search": "On a successful Ram:\n\n- apply `prone`;\n- the target may also be knocked back 1 space.",
+      "replace": "**Prone application implemented; live validation pending.** On a successful native Ram attack:\n\n- apply native `prone`;\n- the target may also be knocked back 1 space.",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search": "  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage, isDisengaged, syncTimedStatuses, syncGrapples, syncEngaged, diagnostics, runtimeBindings },",
-      "replace": "  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage, isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged, diagnostics, runtimeBindings },",
+      "path": "Docs/status-effect-action-and-state-notes.md",
+      "search": "Add/implement an End Grapple action.\n\nThe intended resolution is a contested HULL check used to try to end the Grapple condition.",
+      "replace": "**Implemented, live validation pending.** `quick.end-grapple` targets a tracked Grapple opponent, resolves native HULL vs HULL rolls, and ends only that Grapple relationship on a successful contest.",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "Docs/status-effect-action-and-state-notes.md",
+      "search": "On a successful contested SYSTEMS vs AGILITY check, Search removes `hidden`.",
+      "replace": "**Implemented, live validation pending.** Search resolves native Systems vs Agility rolls and removes native `hidden` on success without checking/revealing Hidden state before the contest.",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "Docs/status-effect-action-and-state-notes.md",
+      "search": "Disengage removes/prevents `engaged` for the relevant duration.",
+      "replace": "**Implemented, live validation pending.** Disengage removes current native `engaged` and suppresses derived reapplication through the end of the current turn.",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "Docs/status-effect-action-and-state-notes.md",
+      "search": "The native status/effect removal boundary should remain authoritative for the actual status mutation.",
+      "replace": "Native Stabilize already automates Cool/Exposed, Burn, Reload, HP/Repair, and their authoritative mutations. Its Clear Own Condition and Clear Ally Condition branches do not identify/clear a particular condition automatically, so those two branches remain intentionally manual until Frame Conn adds an explicit condition picker/Flow extension rather than guessing.",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "Docs/universal-action-testing-inventory.md",
+      "search": "- Hide\n- Quick Tech — Bolster",
+      "replace": "- Hide — **status application implemented; complete Hide legality still pending; live validation pending**\n- Quick Tech — Bolster",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "Docs/universal-action-testing-inventory.md",
+      "search": "- Disengage\n- Stabilize — **done / working**",
+      "replace": "- Disengage — **Engaged removal/current-turn suppression implemented; live validation pending**\n- Stabilize — **done / working; native condition-selection branches remain manual**",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "Docs/universal-action-testing-inventory.md",
+      "search": "- Grapple\n- Ram",
+      "replace": "- Grapple — **native attack + relationship/status consequences implemented; live validation pending**\n- End Grapple — **native HULL-vs-HULL contest + relationship cleanup implemented; live validation pending**\n- Ram — **native attack + Prone application implemented; optional push remains movement work**",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "Docs/universal-action-testing-inventory.md",
+      "search": "- Fragment Signal — **working as intended; implementation should be documented/earmarked explicitly**",
+      "replace": "- Fragment Signal — **native Tech Attack + Impaired/Slow application and next-turn cleanup implemented; live grouped lifecycle validation pending**",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "Docs/universal-action-testing-inventory.md",
+      "search": "- Search\n  - Contested **Systems** check against the target's **Agility**.",
+      "replace": "- Search — **implemented; live validation pending**\n  - Contested **Systems** check against the target's **Agility**; success removes native Hidden.",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "Docs/af-hide.md",
+      "search": "**Frame Conn implementation status:** Frame Conn should own Hide legality, visibility/cover qualification, application and lifecycle of the native `hidden` status, and Hidden-specific rules consequences, while reusing native Lancer status, cover, invisibility, and attack-modifier infrastructure wherever those already exist.",
+      "replace": "**Frame Conn implementation status:** **Native Hidden application is implemented; live validation pending.** `quick.hide` is now a canonical non-roll Execute action and applies native `hidden` through Status Orchestration. Execution currently rejects actors already Hidden or Engaged. Complete cover/invisibility/observer qualification and all Hidden-breaking lifecycle rules remain pending the dedicated visibility/cover rules work; this implementation should not be described as complete Hide legality yet.",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "Docs/af-disengage.md",
+      "search": "**Frame Conn implementation status:** Frame Conn should own Disengage as a temporary movement/reaction-suppression state, using its Movement and Turn domains to prevent Overwatch opportunity generation while preserving native engagement state and native weapon data.",
+      "replace": "**Frame Conn implementation status:** **Core Disengage state is implemented; live validation pending.** `full.disengage` is a canonical non-roll Execute action. Status Orchestration removes current native `engaged`, records suppression through the end of the current turn, and prevents the derived Engaged evaluator from immediately reapplying it. The suppression state is exposed for the future movement-triggered Overwatch/reaction engine, which is not yet implemented.",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "Docs/af-stabilize.md",
+      "search": "The only meaningful native automation gaps currently identified are:\n\n- Clear Own Condition;\n- Clear Ally Condition.\n\nThose can be improved later without replacing the rest of the native flow.",
+      "replace": "The only meaningful native automation gaps currently identified are:\n\n- Clear Own Condition;\n- Clear Ally Condition.\n\nThe native branches do not provide Frame Conn with a selected condition to remove; they explicitly leave that cleanup manual. Status Orchestration therefore does **not** guess or remove an arbitrary condition after Stabilize. A future enhancement needs an explicit condition picker or deliberate Stabilize Flow extension, while preserving all already-native Stabilize branches.",
       "expected_occurrences": 1
     }
   ]
