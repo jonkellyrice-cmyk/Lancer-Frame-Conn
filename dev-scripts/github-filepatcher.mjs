@@ -452,7 +452,8 @@ function validateDeveloperToolSyntax() {
     path.join(ROOT, "dev_scripts", "patch-dsl-compiler.mjs"),
     path.join(ROOT, "dev_scripts", "integration-surface-atlas.mjs"),
     path.join(ROOT, "dev_scripts", "runtime-signal-map.mjs"),
-    path.join(ROOT, "dev_scripts", "corridor-context-pack.mjs")
+    path.join(ROOT, "dev_scripts", "corridor-context-pack.mjs"),
+    path.join(ROOT, "dev_scripts", "native-contract-catalog.mjs")
   ];
 
   for (const tool of tools) {
@@ -498,6 +499,19 @@ function validateDeveloperToolSyntax() {
   if (corridorContextPackSelfTest.stderr) process.stderr.write(corridorContextPackSelfTest.stderr);
   if (corridorContextPackSelfTest.error) fail(`Corridor Context Pack self-test could not start: ${corridorContextPackSelfTest.error}`);
   if (corridorContextPackSelfTest.status !== 0) fail("Corridor Context Pack self-test failed.");
+
+  const nativeContractCatalog = path.join(ROOT, "dev_scripts", "native-contract-catalog.mjs");
+  const nativeContractCatalogSelfTest = spawnSync(process.execPath, [nativeContractCatalog, "--self-test"], { cwd: ROOT, encoding: "utf8" });
+  if (nativeContractCatalogSelfTest.stdout) process.stdout.write(nativeContractCatalogSelfTest.stdout);
+  if (nativeContractCatalogSelfTest.stderr) process.stderr.write(nativeContractCatalogSelfTest.stderr);
+  if (nativeContractCatalogSelfTest.error) fail(`Native Contract Catalog self-test could not start: ${nativeContractCatalogSelfTest.error}`);
+  if (nativeContractCatalogSelfTest.status !== 0) fail("Native Contract Catalog self-test failed.");
+
+  const nativeContractCatalogVerify = spawnSync(process.execPath, [nativeContractCatalog, "--verify"], { cwd: ROOT, encoding: "utf8" });
+  if (nativeContractCatalogVerify.stdout) process.stdout.write(nativeContractCatalogVerify.stdout);
+  if (nativeContractCatalogVerify.stderr) process.stderr.write(nativeContractCatalogVerify.stderr);
+  if (nativeContractCatalogVerify.error) fail(`Native Contract Catalog verification could not start: ${nativeContractCatalogVerify.error}`);
+  if (nativeContractCatalogVerify.status !== 0) fail("Native Contract Catalog schema verification failed.");
 
   console.log("[github-filepatcher] Developer tool syntax checks passed.");
 }
@@ -551,6 +565,22 @@ function runCorridorContextPack(corridorReport) {
   }
 }
 
+function queryNativeContractCatalog(goal) {
+  const catalogScript = path.join(ROOT, "dev_scripts", "native-contract-catalog.mjs");
+  if (!fs.existsSync(catalogScript)) fail(`Native Contract Catalog not found: ${catalogScript}`);
+
+  const result = spawnSync(
+    process.execPath,
+    [catalogScript, "--query", goal],
+    { cwd: ROOT, encoding: "utf8", maxBuffer: 4 * 1024 * 1024 }
+  );
+
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+  if (result.error) fail(`Native Contract Catalog query could not start: ${result.error}`);
+  if (result.status !== 0) fail(`Native Contract Catalog query failed with exit code ${result.status}.`);
+}
+
 function reportCorridorScope(plan, corridorReport) {
   if (!corridorReport) return;
   const predicted = new Set((corridorReport.files ?? []).map(entry => entry.file));
@@ -569,7 +599,10 @@ function main() {
     const corridorReport = patch.planningGoal
       ? runPatchCorridorPlanner(patch.planningGoal)
       : null;
-    if (corridorReport) runCorridorContextPack(corridorReport);
+    if (corridorReport) {
+      runCorridorContextPack(corridorReport);
+      queryNativeContractCatalog(patch.planningGoal);
+    }
 
     console.log(`[github-filepatcher] patch=${patch.id ?? "unnamed"}`);
     if (patch.description) console.log(`[github-filepatcher] description=${patch.description}`);

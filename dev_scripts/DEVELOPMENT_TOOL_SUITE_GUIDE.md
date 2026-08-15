@@ -280,6 +280,18 @@ Run its deterministic self-test with `npm run corridor-context:self-test`. See `
 
 ---
 
+## Native Contract Catalog — `native-contract-catalog.mjs`
+
+The Native Contract Catalog persists already-proven native Lancer integration facts with upstream version, git commit, exact source paths/symbols/line ranges, complete-file SHA-256 hashes, exact evidence-slice hashes, and explicit Frame Conn ownership rules. It exists so a native API or boundary that has already been authoritatively traced does not need to be rediscovered on every future patch.
+
+Query it with `npm run native-contracts -- --query "basic attack"`, inspect one entry with `--show <contract-id>`, and re-hash all persisted evidence against an authoritative native checkout with `npm run native-contracts:verify -- --native-root /path/to/foundryvtt-lancer`. `source-drift`, `contract-drift`, missing source, and native-version mismatch are verification failures rather than silent cache hits.
+
+When FilePatcher receives a `planning_goal`, it now prints matching proven contracts after the Corridor Context Pack. The intended rule is **catalog first; rediscover only when no proven contract exists or the stored evidence has drifted**. Post-apply developer-tool validation also syntax-checks and self-tests the catalog tool and validates the committed catalog schema.
+
+Run `npm run native-contracts:self-test` for the deterministic drift-detection test. See `dev_scripts/NATIVE_CONTRACT_CATALOG.md` for the complete contract and update discipline.
+
+---
+
 ## 8. DSL Level 1 — Structural Patch DSL
 
 Compiler:
