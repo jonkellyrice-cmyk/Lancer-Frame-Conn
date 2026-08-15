@@ -51,6 +51,61 @@ package.json
   github:patch             npm entry point
 ```
 
+## Planning-aware toolchain
+
+The GitHub FilePatcher now participates in an eight-capability evidence/planning/validation pipeline:
+
+1. **Integration Surface Atlas** — discovers legitimate native Lancer integration surfaces from authoritative source.
+2. **Runtime Signal Map** — traces statically evidenced UI/event/Flow/effect paths.
+3. **Clause-Aware Patch Corridor** — certifies architecture ownership for every behavioral clause.
+4. **Corridor Context Pack** — returns exact source slices/imports/callers/exemplars for authoring.
+5. **Native Contract Catalog** — reuses version/hash-backed native facts and detects drift.
+6. **Automatic Patch Staging** — decomposes cross-cutting work into dependency-safe phases with exact scope locks.
+7. **Expanded Pattern-Aware DSL** — clones only proven local structural exemplars and compiles to ordinary FilePatcher JSON.
+8. **Runtime Contract Probes** — generates reversible Foundry instrumentation plus explicit manual checkpoints for live testing.
+
+The complete operator contract lives in `dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md`.
+
+### `planning_goal`
+
+Schema v2 patches may carry the complete behavior as `planning_goal`:
+
+```json
+{
+  "schema_version": 2,
+  "id": "example",
+  "description": "Implement an end-to-end behavior.",
+  "planning_goal": "describe every behavior the finished patch must satisfy",
+  "policy": {
+    "max_files_changed": 1,
+    "allowed_paths": ["exact/target/file.js"]
+  },
+  "operations": []
+}
+```
+
+When present, FilePatcher runs this pre-mutation chain:
+
+```text
+planning_goal
+    ↓
+Clause-Aware Patch Corridor
+    ↓
+Automatic Patch Staging
+    ↓
+Corridor Context Pack
+    ↓
+Native Contract Catalog
+    ↓
+Runtime Contract Probes (temporary bundle)
+    ↓
+mutation planning
+```
+
+The Integration Surface Atlas and Runtime Signal Map are consulted when native proof is missing or drifted rather than rescanned automatically for every routine patch.
+
+Planning-only patches with `operations: []` are first-class: they can prove clause coverage, expected scope, dependency phases, authoring context, native-contract reuse, and live-probe coverage without touching source.
+
 ## Supported operations
 
 ### replace_text
@@ -100,8 +155,10 @@ Existing files are protected unless `overwrite: true` is explicitly supplied.
   "schema_version": 2,
   "id": "short-descriptive-patch-id",
   "description": "Describe the intended repository change.",
+  "planning_goal": "Optional complete behavioral goal for cross-cutting/runtime-sensitive work.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 1,
+    "allowed_paths": ["example.js"]
   },
   "operations": [
     {
@@ -121,7 +178,7 @@ Schema versions 1 and 2 are accepted; version 2 is recommended. `policy.max_file
 
 The executor rejects paths that escape the repository root or target the repository root itself. `.git`, `.github/workflows`, and `node_modules` are protected by default; additional protected paths can be added with `policy.protected_paths`.
 
-All operations are planned in memory before any file is written. Multiple operations against one file see the staged result of the previous operation. The executor computes the final set of changed files and rejects the patch if it exceeds `policy.max_files_changed`.
+All operations are planned in memory before any file is written. Multiple operations against one file see the staged result of the previous operation. The executor computes the final set of changed files and rejects the patch if it exceeds `policy.max_files_changed`. When `policy.allowed_paths` is present, every changed file must also belong to that exact allow-list; staged patch skeletons use this as a hard scope lock.
 
 If the write phase fails partway through, the executor attempts to restore every file already written.
 
@@ -169,8 +226,14 @@ checkout main
 validate patcher syntax
         ↓
 dry-run
+  └─ planning_goal pipeline when present
         ↓
 apply
+  ├─ planning_goal pipeline when present
+  ├─ permanent developer-tool self-tests
+  ├─ Repository Audit
+  ├─ Symbol Family Audit
+  └─ Effect Atlas
         ↓
 detect tracked + untracked changes
         ↓
@@ -189,15 +252,25 @@ The workflow is concurrency-serialized (`cancel-in-progress: false`) and request
 
 ## Normal remote workflow
 
-1. Inspect the current target source file.
-2. Author a narrow `dev-scripts/filepatcher.json` against that exact source.
-3. Keep `policy.max_files_changed` at 1 unless a broader atomic patch is intentionally required.
-4. Push only the patch specification.
-5. Wait for the `GitHub FilePatcher` Action.
-6. Confirm dry-run, apply, diff validation, and bot commit succeeded.
-7. Inspect the bot-created source commit before writing the next patch.
+For a simple localized patch:
 
-The remote agent therefore performs only a small API write; deterministic code on the runner performs the real source mutation.
+1. Inspect the exact current target source.
+2. Author the narrowest supported DSL/JSON change.
+3. Keep `policy.max_files_changed` at 1 and use exact `policy.allowed_paths` when practical.
+4. Push only the patch specification.
+5. Confirm dry-run, apply, permanent self-tests, architecture audits, diff validation, and the bot commit.
+
+For cross-cutting/runtime-sensitive work:
+
+1. Put the complete behavior in `planning_goal`.
+2. Require clause-complete corridor coverage.
+3. Inspect Automatic Patch Staging; keep dependency-safe provider-before-consumer order.
+4. Author from the Corridor Context Pack rather than guessing surrounding structure.
+5. Reuse Native Contract Catalog facts; rediscover with Atlas/Signal Map only when needed.
+6. Stage broad work into narrow patches rather than forcing one giant mutation.
+7. After static success, run the generated Runtime Contract Probe scenario in Foundry and resolve automatic plus manual checkpoints.
+
+The remote author still performs only a small API write; deterministic code on the runner performs the real mutation and static validation.
 
 ## Neutral/no-op state
 
@@ -213,6 +286,25 @@ The remote agent therefore performs only a small API write; deterministic code o
 }
 ```
 
-## Repository-specific validation
+## Permanent repository/tool validation
 
-This Frame Conn repo does not currently expose the same TypeScript typecheck and integration-test npm scripts as the agentic project where this workflow was first hardened. The generic workflow therefore validates the FilePatcher syntax and Git diff before committing. When deterministic Lancer-specific validation commands are added, put them before `Commit verified patch`; any failure will then prevent the source commit.
+Frame Conn now has a committed trust gate inside `github-filepatcher.mjs`. A real apply validates the development tools themselves before running architectural audits. The current permanent set includes:
+
+```text
+Patch DSL self-test
+Integration Surface Atlas self-test
+Runtime Signal Map self-test
+Clause-Aware Patch Corridor self-test
+Corridor Context Pack self-test
+Native Contract Catalog self-test + catalog verification
+Automatic Patch Staging self-test
+Runtime Contract Probes self-test
+developer-tool syntax checks
+Repository Audit
+Symbol Family Audit
+Effect Atlas
+```
+
+Blocking failure rolls the patch back rather than committing a source change.
+
+When the patch modifies FilePatcher or any permanent validator/self-test, the accepting run may still be using the previously committed validator. After that tooling repair lands, run an **independent no-op patch from the committed new gate** before treating the trust-boundary change as proven. Do not weaken a failing self-test merely to obtain a green workflow.
