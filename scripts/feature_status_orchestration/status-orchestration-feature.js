@@ -103,15 +103,43 @@ async function removeStatuses(actor, statusIds = []) {
   return Object.freeze(results);
 }
 
-/** Statuses persist until the end of this target's next turn, not its current turn. */
+/**
+ * Statuses persist until the end of this target's next turn, not its current
+ * turn. Cleanup owns only statuses that Frame Conn actually introduced.
+ * Reapplying the same Frame Conn effect refreshes the duration of statuses
+ * already owned by the existing timed record.
+ */
 async function applyUntilEndOfNextTurn(actor, statusIds, { combat = globalThis.game?.combat, sourceActionId = null } = {}) {
   const uuid = actorUuid(actor);
   if (!uuid) throw new Error("Timed native statuses require an authoritative target actor.");
-  await applyStatuses(actor, statusIds);
+
+  const existing = timedStatuses.get(uuid) ?? null;
+  const ownedStatusIds = new Set(existing?.statusIds ?? []);
+
+  for (const statusId of statusIds) {
+    const result = await applyNativeStatus(actor, statusId);
+    if (result?.changed && result?.active) {
+      ownedStatusIds.add(statusId);
+    }
+  }
+
+  if (ownedStatusIds.size === 0) {
+    return Object.freeze({
+      targetActorUuid: uuid,
+      statusIds: [],
+      combatId: combat?.id ?? null,
+      appliedTurnKey: turnKey(combat),
+      activeTargetTurnKey: null,
+      sourceActionId,
+      appliedAt: Date.now(),
+      tracked: false
+    });
+  }
+
   const record = {
     targetActorUuid: uuid,
-    statusIds: [...statusIds],
-    combatId: combat?.id ?? null,
+    statusIds: [...ownedStatusIds],
+    combatId: combat?.id ?? existing?.combatId ?? null,
     appliedTurnKey: turnKey(combat),
     activeTargetTurnKey: null,
     sourceActionId,
@@ -119,7 +147,7 @@ async function applyUntilEndOfNextTurn(actor, statusIds, { combat = globalThis.g
   };
   timedStatuses.set(uuid, record);
   await bestEffortSetFlag(actor, TIMED_FLAG, record);
-  return Object.freeze({ ...record });
+  return Object.freeze({ ...record, tracked: true });
 }
 
 async function clearTimedRecord(record) {
@@ -295,14 +323,54 @@ async function syncGrapples() {
   return true;
 }
 
+function validTimedRecord(record) {
+  return Boolean(
+    record?.targetActorUuid &&
+    Array.isArray(record?.statusIds)
+  );
+}
+
+function validGrappleRecord(record) {
+  return Boolean(
+    record?.id &&
+    record?.attackerActorUuid &&
+    record?.targetActorUuid
+  );
+}
+
+function hydrateStatusOrchestrationState() {
+  const tokens = globalThis.canvas?.tokens?.placeables ?? [];
+
+  for (const token of tokens) {
+    const actor = token?.actor ?? null;
+    if (!actor || typeof actor.getFlag !== "function") continue;
+
+    const timedRecord = actor.getFlag(MODULE_ID, TIMED_FLAG);
+    if (validTimedRecord(timedRecord)) {
+      timedStatuses.set(timedRecord.targetActorUuid, { ...timedRecord });
+    }
+
+    const grappleRecord = actor.getFlag(MODULE_ID, GRAPPLE_FLAG);
+    if (validGrappleRecord(grappleRecord)) {
+      grapples.set(grappleRecord.id, { ...grappleRecord });
+    }
+  }
+
+  return Object.freeze({
+    timedStatuses: timedStatuses.size,
+    grapples: grapples.size
+  });
+}
+
 async function handleCombatUpdate(combat) {
+  hydrateStatusOrchestrationState();
   syncDisengage(combat);
   await syncTimedStatuses(combat);
   await syncGrapples();
   await syncEngaged();
   return true;
 }
-async function handleTokenUpdate() { await syncGrapples(); await syncEngaged(); return true; }
+async function handleTokenUpdate() { hydrateStatusOrchestrationState(); await syncGrapples(); await syncEngaged(); return true; }
 async function handleCombatDelete(combat) {
   for (const record of [...timedStatuses.values()]) if (!record.combatId || record.combatId === combat?.id) await clearTimedRecord(record);
   for (const record of [...grapples.values()]) await clearGrapple(record);
@@ -319,9 +387,9 @@ export const frameConnStatusOrchestrationFeature = defineFrameConnFeature({
   optionalDependsOn: [],
   state: {},
   commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged },
-  queries: { diagnostics, runtimeBindings, isDisengaged, getGrapplesForActor, getGrappleBetween },
-  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, deleteCombat: handleCombatDelete, canvasReady: syncEngaged },
+  queries: { diagnostics, runtimeBindings, isDisengaged, getGrapplesForActor, getGrappleBetween, hydrateStatusOrchestrationState },
+  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { hydrateStatusOrchestrationState(); await syncGrapples(); return syncEngaged(); } },
   lifecycle: {},
-  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage, isDisengaged, syncTimedStatuses, syncGrapples, syncEngaged, diagnostics, runtimeBindings },
+  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage, isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged, diagnostics, runtimeBindings },
   metadata: { label: "Status Orchestration", nativeStatusAuthority: "native-adapter.status", coverPolicy: "Cover remains attacker-relative and is not represented as one global persistent status." }
 });
