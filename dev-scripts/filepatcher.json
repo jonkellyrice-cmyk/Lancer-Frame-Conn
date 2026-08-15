@@ -1,10 +1,59 @@
 {
   "schema_version": 2,
-  "id": "validate-focused-native-contract-reuse",
-  "description": "No-op proof that a Scan planning goal reuses only strongly relevant persisted native contracts.",
-  "planning_goal": "wire committed Scan through the authoritative native Lancer execution entrypoint and show the Scan choice in the Frame Conn UI",
+  "id": "integrate-automatic-patch-staging-core",
+  "description": "Integrate Automatic Patch Staging into planning_goal, add exact allowed-path policy enforcement for generated stage specs, and add permanent syntax/self-test coverage.",
   "policy": {
     "max_files_changed": 1
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "dev-scripts/github-filepatcher.mjs",
+      "search": "  const additionalProtectedPaths = policy.protected_paths ?? [];\n  if (!Array.isArray(additionalProtectedPaths) || additionalProtectedPaths.some((entry) => typeof entry !== \"string\")) {\n    fail(\"policy.protected_paths must be an array of strings.\");\n  }\n\n  return {\n    id: parsed.id,\n    description: parsed.description,\n    planningGoal: parsed.planning_goal?.trim() ?? null,\n    operations: parsed.operations,\n    policy: {\n      maxFilesChanged,\n      protectedPaths: [...DEFAULT_PROTECTED_PATHS, ...additionalProtectedPaths],\n    },\n  };\n}",
+      "replace": "  const additionalProtectedPaths = policy.protected_paths ?? [];\n  if (!Array.isArray(additionalProtectedPaths) || additionalProtectedPaths.some((entry) => typeof entry !== \"string\")) {\n    fail(\"policy.protected_paths must be an array of strings.\");\n  }\n  const allowedPathEntries = policy.allowed_paths ?? null;\n  if (\n    allowedPathEntries !== null &&\n    (!Array.isArray(allowedPathEntries) ||\n      allowedPathEntries.length === 0 ||\n      allowedPathEntries.some((entry) => typeof entry !== \"string\" || !entry.trim()))\n  ) {\n    fail(\"policy.allowed_paths must be a non-empty array of repository paths when provided.\");\n  }\n  const allowedPaths = allowedPathEntries\n    ? allowedPathEntries.map((entry) => normalizeRepoPath(entry))\n    : null;\n\n  return {\n    id: parsed.id,\n    description: parsed.description,\n    planningGoal: parsed.planning_goal?.trim() ?? null,\n    operations: parsed.operations,\n    policy: {\n      maxFilesChanged,\n      protectedPaths: [...DEFAULT_PROTECTED_PATHS, ...additionalProtectedPaths],\n      allowedPaths,\n    },\n  };\n}",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev-scripts/github-filepatcher.mjs",
+      "search": "  if (changedFiles.length > patch.policy.maxFilesChanged) {\n    fail(`Patch changes ${changedFiles.length} files, exceeding policy.max_files_changed=${patch.policy.maxFilesChanged}.`);\n  }\n\n  return { stagedFiles, originalFiles, changedFiles };\n}",
+      "replace": "  if (patch.policy.allowedPaths) {\n    const outsideAllowedPaths = changedFiles.filter((relativePath) =>\n      !patch.policy.allowedPaths.some((allowedPath) =>\n        relativePath === allowedPath || relativePath.startsWith(`${allowedPath}/`)\n      )\n    );\n    if (outsideAllowedPaths.length > 0) {\n      fail(\n        `Patch changes file(s) outside policy.allowed_paths: ${outsideAllowedPaths.join(\", \")}.`\n      );\n    }\n  }\n\n  if (changedFiles.length > patch.policy.maxFilesChanged) {\n    fail(`Patch changes ${changedFiles.length} files, exceeding policy.max_files_changed=${patch.policy.maxFilesChanged}.`);\n  }\n\n  return { stagedFiles, originalFiles, changedFiles };\n}",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev-scripts/github-filepatcher.mjs",
+      "search": "    path.join(ROOT, \"dev_scripts\", \"corridor-context-pack.mjs\"),\n    path.join(ROOT, \"dev_scripts\", \"native-contract-catalog.mjs\")\n  ];",
+      "replace": "    path.join(ROOT, \"dev_scripts\", \"corridor-context-pack.mjs\"),\n    path.join(ROOT, \"dev_scripts\", \"native-contract-catalog.mjs\"),\n    path.join(ROOT, \"dev_scripts\", \"automatic-patch-staging.mjs\")\n  ];",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev-scripts/github-filepatcher.mjs",
+      "search": "  const nativeContractCatalogVerify = spawnSync(process.execPath, [nativeContractCatalog, \"--verify\"], { cwd: ROOT, encoding: \"utf8\" });\n  if (nativeContractCatalogVerify.stdout) process.stdout.write(nativeContractCatalogVerify.stdout);\n  if (nativeContractCatalogVerify.stderr) process.stderr.write(nativeContractCatalogVerify.stderr);\n  if (nativeContractCatalogVerify.error) fail(`Native Contract Catalog verification could not start: ${nativeContractCatalogVerify.error}`);\n  if (nativeContractCatalogVerify.status !== 0) fail(\"Native Contract Catalog schema verification failed.\");\n\n  console.log(\"[github-filepatcher] Developer tool syntax checks passed.\");\n}",
+      "replace": "  const nativeContractCatalogVerify = spawnSync(process.execPath, [nativeContractCatalog, \"--verify\"], { cwd: ROOT, encoding: \"utf8\" });\n  if (nativeContractCatalogVerify.stdout) process.stdout.write(nativeContractCatalogVerify.stdout);\n  if (nativeContractCatalogVerify.stderr) process.stderr.write(nativeContractCatalogVerify.stderr);\n  if (nativeContractCatalogVerify.error) fail(`Native Contract Catalog verification could not start: ${nativeContractCatalogVerify.error}`);\n  if (nativeContractCatalogVerify.status !== 0) fail(\"Native Contract Catalog schema verification failed.\");\n\n  const automaticPatchStaging = path.join(ROOT, \"dev_scripts\", \"automatic-patch-staging.mjs\");\n  const automaticPatchStagingSelfTest = spawnSync(process.execPath, [automaticPatchStaging, \"--self-test\"], { cwd: ROOT, encoding: \"utf8\" });\n  if (automaticPatchStagingSelfTest.stdout) process.stdout.write(automaticPatchStagingSelfTest.stdout);\n  if (automaticPatchStagingSelfTest.stderr) process.stderr.write(automaticPatchStagingSelfTest.stderr);\n  if (automaticPatchStagingSelfTest.error) fail(`Automatic Patch Staging self-test could not start: ${automaticPatchStagingSelfTest.error}`);\n  if (automaticPatchStagingSelfTest.status !== 0) fail(\"Automatic Patch Staging self-test failed.\");\n\n  console.log(\"[github-filepatcher] Developer tool syntax checks passed.\");\n}",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev-scripts/github-filepatcher.mjs",
+      "search": "function reportCorridorScope(plan, corridorReport) {\n  if (!corridorReport) return;\n  const predicted = new Set((corridorReport.files ?? []).map(entry => entry.file));\n  const outside = plan.changedFiles.filter(file => !predicted.has(file));\n\n  console.log(`[github-filepatcher] corridor_predicted_files=${predicted.size}`);\n  console.log(`[github-filepatcher] corridor_changed_inside=${plan.changedFiles.length - outside.length}`);\n  console.log(`[github-filepatcher] corridor_changed_outside=${outside.length}`);\n  outside.forEach(file => console.warn(`[github-filepatcher] corridor_outside=${file}`));\n}",
+      "replace": "function runAutomaticPatchStaging(goal, corridorReport) {\n  const stagingScript = path.join(ROOT, \"dev_scripts\", \"automatic-patch-staging.mjs\");\n  if (!fs.existsSync(stagingScript)) fail(`Automatic Patch Staging tool not found: ${stagingScript}`);\n\n  const corridorFile = path.join(os.tmpdir(), `frame-conn-staging-corridor-${process.pid}.json`);\n  const outputFile = path.join(os.tmpdir(), `frame-conn-staging-plan-${process.pid}.json`);\n  fs.writeFileSync(corridorFile, `${JSON.stringify(corridorReport, null, 2)}\\n`, \"utf8\");\n\n  const result = spawnSync(\n    process.execPath,\n    [\n      stagingScript,\n      \"--goal\", goal,\n      \"--corridor\", corridorFile,\n      \"--report-only\",\n      \"--output\", outputFile\n    ],\n    { cwd: ROOT, encoding: \"utf8\", maxBuffer: 8 * 1024 * 1024 }\n  );\n\n  if (result.stdout) process.stdout.write(result.stdout);\n  if (result.stderr) process.stderr.write(result.stderr);\n  if (result.error) fail(`Automatic Patch Staging could not start: ${result.error}`);\n  if (result.status !== 0) fail(`Automatic Patch Staging failed with exit code ${result.status}.`);\n\n  try {\n    return JSON.parse(fs.readFileSync(outputFile, \"utf8\"));\n  } catch (error) {\n    fail(`Automatic Patch Staging report could not be read: ${error}`);\n  }\n}\n\nfunction reportCorridorScope(plan, corridorReport) {\n  if (!corridorReport) return;\n  const predicted = new Set((corridorReport.files ?? []).map(entry => entry.file));\n  const outside = plan.changedFiles.filter(file => !predicted.has(file));\n\n  console.log(`[github-filepatcher] corridor_predicted_files=${predicted.size}`);\n  console.log(`[github-filepatcher] corridor_changed_inside=${plan.changedFiles.length - outside.length}`);\n  console.log(`[github-filepatcher] corridor_changed_outside=${outside.length}`);\n  outside.forEach(file => console.warn(`[github-filepatcher] corridor_outside=${file}`));\n}\n\nfunction reportAutomaticStagingScope(plan, stagingReport) {\n  if (!stagingReport) return;\n  const phaseHits = (stagingReport.phases ?? []).filter((phase) =>\n    (phase.files ?? []).some((file) => plan.changedFiles.includes(file))\n  );\n  console.log(`[github-filepatcher] staging_recommended=${stagingReport.crossCutting?.recommended ? \"yes\" : \"no\"}`);\n  console.log(`[github-filepatcher] staging_phases=${stagingReport.phases?.length ?? 0}`);\n  console.log(`[github-filepatcher] staging_changed_phases=${phaseHits.length}`);\n  if (stagingReport.crossCutting?.recommended && phaseHits.length > 1) {\n    console.warn(\n      \"[github-filepatcher] Patch spans multiple dependency phases; consider generated staged specs instead of one cross-cutting commit.\"\n    );\n  }\n}",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev-scripts/github-filepatcher.mjs",
+      "search": "    if (corridorReport) {\n      runCorridorContextPack(corridorReport);\n      queryNativeContractCatalog(patch.planningGoal);\n    }\n\n    console.log(`[github-filepatcher] patch=${patch.id ?? \"unnamed\"}`);",
+      "replace": "    const stagingReport = corridorReport\n      ? runAutomaticPatchStaging(patch.planningGoal, corridorReport)\n      : null;\n    if (corridorReport) {\n      runCorridorContextPack(corridorReport);\n      queryNativeContractCatalog(patch.planningGoal);\n    }\n\n    console.log(`[github-filepatcher] patch=${patch.id ?? \"unnamed\"}`);",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev-scripts/github-filepatcher.mjs",
+      "search": "    if (corridorReport) reportCorridorScope(plan, corridorReport);\n\n    if (patch.planningGoal && patch.operations.length === 0) {",
+      "replace": "    if (corridorReport) reportCorridorScope(plan, corridorReport);\n    if (stagingReport) reportAutomaticStagingScope(plan, stagingReport);\n\n    if (patch.planningGoal && patch.operations.length === 0) {",
+      "expected_occurrences": 1
+    }
+  ]
 }
