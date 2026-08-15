@@ -69,6 +69,18 @@ function readPatchFile() {
   if (!Array.isArray(additionalProtectedPaths) || additionalProtectedPaths.some((entry) => typeof entry !== "string")) {
     fail("policy.protected_paths must be an array of strings.");
   }
+  const allowedPathEntries = policy.allowed_paths ?? null;
+  if (
+    allowedPathEntries !== null &&
+    (!Array.isArray(allowedPathEntries) ||
+      allowedPathEntries.length === 0 ||
+      allowedPathEntries.some((entry) => typeof entry !== "string" || !entry.trim()))
+  ) {
+    fail("policy.allowed_paths must be a non-empty array of repository paths when provided.");
+  }
+  const allowedPaths = allowedPathEntries
+    ? allowedPathEntries.map((entry) => normalizeRepoPath(entry))
+    : null;
 
   return {
     id: parsed.id,
@@ -78,6 +90,7 @@ function readPatchFile() {
     policy: {
       maxFilesChanged,
       protectedPaths: [...DEFAULT_PROTECTED_PATHS, ...additionalProtectedPaths],
+      allowedPaths,
     },
   };
 }
@@ -292,6 +305,19 @@ function buildMutationPlan(patch) {
     })
     .map(([relativePath]) => relativePath);
 
+  if (patch.policy.allowedPaths) {
+    const outsideAllowedPaths = changedFiles.filter((relativePath) =>
+      !patch.policy.allowedPaths.some((allowedPath) =>
+        relativePath === allowedPath || relativePath.startsWith(`${allowedPath}/`)
+      )
+    );
+    if (outsideAllowedPaths.length > 0) {
+      fail(
+        `Patch changes file(s) outside policy.allowed_paths: ${outsideAllowedPaths.join(", ")}.`
+      );
+    }
+  }
+
   if (changedFiles.length > patch.policy.maxFilesChanged) {
     fail(`Patch changes ${changedFiles.length} files, exceeding policy.max_files_changed=${patch.policy.maxFilesChanged}.`);
   }
@@ -453,7 +479,8 @@ function validateDeveloperToolSyntax() {
     path.join(ROOT, "dev_scripts", "integration-surface-atlas.mjs"),
     path.join(ROOT, "dev_scripts", "runtime-signal-map.mjs"),
     path.join(ROOT, "dev_scripts", "corridor-context-pack.mjs"),
-    path.join(ROOT, "dev_scripts", "native-contract-catalog.mjs")
+    path.join(ROOT, "dev_scripts", "native-contract-catalog.mjs"),
+    path.join(ROOT, "dev_scripts", "automatic-patch-staging.mjs")
   ];
 
   for (const tool of tools) {
@@ -512,6 +539,13 @@ function validateDeveloperToolSyntax() {
   if (nativeContractCatalogVerify.stderr) process.stderr.write(nativeContractCatalogVerify.stderr);
   if (nativeContractCatalogVerify.error) fail(`Native Contract Catalog verification could not start: ${nativeContractCatalogVerify.error}`);
   if (nativeContractCatalogVerify.status !== 0) fail("Native Contract Catalog schema verification failed.");
+
+  const automaticPatchStaging = path.join(ROOT, "dev_scripts", "automatic-patch-staging.mjs");
+  const automaticPatchStagingSelfTest = spawnSync(process.execPath, [automaticPatchStaging, "--self-test"], { cwd: ROOT, encoding: "utf8" });
+  if (automaticPatchStagingSelfTest.stdout) process.stdout.write(automaticPatchStagingSelfTest.stdout);
+  if (automaticPatchStagingSelfTest.stderr) process.stderr.write(automaticPatchStagingSelfTest.stderr);
+  if (automaticPatchStagingSelfTest.error) fail(`Automatic Patch Staging self-test could not start: ${automaticPatchStagingSelfTest.error}`);
+  if (automaticPatchStagingSelfTest.status !== 0) fail("Automatic Patch Staging self-test failed.");
 
   console.log("[github-filepatcher] Developer tool syntax checks passed.");
 }
@@ -581,6 +615,38 @@ function queryNativeContractCatalog(goal) {
   if (result.status !== 0) fail(`Native Contract Catalog query failed with exit code ${result.status}.`);
 }
 
+function runAutomaticPatchStaging(goal, corridorReport) {
+  const stagingScript = path.join(ROOT, "dev_scripts", "automatic-patch-staging.mjs");
+  if (!fs.existsSync(stagingScript)) fail(`Automatic Patch Staging tool not found: ${stagingScript}`);
+
+  const corridorFile = path.join(os.tmpdir(), `frame-conn-staging-corridor-${process.pid}.json`);
+  const outputFile = path.join(os.tmpdir(), `frame-conn-staging-plan-${process.pid}.json`);
+  fs.writeFileSync(corridorFile, `${JSON.stringify(corridorReport, null, 2)}\n`, "utf8");
+
+  const result = spawnSync(
+    process.execPath,
+    [
+      stagingScript,
+      "--goal", goal,
+      "--corridor", corridorFile,
+      "--report-only",
+      "--output", outputFile
+    ],
+    { cwd: ROOT, encoding: "utf8", maxBuffer: 8 * 1024 * 1024 }
+  );
+
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+  if (result.error) fail(`Automatic Patch Staging could not start: ${result.error}`);
+  if (result.status !== 0) fail(`Automatic Patch Staging failed with exit code ${result.status}.`);
+
+  try {
+    return JSON.parse(fs.readFileSync(outputFile, "utf8"));
+  } catch (error) {
+    fail(`Automatic Patch Staging report could not be read: ${error}`);
+  }
+}
+
 function reportCorridorScope(plan, corridorReport) {
   if (!corridorReport) return;
   const predicted = new Set((corridorReport.files ?? []).map(entry => entry.file));
@@ -592,12 +658,30 @@ function reportCorridorScope(plan, corridorReport) {
   outside.forEach(file => console.warn(`[github-filepatcher] corridor_outside=${file}`));
 }
 
+function reportAutomaticStagingScope(plan, stagingReport) {
+  if (!stagingReport) return;
+  const phaseHits = (stagingReport.phases ?? []).filter((phase) =>
+    (phase.files ?? []).some((file) => plan.changedFiles.includes(file))
+  );
+  console.log(`[github-filepatcher] staging_recommended=${stagingReport.crossCutting?.recommended ? "yes" : "no"}`);
+  console.log(`[github-filepatcher] staging_phases=${stagingReport.phases?.length ?? 0}`);
+  console.log(`[github-filepatcher] staging_changed_phases=${phaseHits.length}`);
+  if (stagingReport.crossCutting?.recommended && phaseHits.length > 1) {
+    console.warn(
+      "[github-filepatcher] Patch spans multiple dependency phases; consider generated staged specs instead of one cross-cutting commit."
+    );
+  }
+}
+
 function main() {
   try {
     const patch = readPatchFile();
     const plan = buildMutationPlan(patch);
     const corridorReport = patch.planningGoal
       ? runPatchCorridorPlanner(patch.planningGoal)
+      : null;
+    const stagingReport = corridorReport
+      ? runAutomaticPatchStaging(patch.planningGoal, corridorReport)
       : null;
     if (corridorReport) {
       runCorridorContextPack(corridorReport);
@@ -610,6 +694,7 @@ function main() {
     console.log(`[github-filepatcher] changed_files=${plan.changedFiles.length}`);
     plan.changedFiles.forEach((file) => console.log(`[github-filepatcher] change=${file}`));
     if (corridorReport) reportCorridorScope(plan, corridorReport);
+    if (stagingReport) reportAutomaticStagingScope(plan, stagingReport);
 
     if (patch.planningGoal && patch.operations.length === 0) {
       console.log("[github-filepatcher] Planning-only corridor run completed successfully.");
