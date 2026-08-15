@@ -688,6 +688,13 @@ map
   "executeOld": "executeNew"
 }
 >>>
+clone-pattern runtime-binding after containing executeOld
+map
+<<<
+{
+  "executeOld": "executeNative"
+}
+>>>
 file scripts/self-test.js
 within route
 clone-pattern switch-case after containing oldRoute
@@ -696,6 +703,53 @@ map
 {
   "OLD_ROUTE": "NEW_ROUTE",
   "oldRoute": "newRoute"
+}
+>>>
+file scripts/self-test.js
+within featurePackage
+clone-pattern feature-registration after containing frameConnOldFeature
+map
+<<<
+{
+  "frameConnOldFeature": "frameConnNewFeature"
+}
+>>>
+file scripts/self-test.js
+within featureDefinition
+clone-pattern feature-api-member after containing executeOld
+map
+<<<
+{
+  "executeOld": "executeNew",
+  "oldExecute": "newExecute"
+}
+>>>
+clone-pattern hook-handler after containing readyOld
+map
+<<<
+{
+  "readyOld": "readyNew",
+  "oldReady": "newReady"
+}
+>>>
+file scripts/self-test.js
+within installFlow
+clone-pattern flow-step after containing old-step
+map
+<<<
+{
+  "old-step": "new-step",
+  "oldStep": "newStep"
+}
+>>>
+file scripts/self-test.js
+within persistActorFlag
+clone-pattern actor-flag after containing old-flag
+map
+<<<
+{
+  "old-flag": "new-flag",
+  "oldValue": "newValue"
 }
 >>>`;
   const seeded = new Map([[
@@ -721,18 +775,50 @@ export function route(kind) {
   }
 }
 
+export const featurePackage = Object.freeze([
+  frameConnOldFeature
+]);
+
+export const featureDefinition = defineFeature({
+  api: {
+    executeOld:
+      oldExecute
+  },
+  hooks: {
+    readyOld:
+      oldReady
+  }
+});
+
+export function installFlow() {
+  installNativeFlowStepBefore({
+    stepName: "old-step",
+    beforeStep: "target-step",
+    flowNames: ["ExampleFlow"],
+    step: oldStep
+  });
+}
+
+export async function persistActorFlag(actor) {
+  await actor.setFlag(MODULE_ID, "old-flag", oldValue);
+}
+
 export const y = 1;
 `
   ]]);
   const { patch } = parseDsl(fixture, seeded);
-  if (patch.operations.length !== 5) fail(`Self-test expected 5 operations, found ${patch.operations.length}.`);
+  if (patch.operations.length !== 11) fail(`Self-test expected 11 operations, found ${patch.operations.length}.`);
   if (!patch.operations[0].replace.includes("newThing()")) fail("Self-test symbol-scoped replacement failed.");
   if (!patch.operations[1].replace.includes('class="do-new">New</button>')) fail("Self-test UI-control pattern cloning failed.");
   if (!patch.operations[2].replace.includes("export const z = 2;")) fail("Self-test global insertion failed.");
   if (!patch.operations[3].replace.includes("executeNew")) fail("Self-test object-entry pattern cloning failed.");
-  if (!patch.operations[4].replace.includes("case NEW_ROUTE:") || !patch.operations[4].replace.includes("newRoute()")) {
-    fail("Self-test switch-case pattern cloning failed.");
-  }
+  if (!patch.operations[4].replace.includes("executeNative")) fail("Self-test runtime-binding pattern cloning failed.");
+  if (!patch.operations[5].replace.includes("case NEW_ROUTE:") || !patch.operations[5].replace.includes("newRoute()")) fail("Self-test switch-case pattern cloning failed.");
+  if (!patch.operations[6].replace.includes("frameConnNewFeature")) fail("Self-test feature-registration pattern cloning failed.");
+  if (!patch.operations[7].replace.includes("executeNew") || !patch.operations[7].replace.includes("newExecute")) fail("Self-test feature-api-member pattern cloning failed.");
+  if (!patch.operations[8].replace.includes("readyNew") || !patch.operations[8].replace.includes("newReady")) fail("Self-test hook-handler pattern cloning failed.");
+  if (!patch.operations[9].replace.includes("new-step") || !patch.operations[9].replace.includes("newStep")) fail("Self-test flow-step pattern cloning failed.");
+  if (!patch.operations[10].replace.includes("new-flag") || !patch.operations[10].replace.includes("newValue")) fail("Self-test actor-flag pattern cloning failed.");
   console.log("[patch-dsl] Self-test passed.");
 }
 
