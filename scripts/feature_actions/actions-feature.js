@@ -947,6 +947,27 @@ function registerUniversalActions() {
 
       defineFrameConnQuickAction({
         id:
+          "quick.end-grapple",
+
+        label:
+          "End Grapple",
+
+        shortDescription:
+          "Contest HULL against a character grappling you to end that Grapple.",
+
+        order:
+          35,
+
+        icon:
+          "fas fa-hand",
+
+        ...defineFrameConnTargetRequirement(
+          "grappled-character"
+        )
+      }),
+
+      defineFrameConnQuickAction({
+        id:
           "quick.hide",
 
         label:
