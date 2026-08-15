@@ -2,7 +2,7 @@
   "schema_version": 2,
   "id": "audit-no-check-actions-phase-1-routing",
   "description": "Prevent Bolster, Lock On, and Activate from falling through to the generic mech-skill chooser while their dedicated workflows remain unimplemented.",
-  "planning_goal": "Audit Frame Conn actions that do not traditionally require an action check or mech skill roll. Preserve already-correct Boot Up, Shut Down, Hide, Scan, Disengage, Stabilize, Prepare, Self-Destruct, Overcharge, Brace, and Protocol behavior. Fix Bolster, Lock On, and Activate so they cannot fall through to the generic HULL/AGI/SYS/ENG chooser; until dedicated target/system workflows are implemented they should be classified as no-roll/no-current-workflow rather than executable stat checks. Preserve all attack, contested-check, and ordinary skill-check routing.",
+  "planning_goal": "In Action Execution, classify Quick Tech Bolster, Quick Tech Lock On, and Activate as no-roll actions with no current execution workflow so they cannot route to the generic HULL/AGI/SYS/ENG mech-skill chooser.",
   "policy": {
     "max_files_changed": 1,
     "allowed_paths": [
