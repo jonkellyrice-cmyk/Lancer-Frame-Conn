@@ -657,6 +657,58 @@ async function executeFrameConnCanonicalAction({
           });
       break;
 
+    case "shut-down":
+      transaction =
+        await frameConnExecutionTransactionApi
+          .runNativeExecutionTransactionWithGlobalHooks({
+            context:
+              executionContext,
+
+            execute:
+              async ({
+                context
+              }) => {
+                const executionActor =
+                  frameConnSemanticExecutionContextApi
+                    .getExecutionActor(
+                      context
+                    ) ??
+                  actor;
+
+                const statusResult =
+                  await frameConnNativeAdapterApi
+                    .applyStatus(
+                      executionActor,
+                      "shutdown"
+                    );
+
+                if (
+                  !statusResult?.changed ||
+                  !statusResult?.active
+                ) {
+                  throw new Error(
+                    "Shut Down requires the acting mech to not already be Shut Down."
+                  );
+                }
+
+                return statusResult;
+              },
+
+            metadata: {
+              actionId:
+                action.id,
+
+              executionKind,
+
+              source:
+                "action-execution",
+
+              nativeStatusId:
+                "shutdown"
+            }
+          });
+      break;
+
     case "boot-up":
       transaction =
         await frameConnExecutionTransactionApi
