@@ -15,6 +15,7 @@ const GRAPPLE_FLAG = "grapple-relationships";
 const runtime = { applyStatus: null, removeStatus: null, distance: null };
 const timedStatuses = new Map();
 const grapples = new Map();
+const disengagedActors = new Map();
 
 function configureRuntime(bindings = {}) {
   if (!bindings || typeof bindings !== "object" || Array.isArray(bindings)) {
@@ -85,6 +86,11 @@ async function bestEffortUnsetFlag(actor, key) {
   return true;
 }
 
+function nativeStatusConfigured(statusId) {
+  return Array.isArray(globalThis.CONFIG?.statusEffects) &&
+    globalThis.CONFIG.statusEffects.some(status => status?.id === statusId);
+}
+
 async function applyStatuses(actor, statusIds = []) {
   const results = [];
   for (const statusId of statusIds) results.push(await applyNativeStatus(actor, statusId));
@@ -151,8 +157,11 @@ function grappleId(left, right) {
 
 async function establishGrapple(attacker, target) {
   if (!attacker || !target) throw new Error("Grapple requires two authoritative actors.");
-  await applyStatuses(attacker, ["grappled", "engaged"]);
-  await applyStatuses(target, ["grappled", "engaged"]);
+  const relationshipStatuses = nativeStatusConfigured("grappled")
+    ? ["grappled", "engaged"]
+    : ["engaged"];
+  await applyStatuses(attacker, relationshipStatuses);
+  await applyStatuses(target, relationshipStatuses);
   const attackerSize = nativeSize(attacker);
   const targetSize = nativeSize(target);
   let immobilizedActorUuid = null;
@@ -175,7 +184,7 @@ async function clearGrapple(record) {
   const attacker = actorFromUuid(record?.attackerActorUuid);
   const target = actorFromUuid(record?.targetActorUuid);
   for (const actor of [attacker, target].filter(Boolean)) {
-    await removeNativeStatus(actor, "grappled");
+    if (nativeStatusConfigured("grappled")) await removeNativeStatus(actor, "grappled");
     if (actor.uuid === record?.immobilizedActorUuid) await removeNativeStatus(actor, "immobilized");
     await bestEffortUnsetFlag(actor, GRAPPLE_FLAG);
   }
@@ -200,6 +209,28 @@ function hostilePair(leftToken, rightToken) {
 const hiddenActor = actor => Boolean(actor?.system?.statuses?.hidden);
 const grappleForcesPair = (leftActor, rightActor) => grapples.has(grappleId(leftActor, rightActor));
 
+async function applyDisengage(actor, combat = globalThis.game?.combat) {
+  const uuid = actorUuid(actor);
+  const activeTurnKey = turnKey(combat);
+  if (!uuid || !activeTurnKey) throw new Error("Disengage requires an active combat turn and authoritative actor.");
+  disengagedActors.set(uuid, { actorUuid: uuid, turnKey: activeTurnKey });
+  await removeNativeStatus(actor, "engaged");
+  return Object.freeze({ actorUuid: uuid, turnKey: activeTurnKey });
+}
+
+function syncDisengage(combat = globalThis.game?.combat) {
+  const currentTurnKey = turnKey(combat);
+  for (const [uuid, record] of disengagedActors.entries()) {
+    if (!currentTurnKey || record.turnKey !== currentTurnKey) disengagedActors.delete(uuid);
+  }
+  return true;
+}
+
+function isDisengaged(actor) {
+  const record = disengagedActors.get(actorUuid(actor));
+  return Boolean(record && record.turnKey === turnKey(globalThis.game?.combat));
+}
+
 /** Engaged is continuously derived from hostile adjacency. GM-only mutation avoids client write races. */
 async function syncEngaged() {
   if (!globalThis.game?.user?.isGM || typeof runtime.distance !== "function") return false;
@@ -223,7 +254,7 @@ async function syncEngaged() {
   for (const token of tokens) {
     const actor = token?.actor;
     if (!actor?.uuid) continue;
-    const shouldBeEngaged = expected.get(actor.uuid) === true;
+    const shouldBeEngaged = expected.get(actor.uuid) === true && !isDisengaged(actor);
     const isEngaged = Boolean(actor.system?.statuses?.engaged);
     if (shouldBeEngaged && !isEngaged) await applyNativeStatus(actor, "engaged");
     if (!shouldBeEngaged && isEngaged) await removeNativeStatus(actor, "engaged");
@@ -246,6 +277,7 @@ async function syncGrapples() {
 }
 
 async function handleCombatUpdate(combat) {
+  syncDisengage(combat);
   await syncTimedStatuses(combat);
   await syncGrapples();
   await syncEngaged();
@@ -258,7 +290,7 @@ async function handleCombatDelete(combat) {
   await syncEngaged();
   return true;
 }
-function diagnostics() { return Object.freeze({ runtimeBindings: runtimeBindings(), timedStatuses: [...timedStatuses.values()].map(record => ({ ...record })), grapples: [...grapples.values()].map(record => ({ ...record })) }); }
+function diagnostics() { return Object.freeze({ runtimeBindings: runtimeBindings(), timedStatuses: [...timedStatuses.values()].map(record => ({ ...record })), grapples: [...grapples.values()].map(record => ({ ...record })), disengagedActors: [...disengagedActors.values()].map(record => ({ ...record })) }); }
 
 export const frameConnStatusOrchestrationFeature = defineFrameConnFeature({
   id: "status-orchestration",
@@ -267,10 +299,10 @@ export const frameConnStatusOrchestrationFeature = defineFrameConnFeature({
   dependsOn: ["native-adapter.status", "sensors.measurement"],
   optionalDependsOn: [],
   state: {},
-  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleForActor, syncTimedStatuses, syncGrapples, syncEngaged },
-  queries: { diagnostics, runtimeBindings },
+  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleForActor, applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged },
+  queries: { diagnostics, runtimeBindings, isDisengaged },
   hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, deleteCombat: handleCombatDelete, canvasReady: syncEngaged },
   lifecycle: {},
-  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleForActor, syncTimedStatuses, syncGrapples, syncEngaged, diagnostics, runtimeBindings },
+  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleForActor, applyDisengage, isDisengaged, syncTimedStatuses, syncGrapples, syncEngaged, diagnostics, runtimeBindings },
   metadata: { label: "Status Orchestration", nativeStatusAuthority: "native-adapter.status", coverPolicy: "Cover remains attacker-relative and is not represented as one global persistent status." }
 });
