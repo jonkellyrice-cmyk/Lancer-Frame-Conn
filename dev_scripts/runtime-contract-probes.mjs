@@ -45,7 +45,7 @@ function signalMap(file,native){
   run(path.join(ROOT,"dev_scripts/runtime-signal-map.mjs"),av,"Runtime Signal Map"); return JSON.parse(fs.readFileSync(o,"utf8"));
 }
 function catalog(file){return fs.existsSync(file)?JSON.parse(fs.readFileSync(file,"utf8")):{contracts:[],native_system:null};}
-function clauses(c){return(c.clauses??[]).map((x,i)=>({id:x.id??`clause-${i+1}`,text:x.text??String(x),concerns:[...new Set([..((x.concerns??[]),...((x.obligations??[]).map(y=>y.concern).filter(Boolean))])]}));}
+function clauses(c){return(c.clauses??[]).map((x,i)=>({id:x.id??`clause-${i+1}`,text:x.text??String(x),concerns:[...new Set([...(x.concerns??[]),...((x.obligations??[]).map(y=>y.concern).filter(Boolean))])]}));}
 function nodeText(n){return[n.name,n.kind,n.effectKind,n.file,n.selector,n.eventName,...(n.tags??[]),n.evidence].filter(Boolean).join(" ").toLowerCase();}
 function bonus(conc,k){if(conc==="presentation"&&["event","hook","effect"].includes(k))return 5;if(["hook/event","hook"].includes(conc)&&["hook","event"].includes(k))return 6;if(conc==="native-execution"&&["flow","flow-step","effect","callable"].includes(k))return 5;if(["state","lifecycle","reaction","action-economy","movement"].includes(conc)&&["hook","effect","callable"].includes(k))return 3;return 0;}
 function nodes(map,cl){return(map.nodes??[]).map(n=>{let s=tok(cl.text).reduce((z,t)=>z+(nodeText(n).includes(t)?4:0),0);for(const c of cl.concerns)s+=bonus(c,n.kind);return{n,s};}).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,8);}
