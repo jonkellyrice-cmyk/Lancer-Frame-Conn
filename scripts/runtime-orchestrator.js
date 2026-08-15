@@ -1025,6 +1025,24 @@ async function executeFrameConnCanonicalAction({
       break;
     }
 
+    case "disengage": {
+      transaction =
+        await frameConnExecutionTransactionApi
+          .runNativeExecutionTransactionWithGlobalHooks({
+            context: executionContext,
+            execute: async () =>
+              frameConnStatusOrchestrationApi.applyDisengage(actor),
+            metadata: {
+              actionId: action.id,
+              executionKind,
+              source: "action-execution",
+              removesStatusId: "engaged",
+              suppression: "through-end-of-current-turn"
+            }
+          });
+      break;
+    }
+
     case "lock-on": {
       const targetToken =
         await resolveFrameConnRequiredTarget(
