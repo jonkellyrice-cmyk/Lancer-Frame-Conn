@@ -88,11 +88,19 @@ For repetitive code shapes, prefer `clone-pattern` over reproducing local boiler
 - every token in the `map` block must exist in the exemplar;
 - the compiler never invents a React/HTML/runtime/registry shape when it cannot prove one locally.
 
-Supported initial shapes are:
+Supported shapes are:
 
 - `ui-control` — clones one local `<button>...</button>` block, preserving the file's existing markup/JSX/template-string formatting;
 - `object-entry` — clones one top-level property of an object-valued symbol and handles comma placement;
-- `switch-case` — clones one local `case`/`default` block.
+- `switch-case` — clones one local `case`/`default` block;
+- `feature-registration` — clones a local bare array member whose identifier ends in `Feature`, preserving comma placement;
+- `runtime-binding` — clones one local runtime-binding object member. It deliberately reuses the same structural object-entry parser rather than inventing a binding schema;
+- `feature-api-member` — clones one direct member of the local feature definition's nested `api: { ... }` object;
+- `hook-handler` — clones either one direct member of a local `hooks: { ... }` object or one local `Hooks.on(...)` / `Hooks.once(...)` call statement;
+- `flow-step` — clones one local call statement using `installNativeFlowStepBefore`, `installNativeFlowStepAfter`, `insertNativeFlowStep`, or `appendNativeFlowStep`;
+- `actor-flag` — clones one local `getFlag`, `setFlag`, or `unsetFlag` method-call statement.
+
+The named forms are recognizers, not code generators. For example, `feature-api-member` does not create an `api` object if one is absent, `hook-handler` does not invent a Foundry hook installation style, and `flow-step` does not synthesize a native-flow contract. If the expected local shape is missing, compilation fails.
 
 Example:
 
@@ -119,7 +127,7 @@ Object/runtime patterns use the same mechanism:
 file scripts/feature_actions/action-execution-feature.js
 within frameConnActionExecutionRuntimeBindings
 
-clone-pattern object-entry after containing executeCanonicalAction
+clone-pattern runtime-binding after containing executeCanonicalAction
 map
 <<<
 {
@@ -127,5 +135,39 @@ map
 }
 >>>
 ```
+
+Feature API members can target the nested `api` surface without treating every object member in the feature definition as a candidate:
+
+```text
+file scripts/feature_actions/action-execution-feature.js
+within frameConnActionExecutionFeature
+
+clone-pattern feature-api-member after containing executeActionRoll
+map
+<<<
+{
+  "executeActionRoll": "executeScan",
+  "frameConnExecuteActionRoll": "frameConnExecuteScan"
+}
+>>>
+```
+
+Call-shaped forms clone the complete local call statement. For example:
+
+```text
+file native_adapter/example-extension.js
+within installExampleFlowExtensions
+
+clone-pattern flow-step after containing existing-step
+map
+<<<
+{
+  "existing-step": "new-step",
+  "existingStep": "newStep"
+}
+>>>
+```
+
+`feature-registration`, `feature-api-member`, `hook-handler`, and the other named forms still obey the exact same ambiguity rule: zero candidates or more than one candidate fails unless `containing <needle>` selects exactly one. Every `map` key must occur in the selected exemplar.
 
 This is intentionally exemplar-driven rather than a generic code generator. If local structure is ambiguous or unsupported, use explicit `replace`/`before`/`after` or `raw`.

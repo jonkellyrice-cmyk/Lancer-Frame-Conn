@@ -375,6 +375,12 @@ Current supported forms are:
 - `clone-pattern ui-control`
 - `clone-pattern object-entry`
 - `clone-pattern switch-case`
+- `clone-pattern feature-registration`
+- `clone-pattern runtime-binding`
+- `clone-pattern feature-api-member`
+- `clone-pattern hook-handler`
+- `clone-pattern flow-step`
+- `clone-pattern actor-flag`
 
 Example:
 
@@ -402,9 +408,11 @@ Safety rules:
 3. If several candidates exist, `containing <needle>` must reduce them to exactly one.
 4. Every mapped source token must actually exist in the exemplar.
 5. Unsupported or ambiguous shapes fail compilation.
-6. When the compiler cannot prove a pattern, fall back to explicit Level-1 DSL or `raw`.
+6. Named semantic forms only recognize an already-present local structure; they do not create missing registry, API, hook, flow, binding, or actor-flag architecture.
+7. Comma-delimited forms preserve the exemplar's local comma style; call-shaped forms clone the whole local call statement.
+8. When the compiler cannot prove a pattern, fall back to explicit Level-1 DSL or `raw`.
 
-This level exists to save tokens and reduce duplicated boilerplate without turning the tool into a speculative code generator.
+This level exists to save tokens and reduce duplicated boilerplate without turning the tool into a speculative code generator. The permanent `patch:dsl:self-test` now exercises all nine supported pattern forms on deterministic fixtures.
 
 ---
 
