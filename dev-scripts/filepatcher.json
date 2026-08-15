@@ -1,14 +1,28 @@
 {
   "schema_version": 2,
-  "id": "execute-disengage-through-status-orchestration",
-  "description": "Implement Disengage as a canonical non-roll action which clears Engaged and suppresses derived reapplication through the end of the current turn.",
-  "policy": {"max_files_changed":1,"allowed_paths":["scripts/runtime-orchestrator.js"]},
+  "id": "expose-targeted-grapple-relationship-controls",
+  "description": "Expose exact Grapple relationship lookup/removal so End Grapple can remove only the selected relationship.",
+  "policy": {"max_files_changed":1,"allowed_paths":["scripts/feature_status_orchestration/status-orchestration-feature.js"]},
   "operations": [
     {
       "type":"replace_text",
-      "path":"scripts/runtime-orchestrator.js",
-      "search":"    case \"lock-on\": {",
-      "replace":"    case \"disengage\": {\n      transaction =\n        await frameConnExecutionTransactionApi\n          .runNativeExecutionTransactionWithGlobalHooks({\n            context: executionContext,\n            execute: async () =>\n              frameConnStatusOrchestrationApi.applyDisengage(actor),\n            metadata: {\n              actionId: action.id,\n              executionKind,\n              source: \"action-execution\",\n              removesStatusId: \"engaged\",\n              suppression: \"through-end-of-current-turn\"\n            }\n          });\n      break;\n    }\n\n    case \"lock-on\": {",
+      "path":"scripts/feature_status_orchestration/status-orchestration-feature.js",
+      "search":"async function endGrappleForActor(actor) {\n  const uuid = actorUuid(actor);\n  const matches = [...grapples.values()].filter(record => record.attackerActorUuid === uuid || record.targetActorUuid === uuid);\n  for (const record of matches) await clearGrapple(record);\n  return matches.length;\n}",
+      "replace":"function getGrapplesForActor(actor) {\n  const uuid = actorUuid(actor);\n  return Object.freeze(\n    [...grapples.values()]\n      .filter(record => record.attackerActorUuid === uuid || record.targetActorUuid === uuid)\n      .map(record => Object.freeze({ ...record }))\n  );\n}\n\nfunction getGrappleBetween(leftActor, rightActor) {\n  return grapples.get(grappleId(leftActor, rightActor)) ?? null;\n}\n\nasync function endGrappleBetween(leftActor, rightActor) {\n  const record = getGrappleBetween(leftActor, rightActor);\n  if (!record) return false;\n  await clearGrapple(record);\n  return true;\n}\n\nasync function endGrappleForActor(actor) {\n  const matches = getGrapplesForActor(actor);\n  for (const record of matches) await clearGrapple(record);\n  return matches.length;\n}",
+      "expected_occurrences":1
+    },
+    {
+      "type":"replace_text",
+      "path":"scripts/feature_status_orchestration/status-orchestration-feature.js",
+      "search":"  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleForActor, applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged },\n  queries: { diagnostics, runtimeBindings, isDisengaged },",
+      "replace":"  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged },\n  queries: { diagnostics, runtimeBindings, isDisengaged, getGrapplesForActor, getGrappleBetween },",
+      "expected_occurrences":1
+    },
+    {
+      "type":"replace_text",
+      "path":"scripts/feature_status_orchestration/status-orchestration-feature.js",
+      "search":"  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleForActor, applyDisengage, isDisengaged, syncTimedStatuses, syncGrapples, syncEngaged, diagnostics, runtimeBindings },",
+      "replace":"  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage, isDisengaged, syncTimedStatuses, syncGrapples, syncEngaged, diagnostics, runtimeBindings },",
       "expected_occurrences":1
     }
   ]
