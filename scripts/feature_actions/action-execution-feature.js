@@ -245,7 +245,6 @@ export const FRAME_CONN_NO_ROLL_ACTIONS =
       "movement.teleport",
 
       "quick.boost",
-      "quick.hide",
       "quick.quick-tech.bolster",
       "quick.prepare",
       "quick.self-destruct",
@@ -373,8 +372,6 @@ function frameConnActionExecutionKind(
   if (
     [
       "quick.skirmish",
-      "quick.grapple",
-      "quick.ram",
       "full.barrage",
       "full.improvised-attack",
       "reaction.overwatch"
@@ -387,14 +384,50 @@ function frameConnActionExecutionKind(
 
 
   if (
-    [
-      "quick.quick-tech.invade",
-      "quick.quick-tech.invade.fragment-signal"
-    ].includes(
-      action.id
-    )
+    action.id ===
+      "quick.quick-tech.invade"
   ) {
     return "basic-tech-attack";
+  }
+
+
+  if (
+    action.id ===
+      "quick.quick-tech.invade.fragment-signal"
+  ) {
+    return "fragment-signal";
+  }
+
+
+  if (
+    action.id ===
+      "quick.grapple"
+  ) {
+    return "grapple";
+  }
+
+
+  if (
+    action.id ===
+      "quick.ram"
+  ) {
+    return "ram";
+  }
+
+
+  if (
+    action.id ===
+      "quick.hide"
+  ) {
+    return "hide";
+  }
+
+
+  if (
+    action.id ===
+      "quick.search"
+  ) {
+    return "search";
   }
 
 
@@ -813,7 +846,12 @@ async function frameConnExecuteActionRoll(
   if (
     [
       "full.improvised-attack",
+      "quick.grapple",
+      "quick.hide",
+      "quick.quick-tech.invade.fragment-signal",
       "quick.quick-tech.lock-on",
+      "quick.ram",
+      "quick.search",
       "quick.shut-down",
       "full.boot-up"
     ].includes(
@@ -952,6 +990,12 @@ function getFrameConnActionExecutionDiagnostics(
     canonicalExecution:
       [
         "full.improvised-attack",
+        "quick.grapple",
+        "quick.hide",
+        "quick.quick-tech.invade.fragment-signal",
+        "quick.quick-tech.lock-on",
+        "quick.ram",
+        "quick.search",
         "quick.shut-down",
         "full.boot-up"
       ].includes(
