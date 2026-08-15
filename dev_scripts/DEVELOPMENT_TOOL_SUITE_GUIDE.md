@@ -18,6 +18,7 @@ dev_scripts/
   PATCH_DSL.md                    Patch DSL syntax guide
   patch-dsl-compiler.mjs          DSL compiler for GitHub FilePatcher JSON
   patch-corridor-planner.mjs      goal -> likely patch corridor planner
+  automatic-patch-staging.mjs     corridor -> dependency-ordered staged patch specs
   repo-audit.mjs                  repository integrity + dependency watershed
   symbol-family-audit.mjs         symbol-family topology / ownership audit
   effect-atlas.mjs                side-effect ownership audit
@@ -44,6 +45,8 @@ npm run symbol-family-audit
 npm run effect-atlas
 npm run dependency-graph
 npm run patch-corridor
+npm run patch-staging
+npm run patch-staging:self-test
 npm run patch:dsl
 npm run patch:dsl:check
 npm run patch:dsl:self-test
@@ -59,6 +62,12 @@ The normal remote path is:
 behavioral goal
     ↓
 Patch Corridor Planner
+    ↓
+Automatic Patch Staging
+  dependency-safe phases + exact scope locks
+    ↓
+Corridor Context Pack + Native Contract Catalog
+  exact local context + already-proven native facts
     ↓
 Patch DSL authoring
     ↓
@@ -253,6 +262,28 @@ The planner consumes the repository audit, symbol-family audit, and effect atlas
 A corridor is guidance, not magical proof. If implementation discovers a real dependency outside the predicted corridor, expand the scope deliberately and explain why.
 
 Run the deterministic clause-decomposition self-test with `npm run patch-corridor:self-test`. When `planning_goal` is present in `dev-scripts/filepatcher.json`, the GitHub FilePatcher runs this clause-aware planner before mutation and reports how many changed files are inside or outside the certified corridor.
+
+---
+
+## Automatic Patch Staging — `automatic-patch-staging.mjs`
+
+Run directly from a behavioral goal with:
+
+```bash
+npm run patch-staging -- --goal "wire committed Scan through native execution and show the Scan choice in the UI"
+```
+
+Automatic Patch Staging takes a clause-complete Patch Corridor and the Symbol Family dependency graph and answers:
+
+> In what dependency-safe phases should a large cross-cutting implementation be attempted?
+
+The stager treats a family's `outgoingFamilies` as dependencies, reverses those edges into provider-before-consumer implementation order, condenses strongly connected components, and topologically layers the certified corridor. Dependency cycles are emitted as atomic groups instead of being given an invented internal order.
+
+Its safe default is one generated FilePatcher spec per file. Skeleton specs contain no invented operations and use both `max_files_changed` and the new exact `policy.allowed_paths` lock. GitHub FilePatcher enforces `allowed_paths` before mutation. If an already-authored multi-file patch is supplied with `--patch`, the stager partitions its existing operations without changing them. Operations outside the certified corridor and ambiguous multi-file operations such as `replace_tree_text` are rejected.
+
+When `planning_goal` is present, GitHub FilePatcher automatically runs the stager in report-only mode and reports whether the current patch crosses several dependency phases. The recommendation is advisory; the existing corridor certification and post-apply audits remain the blocking gates.
+
+Run the deterministic topology/safety test with `npm run patch-staging:self-test`. See `dev_scripts/AUTOMATIC_PATCH_STAGING.md` for the complete contract and operator workflow.
 
 ---
 

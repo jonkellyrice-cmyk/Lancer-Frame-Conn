@@ -14,6 +14,8 @@
     "runtime-signal-map:self-test": "node ./dev_scripts/runtime-signal-map.mjs --self-test",
     "patch-corridor": "node ./dev_scripts/patch-corridor-planner.mjs",
     "patch-corridor:self-test": "node ./dev_scripts/patch-corridor-planner.mjs --self-test",
+    "patch-staging": "node ./dev_scripts/automatic-patch-staging.mjs",
+    "patch-staging:self-test": "node ./dev_scripts/automatic-patch-staging.mjs --self-test",
     "corridor-context": "node ./dev_scripts/corridor-context-pack.mjs",
     "corridor-context:self-test": "node ./dev_scripts/corridor-context-pack.mjs --self-test",
     "native-contracts": "node ./dev_scripts/native-contract-catalog.mjs",
