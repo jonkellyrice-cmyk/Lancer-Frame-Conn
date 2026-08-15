@@ -1,42 +1,20 @@
 {
   "schema_version": 2,
-  "id": "boot-up-phase-1-action-routing",
-  "description": "Make committed Boot Up executable and route full.boot-up into the canonical Frame Conn execution spine.",
+  "id": "boot-up-phase-2-runtime-composition",
+  "description": "Execute Boot Up through the canonical transaction spine and authoritative Native Adapter shutdown-status removal.",
   "planning_goal": "Implement Boot Up end to end as the universal full.boot-up action: keep Frame Conn authoritative for Full Action commitment and exact committed-entry execution; show an Execute control for committed Boot Up; resolve the authoritative acting actor through Native Adapter actor resolution; require the actor to actually have the native Lancer shutdown status; execute Boot Up through the canonical System Bridge -> Semantic Execution Context -> Execution Transaction -> Native Adapter spine; remove only the native shutdown status using the existing native status adapter and Actor.toggleStatusEffect pathway; do not create or mutate any duplicate Frame Conn shutdown state; treat missing shutdown state or failed native mutation as execution failure so the committed entry remains pending; after native mutation succeeds, mark only that exact committed entry executed and refresh Frame Conn from authoritative actor and Turn state; preserve all unrelated action behavior.",
   "policy": {
-    "max_files_changed": 2,
+    "max_files_changed": 1,
     "allowed_paths": [
-      "scripts/feature_actions/action-execution-feature.js",
-      "styles/ui_turn/components/turn-committed-plan-presentation.js"
+      "scripts/runtime-orchestrator.js"
     ]
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "scripts/feature_actions/action-execution-feature.js",
-      "search": "      \"full.disengage\",\n      \"full.boot-up\",\n      \"full.mount-dismount\",",
-      "replace": "      \"full.disengage\",\n      \"full.mount-dismount\",",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/feature_actions/action-execution-feature.js",
-      "search": "  if (\n    action.id ===\n      \"full.stabilize\"\n  ) {\n    return \"stabilize\";\n  }",
-      "replace": "  if (\n    action.id ===\n      \"full.boot-up\"\n  ) {\n    return \"boot-up\";\n  }\n\n\n  if (\n    action.id ===\n      \"full.stabilize\"\n  ) {\n    return \"stabilize\";\n  }",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/feature_actions/action-execution-feature.js",
-      "search": "  /**\n   * Improvised Attack is the first universal action migrated to\n   * the canonical Frame Conn execution spine.\n   *\n   * All cross-cutting execution concerns remain outside this\n   * feature and are supplied through runtime composition.\n   */\n  if (\n    action.id ===\n    \"full.improvised-attack\"\n  ) {",
-      "replace": "  /**\n   * Canonically migrated actions enter the runtime-composed\n   * System Bridge / Semantic Context / Transaction / Native Adapter\n   * spine here. Cross-cutting execution concerns remain outside\n   * this feature.\n   */\n  if (\n    [\n      \"full.improvised-attack\",\n      \"full.boot-up\"\n    ].includes(\n      action.id\n    )\n  ) {",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "styles/ui_turn/components/turn-committed-plan-presentation.js",
-      "search": "      \"full.disengage\",\n      \"full.boot-up\",\n      \"full.mount-dismount\",",
-      "replace": "      \"full.disengage\",\n      \"full.mount-dismount\",",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "          });\n      break;\n\n    default:\n      throw new Error(\n        `Frame Conn canonical execution kind is not implemented: ${String(executionKind)}`\n      );",
+      "replace": "          });\n      break;\n\n    case \"boot-up\":\n      transaction =\n        await frameConnExecutionTransactionApi\n          .runNativeExecutionTransactionWithGlobalHooks({\n            context:\n              executionContext,\n\n            execute:\n              async ({\n                context\n              }) => {\n                const executionActor =\n                  frameConnSemanticExecutionContextApi\n                    .getExecutionActor(\n                      context\n                    ) ??\n                  actor;\n\n                const statusResult =\n                  await frameConnNativeAdapterApi\n                    .removeStatus(\n                      executionActor,\n                      \"shutdown\"\n                    );\n\n                if (\n                  !statusResult?.changed ||\n                  statusResult?.active\n                ) {\n                  throw new Error(\n                    \"Boot Up requires the acting mech to be Shut Down.\"\n                  );\n                }\n\n                return statusResult;\n              },\n\n            metadata: {\n              actionId:\n                action.id,\n\n              executionKind,\n\n              source:\n                \"action-execution\",\n\n              nativeStatusId:\n                \"shutdown\"\n            }\n          });\n      break;\n\n    default:\n      throw new Error(\n        `Frame Conn canonical execution kind is not implemented: ${String(executionKind)}`\n      );",
       "expected_occurrences": 1
     }
   ]
