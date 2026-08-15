@@ -200,6 +200,21 @@ if (
 }
 
 
+const frameConnStatusOrchestrationApi =
+  frameConnFeatureRegistry.getApi(
+    "status-orchestration"
+  );
+
+
+if (
+  !frameConnStatusOrchestrationApi
+) {
+  throw new Error(
+    "Frame Conn | The registered Status Orchestration feature API could not be resolved."
+  );
+}
+
+
 const initializeFrameConnActionRegistry =
   frameConnActionsApi.initialize;
 
@@ -597,6 +612,74 @@ function resolveFrameConnActorToken(
 /**
  * Validate a selected target against the acting mech's Sensors.
  */
+function assertFrameConnAdjacentTarget(
+  actor,
+  targetToken
+) {
+  const sourceToken =
+    resolveFrameConnActorToken(
+      actor
+    );
+
+  if (!sourceToken || !targetToken) {
+    throw new Error(
+      "Frame Conn could not resolve adjacency targeting geometry."
+    );
+  }
+
+  const distance =
+    frameConnSensorsApi.distance(
+      sourceToken,
+      targetToken
+    );
+
+  if (!Number.isFinite(distance) || distance > 1) {
+    throw new Error(
+      `${targetToken.name ?? "Selected target"} is not adjacent.`
+    );
+  }
+
+  return Object.freeze({ sourceToken, targetToken, distance });
+}
+
+
+function nativeExecutionHitTarget(
+  execution,
+  targetActor
+) {
+  const targetUuid =
+    targetActor?.uuid ??
+    null;
+
+  return (
+    execution?.status === "succeeded" &&
+    Array.isArray(execution?.result?.targets) &&
+    execution.result.targets.some(result =>
+      result?.hit === true &&
+      (
+        !targetUuid ||
+        result?.target?.actorUuid === targetUuid
+      )
+    )
+  );
+}
+
+
+function assertFrameConnNativeExecutionSucceeded(
+  execution,
+  label
+) {
+  if (execution?.status !== "succeeded") {
+    const error = new Error(
+      `${label} native execution did not succeed: ${execution?.status ?? "unknown"}`
+    );
+    error.nativeExecution = execution;
+    throw error;
+  }
+  return execution;
+}
+
+
 function assertFrameConnTargetWithinSensors(
   actor,
   targetToken
@@ -793,6 +876,151 @@ async function executeFrameConnCanonicalAction({
               source:
                 "action-execution"
             }
+          });
+      break;
+    }
+
+    case "hide": {
+      if (actor?.system?.statuses?.hidden) {
+        throw new Error(
+          "Hide requires the acting mech to not already be Hidden."
+        );
+      }
+
+      if (actor?.system?.statuses?.engaged) {
+        throw new Error(
+          "Hide cannot be taken while Engaged."
+        );
+      }
+
+      transaction =
+        await frameConnExecutionTransactionApi
+          .runNativeExecutionTransactionWithGlobalHooks({
+            context: executionContext,
+            execute: async () => {
+              const results =
+                await frameConnStatusOrchestrationApi
+                  .applyStatuses(actor, ["hidden"]);
+              const applied = results?.[0];
+              if (!applied?.active) {
+                throw new Error("Native Hidden application failed.");
+              }
+              return applied;
+            },
+            metadata: { actionId: action.id, executionKind, source: "action-execution", nativeStatusId: "hidden" }
+          });
+      break;
+    }
+
+    case "ram": {
+      const targetToken = await resolveFrameConnRequiredTarget(action);
+      assertFrameConnAdjacentTarget(actor, targetToken);
+      const targetActor = targetToken?.actor ?? null;
+      if (!targetActor) throw new Error("Ram requires an authoritative target actor.");
+
+      transaction =
+        await frameConnExecutionTransactionApi
+          .runNativeExecutionTransactionWithGlobalHooks({
+            context: executionContext,
+            execute: async () => {
+              const execution = assertFrameConnNativeExecutionSucceeded(
+                await frameConnNativeAdapterApi.executeBasicAttack({ actor, title: action.label ?? "Ram" }),
+                "Ram"
+              );
+              if (nativeExecutionHitTarget(execution, targetActor)) {
+                await frameConnStatusOrchestrationApi.applyStatuses(targetActor, ["prone"]);
+              }
+              return execution;
+            },
+            metadata: { actionId: action.id, executionKind, source: "action-execution", targetActorUuid: targetActor.uuid ?? null, postHitStatusId: "prone" }
+          });
+      break;
+    }
+
+    case "grapple": {
+      const targetToken = await resolveFrameConnRequiredTarget(action);
+      assertFrameConnAdjacentTarget(actor, targetToken);
+      const targetActor = targetToken?.actor ?? null;
+      if (!targetActor) throw new Error("Grapple requires an authoritative target actor.");
+
+      transaction =
+        await frameConnExecutionTransactionApi
+          .runNativeExecutionTransactionWithGlobalHooks({
+            context: executionContext,
+            execute: async () => {
+              const execution = assertFrameConnNativeExecutionSucceeded(
+                await frameConnNativeAdapterApi.executeBasicAttack({ actor, title: action.label ?? "Grapple" }),
+                "Grapple"
+              );
+              if (nativeExecutionHitTarget(execution, targetActor)) {
+                await frameConnStatusOrchestrationApi.establishGrapple(actor, targetActor);
+              }
+              return execution;
+            },
+            metadata: { actionId: action.id, executionKind, source: "action-execution", targetActorUuid: targetActor.uuid ?? null, statusRelationship: "grapple" }
+          });
+      break;
+    }
+
+    case "fragment-signal": {
+      const targetToken = await resolveFrameConnRequiredTarget(action);
+      assertFrameConnTargetWithinSensors(actor, targetToken);
+      const targetActor = targetToken?.actor ?? null;
+      if (!targetActor) throw new Error("Fragment Signal requires an authoritative target actor.");
+
+      transaction =
+        await frameConnExecutionTransactionApi
+          .runNativeExecutionTransactionWithGlobalHooks({
+            context: executionContext,
+            execute: async () => {
+              const execution = assertFrameConnNativeExecutionSucceeded(
+                await frameConnNativeAdapterApi.executeBasicTechAttack({ actor, title: action.label ?? "Fragment Signal" }),
+                "Fragment Signal"
+              );
+              if (nativeExecutionHitTarget(execution, targetActor)) {
+                await frameConnStatusOrchestrationApi.applyUntilEndOfNextTurn(
+                  targetActor,
+                  ["impaired", "slow"],
+                  { sourceActionId: action.id }
+                );
+              }
+              return execution;
+            },
+            metadata: { actionId: action.id, executionKind, source: "action-execution", targetActorUuid: targetActor.uuid ?? null, postHitStatusIds: ["impaired", "slow"] }
+          });
+      break;
+    }
+
+    case "search": {
+      const targetToken = await resolveFrameConnRequiredTarget(action);
+      assertFrameConnTargetWithinSensors(actor, targetToken);
+      const targetActor = targetToken?.actor ?? null;
+      if (!targetActor) throw new Error("Search requires an authoritative target actor.");
+
+      transaction =
+        await frameConnExecutionTransactionApi
+          .runNativeExecutionTransactionWithGlobalHooks({
+            context: executionContext,
+            execute: async () => {
+              const searchExecution = assertFrameConnNativeExecutionSucceeded(
+                await frameConnNativeAdapterApi.rollStat({ actor, path: "sys", title: "Search — Systems" }),
+                "Search Systems check"
+              );
+              const defenseExecution = assertFrameConnNativeExecutionSucceeded(
+                await frameConnNativeAdapterApi.rollStat({ actor: targetActor, path: "agi", title: "Search Defense — Agility" }),
+                "Search Agility defense"
+              );
+              const searchTotal = Number(searchExecution?.result?.roll?.total);
+              const defenseTotal = Number(defenseExecution?.result?.roll?.total);
+              if (!Number.isFinite(searchTotal) || !Number.isFinite(defenseTotal)) {
+                throw new Error("Search contested check did not produce native roll totals.");
+              }
+              if (searchTotal >= defenseTotal) {
+                await frameConnStatusOrchestrationApi.removeStatuses(targetActor, ["hidden"]);
+              }
+              return Object.freeze({ searchExecution, defenseExecution, succeeded: searchTotal >= defenseTotal, searchTotal, defenseTotal });
+            },
+            metadata: { actionId: action.id, executionKind, source: "action-execution", targetActorUuid: targetActor.uuid ?? null, contestedCheck: "sys-vs-agi", successRemovesStatusId: "hidden" }
           });
       break;
     }
@@ -1133,6 +1361,26 @@ function configureFrameConnRuntimeBindings() {
                 ) ??
               null
         })
+    });
+
+
+  /* ----------------------------------------------------------
+     Status Orchestration bindings
+     ---------------------------------------------------------- */
+
+  frameConnStatusOrchestrationApi
+    .configureRuntime?.({
+      applyStatus:
+        (actor, statusId) =>
+          frameConnNativeAdapterApi.applyStatus(actor, statusId),
+
+      removeStatus:
+        (actor, statusId) =>
+          frameConnNativeAdapterApi.removeStatus(actor, statusId),
+
+      distance:
+        (sourceToken, targetToken) =>
+          frameConnSensorsApi.distance(sourceToken, targetToken)
     });
 
 
