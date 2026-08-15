@@ -1,28 +1,14 @@
 {
   "schema_version": 2,
-  "id": "expose-targeted-grapple-relationship-controls",
-  "description": "Expose exact Grapple relationship lookup/removal so End Grapple can remove only the selected relationship.",
-  "policy": {"max_files_changed":1,"allowed_paths":["scripts/feature_status_orchestration/status-orchestration-feature.js"]},
+  "id": "add-end-grapple-universal-action",
+  "description": "Add the Quick Action used to contest and end an existing Grapple relationship.",
+  "policy": {"max_files_changed":1,"allowed_paths":["scripts/feature_actions/actions-feature.js"]},
   "operations": [
     {
       "type":"replace_text",
-      "path":"scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search":"async function endGrappleForActor(actor) {\n  const uuid = actorUuid(actor);\n  const matches = [...grapples.values()].filter(record => record.attackerActorUuid === uuid || record.targetActorUuid === uuid);\n  for (const record of matches) await clearGrapple(record);\n  return matches.length;\n}",
-      "replace":"function getGrapplesForActor(actor) {\n  const uuid = actorUuid(actor);\n  return Object.freeze(\n    [...grapples.values()]\n      .filter(record => record.attackerActorUuid === uuid || record.targetActorUuid === uuid)\n      .map(record => Object.freeze({ ...record }))\n  );\n}\n\nfunction getGrappleBetween(leftActor, rightActor) {\n  return grapples.get(grappleId(leftActor, rightActor)) ?? null;\n}\n\nasync function endGrappleBetween(leftActor, rightActor) {\n  const record = getGrappleBetween(leftActor, rightActor);\n  if (!record) return false;\n  await clearGrapple(record);\n  return true;\n}\n\nasync function endGrappleForActor(actor) {\n  const matches = getGrapplesForActor(actor);\n  for (const record of matches) await clearGrapple(record);\n  return matches.length;\n}",
-      "expected_occurrences":1
-    },
-    {
-      "type":"replace_text",
-      "path":"scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search":"  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleForActor, applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged },\n  queries: { diagnostics, runtimeBindings, isDisengaged },",
-      "replace":"  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged },\n  queries: { diagnostics, runtimeBindings, isDisengaged, getGrapplesForActor, getGrappleBetween },",
-      "expected_occurrences":1
-    },
-    {
-      "type":"replace_text",
-      "path":"scripts/feature_status_orchestration/status-orchestration-feature.js",
-      "search":"  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleForActor, applyDisengage, isDisengaged, syncTimedStatuses, syncGrapples, syncEngaged, diagnostics, runtimeBindings },",
-      "replace":"  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage, isDisengaged, syncTimedStatuses, syncGrapples, syncEngaged, diagnostics, runtimeBindings },",
+      "path":"scripts/feature_actions/actions-feature.js",
+      "search":"      defineFrameConnQuickAction({\n        id:\n          \"quick.hide\",",
+      "replace":"      defineFrameConnQuickAction({\n        id:\n          \"quick.end-grapple\",\n\n        label:\n          \"End Grapple\",\n\n        shortDescription:\n          \"Contest HULL against a character grappling you to end that Grapple.\",\n\n        order:\n          35,\n\n        icon:\n          \"fas fa-hand\",\n\n        ...defineFrameConnTargetRequirement(\n          \"grappled-character\"\n        )\n      }),\n\n      defineFrameConnQuickAction({\n        id:\n          \"quick.hide\",",
       "expected_occurrences":1
     }
   ]
