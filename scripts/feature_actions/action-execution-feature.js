@@ -315,11 +315,29 @@ function frameConnActionRequiresNoRoll(
       ? actionOrId
       : actionOrId?.id;
 
+  const actionCategory =
+    typeof actionOrId ===
+      "object"
+      ? actionOrId?.category ?? null
+      : null;
+
 
   if (
     !actionId
   ) {
     return false;
+  }
+
+
+  if (
+    actionCategory ===
+      "protocol" ||
+    String(actionId)
+      .startsWith(
+        "protocol."
+      )
+  ) {
+    return true;
   }
 
 
