@@ -287,6 +287,11 @@ import {
 } from "./feature_brace/brace-feature.js";
 
 
+import {
+  frameConnStatusOrchestrationFeature
+} from "./feature_status_orchestration/status-orchestration-feature.js";
+
+
 /* ============================================================
    Imports -- Executable UI package
    ============================================================ */
@@ -339,7 +344,8 @@ export const FRAME_CONN_RUNTIME_FEATURES =
     frameConnSemanticExecutionContextFeature,
     frameConnExecutionTransactionFeature,
     frameConnNativeAdapterFeature,
-    frameConnBraceFeature
+    frameConnBraceFeature,
+    frameConnStatusOrchestrationFeature
   ]);
 
 
