@@ -269,27 +269,35 @@ Therefore Lock On is already integrated into native attack resolution.
 
 # 5. Frame Conn Lock On Boundary
 
-Frame Conn should implement only the missing application side of the universal Quick Tech action.
+**Implementation status: source-side complete; live group validation pending.**
 
-Desired architecture:
+Frame Conn now implements the missing application side of the universal Quick Tech action.
+
+Implemented architecture:
 
 Committed Quick Tech: Lock On
     ↓
-Execute
+plain Execute control (no roll)
     ↓
-Enter Frame Conn target-selection mode
+reuse exactly one current Foundry target when present
     ↓
-Select valid character within Sensors
+otherwise activate Foundry's native Token target tool
     ↓
-Validate target
+wait for the current user's target selection
     ↓
-Apply native Lancer “lockon” condition
+validate the selected token is within the acting mech's Sensors
     ↓
-Spend Quick Action
+canonical System Bridge / Semantic Context / Execution Transaction path
     ↓
-Produce appropriate feedback
+Native Adapter applyStatus(targetActor, "lockon")
     ↓
-Refresh Frame Conn
+native ActiveEffect / derived system.statuses.lockon
+    ↓
+mark only the exact committed Lock On entry executed
+    ↓
+refresh Frame Conn
+
+Cancelling target acquisition or failing target/status validation leaves the committed entry pending rather than falsely marking it executed.
 
 After the native Lock On condition has been applied:
 
@@ -330,7 +338,7 @@ NATIVE ATTACK CONSUMPTION:
 YES
 
 FRAME CONN EXECUTION:
-APPLICATION SIDE REQUIRED
+IMPLEMENTED — LIVE VALIDATION PENDING
 
 —
 

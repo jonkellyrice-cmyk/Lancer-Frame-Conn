@@ -770,14 +770,19 @@ later attack
 
 # 38. Lock On — Frame Conn Responsibility
 
-Frame Conn should primarily own:
+Frame Conn now owns the Lock On application side end to end:
 
-- selecting the Lock On target;
-- validating Sensors/range;
-- applying native Lock On;
-- Quick Action economy.
+- Quick Action commitment/economy;
+- reusing an existing Foundry target when exactly one is selected;
+- activating Foundry's native Token target tool when no target is selected;
+- waiting for current-user target acquisition, with cancellation leaving execution pending;
+- validating the selected token against the acting mech's Sensors;
+- applying authoritative native `lockon` through Native Adapter `applyStatus`;
+- marking the exact committed entry executed only after successful native status mutation.
 
-Native attacks own Lock On consumption.
+Frame Conn does not create a parallel Lock On flag. Native attacks remain authoritative for Lock On Accuracy and consumption/removal.
+
+The Foundry target-acquisition surface is intentionally reusable by other actions which require a target, including the canonical Improvised Attack path and future weapon/system execution.
 
 —
 

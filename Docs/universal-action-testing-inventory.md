@@ -27,7 +27,7 @@ These actions should **not** be routed through the generic HULL / AGI / SYS / EN
 - Hide
 - Quick Tech — Bolster
 - Quick Tech — Scan
-- Quick Tech — Lock On
+- Quick Tech — Lock On — **implemented; live group validation pending**
 - Disengage
 - Stabilize — **done / working**
 - Activate
