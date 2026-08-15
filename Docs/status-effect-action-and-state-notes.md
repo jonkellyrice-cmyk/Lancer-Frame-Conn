@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document records implementation-planning notes for universal actions and game states that apply, remove, or automatically derive Lancer status effects.
+This document records implementation and planning notes for universal actions and game states that apply, remove, or automatically derive Lancer status effects. The implemented runtime architecture is summarized in `Docs/status-orchestration.md`.
 
 It complements `Docs/status.md`, which records the native Foundry Lancer status architecture and adapter boundary.
 
@@ -14,11 +14,11 @@ These notes are especially useful when deciding which action implementations nee
 
 ## Grapple
 
-On a successful Grapple, apply the Grappled state/status to the target.
+**Implemented, live validation pending.** On a successful native Grapple attack, Frame Conn records the specific Grapple relationship, derives Engaged for both participants, and applies Immobilized to the smaller participant. A native `grappled` presentation status is used only when that status ID exists in the installed Lancer status registry; the relationship record remains authority.
 
 ## Hide
 
-Hide applies `hidden`.
+**Implemented, live validation pending.** Hide applies native `hidden` through Status Orchestration. Current execution blocks duplicate Hidden and Engaged actors; complete cover/invisibility/observer legality remains pending the visibility/cover rules layer.
 
 ## Quick Tech — Invade — Fragment Signal
 
@@ -27,13 +27,13 @@ Fragment Signal applies:
 - `impaired`
 - `slow` / derived `slowed`
 
-These effects last until the end of the target's next turn.
+**Implemented, live validation pending.** These effects are applied only after a normalized native Tech Attack hit and last until the end of the target's next turn. Cleanup removes only statuses that this Frame Conn timed effect actually introduced.
 
 ## Ram
 
-On a successful Ram:
+**Prone application implemented; live validation pending.** On a successful native Ram attack:
 
-- apply `prone`;
+- apply native `prone`;
 - the target may also be knocked back 1 space.
 
 The knockback portion is movement/position resolution rather than status application and should remain separate from the native status mutation itself.
@@ -48,17 +48,15 @@ Shut Down applies the native `shutdown` condition/status.
 
 ## End Grapple
 
-Add/implement an End Grapple action.
-
-The intended resolution is a contested HULL check used to try to end the Grapple condition.
+**Implemented, live validation pending.** `quick.end-grapple` targets a tracked Grapple opponent, resolves native HULL vs HULL rolls, and ends only that Grapple relationship on a successful contest.
 
 ## Search
 
-On a successful contested SYSTEMS vs AGILITY check, Search removes `hidden`.
+**Implemented, live validation pending.** Search resolves native Systems vs Agility rolls and removes native `hidden` on success without checking/revealing Hidden state before the contest.
 
 ## Disengage
 
-Disengage removes/prevents `engaged` for the relevant duration.
+**Implemented, live validation pending.** Disengage removes current native `engaged` and suppresses derived reapplication through the end of the current turn.
 
 Movement performed while Disengaging should not provoke reactions until the end of the current turn.
 
@@ -71,7 +69,7 @@ Depending on the selected Stabilize options, Stabilize may:
 - clear one condition affecting yourself that was not caused by one of your own systems;
 - clear one condition affecting an ally that was not caused by one of that ally's own systems.
 
-The native status/effect removal boundary should remain authoritative for the actual status mutation.
+Native Stabilize already automates Cool/Exposed, Burn, Reload, HP/Repair, and their authoritative mutations. Its Clear Own Condition and Clear Ally Condition branches do not identify/clear a particular condition automatically, so those two branches remain intentionally manual until Frame Conn adds an explicit condition picker/Flow extension rather than guessing.
 
 ## Boot Up
 

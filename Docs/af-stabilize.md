@@ -90,7 +90,7 @@ The only meaningful native automation gaps currently identified are:
 - Clear Own Condition;
 - Clear Ally Condition.
 
-Those can be improved later without replacing the rest of the native flow.
+The native branches do not provide Frame Conn with a selected condition to remove; they explicitly leave that cleanup manual. Status Orchestration therefore does **not** guess or remove an arbitrary condition after Stabilize. A future enhancement needs an explicit condition picker or deliberate Stabilize Flow extension, while preserving all already-native Stabilize branches.
 
 —
 

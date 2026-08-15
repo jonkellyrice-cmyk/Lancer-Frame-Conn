@@ -22,7 +22,7 @@
 
 **Native Hide semantic SynergyLocation:** Not found.
 
-**Frame Conn implementation status:** Frame Conn should own Hide legality, visibility/cover qualification, application and lifecycle of the native `hidden` status, and Hidden-specific rules consequences, while reusing native Lancer status, cover, invisibility, and attack-modifier infrastructure wherever those already exist.
+**Frame Conn implementation status:** **Native Hidden application is implemented; live validation pending.** `quick.hide` is now a canonical non-roll Execute action and applies native `hidden` through Status Orchestration. Execution currently rejects actors already Hidden or Engaged. Complete cover/invisibility/observer qualification and all Hidden-breaking lifecycle rules remain pending the dedicated visibility/cover rules work; this implementation should not be described as complete Hide legality yet.
 
 ## Purpose
 

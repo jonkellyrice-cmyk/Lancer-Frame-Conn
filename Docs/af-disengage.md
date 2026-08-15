@@ -18,7 +18,7 @@
 
 **Native weapon Threat data:** Found.
 
-**Frame Conn implementation status:** Frame Conn should own Disengage as a temporary movement/reaction-suppression state, using its Movement and Turn domains to prevent Overwatch opportunity generation while preserving native engagement state and native weapon data.
+**Frame Conn implementation status:** **Core Disengage state is implemented; live validation pending.** `full.disengage` is a canonical non-roll Execute action. Status Orchestration removes current native `engaged`, records suppression through the end of the current turn, and prevents the derived Engaged evaluator from immediately reapplying it. The suppression state is exposed for the future movement-triggered Overwatch/reaction engine, which is not yet implemented.
 
 ## Purpose
 

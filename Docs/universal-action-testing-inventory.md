@@ -24,12 +24,12 @@ These actions should **not** be routed through the generic HULL / AGI / SYS / EN
 
 - Shut Down
 - Boot Up
-- Hide
+- Hide — **status application implemented; complete Hide legality still pending; live validation pending**
 - Quick Tech — Bolster
 - Quick Tech — Scan
 - Quick Tech — Lock On — **implemented; live group validation pending**
-- Disengage
-- Stabilize — **done / working**
+- Disengage — **Engaged removal/current-turn suppression implemented; live validation pending**
+- Stabilize — **done / working; native condition-selection branches remain manual**
 - Activate
   - The system being activated may itself require checks, but the act of activating it does not inherently require a mech skill check.
 - Mount / Dismount / Eject
@@ -47,8 +47,9 @@ These actions should **not** be routed through the generic HULL / AGI / SYS / EN
 
 These should use the appropriate native/basic melee attack path rather than the generic mech-skill-check route.
 
-- Grapple
-- Ram
+- Grapple — **native attack + relationship/status consequences implemented; live validation pending**
+- End Grapple — **native HULL-vs-HULL contest + relationship cleanup implemented; live validation pending**
+- Ram — **native attack + Prone application implemented; optional push remains movement work**
 
 ---
 
@@ -66,7 +67,7 @@ These require Frame Conn to become mount-aware and weapon-aware before their ful
 
 These require the appropriate native tech-attack execution path rather than an ordinary mech skill check.
 
-- Fragment Signal — **working as intended; implementation should be documented/earmarked explicitly**
+- Fragment Signal — **native Tech Attack + Impaired/Slow application and next-turn cleanup implemented; live grouped lifecycle validation pending**
 - Various mounted systems that invoke tech attacks
 
 ---
@@ -75,8 +76,8 @@ These require the appropriate native tech-attack execution path rather than an o
 
 These are not ordinary GM-set skill checks because another character supplies the opposing result.
 
-- Search
-  - Contested **Systems** check against the target's **Agility**.
+- Search — **implemented; live validation pending**
+  - Contested **Systems** check against the target's **Agility**; success removes native Hidden.
 
 ---
 
