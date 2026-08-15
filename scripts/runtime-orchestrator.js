@@ -657,6 +657,58 @@ async function executeFrameConnCanonicalAction({
           });
       break;
 
+    case "boot-up":
+      transaction =
+        await frameConnExecutionTransactionApi
+          .runNativeExecutionTransactionWithGlobalHooks({
+            context:
+              executionContext,
+
+            execute:
+              async ({
+                context
+              }) => {
+                const executionActor =
+                  frameConnSemanticExecutionContextApi
+                    .getExecutionActor(
+                      context
+                    ) ??
+                  actor;
+
+                const statusResult =
+                  await frameConnNativeAdapterApi
+                    .removeStatus(
+                      executionActor,
+                      "shutdown"
+                    );
+
+                if (
+                  !statusResult?.changed ||
+                  statusResult?.active
+                ) {
+                  throw new Error(
+                    "Boot Up requires the acting mech to be Shut Down."
+                  );
+                }
+
+                return statusResult;
+              },
+
+            metadata: {
+              actionId:
+                action.id,
+
+              executionKind,
+
+              source:
+                "action-execution",
+
+              nativeStatusId:
+                "shutdown"
+            }
+          });
+      break;
+
     default:
       throw new Error(
         `Frame Conn canonical execution kind is not implemented: ${String(executionKind)}`
