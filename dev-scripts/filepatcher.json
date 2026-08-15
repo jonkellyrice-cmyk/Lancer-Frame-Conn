@@ -1,19 +1,48 @@
 {
   "schema_version": 2,
-  "id": "catalog-native-shutdown-status-contract",
-  "description": "Persist the proven native Lancer shutdown status identity and native toggleStatusEffect mutation boundary used by Boot Up.",
+  "id": "boot-up-phase-3-execute-presentation",
+  "description": "Present committed Boot Up as an executable non-roll action rather than a d20 roll while preserving exact committed-entry execution.",
+  "planning_goal": "Implement Boot Up end to end as the universal full.boot-up action: keep Frame Conn authoritative for Full Action commitment and exact committed-entry execution; show an Execute control for committed Boot Up without presenting Boot Up as a dice roll; resolve the authoritative acting actor through Native Adapter actor resolution; require the actor to actually have the native Lancer shutdown status; execute Boot Up through the canonical System Bridge -> Semantic Execution Context -> Execution Transaction -> Native Adapter spine; remove only the native shutdown status using the existing native status adapter and Actor.toggleStatusEffect pathway; do not create or mutate any duplicate Frame Conn shutdown state; treat missing shutdown state or failed native mutation as execution failure so the committed entry remains pending; after native mutation succeeds, mark only that exact committed entry executed and refresh Frame Conn from authoritative actor and Turn state; preserve all unrelated action behavior.",
   "policy": {
     "max_files_changed": 1,
     "allowed_paths": [
-      "dev_scripts/native-contract-catalog.json"
+      "styles/ui_turn/components/turn-committed-plan-presentation.js"
     ]
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "dev_scripts/native-contract-catalog.json",
-      "search": "      ]\n    }\n  ]\n}",
-      "replace": "      ]\n    },\n    {\n      \"id\": \"native.actor.shutdown-status-boundary\",\n      \"title\": \"Shutdown is a native Lancer status mutated through Actor.toggleStatusEffect\",\n      \"status\": \"proven\",\n      \"contract_kind\": \"native-effect-boundary\",\n      \"summary\": \"Native Lancer defines shutdown as a first-class status identity and derived actor status, while embedded Status items apply their LID through Actor.toggleStatusEffect(..., { active: true }). Frame Conn therefore uses the corresponding native toggleStatusEffect pathway for authoritative shutdown removal.\",\n      \"keywords\": [\"boot up\", \"boot-up\", \"shutdown\", \"status\", \"toggleStatusEffect\", \"condition\", \"active effect\"],\n      \"boundary\": {\n        \"owner_family\": \"native-adapter\",\n        \"frame_conn_consumers\": [\"native_adapter/native-status.js\", \"scripts/runtime-orchestrator.js\"],\n        \"rule\": \"Frame Conn may own Boot Up legality and action semantics, but native Lancer/Foundry owns shutdown status identity and mutation. Read native status state and apply/remove shutdown through Actor.toggleStatusEffect rather than directly mutating derived system.statuses.shutdown or creating a Frame Conn shadow flag.\"\n      },\n      \"evidence\": [\n        {\n          \"source_path\": \"src/module/status-icons.ts\",\n          \"symbol\": \"shutdown status definition\",\n          \"line_start\": 121,\n          \"line_end\": 124,\n          \"source_sha256\": \"82f08da03734a3cfb14b4890ee68fef6256459b299e8f398e7e21c46237f7b54\",\n          \"slice_sha256\": \"4bd36d8311ccd8962f6f6df7f48b1099f0353972d8b3aeee0794090f5ce948ca\",\n          \"proof\": \"The native Lancer status registry defines the first-class status id shutdown and its presentation asset.\"\n        },\n        {\n          \"source_path\": \"src/module/actor/lancer-actor.ts\",\n          \"symbol\": \"LancerActor._prepareDerivedData shutdown status initialization\",\n          \"line_start\": 281,\n          \"line_end\": 297,\n          \"source_sha256\": \"6086f6b69689bdff1eb0f70b1fe59df5a5abd052d530fe80224fca46faaaacdd\",\n          \"slice_sha256\": \"f96d8970e7bdd64a05fe242e95e4ed5067f1c256eb6844344fe136b1ac392668\",\n          \"proof\": \"The native actor initializes shutdown inside its derived system.statuses state alongside the other authoritative status identities.\"\n        },\n        {\n          \"source_path\": \"src/module/models/items/status.ts\",\n          \"symbol\": \"StatusModel._preCreate\",\n          \"line_start\": 35,\n          \"line_end\": 48,\n          \"source_sha256\": \"68c4ec325b258bd734e70b3544223a07f1148461de2632fa79e83c517ec9f6d5\",\n          \"slice_sha256\": \"34972bcbe7a32819eafdf5c9c75a775c007a3fd4c8c0595cb7186f099dcfb20e\",\n          \"proof\": \"When a native Status item is embedded in an actor, Lancer delegates status application to actor.toggleStatusEffect(this.lid, { active: true }), establishing toggleStatusEffect as the native status-mutation pathway.\"\n        }\n      ]\n    }\n  ]\n}",
+      "path": "styles/ui_turn/components/turn-committed-plan-presentation.js",
+      "search": "const FRAME_CONN_TURN_UI_NO_ROLL_ACTION_IDS =\n  Object.freeze(\n    new Set([\n      \"movement.standard\",\n      \"movement.jump\",\n      \"movement.climb\",\n      \"movement.fly\",\n      \"movement.teleport\",\n\n      \"quick.boost\",\n      \"quick.hide\",\n      \"quick.prepare\",\n      \"quick.shut-down\",\n      \"quick.self-destruct\",\n\n      \"full.disengage\",\n      \"full.mount-dismount\",\n\n      \"special.end-turn\"\n    ])\n  );",
+      "replace": "const FRAME_CONN_TURN_UI_NO_ROLL_ACTION_IDS =\n  Object.freeze(\n    new Set([\n      \"movement.standard\",\n      \"movement.jump\",\n      \"movement.climb\",\n      \"movement.fly\",\n      \"movement.teleport\",\n\n      \"quick.boost\",\n      \"quick.hide\",\n      \"quick.prepare\",\n      \"quick.shut-down\",\n      \"quick.self-destruct\",\n\n      \"full.disengage\",\n      \"full.mount-dismount\",\n\n      \"special.end-turn\"\n    ])\n  );\n\n\n/**\n * Executable workflows which do not represent an attack/check roll.\n *\n * These actions still receive an Execute control, but presentation\n * must not imply that pressing it rolls a d20.\n */\nconst FRAME_CONN_TURN_UI_EXECUTE_ONLY_ACTION_IDS =\n  Object.freeze(\n    new Set([\n      \"full.boot-up\"\n    ])\n  );",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_turn/components/turn-committed-plan-presentation.js",
+      "search": "  return (\n    !FRAME_CONN_TURN_UI_NO_ROLL_ACTION_IDS\n      .has(\n        action.id\n      )\n  );\n}",
+      "replace": "  return (\n    !FRAME_CONN_TURN_UI_NO_ROLL_ACTION_IDS\n      .has(\n        action.id\n      ) &&\n    !FRAME_CONN_TURN_UI_EXECUTE_ONLY_ACTION_IDS\n      .has(\n        action.id\n      )\n  );\n}\n\n\nfunction frameConnTurnUiCommittedActionCanExecute(\n  action\n) {\n  if (\n    !action?.id\n  ) {\n    return false;\n  }\n\n\n  return (\n    !FRAME_CONN_TURN_UI_NO_ROLL_ACTION_IDS\n      .has(\n        action.id\n      )\n  );\n}",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_turn/components/turn-committed-plan-presentation.js",
+      "search": "  const canRoll =\n    frameConnTurnUiCommittedActionCanRoll(\n      action\n    );\n\n  const showExecuteControl =\n    Boolean(\n      executable &&\n      canRoll &&\n      !executed\n    );",
+      "replace": "  const canRoll =\n    frameConnTurnUiCommittedActionCanRoll(\n      action\n    );\n\n  const canExecute =\n    frameConnTurnUiCommittedActionCanExecute(\n      action\n    );\n\n  const showExecuteControl =\n    Boolean(\n      executable &&\n      canExecute &&\n      !executed\n    );",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_turn/components/turn-committed-plan-presentation.js",
+      "search": "    canRoll,\n\n    showExecuteControl,",
+      "replace": "    canRoll,\n\n    canExecute,\n\n    showExecuteControl,",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_turn/components/turn-committed-plan-presentation.js",
+      "search": "        kind:\n          \"roll\",\n\n        icon:\n          \"fas fa-dice-d20\",",
+      "replace": "        kind:\n          canRoll\n            ? \"roll\"\n            : \"execute\",\n\n        icon:\n          canRoll\n            ? \"fas fa-dice-d20\"\n            : \"fas fa-play\",",
       "expected_occurrences": 1
     }
   ]
