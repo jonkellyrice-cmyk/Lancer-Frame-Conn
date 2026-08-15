@@ -247,7 +247,6 @@ export const FRAME_CONN_NO_ROLL_ACTIONS =
       "quick.boost",
       "quick.hide",
       "quick.prepare",
-      "quick.shut-down",
       "quick.self-destruct",
 
       "full.disengage",
@@ -384,6 +383,14 @@ function frameConnActionExecutionKind(
       "quick.quick-tech.scan"
   ) {
     return "scan";
+  }
+
+
+  if (
+    action.id ===
+      "quick.shut-down"
+  ) {
+    return "shut-down";
   }
 
 
