@@ -8,6 +8,8 @@
  * Conn therefore uses that native field instead of inventing a duplicate timer.
  */
 
+import { resolveReactorMeltdownExplosion } from "./reactor-meltdown-resolution.js";
+
 const MODULE_ID = "lancer-frame-conn";
 const MELTDOWN_FLAG = "reactor-meltdown-countdown";
 const STAT_FLOW = "StatRollFlow";
@@ -165,11 +167,18 @@ export function createReactorMeltdownStatusController({
   }
 
   async function triggerMeltdown(actor) {
-    if (!actor) return false;
+    if (!actor || !canAdvanceCountdown(actor)) return false;
+
+    // Mark the native actor before resolving the terminal blast. The mech Actor
+    // remains available for logs/history, while its scene Token is vaporized.
     await applyStatus(actor, "reactor_meltdown");
+
+    const explosion = await resolveReactorMeltdownExplosion({ actor });
+
     await updateTimer(actor, null);
     await clearRecord(actor);
-    return true;
+
+    return explosion;
   }
 
   async function beginActorTurn(actor, combat) {
