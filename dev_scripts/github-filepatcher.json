@@ -1,8 +1,7 @@
 {
   "schema_version": 2,
-  "id": "phase-zero-planning-baseline-verification",
-  "description": "Planning-only verification that the normal Frame Conn Patch Corridor can run again after quarantined legacy SITREP import repair.",
-  "planning_goal": "Verify that the repository baseline is healthy enough for the ordinary Patch Corridor and planning toolchain to analyze future SITREP assimilation work, without changing any source files or activating the quarantined legacy SITREP module.",
+  "id": "ready",
+  "description": "Neutral no-op state after Phase 0 restored static repository health for the quarantined legacy SITREP import.",
   "policy": {
     "max_files_changed": 1
   },
