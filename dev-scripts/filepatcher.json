@@ -1,9 +1,21 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "No-op acceptance state after removing movement-triggered Boost/Overcharge behavior and movement policing notifications.",
+  "id": "native-overcharge-state-convergence",
+  "description": "Remove Frame Conn's hard-coded mission-scale Overcharge heat progression while preserving its turn-scale Overcharge state and UI model.",
+  "planning_goal": "Frame Conn Turn state must continue to own once-per-turn Overcharge availability and the granted Quick Action, but it must no longer calculate the escalating Overcharge heat sequence. The heat formula stored for presentation must be supplied by the native Lancer actor execution path, so native actor state remains authoritative for mission-scale Overcharge progression and modified Overcharge sequences.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 1,
+    "allowed_paths": [
+      "scripts/feature_turn/turn-state.js"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_turn/turn-state.js",
+      "search": "  overchargeHeatFormula(\n    overchargeCount = 0\n  ) {\n    if (\n      overchargeCount <= 0\n    ) {\n      return \"1\";\n    }\n\n\n    if (\n      overchargeCount === 1\n    ) {\n      return \"1d3\";\n    }\n\n\n    if (\n      overchargeCount === 2\n    ) {\n      return \"1d6\";\n    }\n\n\n    return \"1d6+4\";\n  }\n\n\n  useOvercharge({\n    previousOvercharges = 0\n  } = {}) {\n    this.assertTurnActive();\n\n\n    if (\n      this.restrictions?.brace\n    ) {\n      throw new Error(\n        \"Brace prevents Overcharge until the end of this turn.\"\n      );\n    }\n\n\n    if (\n      this.overcharge.used\n    ) {\n      throw new Error(\n        \"This unit has already Overcharged this turn.\"\n      );\n    }\n\n\n    this.overcharge.used =\n      true;\n\n\n    this.overcharge\n      .quickActionRemaining =\n      1;\n\n\n    this.overcharge.heatFormula =\n      this.overchargeHeatFormula(\n        previousOvercharges\n      );\n\n\n    this.closeProtocolWindow();\n\n\n    this.recordHistory(\n      \"overcharge\",\n      {\n        heatFormula:\n          this.overcharge\n            .heatFormula,\n\n        previousOvercharges\n      }\n    );\n\n\n    return (\n      this.overcharge\n        .heatFormula\n    );\n  }\n",
+      "replace": "  useOvercharge({\n    heatFormula = null\n  } = {}) {\n    this.assertTurnActive();\n\n\n    if (\n      this.restrictions?.brace\n    ) {\n      throw new Error(\n        \"Brace prevents Overcharge until the end of this turn.\"\n      );\n    }\n\n\n    if (\n      this.overcharge.used\n    ) {\n      throw new Error(\n        \"This unit has already Overcharged this turn.\"\n      );\n    }\n\n\n    this.overcharge.used =\n      true;\n\n\n    this.overcharge\n      .quickActionRemaining =\n      1;\n\n\n    this.overcharge.heatFormula =\n      heatFormula === null ||\n      heatFormula === undefined ||\n      heatFormula === \"\"\n        ? null\n        : String(\n            heatFormula\n          );\n\n\n    this.closeProtocolWindow();\n\n\n    this.recordHistory(\n      \"overcharge\",\n      {\n        heatFormula:\n          this.overcharge\n            .heatFormula,\n\n        progressionAuthority:\n          \"native-lancer\"\n      }\n    );\n\n\n    return (\n      this.overcharge\n        .heatFormula\n    );\n  }\n",
+      "expected_occurrences": 1
+    }
+  ]
 }
