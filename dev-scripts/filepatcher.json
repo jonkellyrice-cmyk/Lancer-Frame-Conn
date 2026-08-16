@@ -1,9 +1,21 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "No-op acceptance state after integrating the Change Propagation Simulator into the Frame Conn development toolchain.",
+  "id": "remove-automatic-movement-boost-triggers",
+  "description": "Stop physical token movement from automatically committing Boost or triggering Overcharge while preserving movement tracking and presentation state.",
+  "planning_goal": "Physical horizontal or elevation token movement must continue to be measured and recorded, but crossing Speed thresholds must never automatically commit Boost, spend an action, trigger Overcharge, or mutate Overcharge state. The manually selected Boost action and movement presentation data must remain unchanged.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 1,
+    "allowed_paths": [
+      "scripts/feature_turn/turn-state-movement.js"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "scripts/feature_turn/turn-state-movement.js",
+      "search": "  /* ----------------------------------------------------------\n     Cross first Speed threshold\n     ---------------------------------------------------------- */\n\n  if (\n    newTotal > standardAllowance &&\n    getFrameConnTurnStateMovementBoostCount(\n      state\n    ) < 1\n  ) {\n    const result =\n      ensureFrameConnTurnStateAutomaticMovementBoost(\n        state,\n        {\n          forceOvercharge:\n            false\n        }\n      );\n\n\n    automaticActions.push({\n      threshold:\n        standardAllowance,\n\n      ...result\n    });\n  }\n\n\n  /* ----------------------------------------------------------\n     Cross second Speed threshold\n     ---------------------------------------------------------- */\n\n  if (\n    newTotal >\n      standardAllowance +\n        speed &&\n    getFrameConnTurnStateMovementBoostCount(\n      state\n    ) < 2\n  ) {\n    const result =\n      ensureFrameConnTurnStateAutomaticMovementBoost(\n        state,\n        {\n          forceOvercharge:\n            true\n        }\n      );\n\n\n    automaticActions.push({\n      threshold:\n        standardAllowance +\n          speed,\n\n      ...result\n    });\n  }\n\n\n",
+      "replace": "  /* ----------------------------------------------------------\n     Observe movement without policing it\n     ---------------------------------------------------------- */\n\n  // Physical token movement is observational only. Crossing Speed\n  // thresholds does not commit Boost, spend actions, or trigger\n  // Overcharge. Manual Boost remains authoritative for action use.\n\n\n",
+      "expected_occurrences": 1
+    }
+  ]
 }
