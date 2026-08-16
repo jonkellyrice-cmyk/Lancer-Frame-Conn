@@ -2,7 +2,7 @@
   "schema_version": 2,
   "id": "remove-movement-policing-notifications",
   "description": "Stop physical token movement from producing automatic Boost, Overcharge, or excess-movement notifications while preserving movement tracking and UI presentation.",
-  "planning_goal": "Horizontal and elevation token movement must continue to be measured, recorded, and reflected in Frame Conn movement UI, but physical movement must not warn about exceeding the legal allowance and must not report or imply automatic Boost or Overcharge action use. Existing measurement-failure warnings and the informational elevation-recorded message remain unchanged.",
+  "planning_goal": "Preserve existing movement measurement, movement tracking, elevation tracking, and movement UI presentation. Remove the movement-feature calls that notify the player about automatic Boost, automatic Overcharge, or excess movement after horizontal token movement. Remove the equivalent automatic-action and excess-movement notification calls after elevation movement. Preserve movement measurement failure warnings and the informational elevation-recorded notification.",
   "policy": {
     "max_files_changed": 1,
     "allowed_paths": [
