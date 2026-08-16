@@ -5,7 +5,13 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 
 const REPO_ROOT = process.cwd();
-const PLAN_PATH = path.join(REPO_ROOT, "dev-scripts", "path-mover.json");
+const PLAN_CANDIDATES = [
+  path.join(REPO_ROOT, "dev_scripts", "path-mover.json"),
+  path.join(REPO_ROOT, "dev-scripts", "path-mover.json")
+];
+const PLAN_PATH =
+  PLAN_CANDIDATES.find(candidate => fs.existsSync(candidate)) ??
+  PLAN_CANDIDATES[0];
 const SOURCE_EXTENSIONS = new Set([".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx"]);
 const RESOLUTION_EXTENSIONS = ["", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx", ".json"];
 
@@ -159,6 +165,53 @@ function rewriteImports(records, oldToNew) {
   return rewrittenFiles;
 }
 
+function rewriteDeclaredPathReferences(referenceRewrites, oldToNew) {
+  if (referenceRewrites === undefined) return 0;
+  if (!Array.isArray(referenceRewrites)) {
+    fail("reference_rewrites must be an array when provided.");
+  }
+
+  const changedFiles = new Set();
+  for (const rewrite of referenceRewrites) {
+    if (!rewrite || typeof rewrite !== "object" || Array.isArray(rewrite)) {
+      fail("Each reference_rewrites entry must be an object.");
+    }
+    if (typeof rewrite.path !== "string" || !rewrite.path.trim()) {
+      fail("Each reference_rewrites entry requires a path.");
+    }
+    if (typeof rewrite.from !== "string" || typeof rewrite.to !== "string") {
+      fail("Each reference_rewrites entry requires string from/to values.");
+    }
+
+    const oldFilePath = absolute(rewrite.path);
+    const currentFilePath = oldToNew.get(oldFilePath) ?? oldFilePath;
+    if (!fs.existsSync(currentFilePath) || !fs.statSync(currentFilePath).isFile()) {
+      fail(`Reference rewrite target does not exist: ${rewrite.path}`);
+    }
+
+    const content = fs.readFileSync(currentFilePath, "utf8");
+    const occurrences = content.split(rewrite.from).length - 1;
+    const expectedOccurrences = rewrite.expected_occurrences ?? occurrences;
+    if (!Number.isInteger(expectedOccurrences) || expectedOccurrences < 1) {
+      fail(`reference_rewrites expected_occurrences must be a positive integer: ${rewrite.path}`);
+    }
+    if (occurrences !== expectedOccurrences) {
+      fail(
+        `Reference rewrite occurrence mismatch in ${rewrite.path}: expected ${expectedOccurrences}, found ${occurrences} for ${JSON.stringify(rewrite.from)}`
+      );
+    }
+
+    fs.writeFileSync(
+      currentFilePath,
+      content.split(rewrite.from).join(rewrite.to),
+      "utf8"
+    );
+    changedFiles.add(currentFilePath);
+  }
+
+  return changedFiles.size;
+}
+
 function validateAffectedImports(records, oldToNew) {
   const failures = [];
   for (const record of records) {
@@ -183,7 +236,7 @@ function validateAffectedImports(records, oldToNew) {
   }
 }
 
-if (!fs.existsSync(PLAN_PATH)) fail("Missing dev-scripts/path-mover.json");
+if (!fs.existsSync(PLAN_PATH)) fail("Missing path-mover.json in dev_scripts/ or dev-scripts/");
 const plan = JSON.parse(fs.readFileSync(PLAN_PATH, "utf8"));
 if (!plan.enabled) {
   console.log("[path-mover] Plan disabled; nothing to do.");
@@ -201,12 +254,18 @@ const importRecords = collectSpecifierRecords();
 
 for (const move of normalizedMoves) gitMove(move.from, move.to);
 const rewrittenFiles = rewriteImports(importRecords, oldToNew);
+const rewrittenReferenceFiles = rewriteDeclaredPathReferences(
+  plan.reference_rewrites,
+  oldToNew
+);
 validateAffectedImports(importRecords, oldToNew);
 
 plan.enabled = false;
 plan.last_applied_at = new Date().toISOString();
-fs.writeFileSync(PLAN_PATH, `${JSON.stringify(plan, null, 2)}\n`, "utf8");
+const planOutputPath = oldToNew.get(PLAN_PATH) ?? PLAN_PATH;
+fs.writeFileSync(planOutputPath, `${JSON.stringify(plan, null, 2)}\n`, "utf8");
 
 console.log(`[path-mover] Moved ${normalizedMoves.length} path(s).`);
 console.log(`[path-mover] Rewrote imports in ${rewrittenFiles} file(s).`);
+console.log(`[path-mover] Rewrote declared path references in ${rewrittenReferenceFiles} file(s).`);
 console.log("[path-mover] Relocation import validation passed.");
