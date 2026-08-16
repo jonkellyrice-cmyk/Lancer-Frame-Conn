@@ -1,9 +1,27 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after Phase 0 restored static repository health for the quarantined legacy SITREP import.",
+  "id": "domain-decomposer-suite-guide",
+  "description": "Document the Domain Decomposer planner/executor in the canonical development-tool suite guide and validate the repository with the normal FilePatcher gate.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 1,
+    "allowed_paths": [
+      "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
+      "search": "  runtime-contract-probes.mjs      goal -> reversible Foundry runtime probe bundle\n  repo-audit.mjs                  repository integrity + dependency watershed",
+      "replace": "  runtime-contract-probes.mjs      goal -> reversible Foundry runtime probe bundle\n  domain-decomposer.mjs           file/domain evidence -> reviewable decomposition plan\n  domain-decomposer-executor.mjs  approved plan -> dependency-closed FilePatcher extraction\n  domain-decomposer-policy.json   LOC pressure + decomposition-resistant architecture policy\n  repo-audit.mjs                  repository integrity + dependency watershed",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
+      "search": "# 9 — Runtime Contract Probes\nnpm run runtime-probes\nnpm run runtime-probes:self-test",
+      "replace": "# 9 — Runtime Contract Probes\nnpm run runtime-probes\nnpm run runtime-probes:self-test\n\n# 10 — Domain Decomposer\nnpm run decompose\nnpm run decompose:self-test\nnpm run decompose:apply -- --dry-run\nnpm run decompose:apply -- --apply\nnpm run decompose:apply:self-test",
+      "expected_occurrences": 1
+    }
+  ]
 }
