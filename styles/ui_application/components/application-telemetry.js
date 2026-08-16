@@ -320,6 +320,16 @@ function getManualStats(
         system.statuses?.exposed
       ),
 
+    structureWarningLevel:
+      (() => {
+        const structure = Number(system.structure?.value);
+        if (!Number.isFinite(structure)) return null;
+        if (structure === 3) return "yellow";
+        if (structure === 2) return "orange";
+        if (structure === 1) return "red";
+        return null;
+      })(),
+
     repairsAvailable
   };
 }
@@ -676,7 +686,12 @@ function renderMechStatsBar(
             stats.structureCurrent,
 
           maximumValue:
-            stats.structureMax
+            stats.structureMax,
+
+          stateClass:
+            stats.structureWarningLevel
+              ? `frame-conn-structure-${stats.structureWarningLevel}`
+              : ""
         })}
 
         ${renderPairedStat({

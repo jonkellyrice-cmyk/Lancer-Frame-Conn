@@ -11,6 +11,7 @@ import { createEngagedStatusController } from "./engaged-status.js";
 import { createDangerZoneStatusController } from "./danger-zone-status.js";
 import { createOverheatingStatusController } from "./overheating-status.js";
 import { createReactorMeltdownStatusController } from "./reactor-meltdown-status.js";
+import { createStructureDamageStatusController } from "./structure-damage-status.js";
 
 const MODULE_ID = "lancer-frame-conn";
 const TIMED_FLAG = "timed-statuses";
@@ -288,6 +289,11 @@ const overheatingStatus = createOverheatingStatusController({
   markReactorEngineeringCheckPending: reactorMeltdownStatus.markEngineeringCheckPending
 });
 
+const structureDamageStatus = createStructureDamageStatusController({
+  applyUntilEndOfNextTurn,
+  installFlowStepBefore: installStatusOrchestrationFlowStepBefore
+});
+
 async function syncGrapples() {
   if (typeof runtime.distance !== "function") return false;
   for (const record of [...grapples.values()]) {
@@ -362,6 +368,7 @@ async function handleTokenUpdate(tokenDocument, change = {}) {
 }
 async function handleActorUpdate(actor) {
   await reactorMeltdownStatus.reconcileActor(actor);
+  await structureDamageStatus.reconcileActor(actor);
   return dangerZoneStatus.syncActor(actor);
 }
 async function handleCombatDelete(combat) {
@@ -374,14 +381,14 @@ function diagnostics() { return Object.freeze({ runtimeBindings: runtimeBindings
 export const frameConnStatusOrchestrationFeature = defineFrameConnFeature({
   id: "status-orchestration",
   domain: "status.orchestration",
-  provides: ["status.orchestration", "status.timed", "status.grapple", "status.engaged.derived", "status.danger-zone.derived", "status.overheat-consequences", "status.reactor-meltdown-countdown"],
-  dependsOn: ["native-adapter.status", "native-adapter.flow-extension", "sensors.measurement"],
+  provides: ["status.orchestration", "status.timed", "status.grapple", "status.engaged.derived", "status.danger-zone.derived", "status.overheat-consequences", "status.reactor-meltdown-countdown", "status.structure-damage-consequences"],
+  dependsOn: ["native-adapter.status", "native-adapter.rolls", "native-adapter.flow-extension", "sensors.measurement"],
   optionalDependsOn: [],
   state: {},
-  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, syncDangerZone: dangerZoneStatus.syncActor, syncDangerZones: dangerZoneStatus.syncAll, installOverheatingConsequences: overheatingStatus.install, installReactorMeltdownEngineeringResolution: reactorMeltdownStatus.installEngineeringResolution, syncReactorMeltdownCountdown: reactorMeltdownStatus.syncCombat },
+  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, syncDangerZone: dangerZoneStatus.syncActor, syncDangerZones: dangerZoneStatus.syncAll, installOverheatingConsequences: overheatingStatus.install, installReactorMeltdownEngineeringResolution: reactorMeltdownStatus.installEngineeringResolution, installStructureDamageConsequences: structureDamageStatus.install, syncReactorMeltdownCountdown: reactorMeltdownStatus.syncCombat },
   queries: { diagnostics, runtimeBindings, isDisengaged: engagedStatus.isDisengaged, getGrapplesForActor, getGrappleBetween, hydrateStatusOrchestrationState, dangerZoneThreshold: dangerZoneStatus.threshold, reactorMeltdownTimer: reactorMeltdownStatus.timer },
-  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, updateActor: handleActorUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { overheatingStatus.install(); reactorMeltdownStatus.installEngineeringResolution(); reactorMeltdownStatus.initializeCombat(); hydrateStatusOrchestrationState(); await syncGrapples(); await engagedStatus.syncEngaged(); return dangerZoneStatus.syncAll(); } },
+  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, updateActor: handleActorUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { overheatingStatus.install(); reactorMeltdownStatus.installEngineeringResolution(); structureDamageStatus.install(); reactorMeltdownStatus.initializeCombat(); hydrateStatusOrchestrationState(); await syncGrapples(); await engagedStatus.syncEngaged(); return dangerZoneStatus.syncAll(); } },
   lifecycle: {},
-  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, isDisengaged: engagedStatus.isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, dangerZoneThreshold: dangerZoneStatus.threshold, syncDangerZone: dangerZoneStatus.syncActor, syncDangerZones: dangerZoneStatus.syncAll, installOverheatingConsequences: overheatingStatus.install, installReactorMeltdownEngineeringResolution: reactorMeltdownStatus.installEngineeringResolution, reactorMeltdownTimer: reactorMeltdownStatus.timer, scheduleReactorMeltdown: reactorMeltdownStatus.schedule, clearReactorMeltdown: reactorMeltdownStatus.clearCountdown, syncReactorMeltdownCountdown: reactorMeltdownStatus.syncCombat, diagnostics, runtimeBindings },
+  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, isDisengaged: engagedStatus.isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, dangerZoneThreshold: dangerZoneStatus.threshold, syncDangerZone: dangerZoneStatus.syncActor, syncDangerZones: dangerZoneStatus.syncAll, installOverheatingConsequences: overheatingStatus.install, installReactorMeltdownEngineeringResolution: reactorMeltdownStatus.installEngineeringResolution, installStructureDamageConsequences: structureDamageStatus.install, reactorMeltdownTimer: reactorMeltdownStatus.timer, scheduleReactorMeltdown: reactorMeltdownStatus.schedule, clearReactorMeltdown: reactorMeltdownStatus.clearCountdown, syncReactorMeltdownCountdown: reactorMeltdownStatus.syncCombat, diagnostics, runtimeBindings },
   metadata: { label: "Status Orchestration", nativeStatusAuthority: "native-adapter.status", coverPolicy: "Cover remains attacker-relative and is not represented as one global persistent status." }
 });

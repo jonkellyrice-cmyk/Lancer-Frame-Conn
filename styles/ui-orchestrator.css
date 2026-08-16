@@ -910,10 +910,51 @@
 .frame-conn-stat-cell.frame-conn-heat-exposed .frame-conn-stat-label {
   color: #e7bd70;
 }
+
+@keyframes frame-conn-structure-yellow-pulse {
+  0%, 100% {
+    background: linear-gradient(180deg, rgba(255, 184, 74, 0.055), transparent);
+    box-shadow: none;
+  }
+  50% {
+    background: linear-gradient(180deg, rgba(235, 204, 72, 0.22), rgba(235, 204, 72, 0.035));
+    box-shadow: inset 0 0 18px rgba(235, 204, 72, 0.14), 0 0 8px rgba(235, 204, 72, 0.11);
+  }
+}
+@keyframes frame-conn-structure-orange-pulse {
+  0%, 100% {
+    background: linear-gradient(180deg, rgba(255, 184, 74, 0.055), transparent);
+    box-shadow: none;
+  }
+  50% {
+    background: linear-gradient(180deg, rgba(255, 132, 24, 0.25), rgba(255, 132, 24, 0.04));
+    box-shadow: inset 0 0 18px rgba(255, 132, 24, 0.17), 0 0 9px rgba(255, 132, 24, 0.14);
+  }
+}
+@keyframes frame-conn-structure-red-pulse {
+  0%, 100% {
+    background: linear-gradient(180deg, rgba(255, 184, 74, 0.055), transparent);
+    box-shadow: none;
+  }
+  50% {
+    background: linear-gradient(180deg, rgba(224, 48, 48, 0.29), rgba(224, 48, 48, 0.045));
+    box-shadow: inset 0 0 20px rgba(224, 48, 48, 0.19), 0 0 10px rgba(224, 48, 48, 0.15);
+  }
+}
+.frame-conn-stat-cell.frame-conn-structure-yellow { animation: frame-conn-structure-yellow-pulse 4.5s ease-in-out infinite; }
+.frame-conn-stat-cell.frame-conn-structure-orange { animation: frame-conn-structure-orange-pulse 4.5s ease-in-out infinite; }
+.frame-conn-stat-cell.frame-conn-structure-red { animation: frame-conn-structure-red-pulse 4.5s ease-in-out infinite; }
+.frame-conn-stat-cell.frame-conn-structure-yellow .frame-conn-stat-label { color: #e7d56f; }
+.frame-conn-stat-cell.frame-conn-structure-orange .frame-conn-stat-label { color: #f0a24f; }
+.frame-conn-stat-cell.frame-conn-structure-red .frame-conn-stat-label { color: #ff766c; }
+
 @media (prefers-reduced-motion: reduce) {
   .frame-conn-stat-meltdown,
   .frame-conn-stat-cell.frame-conn-heat-danger-zone,
-  .frame-conn-stat-cell.frame-conn-heat-exposed {
+  .frame-conn-stat-cell.frame-conn-heat-exposed,
+  .frame-conn-stat-cell.frame-conn-structure-yellow,
+  .frame-conn-stat-cell.frame-conn-structure-orange,
+  .frame-conn-stat-cell.frame-conn-structure-red {
     animation: none;
   }
 }
