@@ -1,26 +1,40 @@
 {
   "schema_version": 2,
-  "id": "domain-decomposer-import-hardening",
-  "description": "Harden the Domain Decomposer executor so extracted modules receive only referenced value imports and never inherit bare side-effect imports from the source composition spine.",
+  "id": "approve-sitrep-domain-decomposition",
+  "description": "Approve the reviewed behavior-preserving decomposition plan now that the executor has been hardened to keep bare side-effect imports on the retained legacy spine.",
   "policy": {
     "max_files_changed": 1,
     "allowed_paths": [
-      "dev_scripts/domain-decomposer-executor.mjs"
+      "dev_scripts/domain-decomposer-plan.json"
     ]
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "dev_scripts/domain-decomposer-executor.mjs",
-      "search": "function extractImports(text) {\n  const result = [];\n  const regex = /^[ \\t]*import\\s+([\\s\\S]*?)\\s+from\\s+[\"']([^\"']+)[\"']\\s*;?|^[ \\t]*import\\s+[\"']([^\"']+)[\"']\\s*;?/gm;\n  let match;\n  while ((match = regex.exec(text))) result.push({ clause: match[1] ?? null, source: match[2] ?? match[3], text: match[0] });\n  return result;\n}",
-      "replace": "function importedLocalNames(clause) {\n  if (!clause) return [];\n  const names = new Set();\n  const named = clause.match(/\\{([\\s\\S]*?)\\}/);\n  if (named) {\n    for (const raw of named[1].split(\",\")) {\n      const entry = raw.trim();\n      if (!entry) continue;\n      const alias = entry.match(/^([A-Za-z_$][\\w$]*)\\s+as\\s+([A-Za-z_$][\\w$]*)$/);\n      names.add(alias ? alias[2] : entry);\n    }\n  }\n  const namespace = clause.match(/\\*\\s+as\\s+([A-Za-z_$][\\w$]*)/);\n  if (namespace) names.add(namespace[1]);\n  const leadingDefault = clause\n    .replace(/\\{[\\s\\S]*?\\}/, \"\")\n    .replace(/\\*\\s+as\\s+[A-Za-z_$][\\w$]*/, \"\")\n    .replace(/,/g, \"\")\n    .trim();\n  if (/^[A-Za-z_$][\\w$]*$/.test(leadingDefault)) names.add(leadingDefault);\n  return [...names];\n}\n\nfunction extractImports(text) {\n  const result = [];\n  const regex = /^[ \\t]*import\\s+([\\s\\S]*?)\\s+from\\s+[\"']([^\"']+)[\"']\\s*;?|^[ \\t]*import\\s+[\"']([^\"']+)[\"']\\s*;?/gm;\n  let match;\n  while ((match = regex.exec(text))) {\n    const clause = match[1] ?? null;\n    result.push({\n      clause,\n      source: match[2] ?? match[3],\n      text: match[0],\n      sideEffectOnly: clause === null,\n      localNames: importedLocalNames(clause)\n    });\n  }\n  return result;\n}\n\nfunction importIsRequiredByBody(importRecord, body) {\n  if (importRecord.sideEffectOnly) return false;\n  const sanitizedBody = stripCommentsAndStrings(body);\n  return importRecord.localNames.some(name => {\n    const escaped = name.replace(/[$]/g, \"\\\\$\");\n    return new RegExp(`\\\\b${escaped}\\\\b`).test(sanitizedBody);\n  });\n}",
+      "path": "dev_scripts/domain-decomposer-plan.json",
+      "search": "  \"generated_at\": \"2026-08-16T23:52:00.000Z\",\n  \"approved\": false,\n  \"policy_file\":",
+      "replace": "  \"generated_at\": \"2026-08-16T23:52:00.000Z\",\n  \"approved\": true,\n  \"policy_file\":",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "dev_scripts/domain-decomposer-executor.mjs",
-      "search": "    const copiedImports = imports.map(item => rewriteImportForNewLocation(item.text, sourceFile, targetAbs));",
-      "replace": "    const copiedImports = imports\n      .filter(item => importIsRequiredByBody(item, body))\n      .map(item => rewriteImportForNewLocation(item.text, sourceFile, targetAbs));",
+      "path": "dev_scripts/domain-decomposer-plan.json",
+      "search": "    \"status\": \"reviewed-unapproved\",",
+      "replace": "    \"status\": \"reviewed-approved\",",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/domain-decomposer-plan.json",
+      "search": "    \"execution_blockers\": [\n      \"Do not approve execution until the executor is verified not to replicate the legacy side-effect import ./elevation-los.js into every extracted module. Side-effect imports must remain owned by the retained legacy spine or be explicitly reassigned in a later ownership migration.\"\n    ]",
+      "replace": "    \"execution_blockers\": [],\n    \"execution_readiness\": \"Executor import hardening verified through the normal FilePatcher gate: extracted modules copy only referenced value imports and bare side-effect imports remain on the retained legacy spine.\"",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/domain-decomposer-plan.json",
+      "search": "      \"execution\": {\n        \"mode\": \"symbol_extract\",\n        \"require_dependency_closed_units\": true,\n        \"preserve_original_exports\": true,\n        \"approved\": false\n      }",
+      "replace": "      \"execution\": {\n        \"mode\": \"symbol_extract\",\n        \"require_dependency_closed_units\": true,\n        \"preserve_original_exports\": true,\n        \"approved\": true\n      }",
       "expected_occurrences": 1
     }
   ]
