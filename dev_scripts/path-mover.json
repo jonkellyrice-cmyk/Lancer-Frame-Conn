@@ -33,6 +33,12 @@
       "path": "dev_scripts/repo-audit.mjs",
       "from": "scripts/",
       "to": "scripts/player_features/"
+    },
+    {
+      "path": "dev_scripts/repo-audit.mjs",
+      "from": "\"scripts\",\n      \"feature-registry.js\"",
+      "to": "\"scripts\",\n      \"player_features\",\n      \"feature-registry.js\"",
+      "expected_occurrences": 1
     }
   ]
 }
