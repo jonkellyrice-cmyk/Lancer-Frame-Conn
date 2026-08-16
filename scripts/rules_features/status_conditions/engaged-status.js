@@ -37,12 +37,43 @@ export function createEngagedStatusController({
     return left !== 0 && right !== 0 && Math.sign(left) !== Math.sign(right);
   }
 
-  function occupiedGridOffsets(token) {
+  function occupiedGridOffsets(token, positionOverride = null) {
     const tokenDocument = token?.document ?? null;
     if (typeof tokenDocument?.getOccupiedGridSpaceOffsets !== "function") return [];
 
-    const offsets = tokenDocument.getOccupiedGridSpaceOffsets();
+    const offsets = tokenDocument.getOccupiedGridSpaceOffsets(
+      positionOverride && typeof positionOverride === "object"
+        ? positionOverride
+        : undefined
+    );
     return Array.isArray(offsets) ? offsets : [];
+  }
+
+  function updateBelongsToToken(token, updatedTokenDocument) {
+    const tokenDocument = token?.document ?? null;
+    if (!tokenDocument || !updatedTokenDocument) return false;
+
+    return (
+      tokenDocument === updatedTokenDocument ||
+      (tokenDocument.uuid && tokenDocument.uuid === updatedTokenDocument.uuid) ||
+      (tokenDocument.id && tokenDocument.id === updatedTokenDocument.id)
+    );
+  }
+
+  function positionOverrideForToken(token, updatedTokenDocument, updateChange) {
+    if (!updateBelongsToToken(token, updatedTokenDocument)) return null;
+    if (!updateChange || typeof updateChange !== "object") return null;
+
+    const positionOverride = {};
+    for (const key of ["x", "y", "elevation", "width", "height"]) {
+      if (Object.prototype.hasOwnProperty.call(updateChange, key)) {
+        positionOverride[key] = updateChange[key];
+      }
+    }
+
+    return Object.keys(positionOverride).length > 0
+      ? positionOverride
+      : null;
   }
 
   /**
@@ -50,12 +81,22 @@ export function createEngagedStatusController({
    * exact grid adjacency test. Using those APIs avoids center-distance guesses
    * and correctly handles hex grids and Size 2+ token footprints.
    */
-  function tokensAreAdjacent(leftToken, rightToken) {
+  function tokensAreAdjacent(
+    leftToken,
+    rightToken,
+    { updatedTokenDocument = null, updateChange = null } = {}
+  ) {
     const activeGrid = grid();
     if (!activeGrid || typeof activeGrid.testAdjacency !== "function") return false;
 
-    const leftOffsets = occupiedGridOffsets(leftToken);
-    const rightOffsets = occupiedGridOffsets(rightToken);
+    const leftOffsets = occupiedGridOffsets(
+      leftToken,
+      positionOverrideForToken(leftToken, updatedTokenDocument, updateChange)
+    );
+    const rightOffsets = occupiedGridOffsets(
+      rightToken,
+      positionOverrideForToken(rightToken, updatedTokenDocument, updateChange)
+    );
     if (leftOffsets.length === 0 || rightOffsets.length === 0) return false;
 
     for (const leftOffset of leftOffsets) {
@@ -98,7 +139,10 @@ export function createEngagedStatusController({
    * Reconcile the native Engaged status from actual hostile adjacency only.
    * GM-only mutation prevents multiple clients from racing to write statuses.
    */
-  async function syncEngaged() {
+  async function syncEngaged({
+    updatedTokenDocument = null,
+    updateChange = null
+  } = {}) {
     if (!isGameMaster()) return false;
 
     const sceneTokens = tokens();
@@ -114,7 +158,7 @@ export function createEngagedStatusController({
         const right = sceneTokens[j];
         if (!left?.actor || !right?.actor) continue;
         if (!hostilePair(left, right)) continue;
-        if (!tokensAreAdjacent(left, right)) continue;
+        if (!tokensAreAdjacent(left, right, { updatedTokenDocument, updateChange })) continue;
 
         expected.set(left.actor.uuid, true);
         expected.set(right.actor.uuid, true);

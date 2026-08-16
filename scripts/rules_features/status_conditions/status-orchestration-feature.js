@@ -408,11 +408,14 @@ async function handleCombatUpdate(combat) {
   await syncDangerZones();
   return true;
 }
-async function handleTokenUpdate(_tokenDocument, change = {}) {
+async function handleTokenUpdate(tokenDocument, change = {}) {
   if (!engagedStatus.tokenUpdateChangesAdjacency(change)) return false;
   hydrateStatusOrchestrationState();
   await syncGrapples();
-  await engagedStatus.syncEngaged();
+  await engagedStatus.syncEngaged({
+    updatedTokenDocument: tokenDocument,
+    updateChange: change
+  });
   return true;
 }
 async function handleActorUpdate(actor) { return syncDangerZone(actor); }
