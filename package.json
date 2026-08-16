@@ -28,6 +28,13 @@
     "patch:dsl": "node ./dev_scripts/patch-dsl-compiler.mjs",
     "patch:dsl:check": "node ./dev_scripts/patch-dsl-compiler.mjs --check",
     "patch:dsl:self-test": "node ./dev_scripts/patch-dsl-compiler.mjs --self-test",
+    "legacy-assimilation": "node ./dev_scripts/legacy-assimilation-atlas.mjs",
+    "legacy-assimilation:self-test": "node ./dev_scripts/legacy-assimilation-atlas.mjs --self-test",
+    "runtime-authority-audit": "node ./dev_scripts/runtime-authority-audit.mjs",
+    "runtime-authority-audit:strict": "node ./dev_scripts/runtime-authority-audit.mjs --strict",
+    "runtime-authority-audit:self-test": "node ./dev_scripts/runtime-authority-audit.mjs --self-test",
+    "state-namespace-atlas": "node ./dev_scripts/state-namespace-atlas.mjs",
+    "state-namespace-atlas:self-test": "node ./dev_scripts/state-namespace-atlas.mjs --self-test",
     "dependency-graph": "python ./dev_scripts/dependency_graph.py"
   }
 }
