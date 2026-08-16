@@ -19,6 +19,7 @@ dev_scripts/
   patch-dsl-compiler.mjs          DSL compiler for GitHub FilePatcher JSON
   patch-corridor-planner.mjs      goal -> likely patch corridor planner
   automatic-patch-staging.mjs     corridor -> dependency-ordered staged patch specs
+  change-propagation-simulator.mjs exact staged transition -> temporal compatibility/risk report
   runtime-contract-probes.mjs      goal -> reversible Foundry runtime probe bundle
   repo-audit.mjs                  repository integrity + dependency watershed
   symbol-family-audit.mjs         symbol-family topology / ownership audit
@@ -79,7 +80,11 @@ npm run patch:dsl
 npm run patch:dsl:check
 npm run patch:dsl:self-test
 
-# 8 — Runtime Contract Probes
+# 8 — Change Propagation Simulator
+npm run change-propagation -- --snapshot transition.json --output change-propagation-report.json
+npm run change-propagation:self-test
+
+# 9 — Runtime Contract Probes
 npm run runtime-probes
 npm run runtime-probes:self-test
 ```
@@ -120,6 +125,11 @@ Patch DSL / pattern-aware shorthand / raw schema-v2 JSON
     ↓
 dev-scripts/filepatcher.json
     ↓
+GitHub FilePatcher builds exact staged before/after transition
+    ↓
+Change Propagation Simulator
+  contract deltas + intermediate obligations + compatibility + fan-out + verification targets
+    ↓
 GitHub FilePatcher dry-run + apply
     ↓
 permanent developer-tool self-tests
@@ -141,9 +151,9 @@ The detailed dependency graph is a deeper manual diagnostic. It is not part of t
 
 The local Python FilePatcher is the richer fallback/recovery path and maintains its own backup/history facilities.
 
-### The eight capability upgrades
+### The nine capability upgrades
 
-The planning/authoring/runtime-validation stack now has eight explicit capabilities. They are designed as one evidence-reduction pipeline rather than eight unrelated utilities:
+The planning/authoring/runtime-validation stack now has nine explicit capabilities. They are designed as one evidence-reduction pipeline rather than nine unrelated utilities:
 
 ```text
 1. Integration Surface Atlas
@@ -167,7 +177,10 @@ The planning/authoring/runtime-validation stack now has eight explicit capabilit
 7. Expanded Pattern-Aware DSL
    proven local exemplar -> compact deterministic FilePatcher operations
 
-8. Runtime Contract Probes
+8. Change Propagation Simulator
+   exact proposed repository transition -> contract propagation + intermediate obligations + compatibility sequencing + behavioral amplification + targeted verification
+
+9. Runtime Contract Probes
    behavioral clauses/runtime evidence -> reversible Foundry instrumentation + manual checkpoints
 ```
 
@@ -180,12 +193,13 @@ The workflow effect is equally important:
 - already-proven native contracts are reused until evidence/version drift invalidates them;
 - large patches can remain one end-to-end behavior while implementation is decomposed into dependency-safe stages;
 - repetitive boilerplate is compressed only when a real local exemplar proves the shape;
+- each authored stage is evaluated as a temporal transition before mutation, so breaking contract deltas, unsafe intermediate states, amplification risks, and load-bearing verification targets are surfaced before the repository advances;
 - runtime-sensitive work can finish with structured Foundry evidence instead of informal console impressions.
 
 A useful shorthand is:
 
 ```text
-discover -> trace -> certify -> contextualize -> reuse proof -> stage -> author -> observe live
+discover -> trace -> certify -> contextualize -> reuse proof -> stage -> author -> simulate transition -> observe live
 ```
 
 ---
