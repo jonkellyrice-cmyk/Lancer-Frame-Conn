@@ -1,9 +1,20 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after fixing reactor meltdown end-of-activation countdown semantics and hardening terminal resolution.",
+  "id": "remove-invalid-reactor-meltdown-status",
+  "description": "Remove the nonexistent native reactor_meltdown status application from terminal reactor meltdown resolution so the Burst 2 explosion resolver can run.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 1,
+    "allowed_paths": [
+      "scripts/rules_features/status_conditions/reactor-meltdown-status.js"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/reactor-meltdown-status.js",
+      "search": "    try {\n      // Mark the native actor before resolving the terminal blast. The mech\n      // Actor remains available for logs/history while its Scene token is\n      // vaporized by the terminal resolution.\n      await applyStatus(actor, \"reactor_meltdown\");\n\n      const explosion = await resolveReactorMeltdownExplosion({ actor });",
+      "replace": "    try {\n      // Reactor meltdown is a terminal event, not a native persistent status.\n      // Foundry Lancer does not define a reactor_meltdown status id, so proceed\n      // directly into the Burst 2 terminal resolver. The Actor remains\n      // available for logs/history while its Scene token is vaporized.\n      const explosion = await resolveReactorMeltdownExplosion({ actor });",
+      "expected_occurrences": 1
+    }
+  ]
 }
