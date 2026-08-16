@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "tool": "state-namespace-atlas",
+  "mode": "pre-corridor evidence pass",
+  "root": "scripts/dm_features/sitreps/legacy-sitrep-module",
+  "summary": {
+    "persisted_namespaces": 3,
+    "public_global_apis": 2,
+    "ephemeral_global_keys": 2,
+    "migration_decision_required": true
+  },
+  "namespaces": [
+    {
+      "owner": "Combat",
+      "namespace": "lancer-sitrep-tracker",
+      "key": "sitrep",
+      "storage": "Foundry document flags",
+      "access": ["getFlag", "setFlag", "unsetFlag"],
+      "readers": [
+        "getSitrep",
+        "calculateState",
+        "renderHUD",
+        "evaluateSitrep",
+        "setup/edit flows",
+        "objective-resolution flows"
+      ],
+      "writers": [
+        "saveSetup",
+        "setResult",
+        "recordReconScan",
+        "resolveExtractionObjective",
+        "resolveEscortObjective",
+        "togglePause"
+      ],
+      "deleters": ["endSitrep"],
+      "migration_required": true,
+      "recommended_strategy": "compatibility reader first: read legacy flag and new Frame Conn-owned SITREP state; once new representation is stable, migrate/write through a single canonical service"
+    },
+    {
+      "owner": "Wall",
+      "namespace": "lancer-sitrep-tracker",
+      "key": "elevationLOS",
+      "storage": "Foundry document flags",
+      "access": ["getFlag", "setFlag", "embedded document update flag path"],
+      "readers": ["wallElevationRange", "vision/light occlusion helpers"],
+      "writers": ["setWallRange", "setSelectedWallRange"],
+      "migration_required": true,
+      "recommended_strategy": "move ownership to foundry_features/elevation_los and preserve a legacy read path until existing worlds can be migrated"
+    },
+    {
+      "owner": "browser localStorage",
+      "namespace": "lancer-sitrep-tracker",
+      "key": "hudState",
+      "storage": "localStorage",
+      "access": ["getItem", "setItem"],
+      "readers": ["readHUDState"],
+      "writers": ["writeHUDState"],
+      "migration_required": false,
+      "recommended_strategy": "safe to intentionally abandon when replacing the legacy HUD unless preserving window position/minimized state is desired"
+    }
+  ],
+  "public_globals": [
+    {
+      "api": "game.lancerSitrep",
+      "assigned_by": "sitrep-program.js",
+      "migration_required": true,
+      "recommended_strategy": "replace with runtime-orchestrator-composed Frame Conn public API or no public global if unnecessary"
+    },
+    {
+      "api": "game.lancerElevationLOS",
+      "assigned_by": "elevation-los.js",
+      "migration_required": true,
+      "recommended_strategy": "replace with a registered foundry_features API surfaced through Frame Conn composition only if external access is actually needed"
+    }
+  ],
+  "ephemeral_globals": [
+    {
+      "key": "globalThis.__lancerSitrepResize",
+      "purpose": "debounce timer",
+      "migration_required": false,
+      "recommended_strategy": "replace with feature-local lifecycle state"
+    },
+    {
+      "key": "globalThis.__lancerSitrepRefresh",
+      "purpose": "debounce timer",
+      "migration_required": false,
+      "recommended_strategy": "replace with feature-local lifecycle state"
+    }
+  ],
+  "namespace_policy": [
+    "Do not rename legacy persisted flags until a compatibility/migration strategy exists.",
+    "New SITREP code must have one canonical state service rather than scattered direct getFlag/setFlag calls.",
+    "New Foundry elevation/LOS code must not remain under a SITREP-owned namespace indefinitely.",
+    "Public game.* APIs must be composed intentionally by the authoritative Frame Conn runtime rather than assigned by feature modules."
+  ]
+}
