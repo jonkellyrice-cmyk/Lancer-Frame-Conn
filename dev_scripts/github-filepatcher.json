@@ -1,9 +1,49 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "No-op acceptance state after consolidating all development tools under dev_scripts and updating the GitHub workflows and documentation.",
+  "id": "compose-player-and-rules-feature-packages",
+  "description": "Make runtime-orchestrator compose player and rules feature packages through one shared FrameConnFeatureRegistry and teach the repository audit about both package registries.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 2,
+    "allowed_paths": [
+      "scripts/runtime-orchestrator.js",
+      "dev_scripts/repo-audit.mjs"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "import {\n  frameConnFeatureRegistry\n} from \"./player_features/player-feature-registry.js\";",
+      "replace": "import {\n  FrameConnFeatureRegistry\n} from \"./feature-registry-core.js\";\n\nimport {\n  FRAME_CONN_PLAYER_FEATURES\n} from \"./player_features/player-feature-registry.js\";\n\nimport {\n  FRAME_CONN_RULES_FEATURES\n} from \"./rules_features/rules-feature-registry.js\";",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "const MODULE_TITLE =\n  \"Frame Conn\";\n\n\n/* ============================================================\n   Registered feature surfaces\n   ============================================================ */",
+      "replace": "const MODULE_TITLE =\n  \"Frame Conn\";\n\n\n/* ============================================================\n   Application-wide feature composition\n   ============================================================ */\n\n/**\n * Player-facing and rules-driven packages remain independently\n * declared, but they are registered into one shared graph here so\n * required capabilities may cross the package boundary safely.\n */\nexport const frameConnFeatureRegistry =\n  new FrameConnFeatureRegistry();\n\nframeConnFeatureRegistry.registerMany([\n  ...FRAME_CONN_PLAYER_FEATURES,\n  ...FRAME_CONN_RULES_FEATURES\n]);\n\nframeConnFeatureRegistry\n  .validateDependencies();\n\n\n/* ============================================================\n   Registered feature surfaces\n   ============================================================ */",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/repo-audit.mjs",
+      "search": "  const registryPath =\n    path.join(\n      REPOSITORY_ROOT,\n      \"scripts\",\n      \"player_features\",\n      \"player-feature-registry.js\"\n    );\n\n\n  const registryText =\n    textByFile.get(\n      registryPath\n    ) ??\n    safeReadText(\n      registryPath\n    );\n\n\n  if (\n    !registryText\n  ) {\n    addFinding({\n      severity:\n        \"error\",\n\n      code:\n        \"FEATURE_REGISTRY_MISSING\",\n\n      message:\n        \"scripts/player_features/player-feature-registry.js could not be found or read.\",\n\n      file:\n        registryPath\n    });\n\n    return;\n  }",
+      "replace": "  const playerRegistryPath =\n    path.join(\n      REPOSITORY_ROOT,\n      \"scripts\",\n      \"player_features\",\n      \"player-feature-registry.js\"\n    );\n\n  const rulesRegistryPath =\n    path.join(\n      REPOSITORY_ROOT,\n      \"scripts\",\n      \"rules_features\",\n      \"rules-feature-registry.js\"\n    );\n\n  const playerRegistryText =\n    textByFile.get(\n      playerRegistryPath\n    ) ??\n    safeReadText(\n      playerRegistryPath\n    );\n\n  const rulesRegistryText =\n    textByFile.get(\n      rulesRegistryPath\n    ) ??\n    safeReadText(\n      rulesRegistryPath\n    );\n\n  if (\n    !playerRegistryText ||\n    !rulesRegistryText\n  ) {\n    addFinding({\n      severity:\n        \"error\",\n\n      code:\n        \"FEATURE_REGISTRY_MISSING\",\n\n      message:\n        \"Player and rules feature registries must both be present.\",\n\n      file:\n        !playerRegistryText\n          ? playerRegistryPath\n          : rulesRegistryPath\n    });\n\n    return;\n  }",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/repo-audit.mjs",
+      "search": "        return (\n          relative.startsWith(\n            \"scripts/player_features/\"\n          ) &&\n          relative.endsWith(\n            \"-feature.js\"\n          ) &&\n          !relative.endsWith(\n            \"feature-registry-core.js\"\n          )\n        );",
+      "replace": "        return (\n          (\n            relative.startsWith(\n              \"scripts/player_features/\"\n            ) ||\n            relative.startsWith(\n              \"scripts/rules_features/\"\n            )\n          ) &&\n          relative.endsWith(\n            \"-feature.js\"\n          ) &&\n          !relative.endsWith(\n            \"feature-registry-core.js\"\n          )\n        );",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/repo-audit.mjs",
+      "search": "    const importSpecifier =\n      `./${relativePath(file).slice(\"scripts/player_features/\".length)}`;\n\n\n    if (\n      !registryText.includes(\n        importSpecifier\n      )\n    ) {\n      addFinding({\n        severity:\n          \"warning\",\n\n        code:\n          \"RUNTIME_FEATURE_NOT_IMPORTED_BY_REGISTRY\",\n\n        message:\n          `Runtime feature appears to declare a Frame Conn feature but is not imported by scripts/player_features/player-feature-registry.js.`,\n\n        file,\n\n        details: {\n          expectedImport:\n            importSpecifier\n        }\n      });\n    }",
+      "replace": "    const relative =\n      relativePath(\n        file\n      );\n\n    const isRulesFeature =\n      relative.startsWith(\n        \"scripts/rules_features/\"\n      );\n\n    const registryRoot =\n      isRulesFeature\n        ? \"scripts/rules_features/\"\n        : \"scripts/player_features/\";\n\n    const registryText =\n      isRulesFeature\n        ? rulesRegistryText\n        : playerRegistryText;\n\n    const registryLabel =\n      isRulesFeature\n        ? \"scripts/rules_features/rules-feature-registry.js\"\n        : \"scripts/player_features/player-feature-registry.js\";\n\n    const importSpecifier =\n      `./${relative.slice(registryRoot.length)}`;\n\n    if (\n      !registryText.includes(\n        importSpecifier\n      )\n    ) {\n      addFinding({\n        severity:\n          \"warning\",\n\n        code:\n          \"RUNTIME_FEATURE_NOT_IMPORTED_BY_REGISTRY\",\n\n        message:\n          `Runtime feature appears to declare a Frame Conn feature but is not imported by ${registryLabel}.`,\n\n        file,\n\n        details: {\n          expectedImport:\n            importSpecifier,\n\n          registry:\n            registryLabel\n        }\n      });\n    }",
+      "expected_occurrences": 1
+    }
+  ]
 }
