@@ -1,41 +1,9 @@
 {
   "schema_version": 2,
-  "id": "document-unified-development-tool-directory",
-  "description": "Update the development tool suite guide after the FilePatcher self-test path was corrected for the unified dev_scripts directory.",
+  "id": "ready",
+  "description": "No-op acceptance state after consolidating all development tools under dev_scripts and updating the GitHub workflows and documentation.",
   "policy": {
-    "max_files_changed": 1,
-    "allowed_paths": [
-      "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "search": "There are two similarly named tool directories. They have different jobs:",
-      "replace": "The development tools now live in one canonical `dev_scripts/` directory. The local and GitHub executors remain separate contracts within that directory:",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "search": "dev-scripts/\n  github-filepatcher.mjs          narrow remote/GitHub patch executor\n  filepatcher.json                authoritative GitHub patch specification\n  README.md                       GitHub FilePatcher-specific documentation",
-      "replace": "  github-filepatcher.mjs          narrow remote/GitHub patch executor\n  github-filepatcher.json         authoritative GitHub patch specification\n  GITHUB_FILEPATCHER.md           GitHub FilePatcher-specific documentation\n  path-mover.mjs                  relocation + relative-import rewrite executor\n  path-mover.json                 declarative relocation plan",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "search": "dev-scripts/filepatcher.json",
-      "replace": "dev_scripts/github-filepatcher.json",
-      "expected_occurrences": 6
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "search": "dev-scripts/github-filepatcher.mjs",
-      "replace": "dev_scripts/github-filepatcher.mjs",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
