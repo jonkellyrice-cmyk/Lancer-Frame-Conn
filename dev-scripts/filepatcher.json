@@ -1,28 +1,9 @@
 {
   "schema_version": 2,
-  "id": "remove-movement-policing-notifications",
-  "description": "Stop physical token movement from producing automatic Boost, Overcharge, or excess-movement notifications while preserving movement tracking and UI presentation.",
-  "planning_goal": "Preserve existing movement measurement, movement tracking, elevation tracking, and movement UI presentation. Remove the movement-feature calls that notify the player about automatic Boost, automatic Overcharge, or excess movement after horizontal token movement. Remove the equivalent automatic-action and excess-movement notification calls after elevation movement. Preserve movement measurement failure warnings and the informational elevation-recorded notification.",
+  "id": "ready",
+  "description": "No-op acceptance state after removing movement-triggered Boost/Overcharge behavior and movement policing notifications.",
   "policy": {
-    "max_files_changed": 1,
-    "allowed_paths": [
-      "scripts/feature_movement/movement-feature.js"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "scripts/feature_movement/movement-feature.js",
-      "search": "    notifyAutomaticMovementActions(\n      result\n    );\n    notifyFrameConnExcessMovement(\n      result,\n      {\n        tokenWasStopped:\n          false\n      }\n    );\n",
-      "replace": "",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/feature_movement/movement-feature.js",
-      "search": "    notifyAutomaticMovementActions(\n      result\n    );\n    notifyFrameConnExcessMovement(\n      result,\n      {\n        tokenWasStopped:\n          true\n      }\n    );\n",
-      "replace": "",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
