@@ -30,6 +30,7 @@ export function createReactorMeltdownStatusController({
 
   let observedCombatTurnKey = null;
   let observedCombatActorUuid = null;
+  const terminalResolutionInFlight = new Set();
 
   function canAdvanceCountdown(actor) {
     const users = [...(globalThis.game?.users ?? [])];
@@ -169,41 +170,67 @@ export function createReactorMeltdownStatusController({
   async function triggerMeltdown(actor) {
     if (!actor || !canAdvanceCountdown(actor)) return false;
 
-    // Mark the native actor before resolving the terminal blast. The mech Actor
-    // remains available for logs/history, while its scene Token is vaporized.
-    await applyStatus(actor, "reactor_meltdown");
+    const uuid = actorUuid(actor);
+    if (!uuid || terminalResolutionInFlight.has(uuid)) return false;
+    terminalResolutionInFlight.add(uuid);
 
-    const explosion = await resolveReactorMeltdownExplosion({ actor });
+    try {
+      // Mark the native actor before resolving the terminal blast. The mech
+      // Actor remains available for logs/history while its Scene token is
+      // vaporized by the terminal resolution.
+      await applyStatus(actor, "reactor_meltdown");
 
-    await updateTimer(actor, null);
-    await clearRecord(actor);
+      const explosion = await resolveReactorMeltdownExplosion({ actor });
 
-    return explosion;
+      await updateTimer(actor, null);
+      await clearRecord(actor);
+
+      return explosion;
+    } catch (error) {
+      console.error("Frame Conn | Reactor meltdown terminal resolution failed.", error);
+      globalThis.ui?.notifications?.error?.(
+        `Frame Conn reactor meltdown failed to resolve for ${actor?.name ?? "the melting mech"}. Check the console for details.`
+      );
+      return false;
+    } finally {
+      terminalResolutionInFlight.delete(uuid);
+    }
   }
 
-  async function beginActorTurn(actor, combat) {
-    const currentTimer = timer(actor);
-    if (currentTimer === null || currentTimer <= 0) return false;
+  async function finishActorTurn(actor, completedTurnKey) {
+    if (!actor || !completedTurnKey) return false;
 
-    const currentTurnKey = turnKey(combat);
+    const currentTimer = timer(actor);
+    if (currentTimer === null) return false;
+
     const countdownRecord = record(actor) ?? {};
-    if (!currentTurnKey) return false;
-    if (countdownRecord.scheduledTurnKey === currentTurnKey) return false;
-    if (countdownRecord.lastProcessedTurnKey === currentTurnKey) return false;
+
+    // A countdown created during this activation starts counting only after
+    // this activation has fully passed. Do not immediately consume one of its
+    // future turns on the same turn that scheduled it.
+    if (countdownRecord.scheduledTurnKey === completedTurnKey) {
+      return false;
+    }
+
+    if (countdownRecord.lastProcessedTurnKey === completedTurnKey) {
+      return false;
+    }
+
+    // Zero means this was the terminal activation. The explosion occurs when
+    // that activation closes, before the next combatant/round proceeds.
+    if (currentTimer === 0) {
+      return triggerMeltdown(actor);
+    }
 
     await updateTimer(actor, currentTimer - 1);
     await writeRecord(actor, {
       ...countdownRecord,
       actorUuid: actorUuid(actor),
       stage: "countdown",
-      lastProcessedTurnKey: currentTurnKey
+      lastProcessedTurnKey: completedTurnKey
     });
-    return true;
-  }
 
-  async function finishActorTurn(actor) {
-    if (!actor || timer(actor) !== 0) return false;
-    return triggerMeltdown(actor);
+    return true;
   }
 
   function initializeCombat(combat = globalThis.game?.combat) {
@@ -236,14 +263,22 @@ export function createReactorMeltdownStatusController({
 
     if (currentTurnKey === observedCombatTurnKey) return false;
 
-    const previousActor = actorFromUuid(observedCombatActorUuid);
-    if (previousActor) await finishActorTurn(previousActor);
+    const completedTurnKey = observedCombatTurnKey;
+    const completedActorUuid = observedCombatActorUuid;
 
-    const currentActor = actorFromUuid(currentActorUuid);
-    if (currentActor) await beginActorTurn(currentActor, combat);
-
+    // Commit the newly observed combat identity before running end-of-turn
+    // consequences. Terminal meltdown resolution mutates Scene documents and
+    // may provoke nested Foundry hooks; those hooks must see this transition as
+    // already claimed rather than attempting to close the same activation a
+    // second time.
     observedCombatTurnKey = currentTurnKey;
     observedCombatActorUuid = currentActorUuid;
+
+    const previousActor = actorFromUuid(completedActorUuid);
+    if (previousActor) {
+      await finishActorTurn(previousActor, completedTurnKey);
+    }
+
     return true;
   }
 
