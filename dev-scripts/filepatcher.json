@@ -1,10 +1,17 @@
 {
   "schema_version": 2,
-  "id": "plan-change-propagation-simulator",
-  "description": "Plan incorporation of the Change Propagation Simulator into the Frame Conn development toolchain.",
-  "planning_goal": "repository tooling change propagation simulator contract delta intermediate state compatibility strategy behavioral fan-out verification targeting FilePatcher bridge integration documentation",
+  "id": "exclude-recovery-history-from-change-propagation",
+  "description": "Exclude FilePatcher backup and patch-history trees from live change-propagation consumer evidence.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 1,
+    "allowed_paths": ["dev_scripts/change-propagation-simulator.mjs"]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/change-propagation-simulator.mjs",
+      "search": "function repositoryFiles() {\n  const out = [];\n  const skip = new Set([\".git\",\"node_modules\",\".next\",\"dist\",\"coverage\"]);\n  function visit(dir) {\n    for (const entry of fs.readdirSync(dir, { withFileTypes:true })) {",
+      "replace": "function repositoryFiles() {\n  const out = [];\n  const skip = new Set([\".git\",\"node_modules\",\".next\",\"dist\",\"coverage\"]);\n  const excludedRecoveryTrees = [\"dev_scripts/backups\", \"dev_scripts/patch-history\"];\n  function visit(dir) {\n    const relativeDir = path.relative(ROOT, dir).split(path.sep).join(\"/\");\n    if (excludedRecoveryTrees.some((tree) => relativeDir === tree || relativeDir.startsWith(`${tree}/`))) return;\n    for (const entry of fs.readdirSync(dir, { withFileTypes:true })) {"
+    }
+  ]
 }
