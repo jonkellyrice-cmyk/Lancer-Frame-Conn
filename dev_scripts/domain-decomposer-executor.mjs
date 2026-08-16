@@ -120,12 +120,53 @@ function extractTopLevelSymbols(text) {
   return symbols.sort((a, b) => a.start - b.start);
 }
 
+function importedLocalNames(clause) {
+  if (!clause) return [];
+  const names = new Set();
+  const named = clause.match(/\{([\s\S]*?)\}/);
+  if (named) {
+    for (const raw of named[1].split(",")) {
+      const entry = raw.trim();
+      if (!entry) continue;
+      const alias = entry.match(/^([A-Za-z_$][\w$]*)\s+as\s+([A-Za-z_$][\w$]*)$/);
+      names.add(alias ? alias[2] : entry);
+    }
+  }
+  const namespace = clause.match(/\*\s+as\s+([A-Za-z_$][\w$]*)/);
+  if (namespace) names.add(namespace[1]);
+  const leadingDefault = clause
+    .replace(/\{[\s\S]*?\}/, "")
+    .replace(/\*\s+as\s+[A-Za-z_$][\w$]*/, "")
+    .replace(/,/g, "")
+    .trim();
+  if (/^[A-Za-z_$][\w$]*$/.test(leadingDefault)) names.add(leadingDefault);
+  return [...names];
+}
+
 function extractImports(text) {
   const result = [];
   const regex = /^[ \t]*import\s+([\s\S]*?)\s+from\s+["']([^"']+)["']\s*;?|^[ \t]*import\s+["']([^"']+)["']\s*;?/gm;
   let match;
-  while ((match = regex.exec(text))) result.push({ clause: match[1] ?? null, source: match[2] ?? match[3], text: match[0] });
+  while ((match = regex.exec(text))) {
+    const clause = match[1] ?? null;
+    result.push({
+      clause,
+      source: match[2] ?? match[3],
+      text: match[0],
+      sideEffectOnly: clause === null,
+      localNames: importedLocalNames(clause)
+    });
+  }
   return result;
+}
+
+function importIsRequiredByBody(importRecord, body) {
+  if (importRecord.sideEffectOnly) return false;
+  const sanitizedBody = stripCommentsAndStrings(body);
+  return importRecord.localNames.some(name => {
+    const escaped = name.replace(/[$]/g, "\\$");
+    return new RegExp(`\\b${escaped}\\b`).test(sanitizedBody);
+  });
 }
 
 function references(text, candidateNames) {
@@ -231,7 +272,9 @@ function compileCandidate(candidate) {
       crossImports.push(`import {\n  ${[...new Set(names)].sort().join(",\n  ")}\n} from ${JSON.stringify(relativeImport(targetAbs, path.resolve(REPOSITORY_ROOT, otherTarget)))};`);
     }
 
-    const copiedImports = imports.map(item => rewriteImportForNewLocation(item.text, sourceFile, targetAbs));
+    const copiedImports = imports
+      .filter(item => importIsRequiredByBody(item, body))
+      .map(item => rewriteImportForNewLocation(item.text, sourceFile, targetAbs));
     const header = `/**\n * Extracted by Frame Conn Domain Decomposer from ${candidate.source}.\n * Structural decomposition only; behavior and public contracts must remain unchanged.\n */`;
     targetFiles.set(unit.target, `${header}\n\n${[...copiedImports, ...crossImports].join("\n")}\n\n${body}\n`);
   }
