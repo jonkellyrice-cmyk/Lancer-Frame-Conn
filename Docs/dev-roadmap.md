@@ -657,6 +657,179 @@ Support the narrative recovery rule where an hour of safe rest can restore a con
 
 This should eventually share maintenance/recovery primitives with the existing Rest / Full Repair roadmap rather than creating incompatible parallel recovery implementations.
 
+### Downtime — Narrative Play sub-feature family
+
+Downtime should live as a dedicated subfolder/feature family inside Narrative Play because it uses the same pilot-facing narrative rules, trigger rolls, consequences, and mission-to-mission story state.
+
+Recommended conceptual structure:
+
+```text
+narrative_play/
+├── skill_checks/
+├── skill_challenges/
+├── narrative_combat/
+├── pilot_harm/
+└── downtime/
+    ├── downtime-actions/
+    └── reserves/
+```
+
+Downtime should support both **structured downtime actions** and ordinary freeform roleplay between missions. Structured actions should not replace freeform play; they provide mechanical hooks for advancement, relationships, projects, organizations, and mission preparation.
+
+#### Downtime cadence and action economy
+
+Track downtime as a narrative interval that may represent anything from hours to months depending on the fiction.
+
+Required support:
+
+- normally grant each pilot a limited number of downtime actions per downtime period, usually one but potentially more for longer downtime;
+- allow the GM to determine how much fictional time passes;
+- let the GM create custom downtime actions when appropriate;
+- preserve trigger bonuses on downtime rolls where relevant;
+- support the common result bands **9 or less**, **10–19**, and **20+**;
+- remember persistent projects/organizations/contacts across downtime periods rather than treating each roll as disposable chat output.
+
+#### Reserves
+
+Downtime can create **Reserves** for the next mission. Reserves are mission-duration advantages such as equipment, access, information, political leverage, allies, tactical preparation, or support.
+
+The Reserves subsystem should:
+
+- let the GM grant reserves directly when fiction warrants it;
+- let downtime-action outcomes generate reserves;
+- present all currently available reserves to the group before deployment;
+- track who created/owns a reserve where useful while still allowing group-visible mission planning;
+- mark reserves as available, consumed, or expired;
+- normally expire mission-specific reserves when that mission ends;
+- integrate directly with the GM Mission Toolkit's **Preparation** and **Reserves** stages.
+
+Support both custom reserves and reference/generated categories modeled on the core rules.
+
+##### General resources / story reserves
+
+Examples include:
+
+- Access;
+- Backing;
+- Supplies;
+- Disguise;
+- Diversion;
+- Blackmail;
+- Reputation;
+- Safe Harbor;
+- Tracking;
+- Knowledge.
+
+##### Mech equipment and gear reserves
+
+Examples include:
+
+- extra ammo / additional Limited uses;
+- rented gear;
+- extra Repair Cap;
+- an additional Core System use;
+- deployable support equipment;
+- a one-use free Stabilize;
+- mech-skill reinforcement/Accuracy;
+- Smart-ammo style mission modifications;
+- immunity or resistance to a specific mission hazard/condition;
+- temporary movement equipment such as jump jets.
+
+Where a reserve modifies a native Lancer resource or actor/item field, use native state when feasible instead of creating a disconnected Frame Conn counter.
+
+##### Tactical advantages
+
+Examples include:
+
+- Scouting/intelligence on upcoming enemies;
+- mission transport/vehicle access;
+- Reinforcements;
+- environmental shielding;
+- mission-long Accuracy on a specified mech skill/action;
+- Bombardment or other one-use battlefield support;
+- Extended Harness or temporary loadout expansion;
+- Ambush / control over the next battlefield setup;
+- Orbital Drop or alternate insertion;
+- NHP assistance/advice.
+
+These should be modeled as explicit mission resources with clear execution/consumption rules rather than loose notes whenever automation is practical.
+
+#### Structured downtime actions
+
+Implement the core downtime-action framework as reusable action definitions rather than hard-coded UI branches. Each action should be able to define:
+
+- required player input before the roll;
+- relevant trigger/background contribution;
+- native narrative roll execution;
+- outcome bands;
+- choices presented after each outcome;
+- persistent state changes;
+- reserves generated;
+- complications/consequences;
+- whether the action creates or modifies a long-running project, contact, or organization.
+
+Initial core action set:
+
+##### Power at a Cost
+
+The pilot names what they want; they can obtain it, but the GM chooses or presents the attached cost/complication. Use this as a direct route to opportunities, additional resources, favors, information, safety, or other difficult-to-acquire benefits.
+
+##### Buy Some Time
+
+Support the three result bands governing how much breathing room the group buys and how precarious the situation remains. Outcomes may generate a mission Reserve representing that bought time or diversion.
+
+##### Gather Information
+
+The player names the subject and method. Track whether the result provides the information cleanly or introduces attention, evidence, implication, or another complication. Information obtained may be converted into a Reserve.
+
+##### Get a Damn Drink
+
+Track the player's stated intention and the action's tradeoffs involving reputation, connections, information, memories, possessions, or dignity. Successful outcomes can produce one or more Reserves while imposing the appropriate narrative cost.
+
+##### Get Creative
+
+Support long-running creative/technical projects. Persist project progress across downtime periods and track finishing requirements such as quality materials, specific knowledge/techniques, specialized tools, or a good workspace. Completed projects may become Reserves when appropriate.
+
+##### Get Focused
+
+Support long-term learning and self-improvement, including training a new skill/technique/subject or improving an existing trigger over multiple downtime actions. Persist progress rather than reducing the result to a temporary modifier.
+
+##### Get Organized
+
+Provide persistent organization state with:
+
+- organization purpose/goal;
+- Focus;
+- Efficiency;
+- Influence;
+- downtime growth/setback rolls;
+- organization assistance on relevant checks;
+- organization-derived Reserves.
+
+The organization is campaign state and should survive across missions and downtime periods.
+
+##### Get Connected
+
+Track named contacts, favors/promises, and relationship obligations. A contact should become persistent narrative data that can later provide Reserves, information, access, or complications rather than existing only as a one-off roll result.
+
+##### Scrounge and Barter
+
+Let the player name what they are trying to acquire, then resolve the result band's cost or complication. Items or advantages acquired for the upcoming mission can become Reserves.
+
+#### Downtime UI and mission handoff
+
+The Downtime experience should provide:
+
+- a player-facing list of available downtime actions;
+- clear prompts for each action's required narrative input;
+- native/chat-visible rolls and outcome choices;
+- persistent views for projects, organizations, and contacts;
+- a shared Reserves inventory for the next mission;
+- GM controls to create/edit/customize downtime actions and reserves;
+- a handoff button/workflow that promotes selected reserves into the GM Mission Toolkit's Preparation/Reserves stages when the next mission is created.
+
+Architecturally, this should reuse the Narrative Play roll/consequence infrastructure and the same actor/resource services used elsewhere rather than building a separate downtime dice engine.
+
 ### Narrative Play design goal
 
 The goal is a second major Frame Conn interaction mode:
