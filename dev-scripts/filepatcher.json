@@ -1,53 +1,47 @@
 {
   "schema_version": 2,
-  "id": "integrate-change-propagation-guide",
-  "description": "Place the Change Propagation Simulator explicitly in the Frame Conn developer-tool workflow and capability model.",
+  "id": "document-change-propagation-bridge",
+  "description": "Document Change Propagation Simulator execution inside the GitHub FilePatcher bridge.",
   "policy": {
     "max_files_changed": 1,
-    "allowed_paths": ["dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md"]
+    "allowed_paths": ["dev-scripts/README.md"]
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "search": "  automatic-patch-staging.mjs     corridor -> dependency-ordered staged patch specs\n  runtime-contract-probes.mjs      goal -> reversible Foundry runtime probe bundle",
-      "replace": "  automatic-patch-staging.mjs     corridor -> dependency-ordered staged patch specs\n  change-propagation-simulator.mjs exact staged transition -> temporal compatibility/risk report\n  runtime-contract-probes.mjs      goal -> reversible Foundry runtime probe bundle"
+      "path": "dev-scripts/README.md",
+      "search": "The GitHub FilePatcher now participates in an eight-capability evidence/planning/validation pipeline:",
+      "replace": "The GitHub FilePatcher now participates in a nine-capability evidence/planning/validation pipeline:"
     },
     {
       "type": "replace_text",
-      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "search": "# 8 — Runtime Contract Probes\nnpm run runtime-probes\nnpm run runtime-probes:self-test",
-      "replace": "# 8 — Change Propagation Simulator\nnpm run change-propagation -- --snapshot transition.json --output change-propagation-report.json\nnpm run change-propagation:self-test\n\n# 9 — Runtime Contract Probes\nnpm run runtime-probes\nnpm run runtime-probes:self-test"
+      "path": "dev-scripts/README.md",
+      "search": "7. **Expanded Pattern-Aware DSL** — clones only proven local structural exemplars and compiles to ordinary FilePatcher JSON.\n8. **Runtime Contract Probes** — generates reversible Foundry instrumentation plus explicit manual checkpoints for live testing.",
+      "replace": "7. **Expanded Pattern-Aware DSL** — clones only proven local structural exemplars and compiles to ordinary FilePatcher JSON.\n8. **Change Propagation Simulator** — compares FilePatcher's exact staged before/after state, classifies contract deltas, derives intermediate-state obligations and compatibility strategies, predicts bounded behavioral amplification, and targets the most load-bearing verification.\n9. **Runtime Contract Probes** — generates reversible Foundry instrumentation plus explicit manual checkpoints for live testing."
     },
     {
       "type": "replace_text",
-      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "search": "Patch DSL / pattern-aware shorthand / raw schema-v2 JSON\n    ↓\ndev-scripts/filepatcher.json\n    ↓\nGitHub FilePatcher dry-run + apply",
-      "replace": "Patch DSL / pattern-aware shorthand / raw schema-v2 JSON\n    ↓\ndev-scripts/filepatcher.json\n    ↓\nGitHub FilePatcher builds exact staged before/after transition\n    ↓\nChange Propagation Simulator\n  contract deltas + intermediate obligations + compatibility + fan-out + verification targets\n    ↓\nGitHub FilePatcher dry-run + apply"
+      "path": "dev-scripts/README.md",
+      "search": "When present, FilePatcher runs this pre-mutation chain:\n\n```text\nplanning_goal\n    ↓\nClause-Aware Patch Corridor\n    ↓\nAutomatic Patch Staging\n    ↓\nCorridor Context Pack\n    ↓\nNative Contract Catalog\n    ↓\nRuntime Contract Probes (temporary bundle)\n    ↓\nmutation planning\n```",
+      "replace": "When present, FilePatcher uses this pre-mutation chain. Mutation planning itself happens first so every downstream tool can reason over the exact staged state that FilePatcher would write:\n\n```text\nmutation planning (in memory)\n    ↓\nplanning_goal → Clause-Aware Patch Corridor\n    ↓\nAutomatic Patch Staging\n    ↓\nChange Propagation Simulator\n  exact staged before/after transition\n    ↓\nCorridor Context Pack\n    ↓\nNative Contract Catalog\n    ↓\nRuntime Contract Probes (temporary bundle)\n```\n\nFor patches without `planning_goal`, the simulator still runs whenever the mutation plan contains at least one changed file. Automatic bridge use is advisory: unsafe-transition findings are logged as compatibility warnings, while FilePatcher policy and the permanent audits remain the blocking gates."
     },
     {
       "type": "replace_text",
-      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "search": "### The eight capability upgrades\n\nThe planning/authoring/runtime-validation stack now has eight explicit capabilities. They are designed as one evidence-reduction pipeline rather than eight unrelated utilities:",
-      "replace": "### The nine capability upgrades\n\nThe planning/authoring/runtime-validation stack now has nine explicit capabilities. They are designed as one evidence-reduction pipeline rather than nine unrelated utilities:"
+      "path": "dev-scripts/README.md",
+      "search": "dry-run\n  └─ planning_goal pipeline when present\n        ↓\napply\n  ├─ planning_goal pipeline when present\n  ├─ permanent developer-tool self-tests",
+      "replace": "dry-run\n  ├─ exact staged mutation plan\n  ├─ Change Propagation Simulator when files would change\n  └─ planning_goal evidence pipeline when present\n        ↓\napply\n  ├─ exact staged mutation plan\n  ├─ Change Propagation Simulator when files would change\n  ├─ planning_goal evidence pipeline when present\n  ├─ permanent developer-tool self-tests"
     },
     {
       "type": "replace_text",
-      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "search": "7. Expanded Pattern-Aware DSL\n   proven local exemplar -> compact deterministic FilePatcher operations\n\n8. Runtime Contract Probes\n   behavioral clauses/runtime evidence -> reversible Foundry instrumentation + manual checkpoints",
-      "replace": "7. Expanded Pattern-Aware DSL\n   proven local exemplar -> compact deterministic FilePatcher operations\n\n8. Change Propagation Simulator\n   exact proposed repository transition -> contract propagation + intermediate obligations + compatibility sequencing + behavioral amplification + targeted verification\n\n9. Runtime Contract Probes\n   behavioral clauses/runtime evidence -> reversible Foundry instrumentation + manual checkpoints"
+      "path": "dev-scripts/README.md",
+      "search": "4. Push only the patch specification.\n5. Confirm dry-run, apply, permanent self-tests, architecture audits, diff validation, and the bot commit.",
+      "replace": "4. Push only the patch specification.\n5. Inspect the Change Propagation summary for breaking deltas, immediate consumers, fan-out risk, compatibility-stage warnings, and targeted verification.\n6. Confirm dry-run, apply, permanent self-tests, architecture audits, diff validation, and the bot commit."
     },
     {
       "type": "replace_text",
-      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "search": "- repetitive boilerplate is compressed only when a real local exemplar proves the shape;\n- runtime-sensitive work can finish with structured Foundry evidence instead of informal console impressions.",
-      "replace": "- repetitive boilerplate is compressed only when a real local exemplar proves the shape;\n- each authored stage is evaluated as a temporal transition before mutation, so breaking contract deltas, unsafe intermediate states, amplification risks, and load-bearing verification targets are surfaced before the repository advances;\n- runtime-sensitive work can finish with structured Foundry evidence instead of informal console impressions."
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "search": "discover -> trace -> certify -> contextualize -> reuse proof -> stage -> author -> observe live",
-      "replace": "discover -> trace -> certify -> contextualize -> reuse proof -> stage -> author -> simulate transition -> observe live"
+      "path": "dev-scripts/README.md",
+      "search": "Automatic Patch Staging self-test\nRuntime Contract Probes self-test\ndeveloper-tool syntax checks",
+      "replace": "Automatic Patch Staging self-test\nRuntime Contract Probes self-test\nChange Propagation Simulator self-test\ndeveloper-tool syntax checks"
     }
   ]
 }
