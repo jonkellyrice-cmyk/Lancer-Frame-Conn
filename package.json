@@ -14,6 +14,8 @@
     "runtime-signal-map:self-test": "node ./dev_scripts/runtime-signal-map.mjs --self-test",
     "runtime-probes": "node ./dev_scripts/runtime-contract-probes.mjs",
     "runtime-probes:self-test": "node ./dev_scripts/runtime-contract-probes.mjs --self-test",
+    "change-propagation": "node ./dev_scripts/change-propagation-simulator.mjs",
+    "change-propagation:self-test": "node ./dev_scripts/change-propagation-simulator.mjs --self-test",
     "patch-corridor": "node ./dev_scripts/patch-corridor-planner.mjs",
     "patch-corridor:self-test": "node ./dev_scripts/patch-corridor-planner.mjs --self-test",
     "patch-staging": "node ./dev_scripts/automatic-patch-staging.mjs",
