@@ -213,12 +213,19 @@ export function createReactorMeltdownStatusController({
   }
 
   async function syncCombat(combat = globalThis.game?.combat) {
-    const currentTurnKey = turnKey(combat);
-    if (!currentTurnKey) {
+    // Foundry may emit a transient update while advancing a round where the
+    // Combat is still started but no current turn/combatant is momentarily
+    // available. Preserve the previously observed activation through that
+    // gap; otherwise the following valid turn has no previous activation to
+    // close and meltdown countdowns never advance.
+    if (!combat?.started) {
       observedCombatTurnKey = null;
       observedCombatActorUuid = null;
       return false;
     }
+
+    const currentTurnKey = turnKey(combat);
+    if (!currentTurnKey) return false;
 
     const currentActorUuid = combat?.combatant?.actor?.uuid ?? null;
     if (observedCombatTurnKey === null) {

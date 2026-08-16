@@ -303,9 +303,17 @@ function getManualStats(
       system.meltdown_timer !== "",
 
     dangerZoneActive:
-      Boolean(
-        system.statuses?.dangerzone
-      ),
+      (() => {
+        const heat = Number(system.heat?.value);
+        const heatCap = Number(system.heat?.max);
+
+        return (
+          Number.isFinite(heat) &&
+          Number.isFinite(heatCap) &&
+          heatCap > 0 &&
+          heat >= Math.ceil(heatCap / 2)
+        );
+      })(),
 
     exposedActive:
       Boolean(

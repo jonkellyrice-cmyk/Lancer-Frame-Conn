@@ -266,6 +266,27 @@ function handleFrameConnApplicationDeleteToken() {
 }
 
 
+function handleFrameConnApplicationUpdateActor(
+  actor
+) {
+  if (
+    !frameConnApplicationDisplaysActor(
+      actor
+    )
+  ) {
+    return false;
+  }
+
+
+  // Actor telemetry is live state. Force the already-open application to
+  // rerender on the same Actor update instead of waiting for a combat, token,
+  // or control event to refresh the cockpit.
+  return renderFrameConnApplication(
+    true
+  );
+}
+
+
 /* ============================================================
    Exports
    ============================================================ */
@@ -281,5 +302,6 @@ export {
   getDisplayedFrameConnToken,
   frameConnApplicationDisplaysActor,
   handleFrameConnApplicationControlToken,
-  handleFrameConnApplicationDeleteToken
+  handleFrameConnApplicationDeleteToken,
+  handleFrameConnApplicationUpdateActor
 };

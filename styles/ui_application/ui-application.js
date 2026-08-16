@@ -183,7 +183,8 @@ import {
   getDisplayedFrameConnToken,
   frameConnApplicationDisplaysActor,
   handleFrameConnApplicationControlToken,
-  handleFrameConnApplicationDeleteToken
+  handleFrameConnApplicationDeleteToken,
+  handleFrameConnApplicationUpdateActor
 } from "./components/application-lifecycle.js";
 
 
@@ -824,7 +825,10 @@ export const frameConnApplicationUiFeature =
         handleFrameConnApplicationControlToken,
 
       deleteToken:
-        handleFrameConnApplicationDeleteToken
+        handleFrameConnApplicationDeleteToken,
+
+      updateActor:
+        handleFrameConnApplicationUpdateActor
     },
 
     lifecycle: {},
