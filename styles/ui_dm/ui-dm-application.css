@@ -1,0 +1,9 @@
+/*
+ * styles/ui_dm/ui-dm-application.css
+ *
+ * Future stylesheet boundary for the separate Frame Conn DM mission
+ * application. Keep DM workspace styling independent from the player
+ * cockpit so either interface can evolve without coupling layouts.
+ *
+ * Scaffold only: intentionally contains no active selectors yet.
+ */
