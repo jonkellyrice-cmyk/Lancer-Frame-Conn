@@ -57,6 +57,7 @@ jobs:
       - name: Remove generated audit artifacts
         shell: bash
         run: |
+          git restore --worktree -- repo-audit-report.json 2>/dev/null || true
           rm -f effect-atlas-report.json symbol-family-audit-report.json
 
       - name: Commit verified relocation
