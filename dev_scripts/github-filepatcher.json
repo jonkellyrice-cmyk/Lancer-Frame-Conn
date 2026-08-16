@@ -1,9 +1,96 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after splitting shared, player, and rules feature architecture and validating runtime composition.",
+  "id": "extract-engaged-status-rules-module",
+  "description": "Extract all Engaged and Disengage derived-status behavior from status orchestration into a dedicated rules status module while preserving Grapple integration and the existing public status-orchestration API.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 2,
+    "allowed_paths": [
+      "scripts/rules_features/status_conditions/engaged-status.js",
+      "scripts/rules_features/status_conditions/status-orchestration-feature.js"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "create_file",
+      "path": "scripts/rules_features/status_conditions/engaged-status.js",
+      "content": "/**\n * @file scripts/rules_features/status_conditions/engaged-status.js\n * @module engaged-status\n * @responsibility Own Frame Conn's derived Engaged status and Disengage suppression semantics.\n *\n * Engaged is continuously derived from hostile adjacency, with Grapple able to\n * force the relationship and Disengage suppressing it for the actor's current\n * turn. Native Lancer status representation and mutation remain delegated to\n * the caller-supplied native status boundary.\n */\n\nexport function createEngagedStatusController({\n  applyStatus,\n  removeStatus,\n  distance,\n  distanceConfigured,\n  forcedPair,\n  turnKey,\n  actorUuid,\n  tokens = () => globalThis.canvas?.tokens?.placeables ?? [],\n  isGameMaster = () => Boolean(globalThis.game?.user?.isGM)\n} = {}) {\n  for (const [name, value] of Object.entries({\n    applyStatus,\n    removeStatus,\n    distance,\n    distanceConfigured,\n    forcedPair,\n    turnKey,\n    actorUuid\n  })) {\n    if (typeof value !== \"function\") {\n      throw new TypeError(`Frame Conn Engaged status dependency ${name} must be a function.`);\n    }\n  }\n\n  const disengagedActors = new Map();\n\n  function hostilePair(leftToken, rightToken) {\n    const left = Number(leftToken?.document?.disposition ?? leftToken?.disposition ?? 0);\n    const right = Number(rightToken?.document?.disposition ?? rightToken?.disposition ?? 0);\n    return left !== 0 && right !== 0 && Math.sign(left) !== Math.sign(right);\n  }\n\n  const hiddenActor = actor => Boolean(actor?.system?.statuses?.hidden);\n\n  async function applyDisengage(actor, combat = globalThis.game?.combat) {\n    const uuid = actorUuid(actor);\n    const activeTurnKey = turnKey(combat);\n    if (!uuid || !activeTurnKey) {\n      throw new Error(\"Disengage requires an active combat turn and authoritative actor.\");\n    }\n\n    disengagedActors.set(uuid, { actorUuid: uuid, turnKey: activeTurnKey });\n    await removeStatus(actor, \"engaged\");\n    return Object.freeze({ actorUuid: uuid, turnKey: activeTurnKey });\n  }\n\n  function syncDisengage(combat = globalThis.game?.combat) {\n    const currentTurnKey = turnKey(combat);\n    for (const [uuid, record] of disengagedActors.entries()) {\n      if (!currentTurnKey || record.turnKey !== currentTurnKey) {\n        disengagedActors.delete(uuid);\n      }\n    }\n    return true;\n  }\n\n  function isDisengaged(actor, combat = globalThis.game?.combat) {\n    const record = disengagedActors.get(actorUuid(actor));\n    return Boolean(record && record.turnKey === turnKey(combat));\n  }\n\n  /**\n   * Engaged is continuously derived from hostile adjacency. GM-only mutation\n   * prevents multiple clients from racing to write the same native status.\n   */\n  async function syncEngaged() {\n    if (!isGameMaster() || !distanceConfigured()) return false;\n\n    const sceneTokens = tokens();\n    const expected = new Map();\n\n    for (const token of sceneTokens) {\n      if (token?.actor?.uuid) expected.set(token.actor.uuid, false);\n    }\n\n    for (let i = 0; i < sceneTokens.length; i += 1) {\n      for (let j = i + 1; j < sceneTokens.length; j += 1) {\n        const left = sceneTokens[i];\n        const right = sceneTokens[j];\n        if (!left?.actor || !right?.actor) continue;\n\n        const isForcedPair = Boolean(forcedPair(left.actor, right.actor));\n        if (!hostilePair(left, right) && !isForcedPair) continue;\n        if (!isForcedPair && (hiddenActor(left.actor) || hiddenActor(right.actor))) continue;\n\n        const measuredDistance = distance(left, right);\n        if (!Number.isFinite(measuredDistance) || measuredDistance > 1) continue;\n\n        expected.set(left.actor.uuid, true);\n        expected.set(right.actor.uuid, true);\n      }\n    }\n\n    for (const token of sceneTokens) {\n      const actor = token?.actor;\n      if (!actor?.uuid) continue;\n\n      const shouldBeEngaged = expected.get(actor.uuid) === true && !isDisengaged(actor);\n      const isEngaged = Boolean(actor.system?.statuses?.engaged);\n\n      if (shouldBeEngaged && !isEngaged) await applyStatus(actor, \"engaged\");\n      if (!shouldBeEngaged && isEngaged) await removeStatus(actor, \"engaged\");\n    }\n\n    return true;\n  }\n\n  function diagnostics() {\n    return Object.freeze({\n      disengagedActors: [...disengagedActors.values()].map(record => ({ ...record }))\n    });\n  }\n\n  return Object.freeze({\n    applyDisengage,\n    syncDisengage,\n    isDisengaged,\n    syncEngaged,\n    diagnostics\n  });\n}\n"
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "import { defineFrameConnFeature } from \"../../feature-contract.js\";\n",
+      "replace": "import { defineFrameConnFeature } from \"../../feature-contract.js\";\nimport { createEngagedStatusController } from \"./engaged-status.js\";\n",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "const timedStatuses = new Map();\nconst grapples = new Map();\nconst disengagedActors = new Map();\n",
+      "replace": "const timedStatuses = new Map();\nconst grapples = new Map();\n",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "async function establishGrapple(attacker, target) {\n  if (!attacker || !target) throw new Error(\"Grapple requires two authoritative actors.\");\n  const relationshipStatuses = nativeStatusConfigured(\"grappled\")\n    ? [\"grappled\", \"engaged\"]\n    : [\"engaged\"];\n  await applyStatuses(attacker, relationshipStatuses);\n  await applyStatuses(target, relationshipStatuses);",
+      "replace": "async function establishGrapple(attacker, target) {\n  if (!attacker || !target) throw new Error(\"Grapple requires two authoritative actors.\");\n  const relationshipStatuses = nativeStatusConfigured(\"grappled\")\n    ? [\"grappled\"]\n    : [];\n  await applyStatuses(attacker, relationshipStatuses);\n  await applyStatuses(target, relationshipStatuses);",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "  grapples.set(id, record);\n  await bestEffortSetFlag(attacker, GRAPPLE_FLAG, record);\n  await bestEffortSetFlag(target, GRAPPLE_FLAG, record);\n  return Object.freeze({ ...record });\n}",
+      "replace": "  grapples.set(id, record);\n  await bestEffortSetFlag(attacker, GRAPPLE_FLAG, record);\n  await bestEffortSetFlag(target, GRAPPLE_FLAG, record);\n  await engagedStatus.syncEngaged();\n  return Object.freeze({ ...record });\n}",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "  grapples.delete(record?.id);\n  await syncEngaged();\n  return true;",
+      "replace": "  grapples.delete(record?.id);\n  await engagedStatus.syncEngaged();\n  return true;",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "function hostilePair(leftToken, rightToken) {\n  const left = Number(leftToken?.document?.disposition ?? leftToken?.disposition ?? 0);\n  const right = Number(rightToken?.document?.disposition ?? rightToken?.disposition ?? 0);\n  return left !== 0 && right !== 0 && Math.sign(left) !== Math.sign(right);\n}\n\nconst hiddenActor = actor => Boolean(actor?.system?.statuses?.hidden);\nconst grappleForcesPair = (leftActor, rightActor) => grapples.has(grappleId(leftActor, rightActor));\n\nasync function applyDisengage(actor, combat = globalThis.game?.combat) {\n  const uuid = actorUuid(actor);\n  const activeTurnKey = turnKey(combat);\n  if (!uuid || !activeTurnKey) throw new Error(\"Disengage requires an active combat turn and authoritative actor.\");\n  disengagedActors.set(uuid, { actorUuid: uuid, turnKey: activeTurnKey });\n  await removeNativeStatus(actor, \"engaged\");\n  return Object.freeze({ actorUuid: uuid, turnKey: activeTurnKey });\n}\n\nfunction syncDisengage(combat = globalThis.game?.combat) {\n  const currentTurnKey = turnKey(combat);\n  for (const [uuid, record] of disengagedActors.entries()) {\n    if (!currentTurnKey || record.turnKey !== currentTurnKey) disengagedActors.delete(uuid);\n  }\n  return true;\n}\n\nfunction isDisengaged(actor) {\n  const record = disengagedActors.get(actorUuid(actor));\n  return Boolean(record && record.turnKey === turnKey(globalThis.game?.combat));\n}\n\n/** Engaged is continuously derived from hostile adjacency. GM-only mutation avoids client write races. */\nasync function syncEngaged() {\n  if (!globalThis.game?.user?.isGM || typeof runtime.distance !== \"function\") return false;\n  const tokens = globalThis.canvas?.tokens?.placeables ?? [];\n  const expected = new Map();\n  for (const token of tokens) if (token?.actor?.uuid) expected.set(token.actor.uuid, false);\n  for (let i = 0; i < tokens.length; i += 1) {\n    for (let j = i + 1; j < tokens.length; j += 1) {\n      const left = tokens[i];\n      const right = tokens[j];\n      if (!left?.actor || !right?.actor) continue;\n      const forced = grappleForcesPair(left.actor, right.actor);\n      if (!hostilePair(left, right) && !forced) continue;\n      if (!forced && (hiddenActor(left.actor) || hiddenActor(right.actor))) continue;\n      const distance = runtime.distance(left, right);\n      if (!Number.isFinite(distance) || distance > 1) continue;\n      expected.set(left.actor.uuid, true);\n      expected.set(right.actor.uuid, true);\n    }\n  }\n  for (const token of tokens) {\n    const actor = token?.actor;\n    if (!actor?.uuid) continue;\n    const shouldBeEngaged = expected.get(actor.uuid) === true && !isDisengaged(actor);\n    const isEngaged = Boolean(actor.system?.statuses?.engaged);\n    if (shouldBeEngaged && !isEngaged) await applyNativeStatus(actor, \"engaged\");\n    if (!shouldBeEngaged && isEngaged) await removeNativeStatus(actor, \"engaged\");\n  }\n  return true;\n}\n",
+      "replace": "const engagedStatus = createEngagedStatusController({\n  applyStatus: applyNativeStatus,\n  removeStatus: removeNativeStatus,\n  distance: (leftToken, rightToken) => runtime.distance(leftToken, rightToken),\n  distanceConfigured: () => typeof runtime.distance === \"function\",\n  forcedPair: (leftActor, rightActor) => grapples.has(grappleId(leftActor, rightActor)),\n  turnKey,\n  actorUuid\n});\n",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "  syncDisengage(combat);\n  await syncTimedStatuses(combat);\n  await syncGrapples();\n  await syncEngaged();",
+      "replace": "  engagedStatus.syncDisengage(combat);\n  await syncTimedStatuses(combat);\n  await syncGrapples();\n  await engagedStatus.syncEngaged();",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "async function handleTokenUpdate() { hydrateStatusOrchestrationState(); await syncGrapples(); await syncEngaged(); return true; }",
+      "replace": "async function handleTokenUpdate() { hydrateStatusOrchestrationState(); await syncGrapples(); await engagedStatus.syncEngaged(); return true; }",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "  await syncEngaged();\n  return true;\n}\nfunction diagnostics() { return Object.freeze({ runtimeBindings: runtimeBindings(), timedStatuses: [...timedStatuses.values()].map(record => ({ ...record })), grapples: [...grapples.values()].map(record => ({ ...record })), disengagedActors: [...disengagedActors.values()].map(record => ({ ...record })) }); }",
+      "replace": "  await engagedStatus.syncEngaged();\n  return true;\n}\nfunction diagnostics() { return Object.freeze({ runtimeBindings: runtimeBindings(), timedStatuses: [...timedStatuses.values()].map(record => ({ ...record })), grapples: [...grapples.values()].map(record => ({ ...record })), engaged: engagedStatus.diagnostics() }); }",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged, syncDangerZone, syncDangerZones, installThermalRunawayExtension },\n  queries: { diagnostics, runtimeBindings, isDisengaged, getGrapplesForActor, getGrappleBetween, hydrateStatusOrchestrationState },",
+      "replace": "  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, syncDangerZone, syncDangerZones, installThermalRunawayExtension },\n  queries: { diagnostics, runtimeBindings, isDisengaged: engagedStatus.isDisengaged, getGrapplesForActor, getGrappleBetween, hydrateStatusOrchestrationState },",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, updateActor: handleActorUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { installThermalRunawayExtension(); hydrateStatusOrchestrationState(); await syncGrapples(); await syncEngaged(); return syncDangerZones(); } },\n  lifecycle: {},\n  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage, isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged, dangerZoneThreshold, syncDangerZone, syncDangerZones, installThermalRunawayExtension, diagnostics, runtimeBindings },",
+      "replace": "  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, updateActor: handleActorUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { installThermalRunawayExtension(); hydrateStatusOrchestrationState(); await syncGrapples(); await engagedStatus.syncEngaged(); return syncDangerZones(); } },\n  lifecycle: {},\n  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, isDisengaged: engagedStatus.isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, dangerZoneThreshold, syncDangerZone, syncDangerZones, installThermalRunawayExtension, diagnostics, runtimeBindings },",
+      "expected_occurrences": 1
+    }
+  ]
 }
