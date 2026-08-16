@@ -1,9 +1,56 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after exposing the committed-plan Execute control for Self-Destruct.",
+  "id": "fix-scan-target-propagation",
+  "description": "Pass the already-selected Foundry target token into native Lancer actor.beginScanFlow(target) through an injected target-resolution runtime binding.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 2,
+    "allowed_paths": [
+      "scripts/player_features/feature_actions/action-execution-feature.js",
+      "scripts/runtime-orchestrator.js"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "scripts/player_features/feature_actions/action-execution-feature.js",
+      "search": "const frameConnActionExecutionRuntimeBindings = {\n  executeCanonicalAction:\n    null\n};",
+      "replace": "const frameConnActionExecutionRuntimeBindings = {\n  executeCanonicalAction:\n    null,\n\n  resolveRequiredTarget:\n    null\n};",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/player_features/feature_actions/action-execution-feature.js",
+      "search": "    new Set([\n      \"executeCanonicalAction\"\n    ]);",
+      "replace": "    new Set([\n      \"executeCanonicalAction\",\n      \"resolveRequiredTarget\"\n    ]);",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/player_features/feature_actions/action-execution-feature.js",
+      "search": "  return Object.freeze({\n    executeCanonicalAction:\n      typeof frameConnActionExecutionRuntimeBindings\n        .executeCanonicalAction ===\n        \"function\"\n  });",
+      "replace": "  return Object.freeze({\n    executeCanonicalAction:\n      typeof frameConnActionExecutionRuntimeBindings\n        .executeCanonicalAction ===\n        \"function\",\n\n    requiredTargetResolution:\n      typeof frameConnActionExecutionRuntimeBindings\n        .resolveRequiredTarget ===\n        \"function\"\n  });",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/player_features/feature_actions/action-execution-feature.js",
+      "search": "function executeFrameConnScan(\n  actor\n) {\n  if (\n    typeof actor\n      .beginScanFlow !==\n    \"function\"\n  ) {\n    throw new Error(\n      \"The selected Lancer actor does not expose beginScanFlow().\"\n    );\n  }\n\n\n  return (\n    actor.beginScanFlow()\n  );\n}",
+      "replace": "async function executeFrameConnScan(\n  actor,\n  action\n) {\n  if (\n    typeof actor\n      .beginScanFlow !==\n    \"function\"\n  ) {\n    throw new Error(\n      \"The selected Lancer actor does not expose beginScanFlow().\"\n    );\n  }\n\n\n  const resolveRequiredTarget =\n    frameConnActionExecutionRuntimeBindings\n      .resolveRequiredTarget;\n\n  if (\n    typeof resolveRequiredTarget !==\n    \"function\"\n  ) {\n    throw new Error(\n      \"Frame Conn Scan target resolution has not been configured.\"\n    );\n  }\n\n  const targetToken =\n    await resolveRequiredTarget(\n      action\n    );\n\n  if (!targetToken) {\n    throw new Error(\n      \"Scan requires exactly one target token.\"\n    );\n  }\n\n  return (\n    actor.beginScanFlow(\n      targetToken\n    )\n  );\n}",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/player_features/feature_actions/action-execution-feature.js",
+      "search": "      executeFrameConnScan(\n        actor\n      )",
+      "replace": "      executeFrameConnScan(\n        actor,\n        action\n      )",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "  frameConnActionExecutionApi\n    .configureRuntime?.({\n      executeCanonicalAction:\n        options =>\n          executeFrameConnCanonicalAction(\n            options\n          )\n    });",
+      "replace": "  frameConnActionExecutionApi\n    .configureRuntime?.({\n      executeCanonicalAction:\n        options =>\n          executeFrameConnCanonicalAction(\n            options\n          ),\n\n      resolveRequiredTarget:\n        action =>\n          resolveFrameConnRequiredTarget(\n            action\n          )\n    });",
+      "expected_occurrences": 1
+    }
+  ]
 }
