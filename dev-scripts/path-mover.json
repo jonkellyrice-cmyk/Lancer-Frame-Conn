@@ -64,6 +64,12 @@
     },
     {
       "path": "dev-scripts/README.md",
+      "from": "Frame Conn already has the larger local FilePatcher under `dev_scripts/`:\n\n```bash\nnpm run patch\n```\n\nThat tool is unchanged. The GitHub-native patcher lives separately under the hyphenated `dev-scripts/` directory:\n\n```bash\nnpm run github:patch\n```\n\nThe Python tool is the richer local authoring/validation system. The GitHub FilePatcher is the compact remote-execution bridge used when only the JSON patch specification should be written through the GitHub API and the actual source mutation should happen inside GitHub Actions.",
+      "to": "Frame Conn keeps both FilePatcher executors under `dev_scripts/`:\n\n```bash\nnpm run patch\nnpm run github:patch\n```\n\nThe Python tool remains the richer local authoring/validation system and uses `dev_scripts/filepatcher.json`. The GitHub FilePatcher remains the compact remote-execution bridge and uses the distinct `dev_scripts/github-filepatcher.json` contract so the two execution modes cannot overwrite one another.",
+      "expected_occurrences": 1
+    },
+    {
+      "path": "dev-scripts/README.md",
       "from": "dev-scripts/filepatcher.json",
       "to": "dev_scripts/github-filepatcher.json"
     },
@@ -75,12 +81,8 @@
     {
       "path": "dev-scripts/README.md",
       "from": "The separation is intentional:",
-      "to": "The separation between the local and GitHub executors is intentional even though both now live in the same development-tool directory:"
-    },
-    {
-      "path": "dev-scripts/README.md",
-      "from": "Frame Conn already has the larger local FilePatcher under `dev_scripts/`:\n\n```bash\nnpm run patch\n```\n\nThat tool is unchanged. The GitHub-native patcher lives separately under the hyphenated `dev-scripts/` directory:\n\n```bash\nnpm run github:patch\n```\n\nThe Python tool is the richer local authoring/validation system. The GitHub FilePatcher is the compact remote-execution bridge used when only the JSON patch specification should be written through the GitHub API and the actual source mutation should happen inside GitHub Actions.",
-      "to": "Frame Conn keeps both FilePatcher executors under `dev_scripts/`:\n\n```bash\nnpm run patch\nnpm run github:patch\n```\n\nThe Python tool remains the richer local authoring/validation system and uses `dev_scripts/filepatcher.json`. The GitHub FilePatcher remains the compact remote-execution bridge and uses the distinct `dev_scripts/github-filepatcher.json` contract so the two execution modes cannot overwrite one another."
+      "to": "The separation between the local and GitHub executors is intentional even though both now live in the same development-tool directory:",
+      "expected_occurrences": 1
     },
     {
       "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
