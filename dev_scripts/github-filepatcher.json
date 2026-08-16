@@ -1,9 +1,55 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after adding reactor meltdown countdown tracking and conditional telemetry.",
+  "id": "telemetry-warning-pulse-states",
+  "description": "Add presentation-only warning states: whole Frame Conn palette pulses red during an imminent reactor meltdown; Heat telemetry pulses yellow-orange in Danger Zone and yellow-red while Exposed.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 3,
+    "allowed_paths": [
+      "styles/ui_application/components/application-telemetry.js",
+      "styles/ui_application/components/application-action-surface.js",
+      "styles/ui-orchestrator.css"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-telemetry.js",
+      "search": "    repairsMax:\n      0\n  };",
+      "replace": "    repairsMax:\n      0,\n\n    meltdownImminent:\n      false,\n\n    dangerZoneActive:\n      false,\n\n    exposedActive:\n      false\n  };",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-telemetry.js",
+      "search": "    actorType:\n      actor.type ??\n      null,\n\n    repairsAvailable",
+      "replace": "    actorType:\n      actor.type ??\n      null,\n\n    meltdownImminent:\n      system.meltdown_timer !== null &&\n      system.meltdown_timer !== undefined &&\n      system.meltdown_timer !== \"\",\n\n    dangerZoneActive:\n      Boolean(\n        system.statuses?.dangerzone\n      ),\n\n    exposedActive:\n      Boolean(\n        system.statuses?.exposed\n      ),\n\n    repairsAvailable",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-telemetry.js",
+      "search": "function renderPairedStat({\n  label,\n  currentName,\n  maximumName,\n  currentValue,\n  maximumValue\n}) {\n  return `\n    <div class=\"frame-conn-stat-cell frame-conn-stat-paired\">",
+      "replace": "function renderPairedStat({\n  label,\n  currentName,\n  maximumName,\n  currentValue,\n  maximumValue,\n  stateClass = \"\"\n}) {\n  const normalizedStateClass =\n    typeof stateClass === \"string\"\n      ? stateClass.trim()\n      : \"\";\n\n  return `\n    <div class=\"frame-conn-stat-cell frame-conn-stat-paired${normalizedStateClass ? ` ${foundry.utils.escapeHTML(normalizedStateClass)}` : \"\"}\">",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-telemetry.js",
+      "search": "          maximumValue:\n            stats.heatMax\n        })}",
+      "replace": "          maximumValue:\n            stats.heatMax,\n\n          stateClass:\n            stats.exposedActive\n              ? \"frame-conn-heat-exposed\"\n              : stats.dangerZoneActive\n                ? \"frame-conn-heat-danger-zone\"\n                : \"\"\n        })}",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-action-surface.js",
+      "search": "function renderApplicationInner(\n  application,\n  data\n) {\n  return `\n    <section class=\"frame-conn-shell\">",
+      "replace": "function renderApplicationInner(\n  application,\n  data\n) {\n  const meltdownWarningClass =\n    data?.manualStats?.meltdownImminent\n      ? \" frame-conn-meltdown-warning\"\n      : \"\";\n\n  return `\n    <section class=\"frame-conn-shell${meltdownWarningClass}\">",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "append_text",
+      "path": "styles/ui-orchestrator.css",
+      "text": "\n\n/* ============================================================\n   Current feature implementation -- Critical telemetry pulses\n   ============================================================ */\n\n@keyframes frame-conn-meltdown-palette-pulse {\n  0%,\n  100% {\n    filter: none;\n  }\n\n  50% {\n    filter:\n      sepia(0.72)\n      saturate(2.4)\n      hue-rotate(315deg)\n      contrast(1.04)\n      drop-shadow(0 0 10px rgba(255, 48, 48, 0.28));\n  }\n}\n\n.frame-conn-shell.frame-conn-meltdown-warning {\n  animation:\n    frame-conn-meltdown-palette-pulse\n    5.5s\n    ease-in-out\n    infinite;\n}\n\n@keyframes frame-conn-heat-danger-zone-pulse {\n  0%,\n  100% {\n    background:\n      linear-gradient(\n        180deg,\n        rgba(255, 184, 74, 0.055),\n        transparent\n      );\n    box-shadow: none;\n  }\n\n  50% {\n    background:\n      linear-gradient(\n        180deg,\n        rgba(255, 132, 24, 0.24),\n        rgba(255, 132, 24, 0.04)\n      );\n    box-shadow:\n      inset 0 0 18px rgba(255, 132, 24, 0.16),\n      0 0 9px rgba(255, 132, 24, 0.14);\n  }\n}\n\n@keyframes frame-conn-heat-exposed-pulse {\n  0%,\n  100% {\n    background:\n      linear-gradient(\n        180deg,\n        rgba(255, 184, 74, 0.055),\n        transparent\n      );\n    box-shadow: none;\n  }\n\n  50% {\n    background:\n      linear-gradient(\n        180deg,\n        rgba(224, 48, 48, 0.28),\n        rgba(224, 48, 48, 0.045)\n      );\n    box-shadow:\n      inset 0 0 20px rgba(224, 48, 48, 0.18),\n      0 0 10px rgba(224, 48, 48, 0.15);\n  }\n}\n\n.frame-conn-stat-cell.frame-conn-heat-danger-zone {\n  animation:\n    frame-conn-heat-danger-zone-pulse\n    4.5s\n    ease-in-out\n    infinite;\n}\n\n.frame-conn-stat-cell.frame-conn-heat-exposed {\n  animation:\n    frame-conn-heat-exposed-pulse\n    4.5s\n    ease-in-out\n    infinite;\n}\n\n.frame-conn-stat-cell.frame-conn-heat-danger-zone .frame-conn-stat-label {\n  color: #e7bd70;\n}\n\n.frame-conn-stat-cell.frame-conn-heat-exposed .frame-conn-stat-label {\n  color: #e7bd70;\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .frame-conn-shell.frame-conn-meltdown-warning,\n  .frame-conn-stat-cell.frame-conn-heat-danger-zone,\n  .frame-conn-stat-cell.frame-conn-heat-exposed {\n    animation: none;\n  }\n}\n"
+    }
+  ]
 }
