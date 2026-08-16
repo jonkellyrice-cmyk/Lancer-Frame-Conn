@@ -8,12 +8,14 @@
  */
 import { defineFrameConnFeature } from "../../feature-contract.js";
 import { createEngagedStatusController } from "./engaged-status.js";
+import { createDangerZoneStatusController } from "./danger-zone-status.js";
+import { createOverheatingStatusController } from "./overheating-status.js";
 
 const MODULE_ID = "lancer-frame-conn";
 const TIMED_FLAG = "timed-statuses";
 const GRAPPLE_FLAG = "grapple-relationships";
 
-const runtime = { applyStatus: null, removeStatus: null, distance: null };
+const runtime = { applyStatus: null, removeStatus: null, distance: null, installNativeFlowStepBefore: null };
 const timedStatuses = new Map();
 const grapples = new Map();
 
@@ -33,7 +35,8 @@ function runtimeBindings() {
   return Object.freeze({
     statusApplication: typeof runtime.applyStatus === "function",
     statusRemoval: typeof runtime.removeStatus === "function",
-    spatialDistance: typeof runtime.distance === "function"
+    spatialDistance: typeof runtime.distance === "function",
+    nativeFlowExtension: typeof runtime.installNativeFlowStepBefore === "function"
   });
 }
 
@@ -255,6 +258,23 @@ const engagedStatus = createEngagedStatusController({
   actorUuid
 });
 
+const dangerZoneStatus = createDangerZoneStatusController({
+  applyStatus: applyNativeStatus,
+  removeStatus: removeNativeStatus,
+  actorUuid
+});
+
+const overheatingStatus = createOverheatingStatusController({
+  applyStatus: applyNativeStatus,
+  applyUntilEndOfNextTurn,
+  installFlowStepBefore: options => {
+    if (typeof runtime.installNativeFlowStepBefore !== "function") {
+      throw new Error("Frame Conn Status Orchestration native Flow extension is not configured.");
+    }
+    return runtime.installNativeFlowStepBefore(options);
+  }
+});
+
 async function syncGrapples() {
   if (typeof runtime.distance !== "function") return false;
   for (const record of [...grapples.values()]) {
@@ -313,6 +333,7 @@ async function handleCombatUpdate(combat) {
   engagedStatus.syncDisengage(combat);
   await syncTimedStatuses(combat);
   await syncGrapples();
+  await dangerZoneStatus.syncAll();
   return true;
 }
 async function handleTokenUpdate(tokenDocument, change = {}) {
@@ -325,6 +346,7 @@ async function handleTokenUpdate(tokenDocument, change = {}) {
   });
   return true;
 }
+async function handleActorUpdate(actor) { return dangerZoneStatus.syncActor(actor); }
 async function handleCombatDelete(combat) {
   for (const record of [...timedStatuses.values()]) if (!record.combatId || record.combatId === combat?.id) await clearTimedRecord(record);
   for (const record of [...grapples.values()]) await clearGrapple(record);
@@ -335,14 +357,14 @@ function diagnostics() { return Object.freeze({ runtimeBindings: runtimeBindings
 export const frameConnStatusOrchestrationFeature = defineFrameConnFeature({
   id: "status-orchestration",
   domain: "status.orchestration",
-  provides: ["status.orchestration", "status.timed", "status.grapple", "status.engaged.derived"],
-  dependsOn: ["native-adapter.status", "sensors.measurement"],
+  provides: ["status.orchestration", "status.timed", "status.grapple", "status.engaged.derived", "status.danger-zone.derived", "status.overheat-consequences"],
+  dependsOn: ["native-adapter.status", "native-adapter.flow-extension", "sensors.measurement"],
   optionalDependsOn: [],
   state: {},
-  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged },
-  queries: { diagnostics, runtimeBindings, isDisengaged: engagedStatus.isDisengaged, getGrapplesForActor, getGrappleBetween, hydrateStatusOrchestrationState },
-  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { hydrateStatusOrchestrationState(); await syncGrapples(); return engagedStatus.syncEngaged(); } },
+  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, syncDangerZone: dangerZoneStatus.syncActor, syncDangerZones: dangerZoneStatus.syncAll, installOverheatingConsequences: overheatingStatus.install },
+  queries: { diagnostics, runtimeBindings, isDisengaged: engagedStatus.isDisengaged, getGrapplesForActor, getGrappleBetween, hydrateStatusOrchestrationState, dangerZoneThreshold: dangerZoneStatus.threshold },
+  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, updateActor: handleActorUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { overheatingStatus.install(); hydrateStatusOrchestrationState(); await syncGrapples(); await engagedStatus.syncEngaged(); return dangerZoneStatus.syncAll(); } },
   lifecycle: {},
-  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, isDisengaged: engagedStatus.isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, diagnostics, runtimeBindings },
+  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, isDisengaged: engagedStatus.isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, dangerZoneThreshold: dangerZoneStatus.threshold, syncDangerZone: dangerZoneStatus.syncActor, syncDangerZones: dangerZoneStatus.syncAll, installOverheatingConsequences: overheatingStatus.install, diagnostics, runtimeBindings },
   metadata: { label: "Status Orchestration", nativeStatusAuthority: "native-adapter.status", coverPolicy: "Cover remains attacker-relative and is not represented as one global persistent status." }
 });
