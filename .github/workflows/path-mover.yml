@@ -54,6 +54,11 @@ jobs:
       - name: Run effect atlas
         run: npm run effect-atlas
 
+      - name: Remove generated audit artifacts
+        shell: bash
+        run: |
+          rm -f effect-atlas-report.json symbol-family-audit-report.json
+
       - name: Commit verified relocation
         shell: bash
         run: |
