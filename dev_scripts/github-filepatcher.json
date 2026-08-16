@@ -1,70 +1,9 @@
 {
   "schema_version": 2,
-  "id": "remove-native-danger-zone-exposed-duplication",
-  "description": "Remove Frame Conn Danger Zone derivation and Thermal Runaway Exposed injection because the native Foundry Lancer system already owns both behaviors.",
+  "id": "ready",
+  "description": "Neutral no-op state after removing Frame Conn Danger Zone derivation and Thermal Runaway Exposed injection in favor of native Foundry Lancer behavior.",
   "policy": {
-    "max_files_changed": 2,
-    "allowed_paths": [
-      "scripts/rules_features/status_conditions/status-orchestration-feature.js",
-      "scripts/runtime-orchestrator.js"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
-      "search": "const GRAPPLE_FLAG = \"grapple-relationships\";\nconst THERMAL_RUNAWAY_FLOW_STEP = \"frameConnApplyThermalRunawayExposed\";\nconst THERMAL_RUNAWAY_FLOW = \"OverheatFlow\";\n\nconst runtime = { applyStatus: null, removeStatus: null, distance: null, installNativeFlowStepBefore: null };",
-      "replace": "const GRAPPLE_FLAG = \"grapple-relationships\";\n\nconst runtime = { applyStatus: null, removeStatus: null, distance: null };",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
-      "search": "    statusApplication: typeof runtime.applyStatus === \"function\",\n    statusRemoval: typeof runtime.removeStatus === \"function\",\n    spatialDistance: typeof runtime.distance === \"function\",\n    nativeFlowExtension: typeof runtime.installNativeFlowStepBefore === \"function\"",
-      "replace": "    statusApplication: typeof runtime.applyStatus === \"function\",\n    statusRemoval: typeof runtime.removeStatus === \"function\",\n    spatialDistance: typeof runtime.distance === \"function\"",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
-      "search": "function canAuthoritativelyMutateActor(actor) {\n  const users = [...(globalThis.game?.users ?? [])];\n  const activeGmExists = users.some(user => user?.active && user?.isGM);\n  if (activeGmExists) return Boolean(globalThis.game?.user?.isGM);\n  return Boolean(actor?.isOwner);\n}\n\nfunction dangerZoneThreshold(actor) {\n  const heatCap = Number(actor?.system?.heat?.max);\n  if (!Number.isFinite(heatCap) || heatCap <= 0) return null;\n  return Math.ceil(heatCap / 2);\n}\n\nasync function syncDangerZone(actor) {\n  if (!actor || actor.type !== \"mech\") return false;\n\n  const heat = Number(actor?.system?.heat?.value);\n  const threshold = dangerZoneThreshold(actor);\n  if (!Number.isFinite(heat) || threshold === null) return false;\n\n  const shouldBeInDangerZone = heat >= threshold;\n  const isInDangerZone = Boolean(actor?.system?.statuses?.dangerzone);\n\n  if (shouldBeInDangerZone === isInDangerZone) {\n    return Object.freeze({\n      actorUuid: actorUuid(actor),\n      heat,\n      heatCap: Number(actor.system.heat.max),\n      threshold,\n      active: isInDangerZone,\n      changed: false\n    });\n  }\n\n  if (!canAuthoritativelyMutateActor(actor)) return false;\n\n  const result = shouldBeInDangerZone\n    ? await applyNativeStatus(actor, \"dangerzone\")\n    : await removeNativeStatus(actor, \"dangerzone\");\n\n  return Object.freeze({\n    actorUuid: actorUuid(actor),\n    heat,\n    heatCap: Number(actor.system.heat.max),\n    threshold,\n    active: shouldBeInDangerZone,\n    changed: Boolean(result?.changed)\n  });\n}\n\nasync function syncDangerZones() {\n  const actors = [...(globalThis.game?.actors?.contents ?? [])];\n  const results = [];\n  for (const actor of actors) {\n    if (actor?.type !== \"mech\") continue;\n    results.push(await syncDangerZone(actor));\n  }\n  return Object.freeze(results);\n}\n\n/**\n * Native Lancer already owns the Thermal Runaway reactor transition through\n * OverheatFlow. By the time this step runs, preOverheatRollChecks has verified\n * Heat > Heat Cap, spent 1 Stress, and replaced current Heat with only the\n * overflow beyond Heat Cap. Frame Conn adds only the missing persistent\n * Exposed consequence. Native overheat rerolls are not new Thermal Runaway\n * events and must not reapply this consequence.\n */\nasync function applyThermalRunawayExposed(state) {\n  if (state?.data?.reroll_data) return true;\n  const actor = state?.actor ?? null;\n  const isMech = Boolean(actor && (typeof actor.is_mech === \"function\" ? actor.is_mech() : actor.type === \"mech\"));\n  if (!isMech) return true;\n  await applyNativeStatus(actor, \"exposed\");\n  return true;\n}\n\nfunction installThermalRunawayExtension() {\n  if (typeof runtime.installNativeFlowStepBefore !== \"function\") {\n    throw new Error(\"Frame Conn Status Orchestration native Flow extension is not configured.\");\n  }\n  return runtime.installNativeFlowStepBefore({\n    stepName: THERMAL_RUNAWAY_FLOW_STEP,\n    beforeStep: \"rollOverheatTable\",\n    flowNames: [THERMAL_RUNAWAY_FLOW],\n    step: applyThermalRunawayExposed\n  });\n}\n\n",
-      "replace": "",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
-      "search": "  await syncGrapples();\n  await syncDangerZones();\n  return true;",
-      "replace": "  await syncGrapples();\n  return true;",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
-      "search": "async function handleActorUpdate(actor) { return syncDangerZone(actor); }\n",
-      "replace": "",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
-      "search": "  provides: [\"status.orchestration\", \"status.timed\", \"status.grapple\", \"status.engaged.derived\", \"status.danger-zone.derived\", \"status.thermal-runaway\"],\n  dependsOn: [\"native-adapter.status\", \"native-adapter.flow-extension\", \"sensors.measurement\"],",
-      "replace": "  provides: [\"status.orchestration\", \"status.timed\", \"status.grapple\", \"status.engaged.derived\"],\n  dependsOn: [\"native-adapter.status\", \"sensors.measurement\"],",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
-      "search": "  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, syncDangerZone, syncDangerZones, installThermalRunawayExtension },\n  queries: { diagnostics, runtimeBindings, isDisengaged: engagedStatus.isDisengaged, getGrapplesForActor, getGrappleBetween, hydrateStatusOrchestrationState },\n  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, updateActor: handleActorUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { installThermalRunawayExtension(); hydrateStatusOrchestrationState(); await syncGrapples(); await engagedStatus.syncEngaged(); return syncDangerZones(); } },\n  lifecycle: {},\n  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, isDisengaged: engagedStatus.isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, dangerZoneThreshold, syncDangerZone, syncDangerZones, installThermalRunawayExtension, diagnostics, runtimeBindings },",
-      "replace": "  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged },\n  queries: { diagnostics, runtimeBindings, isDisengaged: engagedStatus.isDisengaged, getGrapplesForActor, getGrappleBetween, hydrateStatusOrchestrationState },\n  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { hydrateStatusOrchestrationState(); await syncGrapples(); return engagedStatus.syncEngaged(); } },\n  lifecycle: {},\n  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, isDisengaged: engagedStatus.isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, diagnostics, runtimeBindings },",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "      distance:\n        (sourceToken, targetToken) =>\n          frameConnSensorsApi.distance(sourceToken, targetToken),\n\n      installNativeFlowStepBefore:\n        options =>\n          frameConnNativeAdapterApi\n            .installFlowStepBefore(\n              options\n            )",
-      "replace": "      distance:\n        (sourceToken, targetToken) =>\n          frameConnSensorsApi.distance(sourceToken, targetToken)",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
