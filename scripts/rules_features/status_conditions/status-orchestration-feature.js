@@ -7,6 +7,7 @@
  * action/lifecycle/spatial orchestration that native Lancer does not provide.
  */
 import { defineFrameConnFeature } from "../../feature-contract.js";
+import { createEngagedStatusController } from "./engaged-status.js";
 
 const MODULE_ID = "lancer-frame-conn";
 const TIMED_FLAG = "timed-statuses";
@@ -17,7 +18,6 @@ const THERMAL_RUNAWAY_FLOW = "OverheatFlow";
 const runtime = { applyStatus: null, removeStatus: null, distance: null, installNativeFlowStepBefore: null };
 const timedStatuses = new Map();
 const grapples = new Map();
-const disengagedActors = new Map();
 
 function configureRuntime(bindings = {}) {
   if (!bindings || typeof bindings !== "object" || Array.isArray(bindings)) {
@@ -278,8 +278,8 @@ function grappleId(left, right) {
 async function establishGrapple(attacker, target) {
   if (!attacker || !target) throw new Error("Grapple requires two authoritative actors.");
   const relationshipStatuses = nativeStatusConfigured("grappled")
-    ? ["grappled", "engaged"]
-    : ["engaged"];
+    ? ["grappled"]
+    : [];
   await applyStatuses(attacker, relationshipStatuses);
   await applyStatuses(target, relationshipStatuses);
   const attackerSize = nativeSize(attacker);
@@ -297,6 +297,7 @@ async function establishGrapple(attacker, target) {
   grapples.set(id, record);
   await bestEffortSetFlag(attacker, GRAPPLE_FLAG, record);
   await bestEffortSetFlag(target, GRAPPLE_FLAG, record);
+  await engagedStatus.syncEngaged();
   return Object.freeze({ ...record });
 }
 
@@ -309,7 +310,7 @@ async function clearGrapple(record) {
     await bestEffortUnsetFlag(actor, GRAPPLE_FLAG);
   }
   grapples.delete(record?.id);
-  await syncEngaged();
+  await engagedStatus.syncEngaged();
   return true;
 }
 
@@ -339,67 +340,15 @@ async function endGrappleForActor(actor) {
   return matches.length;
 }
 
-function hostilePair(leftToken, rightToken) {
-  const left = Number(leftToken?.document?.disposition ?? leftToken?.disposition ?? 0);
-  const right = Number(rightToken?.document?.disposition ?? rightToken?.disposition ?? 0);
-  return left !== 0 && right !== 0 && Math.sign(left) !== Math.sign(right);
-}
-
-const hiddenActor = actor => Boolean(actor?.system?.statuses?.hidden);
-const grappleForcesPair = (leftActor, rightActor) => grapples.has(grappleId(leftActor, rightActor));
-
-async function applyDisengage(actor, combat = globalThis.game?.combat) {
-  const uuid = actorUuid(actor);
-  const activeTurnKey = turnKey(combat);
-  if (!uuid || !activeTurnKey) throw new Error("Disengage requires an active combat turn and authoritative actor.");
-  disengagedActors.set(uuid, { actorUuid: uuid, turnKey: activeTurnKey });
-  await removeNativeStatus(actor, "engaged");
-  return Object.freeze({ actorUuid: uuid, turnKey: activeTurnKey });
-}
-
-function syncDisengage(combat = globalThis.game?.combat) {
-  const currentTurnKey = turnKey(combat);
-  for (const [uuid, record] of disengagedActors.entries()) {
-    if (!currentTurnKey || record.turnKey !== currentTurnKey) disengagedActors.delete(uuid);
-  }
-  return true;
-}
-
-function isDisengaged(actor) {
-  const record = disengagedActors.get(actorUuid(actor));
-  return Boolean(record && record.turnKey === turnKey(globalThis.game?.combat));
-}
-
-/** Engaged is continuously derived from hostile adjacency. GM-only mutation avoids client write races. */
-async function syncEngaged() {
-  if (!globalThis.game?.user?.isGM || typeof runtime.distance !== "function") return false;
-  const tokens = globalThis.canvas?.tokens?.placeables ?? [];
-  const expected = new Map();
-  for (const token of tokens) if (token?.actor?.uuid) expected.set(token.actor.uuid, false);
-  for (let i = 0; i < tokens.length; i += 1) {
-    for (let j = i + 1; j < tokens.length; j += 1) {
-      const left = tokens[i];
-      const right = tokens[j];
-      if (!left?.actor || !right?.actor) continue;
-      const forced = grappleForcesPair(left.actor, right.actor);
-      if (!hostilePair(left, right) && !forced) continue;
-      if (!forced && (hiddenActor(left.actor) || hiddenActor(right.actor))) continue;
-      const distance = runtime.distance(left, right);
-      if (!Number.isFinite(distance) || distance > 1) continue;
-      expected.set(left.actor.uuid, true);
-      expected.set(right.actor.uuid, true);
-    }
-  }
-  for (const token of tokens) {
-    const actor = token?.actor;
-    if (!actor?.uuid) continue;
-    const shouldBeEngaged = expected.get(actor.uuid) === true && !isDisengaged(actor);
-    const isEngaged = Boolean(actor.system?.statuses?.engaged);
-    if (shouldBeEngaged && !isEngaged) await applyNativeStatus(actor, "engaged");
-    if (!shouldBeEngaged && isEngaged) await removeNativeStatus(actor, "engaged");
-  }
-  return true;
-}
+const engagedStatus = createEngagedStatusController({
+  applyStatus: applyNativeStatus,
+  removeStatus: removeNativeStatus,
+  distance: (leftToken, rightToken) => runtime.distance(leftToken, rightToken),
+  distanceConfigured: () => typeof runtime.distance === "function",
+  forcedPair: (leftActor, rightActor) => grapples.has(grappleId(leftActor, rightActor)),
+  turnKey,
+  actorUuid
+});
 
 async function syncGrapples() {
   if (typeof runtime.distance !== "function") return false;
@@ -456,22 +405,22 @@ function hydrateStatusOrchestrationState() {
 
 async function handleCombatUpdate(combat) {
   hydrateStatusOrchestrationState();
-  syncDisengage(combat);
+  engagedStatus.syncDisengage(combat);
   await syncTimedStatuses(combat);
   await syncGrapples();
-  await syncEngaged();
+  await engagedStatus.syncEngaged();
   await syncDangerZones();
   return true;
 }
-async function handleTokenUpdate() { hydrateStatusOrchestrationState(); await syncGrapples(); await syncEngaged(); return true; }
+async function handleTokenUpdate() { hydrateStatusOrchestrationState(); await syncGrapples(); await engagedStatus.syncEngaged(); return true; }
 async function handleActorUpdate(actor) { return syncDangerZone(actor); }
 async function handleCombatDelete(combat) {
   for (const record of [...timedStatuses.values()]) if (!record.combatId || record.combatId === combat?.id) await clearTimedRecord(record);
   for (const record of [...grapples.values()]) await clearGrapple(record);
-  await syncEngaged();
+  await engagedStatus.syncEngaged();
   return true;
 }
-function diagnostics() { return Object.freeze({ runtimeBindings: runtimeBindings(), timedStatuses: [...timedStatuses.values()].map(record => ({ ...record })), grapples: [...grapples.values()].map(record => ({ ...record })), disengagedActors: [...disengagedActors.values()].map(record => ({ ...record })) }); }
+function diagnostics() { return Object.freeze({ runtimeBindings: runtimeBindings(), timedStatuses: [...timedStatuses.values()].map(record => ({ ...record })), grapples: [...grapples.values()].map(record => ({ ...record })), engaged: engagedStatus.diagnostics() }); }
 
 export const frameConnStatusOrchestrationFeature = defineFrameConnFeature({
   id: "status-orchestration",
@@ -480,10 +429,10 @@ export const frameConnStatusOrchestrationFeature = defineFrameConnFeature({
   dependsOn: ["native-adapter.status", "native-adapter.flow-extension", "sensors.measurement"],
   optionalDependsOn: [],
   state: {},
-  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged, syncDangerZone, syncDangerZones, installThermalRunawayExtension },
-  queries: { diagnostics, runtimeBindings, isDisengaged, getGrapplesForActor, getGrappleBetween, hydrateStatusOrchestrationState },
-  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, updateActor: handleActorUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { installThermalRunawayExtension(); hydrateStatusOrchestrationState(); await syncGrapples(); await syncEngaged(); return syncDangerZones(); } },
+  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, syncDangerZone, syncDangerZones, installThermalRunawayExtension },
+  queries: { diagnostics, runtimeBindings, isDisengaged: engagedStatus.isDisengaged, getGrapplesForActor, getGrappleBetween, hydrateStatusOrchestrationState },
+  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, updateActor: handleActorUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { installThermalRunawayExtension(); hydrateStatusOrchestrationState(); await syncGrapples(); await engagedStatus.syncEngaged(); return syncDangerZones(); } },
   lifecycle: {},
-  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage, isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged, dangerZoneThreshold, syncDangerZone, syncDangerZones, installThermalRunawayExtension, diagnostics, runtimeBindings },
+  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, isDisengaged: engagedStatus.isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, dangerZoneThreshold, syncDangerZone, syncDangerZones, installThermalRunawayExtension, diagnostics, runtimeBindings },
   metadata: { label: "Status Orchestration", nativeStatusAuthority: "native-adapter.status", coverPolicy: "Cover remains attacker-relative and is not represented as one global persistent status." }
 });
