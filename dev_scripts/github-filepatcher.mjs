@@ -470,7 +470,7 @@ function runEffectAtlasAudit() {
 
 function validateDeveloperToolSyntax() {
   const tools = [
-    path.join(ROOT, "dev-scripts", "github-filepatcher.mjs"),
+    path.join(ROOT, "dev_scripts", "github-filepatcher.mjs"),
     path.join(ROOT, "dev_scripts", "repo-audit.mjs"),
     path.join(ROOT, "dev_scripts", "symbol-family-audit.mjs"),
     path.join(ROOT, "dev_scripts", "effect-atlas.mjs"),
