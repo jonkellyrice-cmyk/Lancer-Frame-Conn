@@ -1,36 +1,9 @@
 {
   "schema_version": 2,
-  "id": "scaffold-sitreps-and-foundry-features",
-  "description": "Create inert documentation-first scaffolding for DM-facing SITREPs and Foundry-wide feature modifications that are not Lancer-system-specific.",
+  "id": "ready",
+  "description": "Neutral no-op state after promoting system-bridge-feature.js to scripts root and scaffolding DM SITREPs plus Foundry-wide feature boundaries.",
   "policy": {
-    "max_files_changed": 4,
-    "allowed_paths": [
-      "scripts/dm_features/sitreps/README.md",
-      "scripts/dm_features/sitreps/sitreps-feature-package.js",
-      "scripts/foundry_features/README.md",
-      "scripts/foundry_features/foundry-feature-registry.js"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "create_file",
-      "path": "scripts/dm_features/sitreps/README.md",
-      "content": "# Frame Conn DM Features — SITREPs\n\nThis directory is reserved for GM-facing support for **Lancer SITREPs**: structured tactical encounter types, their objectives, scoring/progress, special deployment rules, reinforcement timing, extraction/holdout/control conditions, and other scenario-specific mission logic.\n\n## Future responsibility\n\nSITREP features should help the GM both author and run tactical encounters. Likely responsibilities include:\n\n- selecting or defining the encounter's SITREP type;\n- presenting the SITREP's objective and victory/failure conditions;\n- tracking rounds, zones, control points, extraction targets, escorts, reinforcements, or other scenario state;\n- surfacing only the information players should know while preserving GM-only notes/state;\n- integrating with the Mission Toolkit's **Boots on the Ground** stage;\n- handing encounter results into mission/debrief state;\n- using shared rules/spatial/Foundry services instead of duplicating combat logic.\n\n## Boundary\n\nSITREPs belong under `dm_features/` because they are primarily encounter-authoring and encounter-control tools for the GM. Their mechanical effects may call into shared `rules_features` or system-bridge services when needed, but the SITREP feature itself should not become a parallel combat rules engine.\n\n## Current state\n\nScaffold only. Nothing in this directory is registered or executed yet.\n"
-    },
-    {
-      "type": "create_file",
-      "path": "scripts/dm_features/sitreps/sitreps-feature-package.js",
-      "content": "/**\n * scripts/dm_features/sitreps/sitreps-feature-package.js\n *\n * FRAME CONN SITREPS FEATURE PACKAGE -- FUTURE SCAFFOLD\n *\n * ROLE:\n *   Future aggregation point for GM-facing SITREP authoring,\n *   scenario-state tracking, and live tactical encounter controls.\n *\n * FUTURE COMPOSITION:\n *   - SITREP definitions/catalog;\n *   - objective and scoring/progress state;\n *   - deployment/reinforcement scenario helpers;\n *   - live encounter-state presentation;\n *   - Mission Toolkit / debrief handoff.\n *\n * CURRENT STATE:\n *   Documentation-only scaffold. Intentionally exports nothing and\n *   is not imported by dm-feature-registry.js yet.\n */\n"
-    },
-    {
-      "type": "create_file",
-      "path": "scripts/foundry_features/README.md",
-      "content": "# Frame Conn Foundry Features\n\nThis directory is reserved for **Foundry VTT-wide features and modifications** that are useful to Frame Conn but are not specifically part of the Lancer game-system rules or native Lancer integration.\n\n## Use this folder for\n\nExamples include behavior involving generic Foundry concepts such as:\n\n- Scene and Token presentation/interaction;\n- generic canvas overlays or controls;\n- Foundry window/application ergonomics;\n- generic targeting or selection UX that is not Lancer-rule-specific;\n- chat/UI enhancements that operate at the Foundry platform level;\n- generic document or hook coordination that would remain meaningful even outside the Lancer system.\n\n## Do not use this folder for\n\n- native Lancer Actor/Item/Flow integration — that belongs in the system bridge/native adapter;\n- automatic Lancer rules consequences — those belong in `rules_features/`;\n- player gameplay commands — those belong in `player_features/`;\n- GM mission/SITREP authoring — those belong in `dm_features/`.\n\n## Architectural rule\n\nThe boundary should answer: **is this modifying Foundry as a platform, or implementing Lancer as a game?**\n\nIf it is platform-level, it belongs here. If it depends on Lancer-specific actors, stats, actions, statuses, tables, flows, or rules semantics, it belongs elsewhere.\n\n## Current state\n\nScaffold only. No Foundry-wide feature package is registered with runtime yet.\n"
-    },
-    {
-      "type": "create_file",
-      "path": "scripts/foundry_features/foundry-feature-registry.js",
-      "content": "/**\n * scripts/foundry_features/foundry-feature-registry.js\n *\n * FRAME CONN FOUNDRY FEATURE REGISTRY -- FUTURE SCAFFOLD\n *\n * ROLE:\n *   This file may eventually declare the package of Frame Conn\n *   features that modify or extend generic Foundry VTT behavior.\n *\n * BOUNDARY:\n *   Foundry-wide/platform behavior only. Lancer-system integration,\n *   Lancer rules, player commands, and DM mission tooling retain\n *   their existing feature-family ownership.\n *\n * FUTURE COMPOSITION:\n *   scripts/feature-registry-core.js\n *              │\n *              ├─ player feature package\n *              ├─ rules feature package\n *              ├─ DM feature package\n *              └─ Foundry-wide feature package\n *                       │\n *                       ▼\n *              runtime-orchestrator.js\n *\n * CURRENT STATE:\n *   Documentation-only scaffold. Intentionally exports nothing and\n *   is not imported by runtime-orchestrator.js yet.\n */\n"
-    }
-  ]
+  "operations": []
 }
