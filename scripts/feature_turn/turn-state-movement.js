@@ -1226,64 +1226,12 @@ function trackFrameConnTurnStateTokenMovement(
 
 
   /* ----------------------------------------------------------
-     Cross first Speed threshold
+     Observe movement without policing it
      ---------------------------------------------------------- */
 
-  if (
-    newTotal > standardAllowance &&
-    getFrameConnTurnStateMovementBoostCount(
-      state
-    ) < 1
-  ) {
-    const result =
-      ensureFrameConnTurnStateAutomaticMovementBoost(
-        state,
-        {
-          forceOvercharge:
-            false
-        }
-      );
-
-
-    automaticActions.push({
-      threshold:
-        standardAllowance,
-
-      ...result
-    });
-  }
-
-
-  /* ----------------------------------------------------------
-     Cross second Speed threshold
-     ---------------------------------------------------------- */
-
-  if (
-    newTotal >
-      standardAllowance +
-        speed &&
-    getFrameConnTurnStateMovementBoostCount(
-      state
-    ) < 2
-  ) {
-    const result =
-      ensureFrameConnTurnStateAutomaticMovementBoost(
-        state,
-        {
-          forceOvercharge:
-            true
-        }
-      );
-
-
-    automaticActions.push({
-      threshold:
-        standardAllowance +
-          speed,
-
-      ...result
-    });
-  }
+  // Physical token movement is observational only. Crossing Speed
+  // thresholds does not commit Boost, spend actions, or trigger
+  // Overcharge. Manual Boost remains authoritative for action use.
 
 
   /* ----------------------------------------------------------
