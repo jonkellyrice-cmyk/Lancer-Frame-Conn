@@ -1,41 +1,9 @@
 {
   "schema_version": 2,
-  "id": "harden-reactor-meltdown-timer-authority",
-  "description": "Allow the actor owner who runs native Overheat/Engineering flows to create or clear the meltdown timer while keeping turn-by-turn countdown advancement single-authority to avoid multiplayer double-decrements.",
+  "id": "ready",
+  "description": "Neutral no-op state after adding reactor meltdown countdown tracking and conditional telemetry.",
   "policy": {
-    "max_files_changed": 1,
-    "allowed_paths": [
-      "scripts/rules_features/status_conditions/reactor-meltdown-status.js"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "scripts/rules_features/status_conditions/reactor-meltdown-status.js",
-      "search": "  function canMutate(actor) {\n    const users = [...(globalThis.game?.users ?? [])];\n    const activeGmExists = users.some(user => user?.active && user?.isGM);\n    if (activeGmExists) return Boolean(globalThis.game?.user?.isGM);\n    return Boolean(actor?.isOwner);\n  }",
-      "replace": "  function canAdvanceCountdown(actor) {\n    const users = [...(globalThis.game?.users ?? [])];\n    const activeGmExists = users.some(user => user?.active && user?.isGM);\n    if (activeGmExists) return Boolean(globalThis.game?.user?.isGM);\n    return Boolean(actor?.isOwner);\n  }\n\n  function canMutateFromNativeFlow(actor) {\n    return Boolean(globalThis.game?.user?.isGM || actor?.isOwner);\n  }",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/rules_features/status_conditions/reactor-meltdown-status.js",
-      "search": "  async function updateTimer(actor, value) {\n    if (!canMutate(actor) || typeof actor?.update !== \"function\") return false;\n    await actor.update({ \"system.meltdown_timer\": value });\n    return true;\n  }",
-      "replace": "  async function updateTimer(actor, value, { nativeFlowAuthority = false } = {}) {\n    const authorized = nativeFlowAuthority\n      ? canMutateFromNativeFlow(actor)\n      : canAdvanceCountdown(actor);\n\n    if (!authorized || typeof actor?.update !== \"function\") return false;\n    await actor.update({ \"system.meltdown_timer\": value });\n    return true;\n  }",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/rules_features/status_conditions/reactor-meltdown-status.js",
-      "search": "    await updateTimer(actor, countdown);",
-      "replace": "    await updateTimer(actor, countdown, { nativeFlowAuthority: true });",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/rules_features/status_conditions/reactor-meltdown-status.js",
-      "search": "    if (timer(actor) !== null) await updateTimer(actor, null);",
-      "replace": "    if (timer(actor) !== null) {\n      await updateTimer(actor, null, { nativeFlowAuthority: true });\n    }",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
