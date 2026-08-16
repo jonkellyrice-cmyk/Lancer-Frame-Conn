@@ -1,9 +1,27 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after making committed Self-Destruct prompt for NOW/1 ROUND/2 ROUNDS and reuse the reactor-meltdown countdown and terminal explosion resolver.",
+  "id": "committed-self-destruct-execute-control",
+  "description": "Expose an Execute control for committed Self-Destruct by aligning the Turn UI presentation-only execution classification with Action Execution.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 1,
+    "allowed_paths": [
+      "styles/ui_turn/components/turn-committed-plan-presentation.js"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "styles/ui_turn/components/turn-committed-plan-presentation.js",
+      "search": "      \"quick.boost\",\n      \"quick.quick-tech.bolster\",\n      \"quick.prepare\",\n      \"quick.self-destruct\",\n\n      \"full.activate\",",
+      "replace": "      \"quick.boost\",\n      \"quick.quick-tech.bolster\",\n      \"quick.prepare\",\n\n      \"full.activate\",",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_turn/components/turn-committed-plan-presentation.js",
+      "search": "    new Set([\n      \"quick.hide\",",
+      "replace": "    new Set([\n      \"quick.self-destruct\",\n      \"quick.hide\",",
+      "expected_occurrences": 1
+    }
+  ]
 }
