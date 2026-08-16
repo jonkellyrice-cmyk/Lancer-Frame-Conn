@@ -62,7 +62,7 @@ import {
 
 import {
   frameConnFoundryIntegrationFeature
-} from "./foundry-integration-feature.js";
+} from "../foundry-integration-feature.js";
 
 import {
   frameConnActionExecutionFeature
@@ -78,7 +78,7 @@ import {
 
 import {
   frameConnSystemBridgeFeature
-} from "./feature_system_bridge/system-bridge-feature.js";
+} from "../feature_system_bridge/system-bridge-feature.js";
 
 import {
   frameConnSemanticExecutionContextFeature
