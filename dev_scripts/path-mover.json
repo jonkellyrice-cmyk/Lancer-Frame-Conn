@@ -1,65 +1,33 @@
 {
   "schema_version": 1,
-  "id": "consolidate-development-tool-directories",
-  "enabled": false,
-  "description": "Consolidate the hyphenated dev-scripts directory into dev_scripts while preserving distinct local and GitHub FilePatcher contracts and rewriting all non-workflow operational path references.",
+  "id": "consolidate-player-facing-script-features",
+  "enabled": true,
+  "description": "Move every current top-level scripts entry into scripts/player_features while preserving runtime behavior and automatically rewriting relative imports. Keep scripts/rules_features reserved for non-player-facing rules automation.",
   "moves": [
-    {
-      "from": "dev-scripts/README.md",
-      "to": "dev_scripts/GITHUB_FILEPATCHER.md"
-    },
-    {
-      "from": "dev-scripts/filepatcher.json",
-      "to": "dev_scripts/github-filepatcher.json"
-    },
-    {
-      "from": "dev-scripts/github-filepatcher.mjs",
-      "to": "dev_scripts/github-filepatcher.mjs"
-    },
-    {
-      "from": "dev-scripts/path-mover.json",
-      "to": "dev_scripts/path-mover.json"
-    },
-    {
-      "from": "dev-scripts/path-mover.mjs",
-      "to": "dev_scripts/path-mover.mjs"
-    }
+    { "from": "scripts/dsl.js", "to": "scripts/player_features/dsl.js" },
+    { "from": "scripts/feature-contract.js", "to": "scripts/player_features/feature-contract.js" },
+    { "from": "scripts/feature-registry-core.js", "to": "scripts/player_features/feature-registry-core.js" },
+    { "from": "scripts/feature-registry.js", "to": "scripts/player_features/feature-registry.js" },
+    { "from": "scripts/feature_actions", "to": "scripts/player_features/feature_actions" },
+    { "from": "scripts/feature_brace", "to": "scripts/player_features/feature_brace" },
+    { "from": "scripts/feature_lifecycle", "to": "scripts/player_features/feature_lifecycle" },
+    { "from": "scripts/feature_movement", "to": "scripts/player_features/feature_movement" },
+    { "from": "scripts/feature_semantic_execution_context", "to": "scripts/player_features/feature_semantic_execution_context" },
+    { "from": "scripts/feature_status_orchestration", "to": "scripts/player_features/feature_status_orchestration" },
+    { "from": "scripts/feature_system_bridge", "to": "scripts/player_features/feature_system_bridge" },
+    { "from": "scripts/feature_targeting_spatial", "to": "scripts/player_features/feature_targeting_spatial" },
+    { "from": "scripts/feature_turn", "to": "scripts/player_features/feature_turn" },
+    { "from": "scripts/foundry-integration-feature.js", "to": "scripts/player_features/foundry-integration-feature.js" },
+    { "from": "scripts/lancer-frame-helm.js.bak", "to": "scripts/player_features/lancer-frame-helm.js.bak" },
+    { "from": "scripts/runtime-orchestrator.js", "to": "scripts/player_features/runtime-orchestrator.js" },
+    { "from": "scripts/sensors-feature.js", "to": "scripts/player_features/sensors-feature.js" }
   ],
   "reference_rewrites": [
     {
-      "path": "package.json",
-      "from": "./dev-scripts/github-filepatcher.mjs",
-      "to": "./dev_scripts/github-filepatcher.mjs",
-      "expected_occurrences": 1
-    },
-    {
-      "path": "dev-scripts/github-filepatcher.mjs",
-      "from": "path.join(ROOT, \"dev-scripts\", \"filepatcher.json\")",
-      "to": "path.join(ROOT, \"dev_scripts\", \"github-filepatcher.json\")",
-      "expected_occurrences": 1
-    },
-    {
-      "path": "dev-scripts/README.md",
-      "from": "Frame Conn already has the larger local FilePatcher under `dev_scripts/`:\n\n```bash\nnpm run patch\n```\n\nThat tool is unchanged. The GitHub-native patcher lives separately under the hyphenated `dev-scripts/` directory:\n\n```bash\nnpm run github:patch\n```\n\nThe Python tool is the richer local authoring/validation system. The GitHub FilePatcher is the compact remote-execution bridge used when only the JSON patch specification should be written through the GitHub API and the actual source mutation should happen inside GitHub Actions.",
-      "to": "Frame Conn keeps both FilePatcher executors under `dev_scripts/`:\n\n```bash\nnpm run patch\nnpm run github:patch\n```\n\nThe Python tool remains the richer local authoring/validation system and uses `dev_scripts/filepatcher.json`. The GitHub FilePatcher remains the compact remote-execution bridge and uses the distinct `dev_scripts/github-filepatcher.json` contract so the two execution modes cannot overwrite one another.",
-      "expected_occurrences": 1
-    },
-    {
-      "path": "dev-scripts/README.md",
-      "from": "dev-scripts/filepatcher.json",
-      "to": "dev_scripts/github-filepatcher.json"
-    },
-    {
-      "path": "dev-scripts/README.md",
-      "from": "dev-scripts/",
-      "to": "dev_scripts/"
-    },
-    {
-      "path": "dev-scripts/README.md",
-      "from": "The separation is intentional:",
-      "to": "The separation between the local and GitHub executors is intentional even though both now live in the same development-tool directory:",
+      "path": "module.json",
+      "from": "scripts/runtime-orchestrator.js",
+      "to": "scripts/player_features/runtime-orchestrator.js",
       "expected_occurrences": 1
     }
-  ],
-  "last_applied_at": "2026-08-16T18:05:57.060Z"
+  ]
 }
