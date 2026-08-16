@@ -838,24 +838,27 @@
 /* ============================================================
    Current feature implementation -- Critical telemetry pulses
    ============================================================ */
-@keyframes frame-conn-meltdown-palette-pulse {
+@keyframes frame-conn-reactor-meltdown-card-pulse {
   0%,
   100% {
-    filter: none;
+    background:
+      linear-gradient(180deg, rgba(255, 68, 68, 0.16), rgba(255, 68, 68, 0.035));
+    box-shadow:
+      inset 3px 0 0 #ff5757;
   }
   50% {
-    filter:
-      sepia(0.72)
-      saturate(2.4)
-      hue-rotate(315deg)
-      contrast(1.04)
-      drop-shadow(0 0 10px rgba(255, 48, 48, 0.28));
+    background:
+      linear-gradient(180deg, rgba(255, 42, 42, 0.34), rgba(255, 42, 42, 0.075));
+    box-shadow:
+      inset 3px 0 0 #ff3535,
+      inset 0 0 20px rgba(255, 42, 42, 0.18),
+      0 0 11px rgba(255, 42, 42, 0.2);
   }
 }
-.frame-conn-shell.frame-conn-meltdown-warning {
+.frame-conn-stat-meltdown {
   animation:
-    frame-conn-meltdown-palette-pulse
-    5.5s
+    frame-conn-reactor-meltdown-card-pulse
+    4.5s
     ease-in-out
     infinite;
 }
@@ -908,7 +911,7 @@
   color: #e7bd70;
 }
 @media (prefers-reduced-motion: reduce) {
-  .frame-conn-shell.frame-conn-meltdown-warning,
+  .frame-conn-stat-meltdown,
   .frame-conn-stat-cell.frame-conn-heat-danger-zone,
   .frame-conn-stat-cell.frame-conn-heat-exposed {
     animation: none;

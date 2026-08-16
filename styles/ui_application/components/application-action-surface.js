@@ -110,13 +110,8 @@ function renderApplicationInner(
   application,
   data
 ) {
-  const meltdownWarningClass =
-    data?.manualStats?.meltdownImminent
-      ? " frame-conn-meltdown-warning"
-      : "";
-
   return `
-    <section class="frame-conn-shell${meltdownWarningClass}">
+    <section class="frame-conn-shell">
       ${renderMechStatsBar(data)}
 
       <div class="frame-conn-horizontal-layout">
