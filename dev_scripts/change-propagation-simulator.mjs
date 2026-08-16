@@ -173,7 +173,10 @@ function deltasFor(change) {
 function repositoryFiles() {
   const out = [];
   const skip = new Set([".git","node_modules",".next","dist","coverage"]);
+  const excludedRecoveryTrees = ["dev_scripts/backups", "dev_scripts/patch-history"];
   function visit(dir) {
+    const relativeDir = path.relative(ROOT, dir).split(path.sep).join("/");
+    if (excludedRecoveryTrees.some((tree) => relativeDir === tree || relativeDir.startsWith(`${tree}/`))) return;
     for (const entry of fs.readdirSync(dir, { withFileTypes:true })) {
       if (skip.has(entry.name)) continue;
       const absolute = path.join(dir, entry.name);
