@@ -65,7 +65,6 @@ const FRAME_CONN_TURN_UI_NO_ROLL_ACTION_IDS =
       "quick.boost",
       "quick.quick-tech.bolster",
       "quick.prepare",
-      "quick.self-destruct",
 
       "full.activate",
       "full.mount-dismount",
@@ -83,6 +82,7 @@ const FRAME_CONN_TURN_UI_NO_ROLL_ACTION_IDS =
 const FRAME_CONN_TURN_UI_EXECUTE_ONLY_ACTION_IDS =
   Object.freeze(
     new Set([
+      "quick.self-destruct",
       "quick.hide",
       "quick.quick-tech.lock-on",
       "quick.quick-tech.scan",
