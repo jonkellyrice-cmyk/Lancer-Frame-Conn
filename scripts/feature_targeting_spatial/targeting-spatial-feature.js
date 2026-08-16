@@ -60,7 +60,7 @@ import {
 } from "../feature-contract.js";
 
 import * as targetingSpatialRuntime from
-  "../../targeting-spatial_service/targeting-spatial-service.js";
+  "../../system_bridge/targeting-spatial_service/targeting-spatial-service.js";
 
 /* ============================================================
    RUNTIME CONFIGURATION

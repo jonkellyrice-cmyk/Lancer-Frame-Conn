@@ -274,12 +274,12 @@ import {
 
 import {
   frameConnExecutionTransactionFeature
-} from "../execution_transaction/execution-transaction-feature.js";
+} from "../system_bridge/execution_transaction/execution-transaction-feature.js";
 
 
 import {
   frameConnNativeAdapterFeature
-} from "../native_adapter/native-adapter-feature.js";
+} from "../system_bridge/native_adapter/native-adapter-feature.js";
 
 
 import {

@@ -83,7 +83,7 @@ import {
   getActorOwnedFeatureRegistryScopeId,
   getActorOwnedFeatures,
   hasActorOwnedFeatureRegistry
-} from "../actor_owned_feature_registry/actor-owned-feature-service.js";
+} from "./actor_owned_feature_registry/actor-owned-feature-service.js";
 
 /* ============================================================
    MODULE IDENTITY

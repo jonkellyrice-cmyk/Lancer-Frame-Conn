@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "id": "nest-system-bridge-foundations",
-  "enabled": true,
+  "enabled": false,
   "description": "Move the foundational system-bridge component packages beneath system_bridge and rewrite relative imports automatically.",
   "moves": [
     {
@@ -40,5 +40,6 @@
       "from": "targeting-spatial_service",
       "to": "system_bridge/targeting-spatial_service"
     }
-  ]
+  ],
+  "last_applied_at": "2026-08-16T17:58:08.299Z"
 }

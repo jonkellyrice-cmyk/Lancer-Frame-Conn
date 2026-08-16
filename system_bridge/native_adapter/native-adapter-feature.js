@@ -56,7 +56,7 @@
 
 import {
   defineFrameConnFeature
-} from "../scripts/feature-contract.js";
+} from "../../scripts/feature-contract.js";
 
 import * as nativeAdapterRuntime from
   "./native-adapter.js";

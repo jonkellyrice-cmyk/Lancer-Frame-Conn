@@ -1,38 +1,785 @@
 {
   "audit": {
-    "name": "Lancer Frame Helm Repository Audit",
-    "scriptVersion": "1.0.0",
-    "generatedAt": "2026-08-09T02:23:33.712Z",
-    "repositoryRoot": "C:/Users/ricej/Desktop/MDV_work/Lancer-Frame-Helm",
-    "result": "failed"
+    "name": "Frame Conn Repository Audit",
+    "scriptVersion": "1.1.0",
+    "generatedAt": "2026-08-16T17:58:09.844Z",
+    "repositoryRoot": "/home/runner/work/Lancer-Frame-Conn/Lancer-Frame-Conn",
+    "result": "warning"
   },
   "summary": {
-    "filesScanned": 44,
-    "javascriptFiles": 26,
-    "cssFiles": 10,
-    "featureDeclarations": 27,
+    "filesScanned": 136,
+    "javascriptFiles": 118,
+    "cssFiles": 9,
+    "featureDeclarations": 19,
     "featureIds": [
-      "actions",
-      "sensors",
-      "movement",
       "action-execution",
+      "actions",
+      "brace",
+      "lifecycle",
+      "movement",
+      "semantic-execution-context",
+      "status-orchestration",
+      "system-bridge",
+      "targeting-spatial",
       "turn",
       "foundry-integration",
+      "sensors",
       "ui-sensors",
       "ui-application",
       "ui-movement",
-      "ui-turn"
+      "ui-turn",
+      "execution-transaction",
+      "native-adapter"
     ],
-    "capabilities": [],
-    "findings": 70,
-    "errors": 25,
-    "warnings": 41,
-    "info": 4
+    "capabilities": [
+      "action-execution",
+      "action-execution.actor-workflow",
+      "action-execution.canonical-routing",
+      "action-execution.classification",
+      "action-execution.mech-stat-selection",
+      "actions.catalog",
+      "actions.registration",
+      "actions.registry",
+      "brace",
+      "brace.attack-difficulty",
+      "brace.damage-resistance",
+      "brace.reaction",
+      "brace.turn-restriction",
+      "execution-transaction",
+      "execution-transaction.hooks",
+      "execution-transaction.native",
+      "execution-transaction.run",
+      "execution-transaction.semantic-parent",
+      "foundry.integration",
+      "foundry.lock-on-authority",
+      "foundry.scene-controls",
+      "foundry.settings",
+      "foundry.socket",
+      "lifecycle",
+      "lifecycle.dispatch",
+      "lifecycle.registration",
+      "lifecycle.semantic-events",
+      "lifecycle.state",
+      "movement",
+      "movement.elevation",
+      "movement.measurement",
+      "movement.notifications",
+      "movement.token",
+      "movement.tracking",
+      "native-adapter",
+      "native-adapter.combat",
+      "native-adapter.execution",
+      "native-adapter.flow-extension",
+      "native-adapter.resolution",
+      "native-adapter.resources",
+      "native-adapter.rolls",
+      "native-adapter.status",
+      "semantic-execution-context",
+      "semantic-execution-context.access",
+      "semantic-execution-context.builder",
+      "semantic-execution-context.identity",
+      "semantic-execution-context.targets",
+      "sensors.contacts",
+      "sensors.measurement",
+      "sensors.refresh",
+      "status.danger-zone.derived",
+      "status.engaged.derived",
+      "status.grapple",
+      "status.orchestration",
+      "status.thermal-runaway",
+      "status.timed",
+      "system-bridge",
+      "system-bridge.augmentation",
+      "system-bridge.composition",
+      "system-bridge.resolution",
+      "system-bridge.runtime-descriptor",
+      "targeting-spatial",
+      "targeting-spatial.execution-hooks",
+      "targeting-spatial.query",
+      "targeting-spatial.resolution",
+      "targeting-spatial.runtime-augmentation",
+      "targeting-spatial.validation",
+      "turn.actions",
+      "turn.combat-sync",
+      "turn.committed-actions",
+      "turn.lifecycle",
+      "turn.protocol",
+      "turn.reaction",
+      "turn.state",
+      "ui.application",
+      "ui.application.lifecycle",
+      "ui.application.rendering",
+      "ui.application.token",
+      "ui.movement",
+      "ui.movement.budget",
+      "ui.movement.ledger",
+      "ui.movement.presentation",
+      "ui.movement.segments",
+      "ui.movement.status",
+      "ui.sensors",
+      "ui.sensors.layer",
+      "ui.sensors.rendering",
+      "ui.sensors.visual-configuration",
+      "ui.turn",
+      "ui.turn.budget",
+      "ui.turn.committed-actions",
+      "ui.turn.overcharge",
+      "ui.turn.presentation",
+      "ui.turn.protocol",
+      "ui.turn.reaction"
+    ],
+    "findings": 19,
+    "errors": 0,
+    "warnings": 17,
+    "info": 2,
+    "dependencyStreams": 18,
+    "majorRivers": 2,
+    "participatingSymbols": 2975,
+    "dependencyJoins": 38,
+    "deadEnds": 0,
+    "cycles": 0,
+    "missingRequiredProviders": 0
+  },
+  "dependencyFlow": {
+    "totals": {
+      "filesScanned": 136,
+      "javascriptFiles": 118,
+      "streamCount": 18,
+      "majorRiverCount": 2,
+      "participatingSymbols": 2975,
+      "fileDependencyEdges": 221,
+      "dependencyJoins": 38,
+      "deadEnds": 0,
+      "cycles": 0,
+      "missingRequiredProviders": 0
+    },
+    "outlets": [
+      "scripts/runtime-orchestrator.js"
+    ],
+    "rivers": [
+      {
+        "id": "runtime",
+        "label": "Runtime River",
+        "streamCount": 14,
+        "fileCount": 76,
+        "symbolCount": 2692,
+        "dependencyJoinCount": 22,
+        "convergence": "scripts/feature-registry.js",
+        "outlet": "scripts/runtime-orchestrator.js",
+        "streams": [
+          {
+            "id": "action-execution",
+            "domain": "action-execution",
+            "river": "runtime",
+            "entryFile": "scripts/feature_actions/action-execution-feature.js",
+            "fileCount": 2,
+            "symbolCount": 70,
+            "provides": [
+              "action-execution",
+              "action-execution.actor-workflow",
+              "action-execution.canonical-routing",
+              "action-execution.classification",
+              "action-execution.mech-stat-selection"
+            ],
+            "consumes": [],
+            "optionalConsumes": [
+              "actions.registry",
+              "turn.actions"
+            ],
+            "dependencyJoinCount": 2,
+            "upstreamStreams": [
+              "actions",
+              "turn"
+            ],
+            "downstreamStreams": [],
+            "convergence": "scripts/feature-registry.js",
+            "outlet": "scripts/runtime-orchestrator.js",
+            "deadEnd": false,
+            "status": "healthy",
+            "problems": []
+          },
+          {
+            "id": "actions",
+            "domain": "actions",
+            "river": "runtime",
+            "entryFile": "scripts/feature_actions/actions-feature.js",
+            "fileCount": 3,
+            "symbolCount": 69,
+            "provides": [
+              "actions.catalog",
+              "actions.registration",
+              "actions.registry"
+            ],
+            "consumes": [],
+            "optionalConsumes": [],
+            "dependencyJoinCount": 0,
+            "upstreamStreams": [],
+            "downstreamStreams": [
+              "action-execution",
+              "semantic-execution-context",
+              "system-bridge",
+              "turn",
+              "ui-application",
+              "ui-turn"
+            ],
+            "convergence": "scripts/feature-registry.js",
+            "outlet": "scripts/runtime-orchestrator.js",
+            "deadEnd": false,
+            "status": "healthy",
+            "problems": []
+          },
+          {
+            "id": "brace",
+            "domain": "brace",
+            "river": "runtime",
+            "entryFile": "scripts/feature_brace/brace-feature.js",
+            "fileCount": 2,
+            "symbolCount": 88,
+            "provides": [
+              "brace",
+              "brace.attack-difficulty",
+              "brace.damage-resistance",
+              "brace.reaction",
+              "brace.turn-restriction"
+            ],
+            "consumes": [
+              "native-adapter.flow-extension",
+              "turn.reaction"
+            ],
+            "optionalConsumes": [],
+            "dependencyJoinCount": 2,
+            "upstreamStreams": [
+              "native-adapter",
+              "turn"
+            ],
+            "downstreamStreams": [],
+            "convergence": "scripts/feature-registry.js",
+            "outlet": "scripts/runtime-orchestrator.js",
+            "deadEnd": false,
+            "status": "healthy",
+            "problems": []
+          },
+          {
+            "id": "execution-transaction",
+            "domain": "execution-transaction",
+            "river": "runtime",
+            "entryFile": "system_bridge/execution_transaction/execution-transaction-feature.js",
+            "fileCount": 19,
+            "symbolCount": 890,
+            "provides": [
+              "execution-transaction",
+              "execution-transaction.hooks",
+              "execution-transaction.native",
+              "execution-transaction.run",
+              "execution-transaction.semantic-parent"
+            ],
+            "consumes": [
+              "semantic-execution-context"
+            ],
+            "optionalConsumes": [
+              "lifecycle",
+              "targeting-spatial"
+            ],
+            "dependencyJoinCount": 3,
+            "upstreamStreams": [
+              "lifecycle",
+              "semantic-execution-context",
+              "targeting-spatial"
+            ],
+            "downstreamStreams": [],
+            "convergence": "scripts/feature-registry.js",
+            "outlet": "scripts/runtime-orchestrator.js",
+            "deadEnd": false,
+            "status": "healthy",
+            "problems": []
+          },
+          {
+            "id": "foundry-integration",
+            "domain": "foundry.integration",
+            "river": "runtime",
+            "entryFile": "scripts/foundry-integration-feature.js",
+            "fileCount": 2,
+            "symbolCount": 97,
+            "provides": [
+              "foundry.integration",
+              "foundry.lock-on-authority",
+              "foundry.scene-controls",
+              "foundry.settings",
+              "foundry.socket"
+            ],
+            "consumes": [
+              "ui.application"
+            ],
+            "optionalConsumes": [
+              "ui.application.lifecycle"
+            ],
+            "dependencyJoinCount": 2,
+            "upstreamStreams": [
+              "ui-application"
+            ],
+            "downstreamStreams": [],
+            "convergence": "scripts/feature-registry.js",
+            "outlet": "scripts/runtime-orchestrator.js",
+            "deadEnd": false,
+            "status": "healthy",
+            "problems": []
+          },
+          {
+            "id": "lifecycle",
+            "domain": "lifecycle",
+            "river": "runtime",
+            "entryFile": "scripts/feature_lifecycle/lifecycle-feature.js",
+            "fileCount": 39,
+            "symbolCount": 1571,
+            "provides": [
+              "lifecycle",
+              "lifecycle.dispatch",
+              "lifecycle.registration",
+              "lifecycle.semantic-events",
+              "lifecycle.state"
+            ],
+            "consumes": [],
+            "optionalConsumes": [],
+            "dependencyJoinCount": 0,
+            "upstreamStreams": [],
+            "downstreamStreams": [
+              "execution-transaction"
+            ],
+            "convergence": "scripts/feature-registry.js",
+            "outlet": "scripts/runtime-orchestrator.js",
+            "deadEnd": false,
+            "status": "healthy",
+            "problems": []
+          },
+          {
+            "id": "movement",
+            "domain": "movement",
+            "river": "runtime",
+            "entryFile": "scripts/feature_movement/movement-feature.js",
+            "fileCount": 2,
+            "symbolCount": 101,
+            "provides": [
+              "movement",
+              "movement.elevation",
+              "movement.measurement",
+              "movement.notifications",
+              "movement.token",
+              "movement.tracking"
+            ],
+            "consumes": [
+              "turn.state"
+            ],
+            "optionalConsumes": [
+              "turn.actions",
+              "ui.application.rendering"
+            ],
+            "dependencyJoinCount": 3,
+            "upstreamStreams": [
+              "turn",
+              "ui-application"
+            ],
+            "downstreamStreams": [
+              "ui-movement"
+            ],
+            "convergence": "scripts/feature-registry.js",
+            "outlet": "scripts/runtime-orchestrator.js",
+            "deadEnd": false,
+            "status": "healthy",
+            "problems": []
+          },
+          {
+            "id": "native-adapter",
+            "domain": "native-adapter",
+            "river": "runtime",
+            "entryFile": "system_bridge/native_adapter/native-adapter-feature.js",
+            "fileCount": 12,
+            "symbolCount": 510,
+            "provides": [
+              "native-adapter",
+              "native-adapter.combat",
+              "native-adapter.execution",
+              "native-adapter.flow-extension",
+              "native-adapter.resolution",
+              "native-adapter.resources",
+              "native-adapter.rolls",
+              "native-adapter.status"
+            ],
+            "consumes": [],
+            "optionalConsumes": [],
+            "dependencyJoinCount": 0,
+            "upstreamStreams": [],
+            "downstreamStreams": [
+              "brace",
+              "semantic-execution-context",
+              "status-orchestration"
+            ],
+            "convergence": "scripts/feature-registry.js",
+            "outlet": "scripts/runtime-orchestrator.js",
+            "deadEnd": false,
+            "status": "healthy",
+            "problems": []
+          },
+          {
+            "id": "semantic-execution-context",
+            "domain": "semantic-execution-context",
+            "river": "runtime",
+            "entryFile": "scripts/feature_semantic_execution_context/semantic-execution-context-feature.js",
+            "fileCount": 15,
+            "symbolCount": 670,
+            "provides": [
+              "semantic-execution-context",
+              "semantic-execution-context.access",
+              "semantic-execution-context.builder",
+              "semantic-execution-context.identity",
+              "semantic-execution-context.targets"
+            ],
+            "consumes": [
+              "native-adapter"
+            ],
+            "optionalConsumes": [
+              "actions.registry",
+              "system-bridge",
+              "turn.state"
+            ],
+            "dependencyJoinCount": 4,
+            "upstreamStreams": [
+              "actions",
+              "native-adapter",
+              "system-bridge",
+              "turn"
+            ],
+            "downstreamStreams": [
+              "execution-transaction"
+            ],
+            "convergence": "scripts/feature-registry.js",
+            "outlet": "scripts/runtime-orchestrator.js",
+            "deadEnd": false,
+            "status": "healthy",
+            "problems": []
+          },
+          {
+            "id": "sensors",
+            "domain": "sensors",
+            "river": "runtime",
+            "entryFile": "scripts/sensors-feature.js",
+            "fileCount": 3,
+            "symbolCount": 90,
+            "provides": [
+              "sensors.contacts",
+              "sensors.measurement",
+              "sensors.refresh"
+            ],
+            "consumes": [],
+            "optionalConsumes": [],
+            "dependencyJoinCount": 0,
+            "upstreamStreams": [],
+            "downstreamStreams": [
+              "status-orchestration",
+              "ui-application",
+              "ui-sensors"
+            ],
+            "convergence": "scripts/feature-registry.js",
+            "outlet": "scripts/runtime-orchestrator.js",
+            "deadEnd": false,
+            "status": "healthy",
+            "problems": []
+          },
+          {
+            "id": "status-orchestration",
+            "domain": "status.orchestration",
+            "river": "runtime",
+            "entryFile": "scripts/feature_status_orchestration/status-orchestration-feature.js",
+            "fileCount": 2,
+            "symbolCount": 137,
+            "provides": [
+              "status.danger-zone.derived",
+              "status.engaged.derived",
+              "status.grapple",
+              "status.orchestration",
+              "status.thermal-runaway",
+              "status.timed"
+            ],
+            "consumes": [
+              "native-adapter.flow-extension",
+              "native-adapter.status",
+              "sensors.measurement"
+            ],
+            "optionalConsumes": [],
+            "dependencyJoinCount": 3,
+            "upstreamStreams": [
+              "native-adapter",
+              "sensors"
+            ],
+            "downstreamStreams": [],
+            "convergence": "scripts/feature-registry.js",
+            "outlet": "scripts/runtime-orchestrator.js",
+            "deadEnd": false,
+            "status": "healthy",
+            "problems": []
+          },
+          {
+            "id": "system-bridge",
+            "domain": "system-bridge",
+            "river": "runtime",
+            "entryFile": "scripts/feature_system_bridge/system-bridge-feature.js",
+            "fileCount": 12,
+            "symbolCount": 608,
+            "provides": [
+              "system-bridge",
+              "system-bridge.augmentation",
+              "system-bridge.composition",
+              "system-bridge.resolution",
+              "system-bridge.runtime-descriptor"
+            ],
+            "consumes": [],
+            "optionalConsumes": [
+              "actions.registry"
+            ],
+            "dependencyJoinCount": 1,
+            "upstreamStreams": [
+              "actions"
+            ],
+            "downstreamStreams": [
+              "semantic-execution-context"
+            ],
+            "convergence": "scripts/feature-registry.js",
+            "outlet": "scripts/runtime-orchestrator.js",
+            "deadEnd": false,
+            "status": "healthy",
+            "problems": []
+          },
+          {
+            "id": "targeting-spatial",
+            "domain": "targeting-spatial",
+            "river": "runtime",
+            "entryFile": "scripts/feature_targeting_spatial/targeting-spatial-feature.js",
+            "fileCount": 30,
+            "symbolCount": 1296,
+            "provides": [
+              "targeting-spatial",
+              "targeting-spatial.execution-hooks",
+              "targeting-spatial.query",
+              "targeting-spatial.resolution",
+              "targeting-spatial.runtime-augmentation",
+              "targeting-spatial.validation"
+            ],
+            "consumes": [],
+            "optionalConsumes": [],
+            "dependencyJoinCount": 0,
+            "upstreamStreams": [],
+            "downstreamStreams": [
+              "execution-transaction"
+            ],
+            "convergence": "scripts/feature-registry.js",
+            "outlet": "scripts/runtime-orchestrator.js",
+            "deadEnd": false,
+            "status": "healthy",
+            "problems": []
+          },
+          {
+            "id": "turn",
+            "domain": "turn",
+            "river": "runtime",
+            "entryFile": "scripts/feature_turn/turn-feature.js",
+            "fileCount": 8,
+            "symbolCount": 139,
+            "provides": [
+              "turn.actions",
+              "turn.combat-sync",
+              "turn.committed-actions",
+              "turn.lifecycle",
+              "turn.protocol",
+              "turn.reaction",
+              "turn.state"
+            ],
+            "consumes": [
+              "actions.registry"
+            ],
+            "optionalConsumes": [
+              "ui.application.rendering"
+            ],
+            "dependencyJoinCount": 2,
+            "upstreamStreams": [
+              "actions",
+              "ui-application"
+            ],
+            "downstreamStreams": [
+              "action-execution",
+              "brace",
+              "movement",
+              "semantic-execution-context",
+              "ui-movement",
+              "ui-turn"
+            ],
+            "convergence": "scripts/feature-registry.js",
+            "outlet": "scripts/runtime-orchestrator.js",
+            "deadEnd": false,
+            "status": "healthy",
+            "problems": []
+          }
+        ]
+      },
+      {
+        "id": "ui",
+        "label": "UI River",
+        "streamCount": 4,
+        "fileCount": 27,
+        "symbolCount": 397,
+        "dependencyJoinCount": 16,
+        "convergence": "styles/ui-registry.js",
+        "outlet": "scripts/runtime-orchestrator.js",
+        "streams": [
+          {
+            "id": "ui-application",
+            "domain": "ui.application",
+            "river": "ui",
+            "entryFile": "styles/ui_application/ui-application.js",
+            "fileCount": 17,
+            "symbolCount": 244,
+            "provides": [
+              "ui.application",
+              "ui.application.lifecycle",
+              "ui.application.rendering",
+              "ui.application.token"
+            ],
+            "consumes": [
+              "actions.registry"
+            ],
+            "optionalConsumes": [
+              "sensors.refresh"
+            ],
+            "dependencyJoinCount": 2,
+            "upstreamStreams": [
+              "actions",
+              "sensors"
+            ],
+            "downstreamStreams": [
+              "foundry-integration",
+              "movement",
+              "turn",
+              "ui-movement",
+              "ui-turn"
+            ],
+            "convergence": "styles/ui-registry.js",
+            "outlet": "scripts/runtime-orchestrator.js",
+            "deadEnd": false,
+            "status": "healthy",
+            "problems": []
+          },
+          {
+            "id": "ui-movement",
+            "domain": "ui.movement",
+            "river": "ui",
+            "entryFile": "styles/ui_movement/ui-movement.js",
+            "fileCount": 2,
+            "symbolCount": 100,
+            "provides": [
+              "ui.movement",
+              "ui.movement.budget",
+              "ui.movement.ledger",
+              "ui.movement.presentation",
+              "ui.movement.segments",
+              "ui.movement.status"
+            ],
+            "consumes": [
+              "movement",
+              "movement.tracking",
+              "turn.state"
+            ],
+            "optionalConsumes": [
+              "movement.elevation",
+              "movement.measurement",
+              "turn.actions",
+              "ui.application",
+              "ui.application.rendering"
+            ],
+            "dependencyJoinCount": 8,
+            "upstreamStreams": [
+              "movement",
+              "turn",
+              "ui-application"
+            ],
+            "downstreamStreams": [],
+            "convergence": "styles/ui-registry.js",
+            "outlet": "scripts/runtime-orchestrator.js",
+            "deadEnd": false,
+            "status": "healthy",
+            "problems": []
+          },
+          {
+            "id": "ui-sensors",
+            "domain": "ui.sensors",
+            "river": "ui",
+            "entryFile": "styles/ui-registry.js",
+            "fileCount": 3,
+            "symbolCount": 74,
+            "provides": [
+              "ui.sensors",
+              "ui.sensors.layer",
+              "ui.sensors.rendering",
+              "ui.sensors.visual-configuration"
+            ],
+            "consumes": [
+              "sensors.contacts"
+            ],
+            "optionalConsumes": [],
+            "dependencyJoinCount": 1,
+            "upstreamStreams": [
+              "sensors"
+            ],
+            "downstreamStreams": [],
+            "convergence": "styles/ui-registry.js",
+            "outlet": "scripts/runtime-orchestrator.js",
+            "deadEnd": false,
+            "status": "healthy",
+            "problems": []
+          },
+          {
+            "id": "ui-turn",
+            "domain": "ui.turn",
+            "river": "ui",
+            "entryFile": "styles/ui_turn/ui-turn.js",
+            "fileCount": 8,
+            "symbolCount": 118,
+            "provides": [
+              "ui.turn",
+              "ui.turn.budget",
+              "ui.turn.committed-actions",
+              "ui.turn.overcharge",
+              "ui.turn.presentation",
+              "ui.turn.protocol",
+              "ui.turn.reaction"
+            ],
+            "consumes": [
+              "turn.actions",
+              "turn.state"
+            ],
+            "optionalConsumes": [
+              "actions.registry",
+              "ui.application",
+              "ui.application.rendering"
+            ],
+            "dependencyJoinCount": 5,
+            "upstreamStreams": [
+              "actions",
+              "turn",
+              "ui-application"
+            ],
+            "downstreamStreams": [],
+            "convergence": "styles/ui-registry.js",
+            "outlet": "scripts/runtime-orchestrator.js",
+            "deadEnd": false,
+            "status": "healthy",
+            "problems": []
+          }
+        ]
+      }
+    ]
   },
   "manifest": {
-    "id": "lancer-frame-helm",
-    "title": "Lancer Frame Helm",
-    "version": "2.0.6",
+    "id": "lancer-frame-conn",
+    "title": "Frame Conn",
+    "version": "0.0.7",
     "compatibility": {
       "minimum": "13",
       "verified": "13",
@@ -47,173 +794,214 @@
   },
   "features": [
     {
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
-      "line": 116,
-      "id": null,
-      "domain": null,
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
-      "line": 1648,
-      "id": "actions",
-      "domain": "actions",
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/sensors-feature.js",
-      "line": 71,
-      "id": null,
-      "domain": null,
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/sensors-feature.js",
-      "line": 368,
-      "id": "sensors",
-      "domain": "sensors",
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "dev_scripts/repo-audit.mjs",
-      "line": 1060,
-      "id": null,
-      "domain": null,
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "dev_scripts/repo-audit.mjs",
-      "line": 1677,
-      "id": null,
-      "domain": null,
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "scripts/feature-contract.js",
-      "line": 396,
-      "id": "movement",
-      "domain": "movement",
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "scripts/feature-contract.js",
-      "line": 436,
-      "id": null,
-      "domain": null,
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
       "file": "scripts/feature_actions/action-execution-feature.js",
-      "line": 132,
-      "id": null,
-      "domain": null,
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "scripts/feature_actions/action-execution-feature.js",
-      "line": 941,
+      "line": 1045,
       "id": "action-execution",
       "domain": "action-execution",
-      "provides": [],
+      "provides": [
+        "action-execution",
+        "action-execution.classification",
+        "action-execution.mech-stat-selection",
+        "action-execution.actor-workflow",
+        "action-execution.canonical-routing"
+      ],
       "dependsOn": [],
-      "optionalDependsOn": []
+      "optionalDependsOn": [
+        "actions.registry",
+        "turn.actions"
+      ]
     },
     {
       "file": "scripts/feature_actions/actions-feature.js",
-      "line": 116,
-      "id": null,
-      "domain": null,
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "scripts/feature_actions/actions-feature.js",
-      "line": 1648,
+      "line": 1677,
       "id": "actions",
       "domain": "actions",
-      "provides": [],
+      "provides": [
+        "actions.registry",
+        "actions.catalog",
+        "actions.registration"
+      ],
+      "dependsOn": [],
+      "optionalDependsOn": []
+    },
+    {
+      "file": "scripts/feature_brace/brace-feature.js",
+      "line": 293,
+      "id": "brace",
+      "domain": "brace",
+      "provides": [
+        "brace",
+        "brace.reaction",
+        "brace.damage-resistance",
+        "brace.attack-difficulty",
+        "brace.turn-restriction"
+      ],
+      "dependsOn": [
+        "turn.reaction",
+        "native-adapter.flow-extension"
+      ],
+      "optionalDependsOn": []
+    },
+    {
+      "file": "scripts/feature_lifecycle/lifecycle-feature.js",
+      "line": 203,
+      "id": "lifecycle",
+      "domain": "lifecycle",
+      "provides": [
+        "lifecycle",
+        "lifecycle.state",
+        "lifecycle.registration",
+        "lifecycle.dispatch",
+        "lifecycle.semantic-events"
+      ],
       "dependsOn": [],
       "optionalDependsOn": []
     },
     {
       "file": "scripts/feature_movement/movement-feature.js",
-      "line": 172,
-      "id": null,
-      "domain": null,
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "scripts/feature_movement/movement-feature.js",
-      "line": 1292,
+      "line": 1272,
       "id": "movement",
       "domain": "movement",
-      "provides": [],
+      "provides": [
+        "movement",
+        "movement.tracking",
+        "movement.measurement",
+        "movement.token",
+        "movement.elevation",
+        "movement.notifications"
+      ],
+      "dependsOn": [
+        "turn.state"
+      ],
+      "optionalDependsOn": [
+        "turn.actions",
+        "ui.application.rendering"
+      ]
+    },
+    {
+      "file": "scripts/feature_semantic_execution_context/semantic-execution-context-feature.js",
+      "line": 101,
+      "id": "semantic-execution-context",
+      "domain": "semantic-execution-context",
+      "provides": [
+        "semantic-execution-context",
+        "semantic-execution-context.builder",
+        "semantic-execution-context.identity",
+        "semantic-execution-context.targets",
+        "semantic-execution-context.access"
+      ],
+      "dependsOn": [
+        "native-adapter"
+      ],
+      "optionalDependsOn": [
+        "system-bridge",
+        "actions.registry",
+        "turn.state"
+      ]
+    },
+    {
+      "file": "scripts/feature_status_orchestration/status-orchestration-feature.js",
+      "line": 476,
+      "id": "status-orchestration",
+      "domain": "status.orchestration",
+      "provides": [
+        "status.orchestration",
+        "status.timed",
+        "status.grapple",
+        "status.engaged.derived",
+        "status.danger-zone.derived",
+        "status.thermal-runaway"
+      ],
+      "dependsOn": [
+        "native-adapter.status",
+        "native-adapter.flow-extension",
+        "sensors.measurement"
+      ],
+      "optionalDependsOn": []
+    },
+    {
+      "file": "scripts/feature_system_bridge/system-bridge-feature.js",
+      "line": 167,
+      "id": "system-bridge",
+      "domain": "system-bridge",
+      "provides": [
+        "system-bridge",
+        "system-bridge.resolution",
+        "system-bridge.composition",
+        "system-bridge.runtime-descriptor",
+        "system-bridge.augmentation"
+      ],
+      "dependsOn": [],
+      "optionalDependsOn": [
+        "actions.registry"
+      ]
+    },
+    {
+      "file": "scripts/feature_targeting_spatial/targeting-spatial-feature.js",
+      "line": 217,
+      "id": "targeting-spatial",
+      "domain": "targeting-spatial",
+      "provides": [
+        "targeting-spatial",
+        "targeting-spatial.query",
+        "targeting-spatial.resolution",
+        "targeting-spatial.validation",
+        "targeting-spatial.execution-hooks",
+        "targeting-spatial.runtime-augmentation"
+      ],
       "dependsOn": [],
       "optionalDependsOn": []
     },
     {
       "file": "scripts/feature_turn/turn-feature.js",
-      "line": 120,
+      "line": 213,
       "id": "turn",
       "domain": "turn",
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
+      "provides": [
+        "turn.state",
+        "turn.lifecycle",
+        "turn.actions",
+        "turn.protocol",
+        "turn.reaction",
+        "turn.committed-actions",
+        "turn.combat-sync"
+      ],
+      "dependsOn": [
+        "actions.registry"
+      ],
+      "optionalDependsOn": [
+        "ui.application.rendering"
+      ]
     },
     {
       "file": "scripts/foundry-integration-feature.js",
-      "line": 126,
-      "id": null,
-      "domain": null,
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "scripts/foundry-integration-feature.js",
-      "line": 700,
+      "line": 1188,
       "id": "foundry-integration",
       "domain": "foundry.integration",
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
+      "provides": [
+        "foundry.integration",
+        "foundry.settings",
+        "foundry.scene-controls",
+        "foundry.socket",
+        "foundry.lock-on-authority"
+      ],
+      "dependsOn": [
+        "ui.application"
+      ],
+      "optionalDependsOn": [
+        "ui.application.lifecycle"
+      ]
     },
     {
       "file": "scripts/sensors-feature.js",
-      "line": 71,
-      "id": null,
-      "domain": null,
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "scripts/sensors-feature.js",
-      "line": 368,
+      "line": 396,
       "id": "sensors",
       "domain": "sensors",
-      "provides": [],
+      "provides": [
+        "sensors.contacts",
+        "sensors.refresh",
+        "sensors.measurement"
+      ],
       "dependsOn": [],
       "optionalDependsOn": []
     },
@@ -231,544 +1019,151 @@
       "line": 201,
       "id": "ui-sensors",
       "domain": "ui.sensors",
-      "provides": [],
-      "dependsOn": [],
+      "provides": [
+        "ui.sensors",
+        "ui.sensors.rendering",
+        "ui.sensors.layer",
+        "ui.sensors.visual-configuration"
+      ],
+      "dependsOn": [
+        "sensors.contacts"
+      ],
       "optionalDependsOn": []
     },
     {
       "file": "styles/ui_application/ui-application.js",
-      "line": 126,
-      "id": null,
-      "domain": null,
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "styles/ui_application/ui-application.js",
-      "line": 4679,
+      "line": 764,
       "id": "ui-application",
       "domain": "ui.application",
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "styles/ui_movement/ui-movement.js",
-      "line": 167,
-      "id": null,
-      "domain": null,
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
+      "provides": [
+        "ui.application",
+        "ui.application.lifecycle",
+        "ui.application.rendering",
+        "ui.application.token"
+      ],
+      "dependsOn": [
+        "actions.registry"
+      ],
+      "optionalDependsOn": [
+        "sensors.refresh"
+      ]
     },
     {
       "file": "styles/ui_movement/ui-movement.js",
       "line": 1635,
       "id": "ui-movement",
       "domain": "ui.movement",
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
+      "provides": [
+        "ui.movement",
+        "ui.movement.presentation",
+        "ui.movement.budget",
+        "ui.movement.ledger",
+        "ui.movement.segments",
+        "ui.movement.status"
+      ],
+      "dependsOn": [
+        "movement",
+        "movement.tracking",
+        "turn.state"
+      ],
+      "optionalDependsOn": [
+        "movement.measurement",
+        "movement.elevation",
+        "turn.actions",
+        "ui.application",
+        "ui.application.rendering"
+      ]
     },
     {
       "file": "styles/ui_turn/ui-turn.js",
-      "line": 129,
-      "id": null,
-      "domain": null,
-      "provides": [],
-      "dependsOn": [],
-      "optionalDependsOn": []
-    },
-    {
-      "file": "styles/ui_turn/ui-turn.js",
-      "line": 1332,
+      "line": 194,
       "id": "ui-turn",
       "domain": "ui.turn",
-      "provides": [],
+      "provides": [
+        "ui.turn",
+        "ui.turn.presentation",
+        "ui.turn.budget",
+        "ui.turn.protocol",
+        "ui.turn.reaction",
+        "ui.turn.overcharge",
+        "ui.turn.committed-actions"
+      ],
+      "dependsOn": [
+        "turn.state",
+        "turn.actions"
+      ],
+      "optionalDependsOn": [
+        "actions.registry",
+        "ui.application",
+        "ui.application.rendering"
+      ]
+    },
+    {
+      "file": "system_bridge/execution_transaction/execution-transaction-feature.js",
+      "line": 104,
+      "id": "execution-transaction",
+      "domain": "execution-transaction",
+      "provides": [
+        "execution-transaction",
+        "execution-transaction.run",
+        "execution-transaction.native",
+        "execution-transaction.semantic-parent",
+        "execution-transaction.hooks"
+      ],
+      "dependsOn": [
+        "semantic-execution-context"
+      ],
+      "optionalDependsOn": [
+        "targeting-spatial",
+        "lifecycle"
+      ]
+    },
+    {
+      "file": "system_bridge/native_adapter/native-adapter-feature.js",
+      "line": 95,
+      "id": "native-adapter",
+      "domain": "native-adapter",
+      "provides": [
+        "native-adapter",
+        "native-adapter.resolution",
+        "native-adapter.execution",
+        "native-adapter.rolls",
+        "native-adapter.resources",
+        "native-adapter.status",
+        "native-adapter.combat",
+        "native-adapter.flow-extension"
+      ],
       "dependsOn": [],
       "optionalDependsOn": []
     }
   ],
   "findings": [
     {
-      "severity": "error",
-      "code": "MISSING_JS_IMPORT",
-      "message": "Cannot resolve JavaScript import \"./frame-helm/dsl.js\".",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
-      "line": 98,
-      "details": {
-        "import": "./frame-helm/dsl.js"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "MISSING_JS_IMPORT",
-      "message": "Cannot resolve JavaScript import \"./feature-contract.js\".",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
-      "line": 115,
-      "details": {
-        "import": "./feature-contract.js"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "MISSING_NAMED_EXPORT",
-      "message": "Imported symbol \"*     frameHelmActionRegistry\" was not found as a static named export of \"dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js\".",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
-      "line": 1858,
-      "details": {
-        "importedName": "*     frameHelmActionRegistry",
-        "import": "./actions-feature.js",
-        "target": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "MISSING_NAMED_EXPORT",
-      "message": "Imported symbol \"*     initializeFrameHelmActionRegistry\r\n *\" was not found as a static named export of \"dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js\".",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
-      "line": 1858,
-      "details": {
-        "importedName": "*     initializeFrameHelmActionRegistry\r\n *",
-        "import": "./actions-feature.js",
-        "target": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "MISSING_JS_IMPORT",
-      "message": "Cannot resolve JavaScript import \"./feature-contract.js\".",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/sensors-feature.js",
-      "line": 70,
-      "details": {
-        "import": "./feature-contract.js"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "MISSING_JS_IMPORT",
-      "message": "Cannot resolve JavaScript import \"../styles/ui-sensors.js\".",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/sensors-feature.js",
-      "line": 74,
-      "details": {
-        "import": "../styles/ui-sensors.js"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "MISSING_NAMED_EXPORT",
-      "message": "Imported symbol \"*     frameHelmActionRegistry\" was not found as a static named export of \"scripts/feature_actions/actions-feature.js\".",
-      "file": "scripts/feature_actions/actions-feature.js",
-      "line": 1858,
-      "details": {
-        "importedName": "*     frameHelmActionRegistry",
-        "import": "./actions-feature.js",
-        "target": "scripts/feature_actions/actions-feature.js"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "MISSING_NAMED_EXPORT",
-      "message": "Imported symbol \"*     initializeFrameHelmActionRegistry\r\n *\" was not found as a static named export of \"scripts/feature_actions/actions-feature.js\".",
-      "file": "scripts/feature_actions/actions-feature.js",
-      "line": 1858,
-      "details": {
-        "importedName": "*     initializeFrameHelmActionRegistry\r\n *",
-        "import": "./actions-feature.js",
-        "target": "scripts/feature_actions/actions-feature.js"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "MISSING_JS_IMPORT",
-      "message": "Cannot resolve JavaScript import \"./feature-contract.js\".",
-      "file": "scripts/feature_movement/movement-feature.js",
-      "line": 171,
-      "details": {
-        "import": "./feature-contract.js"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "MISSING_JS_IMPORT",
-      "message": "Cannot resolve JavaScript import \"../scripts/feature-contract.js\".",
-      "file": "styles/ui_movement/ui-movement.js",
-      "line": 123,
-      "details": {
-        "import": "../scripts/feature-contract.js"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "MISSING_CSS_IMPORT",
-      "message": "Cannot resolve CSS import \"./ui-contract.css\".",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/styles/ui-registry.css",
-      "line": 289,
-      "details": {
-        "import": "./ui-contract.css"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "MISSING_CSS_IMPORT",
-      "message": "Cannot resolve CSS import \"./ui-sensors.css\".",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/styles/ui-registry.css",
-      "line": 303,
-      "details": {
-        "import": "./ui-sensors.css"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "MISSING_CSS_IMPORT",
-      "message": "Cannot resolve CSS import \"./ui-actions.css\".",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/styles/ui-registry.css",
-      "line": 322,
-      "details": {
-        "import": "./ui-actions.css"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "MISSING_CSS_IMPORT",
-      "message": "Cannot resolve CSS import \"./ui-turn.css\".",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/styles/ui-registry.css",
-      "line": 351,
-      "details": {
-        "import": "./ui-turn.css"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "MISSING_CSS_IMPORT",
-      "message": "Cannot resolve CSS import \"./ui-movement.css\".",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/styles/ui-registry.css",
-      "line": 393,
-      "details": {
-        "import": "./ui-movement.css"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "MISSING_CSS_IMPORT",
-      "message": "Cannot resolve CSS import \"./ui-application.css\".",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/styles/ui-registry.css",
-      "line": 418,
-      "details": {
-        "import": "./ui-application.css"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "MISSING_CSS_IMPORT",
-      "message": "Cannot resolve CSS import \"./ui-action-execution.css\".",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/styles/ui-registry.css",
-      "line": 427,
-      "details": {
-        "import": "./ui-action-execution.css"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "MISSING_CSS_IMPORT",
-      "message": "Cannot resolve CSS import \"./ui-telemetry.css\".",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/styles/ui-registry.css",
-      "line": 428,
-      "details": {
-        "import": "./ui-telemetry.css"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "MISSING_CSS_IMPORT",
-      "message": "Cannot resolve CSS import \"./ui-targeting.css\".",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/styles/ui-registry.css",
-      "line": 445,
-      "details": {
-        "import": "./ui-targeting.css"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "MISSING_CSS_IMPORT",
-      "message": "Cannot resolve CSS import \"./ui-tactical-overlay.css\".",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/styles/ui-registry.css",
-      "line": 446,
-      "details": {
-        "import": "./ui-tactical-overlay.css"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "MISSING_CSS_IMPORT",
-      "message": "Cannot resolve CSS import \"./ui-turn.css\".",
-      "file": "styles/ui-registry.css",
-      "line": 351,
-      "details": {
-        "import": "./ui-turn.css"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "MISSING_CSS_IMPORT",
-      "message": "Cannot resolve CSS import \"./ui-movement.css\".",
-      "file": "styles/ui-registry.css",
-      "line": 393,
-      "details": {
-        "import": "./ui-movement.css"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "DUPLICATE_FEATURE_ID",
-      "message": "Feature id \"actions\" is declared more than once.",
-      "file": "scripts/feature_actions/actions-feature.js",
-      "line": 1648,
-      "details": {
-        "firstDeclaration": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "DUPLICATE_FEATURE_ID",
-      "message": "Feature id \"movement\" is declared more than once.",
-      "file": "scripts/feature_movement/movement-feature.js",
-      "line": 1292,
-      "details": {
-        "firstDeclaration": "scripts/feature-contract.js"
-      }
-    },
-    {
-      "severity": "error",
-      "code": "DUPLICATE_FEATURE_ID",
-      "message": "Feature id \"sensors\" is declared more than once.",
-      "file": "scripts/sensors-feature.js",
-      "line": 368,
-      "details": {
-        "firstDeclaration": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/sensors-feature.js"
-      }
-    },
-    {
       "severity": "warning",
       "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
-      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
-      "line": 116,
-      "details": null
-    },
-    {
-      "severity": "warning",
-      "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
-      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/sensors-feature.js",
-      "line": 71,
-      "details": null
-    },
-    {
-      "severity": "warning",
-      "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
-      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
-      "file": "dev_scripts/repo-audit.mjs",
-      "line": 1060,
-      "details": null
-    },
-    {
-      "severity": "warning",
-      "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
-      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
-      "file": "dev_scripts/repo-audit.mjs",
-      "line": 1677,
-      "details": null
-    },
-    {
-      "severity": "warning",
-      "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
-      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
-      "file": "scripts/feature-contract.js",
-      "line": 436,
-      "details": null
-    },
-    {
-      "severity": "warning",
-      "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
-      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
-      "file": "scripts/feature_actions/action-execution-feature.js",
-      "line": 132,
-      "details": null
-    },
-    {
-      "severity": "warning",
-      "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
-      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
-      "file": "scripts/feature_actions/actions-feature.js",
-      "line": 116,
-      "details": null
-    },
-    {
-      "severity": "warning",
-      "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
-      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
-      "file": "scripts/feature_movement/movement-feature.js",
-      "line": 172,
-      "details": null
-    },
-    {
-      "severity": "warning",
-      "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
-      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
-      "file": "scripts/foundry-integration-feature.js",
-      "line": 126,
-      "details": null
-    },
-    {
-      "severity": "warning",
-      "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
-      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
-      "file": "scripts/sensors-feature.js",
-      "line": 71,
-      "details": null
-    },
-    {
-      "severity": "warning",
-      "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
-      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
+      "message": "A defineFrameConnFeature declaration was found, but its id could not be resolved statically.",
       "file": "styles/ui-registry.js",
       "line": 102,
       "details": null
     },
     {
       "severity": "warning",
-      "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
-      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
-      "file": "styles/ui_application/ui-application.js",
-      "line": 126,
-      "details": null
-    },
-    {
-      "severity": "warning",
-      "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
-      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
-      "file": "styles/ui_movement/ui-movement.js",
-      "line": 167,
-      "details": null
-    },
-    {
-      "severity": "warning",
-      "code": "FEATURE_ID_NOT_STATICALLY_RESOLVED",
-      "message": "A defineFrameHelmFeature declaration was found, but its id could not be resolved statically.",
-      "file": "styles/ui_turn/ui-turn.js",
-      "line": 129,
-      "details": null
-    },
-    {
-      "severity": "warning",
-      "code": "RUNTIME_FEATURE_NOT_IMPORTED_BY_REGISTRY",
-      "message": "Runtime feature appears to declare a Frame Helm feature but is not imported by scripts/feature-registry.js.",
-      "file": "scripts/feature_actions/action-execution-feature.js",
-      "line": null,
+      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
+      "message": "Repository file reference \"scripts/feature-registry.js / styles/ui-registry.js\" does not exist.",
+      "file": "dev_scripts/patch-corridor-planner.mjs",
+      "line": 346,
       "details": {
-        "expectedImport": "./action-execution-feature.js"
-      }
-    },
-    {
-      "severity": "warning",
-      "code": "RUNTIME_FEATURE_NOT_IMPORTED_BY_REGISTRY",
-      "message": "Runtime feature appears to declare a Frame Helm feature but is not imported by scripts/feature-registry.js.",
-      "file": "scripts/feature_actions/actions-feature.js",
-      "line": null,
-      "details": {
-        "expectedImport": "./actions-feature.js"
-      }
-    },
-    {
-      "severity": "warning",
-      "code": "RUNTIME_FEATURE_NOT_IMPORTED_BY_REGISTRY",
-      "message": "Runtime feature appears to declare a Frame Helm feature but is not imported by scripts/feature-registry.js.",
-      "file": "scripts/feature_movement/movement-feature.js",
-      "line": null,
-      "details": {
-        "expectedImport": "./movement-feature.js"
-      }
-    },
-    {
-      "severity": "warning",
-      "code": "RUNTIME_FEATURE_NOT_IMPORTED_BY_REGISTRY",
-      "message": "Runtime feature appears to declare a Frame Helm feature but is not imported by scripts/feature-registry.js.",
-      "file": "scripts/feature_turn/turn-feature.js",
-      "line": null,
-      "details": {
-        "expectedImport": "./turn-feature.js"
+        "referencedPath": "scripts/feature-registry.js / styles/ui-registry.js"
       }
     },
     {
       "severity": "warning",
       "code": "REFERENCED_REPOSITORY_FILE_MISSING",
-      "message": "Repository file reference \"scripts/lancer-frame-helm.js\" does not exist.",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
-      "line": 1836,
+      "message": "Repository file reference \"scripts/self-test.js\" does not exist.",
+      "file": "dev_scripts/patch-dsl-compiler.mjs",
+      "line": 756,
       "details": {
-        "referencedPath": "scripts/lancer-frame-helm.js"
-      }
-    },
-    {
-      "severity": "warning",
-      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
-      "message": "Repository file reference \"scripts/lancer-frame-helm.js\" does not exist.",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
-      "line": 1839,
-      "details": {
-        "referencedPath": "scripts/lancer-frame-helm.js"
-      }
-    },
-    {
-      "severity": "warning",
-      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
-      "message": "Repository file reference \"scripts/lancer-frame-helm.js\" does not exist.",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/sensors-feature.js",
-      "line": 459,
-      "details": {
-        "referencedPath": "scripts/lancer-frame-helm.js"
-      }
-    },
-    {
-      "severity": "warning",
-      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
-      "message": "Repository file reference \"scripts/lancer-frame-helm.js\" does not exist.",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/sensors-feature.js",
-      "line": 468,
-      "details": {
-        "referencedPath": "scripts/lancer-frame-helm.js"
-      }
-    },
-    {
-      "severity": "warning",
-      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
-      "message": "Repository file reference \"scripts/actions-feature.js\" does not exist.",
-      "file": "scripts/feature_actions/action-execution-feature.js",
-      "line": 1030,
-      "details": {
-        "referencedPath": "scripts/actions-feature.js"
-      }
-    },
-    {
-      "severity": "warning",
-      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
-      "message": "Repository file reference \"scripts/turn-feature.js\" does not exist.",
-      "file": "scripts/feature_actions/action-execution-feature.js",
-      "line": 1033,
-      "details": {
-        "referencedPath": "scripts/turn-feature.js"
-      }
-    },
-    {
-      "severity": "warning",
-      "code": "REFERENCED_REPOSITORY_FILE_MISSING",
-      "message": "Repository file reference \"styles/ui-application.js\" does not exist.",
-      "file": "scripts/feature_actions/action-execution-feature.js",
-      "line": 1036,
-      "details": {
-        "referencedPath": "styles/ui-application.js"
+        "referencedPath": "scripts/self-test.js"
       }
     },
     {
@@ -776,7 +1171,7 @@
       "code": "REFERENCED_REPOSITORY_FILE_MISSING",
       "message": "Repository file reference \"scripts/turn-feature.js\" does not exist.",
       "file": "scripts/feature_movement/movement-feature.js",
-      "line": 1393,
+      "line": 1373,
       "details": {
         "referencedPath": "scripts/turn-feature.js"
       }
@@ -786,7 +1181,7 @@
       "code": "REFERENCED_REPOSITORY_FILE_MISSING",
       "message": "Repository file reference \"styles/ui-movement.js\" does not exist.",
       "file": "scripts/feature_movement/movement-feature.js",
-      "line": 1395,
+      "line": 1375,
       "details": {
         "referencedPath": "styles/ui-movement.js"
       }
@@ -796,7 +1191,7 @@
       "code": "REFERENCED_REPOSITORY_FILE_MISSING",
       "message": "Repository file reference \"styles/ui-movement.css\" does not exist.",
       "file": "scripts/feature_movement/movement-feature.js",
-      "line": 1397,
+      "line": 1377,
       "details": {
         "referencedPath": "styles/ui-movement.css"
       }
@@ -806,7 +1201,7 @@
       "code": "REFERENCED_REPOSITORY_FILE_MISSING",
       "message": "Repository file reference \"styles/ui-turn.js\" does not exist.",
       "file": "scripts/feature_turn/turn-feature.js",
-      "line": 494,
+      "line": 530,
       "details": {
         "referencedPath": "styles/ui-turn.js"
       }
@@ -816,7 +1211,7 @@
       "code": "REFERENCED_REPOSITORY_FILE_MISSING",
       "message": "Repository file reference \"styles/ui-turn.css\" does not exist.",
       "file": "scripts/feature_turn/turn-feature.js",
-      "line": 497,
+      "line": 533,
       "details": {
         "referencedPath": "styles/ui-turn.css"
       }
@@ -826,7 +1221,7 @@
       "code": "REFERENCED_REPOSITORY_FILE_MISSING",
       "message": "Repository file reference \"styles/ui-application.js\" does not exist.",
       "file": "scripts/foundry-integration-feature.js",
-      "line": 820,
+      "line": 1340,
       "details": {
         "referencedPath": "styles/ui-application.js"
       }
@@ -836,7 +1231,7 @@
       "code": "REFERENCED_REPOSITORY_FILE_MISSING",
       "message": "Repository file reference \"styles/ui-application.css\" does not exist.",
       "file": "styles/ui_application/ui-application.js",
-      "line": 4790,
+      "line": 875,
       "details": {
         "referencedPath": "styles/ui-application.css"
       }
@@ -886,7 +1281,7 @@
       "code": "REFERENCED_REPOSITORY_FILE_MISSING",
       "message": "Repository file reference \"scripts/turn-feature.js\" does not exist.",
       "file": "styles/ui_turn/ui-turn.js",
-      "line": 1464,
+      "line": 326,
       "details": {
         "referencedPath": "scripts/turn-feature.js"
       }
@@ -896,7 +1291,7 @@
       "code": "REFERENCED_REPOSITORY_FILE_MISSING",
       "message": "Repository file reference \"styles/ui-turn.css\" does not exist.",
       "file": "styles/ui_turn/ui-turn.js",
-      "line": 1467,
+      "line": 329,
       "details": {
         "referencedPath": "styles/ui-turn.css"
       }
@@ -906,86 +1301,34 @@
       "code": "REFERENCED_REPOSITORY_FILE_MISSING",
       "message": "Repository file reference \"styles/ui-application.js\" does not exist.",
       "file": "styles/ui_turn/ui-turn.js",
-      "line": 1470,
+      "line": 332,
       "details": {
         "referencedPath": "styles/ui-application.js"
       }
     },
     {
-      "severity": "warning",
-      "code": "CIRCULAR_JS_IMPORT",
-      "message": "Circular JavaScript import dependency detected.",
-      "file": "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
+      "severity": "info",
+      "code": "DUPLICATE_FILE_BASENAME",
+      "message": "Multiple repository files share the basename \"filepatcher.json\".",
+      "file": null,
       "line": null,
       "details": {
-        "cycle": [
-          "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
-          "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js"
-        ]
-      }
-    },
-    {
-      "severity": "warning",
-      "code": "CIRCULAR_JS_IMPORT",
-      "message": "Circular JavaScript import dependency detected.",
-      "file": "scripts/feature_actions/actions-feature.js",
-      "line": null,
-      "details": {
-        "cycle": [
-          "scripts/feature_actions/actions-feature.js",
-          "scripts/feature_actions/actions-feature.js"
+        "files": [
+          "dev-scripts/filepatcher.json",
+          "dev_scripts/filepatcher.json"
         ]
       }
     },
     {
       "severity": "info",
       "code": "DUPLICATE_FILE_BASENAME",
-      "message": "Multiple repository files share the basename \"backup-manifest.json\".",
+      "message": "Multiple repository files share the basename \"turn-runtime-bindings.js\".",
       "file": null,
       "line": null,
       "details": {
         "files": [
-          "dev_scripts/backups/2026-07-18T02-46-48.532909Z-frame-helm-elevation-sensors-execution-hase-v1/backup-manifest.json",
-          "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/backup-manifest.json"
-        ]
-      }
-    },
-    {
-      "severity": "info",
-      "code": "DUPLICATE_FILE_BASENAME",
-      "message": "Multiple repository files share the basename \"actions-feature.js\".",
-      "file": null,
-      "line": null,
-      "details": {
-        "files": [
-          "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/actions-feature.js",
-          "scripts/feature_actions/actions-feature.js"
-        ]
-      }
-    },
-    {
-      "severity": "info",
-      "code": "DUPLICATE_FILE_BASENAME",
-      "message": "Multiple repository files share the basename \"sensors-feature.js\".",
-      "file": null,
-      "line": null,
-      "details": {
-        "files": [
-          "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/scripts/sensors-feature.js",
-          "scripts/sensors-feature.js"
-        ]
-      }
-    },
-    {
-      "severity": "info",
-      "code": "DUPLICATE_FILE_BASENAME",
-      "message": "Multiple repository files share the basename \"ui-registry.css\".",
-      "file": null,
-      "line": null,
-      "details": {
-        "files": [
-          "dev_scripts/backups/2026-08-09T00-50-22.238022Z-fix-frame-helm-audit-findings-2026-08-08/styles/ui-registry.css",
-          "styles/ui-registry.css"
+          "scripts/feature_turn/turn-runtime-bindings.js",
+          "styles/ui_turn/components/turn-runtime-bindings.js"
         ]
       }
     }

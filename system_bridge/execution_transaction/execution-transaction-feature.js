@@ -58,7 +58,7 @@
 
 import {
   defineFrameConnFeature
-} from "../scripts/feature-contract.js";
+} from "../../scripts/feature-contract.js";
 
 import * as executionTransactionRuntime from
   "./execution-transaction.js";
