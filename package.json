@@ -35,6 +35,10 @@
     "runtime-authority-audit:self-test": "node ./dev_scripts/runtime-authority-audit.mjs --self-test",
     "state-namespace-atlas": "node ./dev_scripts/state-namespace-atlas.mjs",
     "state-namespace-atlas:self-test": "node ./dev_scripts/state-namespace-atlas.mjs --self-test",
+    "decompose": "node ./dev_scripts/domain-decomposer.mjs",
+    "decompose:self-test": "node ./dev_scripts/domain-decomposer.mjs --self-test",
+    "decompose:apply": "node ./dev_scripts/domain-decomposer-executor.mjs",
+    "decompose:apply:self-test": "node ./dev_scripts/domain-decomposer-executor.mjs --self-test",
     "dependency-graph": "python ./dev_scripts/dependency_graph.py"
   }
 }
