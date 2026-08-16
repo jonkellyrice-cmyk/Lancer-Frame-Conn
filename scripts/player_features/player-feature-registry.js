@@ -78,7 +78,7 @@ import {
 
 import {
   frameConnSystemBridgeFeature
-} from "../feature_system_bridge/system-bridge-feature.js";
+} from "../system-bridge-feature.js";
 
 import {
   frameConnSemanticExecutionContextFeature
