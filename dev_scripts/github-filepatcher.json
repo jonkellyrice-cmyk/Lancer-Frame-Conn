@@ -1,9 +1,72 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after scaffolding the DM feature family and separate DM UI surface.",
+  "id": "scaffold-hardsuit-player-feature-and-ui",
+  "description": "Create inert documentation-first scaffolding for the Hardsuit dismounted-pilot combat feature family and its separate smaller helmet-HUD application surface.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 10,
+    "allowed_paths": [
+      "scripts/player_features/hardsuit/README.md",
+      "scripts/player_features/hardsuit/hardsuit-feature-package.js",
+      "scripts/player_features/hardsuit/feature_pilot_mech_occupancy/README.md",
+      "scripts/player_features/hardsuit/feature_pilot_combat/README.md",
+      "scripts/player_features/hardsuit/feature_pilot_actions/README.md",
+      "scripts/player_features/hardsuit/feature_pilot_equipment/README.md",
+      "styles/ui_hardsuit/README.md",
+      "styles/ui_hardsuit/ui-hardsuit-application.js",
+      "styles/ui_hardsuit/ui-hardsuit-application.css",
+      "styles/ui_hardsuit/components/README.md"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "create_file",
+      "path": "scripts/player_features/hardsuit/README.md",
+      "content": "# Frame Conn Hardsuit\n\nThis directory is reserved for the **dismounted pilot combat** sub-family of `player_features/`.\n\n## Fictional identity\n\n**Frame Conn** is the mech cockpit instrumentation and command interface.\n\n**Hardsuit** is the pilot's personal helmet HUD and tactical interface when they are physically outside the mech during mech combat.\n\nThat fiction should remain visible in the software architecture: Hardsuit is player-facing, but it is not merely another panel inside the mech cockpit. It should have its own smaller and simpler Foundry application window.\n\n## Future responsibility\n\nHardsuit will eventually coordinate:\n\n- pilot/mech occupancy and control handoff after Mount, Dismount, and Eject;\n- pilot combat statistics and telemetry;\n- the shared pilot/mech activation budget;\n- pilot-legal universal actions;\n- pilot-specific actions such as Fight, Jockey, and Reload;\n- pilot weapons and gear;\n- pilot Overwatch and reactions;\n- handoff back to Frame Conn when the pilot mounts a mech.\n\n## Package boundary\n\nHardsuit remains part of the broader **player feature package**. A future `hardsuit-feature-package.js` may aggregate its internal features for inclusion by `player-feature-registry.js`; it should not create another application-wide registry.\n\n## Current state\n\nScaffold only. Nothing in this directory is registered or executed yet.\n"
+    },
+    {
+      "type": "create_file",
+      "path": "scripts/player_features/hardsuit/hardsuit-feature-package.js",
+      "content": "/**\n * scripts/player_features/hardsuit/hardsuit-feature-package.js\n *\n * FRAME CONN HARDSUIT FEATURE PACKAGE -- FUTURE SCAFFOLD\n *\n * ROLE:\n *   This file may eventually aggregate the player-facing features\n *   that make up the Hardsuit pilot-combat experience.\n *\n * FUTURE COMPOSITION:\n *   - pilot/mech occupancy and control handoff;\n *   - pilot combat state and shared activation budget;\n *   - pilot-specific and pilot-legal actions;\n *   - pilot weapons/equipment discovery and execution;\n *   - Hardsuit UI feature registration.\n *\n * ARCHITECTURAL RULE:\n *   Hardsuit is a sub-package of player_features. It should eventually\n *   be consumed by player-feature-registry.js rather than creating a\n *   new application-wide FrameConnFeatureRegistry.\n *\n * CURRENT STATE:\n *   Documentation-only scaffold. Intentionally exports nothing and is\n *   not imported by player-feature-registry.js yet.\n */\n"
+    },
+    {
+      "type": "create_file",
+      "path": "scripts/player_features/hardsuit/feature_pilot_mech_occupancy/README.md",
+      "content": "# Hardsuit — Pilot/Mech Occupancy\n\nFuture responsibility: own the player-facing relationship between a pilot and the mech they are currently occupying or have exited.\n\nPlanned behavior includes:\n\n- determine whether the pilot is mounted, dismounted, or ejected;\n- coordinate the transition from Frame Conn to Hardsuit when the pilot leaves the cockpit;\n- place/show the pilot token when dismounting or ejecting;\n- remove/hide the pilot token when mounting;\n- preserve one coherent activation budget while control shifts between mech and pilot tokens;\n- represent occupied/unoccupied mech state only where native Foundry Lancer lacks a sufficient representation;\n- support future AI/NHP control handoff without conflating pilot absence with autonomous mech control.\n\nThis should be relationship state, not a decorative status icon.\n"
+    },
+    {
+      "type": "create_file",
+      "path": "scripts/player_features/hardsuit/feature_pilot_combat/README.md",
+      "content": "# Hardsuit — Pilot Combat State\n\nFuture responsibility: adapt the existing turn/targeting/rules architecture to a pilot who is on foot during tactical mech combat.\n\nPlanned support includes:\n\n- pilot HP, Evasion, E-Defense, Speed, Armor, Grit, and other native pilot statistics;\n- shared pilot/mech action economy for the same activation;\n- pilot movement and position after leaving the mech;\n- ground-combat rules such as Biological targeting restrictions, Grit-based mech-combat rolls, Heat-to-Energy conversion where applicable, and pilots not Engaging/obstructing mechs;\n- status/condition interactions appropriate to pilots;\n- switching the active player presentation between Frame Conn and Hardsuit as occupancy changes.\n\nNative Foundry Lancer pilot actor data should remain authoritative wherever available.\n"
+    },
+    {
+      "type": "create_file",
+      "path": "scripts/player_features/hardsuit/feature_pilot_actions/README.md",
+      "content": "# Hardsuit — Pilot Actions\n\nFuture responsibility: expose and execute the actions available to an unmounted pilot during mech combat.\n\nPlanned actions include:\n\n- pilot-legal universal actions such as Boost, Hide, Search, Activate, Skill Check, Disengage, Prepare, Mount, and Overwatch where the rules allow them;\n- **Fight** as the pilot's weapon-attack Full Action;\n- **Jockey** as a dedicated contested/relationship-driven Full Action with continuing Distract, Shred, and Damage choices;\n- **Reload** as a Quick Action for pilot weapons with Loading;\n- pilot reactions and Overwatch using pilot equipment, position, Range, and Threat.\n\nWhere semantics genuinely match an existing universal action, reuse the existing execution infrastructure. Pilot-specific rules should not be forced through mech-only execution paths.\n"
+    },
+    {
+      "type": "create_file",
+      "path": "scripts/player_features/hardsuit/feature_pilot_equipment/README.md",
+      "content": "# Hardsuit — Pilot Equipment\n\nFuture responsibility: discover and present the pilot's actual weapons, armor, gear, and other actor-owned equipment used during mech combat.\n\nThis area should eventually provide Hardsuit with:\n\n- pilot weapon choices for Fight and Overwatch;\n- Range, Threat, damage, tags, Loading state, and other native weapon properties;\n- pilot armor and gear effects;\n- Limited or consumable pilot resources where applicable;\n- equipment-specific actions or modifiers.\n\nPrefer native Foundry Lancer Actor/Item data and execution. Do not maintain parallel Hardsuit copies of weapon or gear state.\n"
+    },
+    {
+      "type": "create_file",
+      "path": "styles/ui_hardsuit/README.md",
+      "content": "# Frame Conn Hardsuit UI\n\nThis directory is reserved for a **separate, smaller player-facing Foundry application** representing the pilot's hardsuit/helmet HUD while they are outside their mech in tactical combat.\n\n## Relationship to Frame Conn\n\nFrame Conn and Hardsuit represent two different fictional interfaces:\n\n- **Frame Conn** — mech cockpit instrumentation and command surface.\n- **Hardsuit** — personal helmet HUD and on-foot tactical controls.\n\nHardsuit should therefore not be implemented as a tab inside the existing Frame Conn cockpit window. The runtime may switch which window is relevant based on pilot/mech occupancy while preserving the same underlying activation state.\n\n## Presentation goal\n\nHardsuit should be deliberately smaller and simpler than Frame Conn. It will eventually emphasize pilot telemetry, remaining action/movement budget, pilot weapons/gear, nearby tactical information, and a compact action surface.\n\n## Current state\n\nScaffold only. No application class, styles, imports, or runtime registration are active yet.\n"
+    },
+    {
+      "type": "create_file",
+      "path": "styles/ui_hardsuit/ui-hardsuit-application.js",
+      "content": "/**\n * styles/ui_hardsuit/ui-hardsuit-application.js\n *\n * FRAME CONN HARDSUIT APPLICATION -- FUTURE SCAFFOLD\n *\n * This will become the stable public composition surface for the\n * smaller pilot helmet-HUD Foundry application used while the pilot\n * is dismounted during tactical mech combat.\n *\n * Future responsibilities:\n *   - Foundry Application lifecycle for Hardsuit;\n *   - compact pilot telemetry and action-budget presentation;\n *   - pilot action/equipment presentation;\n *   - bind UI intent to Hardsuit/player feature APIs;\n *   - coordinate clean handoff back to Frame Conn when mounting.\n *\n * Current state: documentation-only scaffold. Nothing is exported,\n * registered, or instantiated yet.\n */\n"
+    },
+    {
+      "type": "create_file",
+      "path": "styles/ui_hardsuit/ui-hardsuit-application.css",
+      "content": "/*\n * styles/ui_hardsuit/ui-hardsuit-application.css\n *\n * Future stylesheet boundary for the compact Hardsuit helmet-HUD\n * application. Its visual language may remain related to Frame Conn,\n * but its layout should be smaller, simpler, and clearly read as a\n * personal tactical HUD rather than mech cockpit instrumentation.\n *\n * Scaffold only: intentionally contains no active selectors yet.\n */\n"
+    },
+    {
+      "type": "create_file",
+      "path": "styles/ui_hardsuit/components/README.md",
+      "content": "# Hardsuit UI Components\n\nFuture focused presentation modules for the pilot helmet-HUD belong here.\n\nLikely component families include:\n\n- compact pilot telemetry;\n- shared activation/action-budget display;\n- pilot weapon and gear selectors;\n- Fight/Jockey/Reload controls;\n- pilot-legal universal actions;\n- status/condition indicators;\n- occupancy/mount controls;\n- compact targeting and nearby-threat information.\n\nComponents should remain presentation-focused and delegate actual behavior to `scripts/player_features/hardsuit/` and shared services.\n"
+    }
+  ]
 }
