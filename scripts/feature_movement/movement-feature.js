@@ -953,16 +953,6 @@ function handleFrameConnMoveToken(
     ) {
       return result;
     }
-    notifyAutomaticMovementActions(
-      result
-    );
-    notifyFrameConnExcessMovement(
-      result,
-      {
-        tokenWasStopped:
-          false
-      }
-    );
     renderFrameConnMovementApplication(
       false
     );
@@ -1190,16 +1180,6 @@ function handleFrameConnUpdateTokenElevation(
     }
     ui.notifications.info(
       `Elevation changed by ${distance} space(s); Frame Conn recorded it as movement.`
-    );
-    notifyAutomaticMovementActions(
-      result
-    );
-    notifyFrameConnExcessMovement(
-      result,
-      {
-        tokenWasStopped:
-          true
-      }
     );
     renderFrameConnMovementApplication(
       false
