@@ -2,7 +2,7 @@
   "id": "lancer-frame-conn",
   "title": "Frame Conn",
   "description": "A tactical action-selection HUD for Lancer mech and NPC turns.",
-  "version": "0.1.8",
+  "version": "0.1.9",
 
   "authors": [
     {
