@@ -1,9 +1,49 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after correcting Engaged to use authoritative hostile token-footprint adjacency and movement-only recomputation.",
+  "id": "fix-engaged-update-position-timing",
+  "description": "Evaluate Engaged adjacency from the current updateToken destination data instead of the previous rendered canvas position so engagement applies and clears on the same move that changes adjacency.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 2,
+    "allowed_paths": [
+      "scripts/rules_features/status_conditions/engaged-status.js",
+      "scripts/rules_features/status_conditions/status-orchestration-feature.js"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/engaged-status.js",
+      "search": "  function occupiedGridOffsets(token) {\n    const tokenDocument = token?.document ?? null;\n    if (typeof tokenDocument?.getOccupiedGridSpaceOffsets !== \"function\") return [];\n\n    const offsets = tokenDocument.getOccupiedGridSpaceOffsets();\n    return Array.isArray(offsets) ? offsets : [];\n  }",
+      "replace": "  function occupiedGridOffsets(token, positionOverride = null) {\n    const tokenDocument = token?.document ?? null;\n    if (typeof tokenDocument?.getOccupiedGridSpaceOffsets !== \"function\") return [];\n\n    const offsets = tokenDocument.getOccupiedGridSpaceOffsets(\n      positionOverride && typeof positionOverride === \"object\"\n        ? positionOverride\n        : undefined\n    );\n    return Array.isArray(offsets) ? offsets : [];\n  }\n\n  function updateBelongsToToken(token, updatedTokenDocument) {\n    const tokenDocument = token?.document ?? null;\n    if (!tokenDocument || !updatedTokenDocument) return false;\n\n    return (\n      tokenDocument === updatedTokenDocument ||\n      (tokenDocument.uuid && tokenDocument.uuid === updatedTokenDocument.uuid) ||\n      (tokenDocument.id && tokenDocument.id === updatedTokenDocument.id)\n    );\n  }\n\n  function positionOverrideForToken(token, updatedTokenDocument, updateChange) {\n    if (!updateBelongsToToken(token, updatedTokenDocument)) return null;\n    if (!updateChange || typeof updateChange !== \"object\") return null;\n\n    const positionOverride = {};\n    for (const key of [\"x\", \"y\", \"elevation\", \"width\", \"height\"]) {\n      if (Object.prototype.hasOwnProperty.call(updateChange, key)) {\n        positionOverride[key] = updateChange[key];\n      }\n    }\n\n    return Object.keys(positionOverride).length > 0\n      ? positionOverride\n      : null;\n  }",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/engaged-status.js",
+      "search": "  function tokensAreAdjacent(leftToken, rightToken) {\n    const activeGrid = grid();\n    if (!activeGrid || typeof activeGrid.testAdjacency !== \"function\") return false;\n\n    const leftOffsets = occupiedGridOffsets(leftToken);\n    const rightOffsets = occupiedGridOffsets(rightToken);",
+      "replace": "  function tokensAreAdjacent(\n    leftToken,\n    rightToken,\n    { updatedTokenDocument = null, updateChange = null } = {}\n  ) {\n    const activeGrid = grid();\n    if (!activeGrid || typeof activeGrid.testAdjacency !== \"function\") return false;\n\n    const leftOffsets = occupiedGridOffsets(\n      leftToken,\n      positionOverrideForToken(leftToken, updatedTokenDocument, updateChange)\n    );\n    const rightOffsets = occupiedGridOffsets(\n      rightToken,\n      positionOverrideForToken(rightToken, updatedTokenDocument, updateChange)\n    );",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/engaged-status.js",
+      "search": "  async function syncEngaged() {\n    if (!isGameMaster()) return false;",
+      "replace": "  async function syncEngaged({\n    updatedTokenDocument = null,\n    updateChange = null\n  } = {}) {\n    if (!isGameMaster()) return false;",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/engaged-status.js",
+      "search": "        if (!hostilePair(left, right)) continue;\n        if (!tokensAreAdjacent(left, right)) continue;",
+      "replace": "        if (!hostilePair(left, right)) continue;\n        if (!tokensAreAdjacent(left, right, { updatedTokenDocument, updateChange })) continue;",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "async function handleTokenUpdate(_tokenDocument, change = {}) {\n  if (!engagedStatus.tokenUpdateChangesAdjacency(change)) return false;\n  hydrateStatusOrchestrationState();\n  await syncGrapples();\n  await engagedStatus.syncEngaged();\n  return true;\n}",
+      "replace": "async function handleTokenUpdate(tokenDocument, change = {}) {\n  if (!engagedStatus.tokenUpdateChangesAdjacency(change)) return false;\n  hydrateStatusOrchestrationState();\n  await syncGrapples();\n  await engagedStatus.syncEngaged({\n    updatedTokenDocument: tokenDocument,\n    updateChange: change\n  });\n  return true;\n}",
+      "expected_occurrences": 1
+    }
+  ]
 }
