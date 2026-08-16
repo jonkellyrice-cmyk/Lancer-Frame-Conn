@@ -507,36 +507,8 @@ export class FrameConnTurnState {
      Turn state -- Overcharge
      ========================================================== */
 
-  overchargeHeatFormula(
-    overchargeCount = 0
-  ) {
-    if (
-      overchargeCount <= 0
-    ) {
-      return "1";
-    }
-
-
-    if (
-      overchargeCount === 1
-    ) {
-      return "1d3";
-    }
-
-
-    if (
-      overchargeCount === 2
-    ) {
-      return "1d6";
-    }
-
-
-    return "1d6+4";
-  }
-
-
   useOvercharge({
-    previousOvercharges = 0
+    heatFormula = null
   } = {}) {
     this.assertTurnActive();
 
@@ -569,9 +541,13 @@ export class FrameConnTurnState {
 
 
     this.overcharge.heatFormula =
-      this.overchargeHeatFormula(
-        previousOvercharges
-      );
+      heatFormula === null ||
+      heatFormula === undefined ||
+      heatFormula === ""
+        ? null
+        : String(
+            heatFormula
+          );
 
 
     this.closeProtocolWindow();
@@ -584,7 +560,8 @@ export class FrameConnTurnState {
           this.overcharge
             .heatFormula,
 
-        previousOvercharges
+        progressionAuthority:
+          "native-lancer"
       }
     );
 
