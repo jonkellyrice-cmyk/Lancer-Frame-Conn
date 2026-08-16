@@ -1,49 +1,16 @@
 {
   "schema_version": 1,
-  "id": "split-shared-player-and-rules-feature-architecture",
-  "enabled": false,
-  "description": "Promote shared feature architecture to scripts, rename the player feature registry, and move status orchestration into the rules status/condition domain while automatically rewriting relative imports.",
+  "id": "promote-shared-integration-features",
+  "enabled": true,
+  "description": "Move Foundry integration and the system-bridge feature package out of player_features into shared scripts architecture while automatically rewriting relative imports.",
   "moves": [
     {
-      "from": "scripts/player_features/dsl.js",
-      "to": "scripts/dsl.js"
+      "from": "scripts/player_features/foundry-integration-feature.js",
+      "to": "scripts/foundry-integration-feature.js"
     },
     {
-      "from": "scripts/player_features/feature-contract.js",
-      "to": "scripts/feature-contract.js"
-    },
-    {
-      "from": "scripts/player_features/feature-registry-core.js",
-      "to": "scripts/feature-registry-core.js"
-    },
-    {
-      "from": "scripts/player_features/feature-registry.js",
-      "to": "scripts/player_features/player-feature-registry.js"
-    },
-    {
-      "from": "scripts/player_features/feature_status_orchestration/status-orchestration-feature.js",
-      "to": "scripts/rules_features/status_conditions/status-orchestration-feature.js"
+      "from": "scripts/player_features/feature_system_bridge",
+      "to": "scripts/feature_system_bridge"
     }
-  ],
-  "reference_rewrites": [
-    {
-      "path": "dev_scripts/repo-audit.mjs",
-      "from": "scripts/player_features/feature-contract.js",
-      "to": "scripts/feature-contract.js",
-      "expected_occurrences": 1
-    },
-    {
-      "path": "dev_scripts/repo-audit.mjs",
-      "from": "scripts/player_features/feature-registry.js",
-      "to": "scripts/player_features/player-feature-registry.js",
-      "expected_occurrences": 4
-    },
-    {
-      "path": "dev_scripts/repo-audit.mjs",
-      "from": "\"player_features\",\n      \"feature-registry.js\"",
-      "to": "\"player_features\",\n      \"player-feature-registry.js\"",
-      "expected_occurrences": 1
-    }
-  ],
-  "last_applied_at": "2026-08-16T18:33:35.563Z"
+  ]
 }
