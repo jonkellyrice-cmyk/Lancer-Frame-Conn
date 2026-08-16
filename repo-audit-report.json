@@ -2,12 +2,12 @@
   "audit": {
     "name": "Frame Conn Repository Audit",
     "scriptVersion": "1.1.0",
-    "generatedAt": "2026-08-16T17:58:09.844Z",
+    "generatedAt": "2026-08-16T17:59:08.397Z",
     "repositoryRoot": "/home/runner/work/Lancer-Frame-Conn/Lancer-Frame-Conn",
     "result": "warning"
   },
   "summary": {
-    "filesScanned": 136,
+    "filesScanned": 137,
     "javascriptFiles": 118,
     "cssFiles": 9,
     "featureDeclarations": 19,
@@ -142,7 +142,7 @@
   },
   "dependencyFlow": {
     "totals": {
-      "filesScanned": 136,
+      "filesScanned": 137,
       "javascriptFiles": 118,
       "streamCount": 18,
       "majorRiverCount": 2,
