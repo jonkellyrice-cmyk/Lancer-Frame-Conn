@@ -50,7 +50,10 @@ function defaultManualStats() {
       0,
 
     repairsMax:
-      0
+      0,
+
+    meltdownTimer:
+      null
   };
 }
 
@@ -262,6 +265,15 @@ function getManualStats(
             fallback.repairsMax
           )
         : fallback.repairsMax,
+
+    meltdownTimer:
+      system.meltdown_timer === null ||
+      system.meltdown_timer === undefined
+        ? null
+        : finiteOr(
+            system.meltdown_timer,
+            null
+          ),
 
     speed:
       finiteOr(
@@ -518,7 +530,26 @@ function renderMechStatsBar(
         <small>${foundry.utils.escapeHTML(telemetryLabel)}</small>
       </header>
 
-      <div class="frame-conn-mech-stats-grid">
+      <div class="frame-conn-mech-stats-grid${stats.meltdownTimer !== null ? " has-reactor-meltdown" : ""}">
+        ${
+          stats.meltdownTimer !== null
+            ? `
+              <div class="frame-conn-stat-cell frame-conn-stat-single frame-conn-stat-meltdown" title="Reactor meltdown: turns until detonation">
+                <span class="frame-conn-stat-label">RCTR.MELT</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  inputmode="numeric"
+                  value="${stats.meltdownTimer}"
+                  aria-label="Reactor meltdown timer"
+                  readonly
+                >
+              </div>
+            `
+            : ""
+        }
+
         ${renderPairedStat({
           label:
             "HP",

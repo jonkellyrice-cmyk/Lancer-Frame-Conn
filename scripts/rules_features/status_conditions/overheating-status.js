@@ -1,7 +1,7 @@
 /**
  * @file scripts/rules_features/status_conditions/overheating-status.js
  * @module overheating-status
- * @responsibility Apply the mechanical status consequences of the native Foundry Lancer OverheatFlow result without re-rolling or replacing the native overheating check.
+ * @responsibility Apply mechanical consequences of the already-resolved native Foundry Lancer OverheatFlow without replacing its Stress, Heat, roll, or chat authority.
  */
 
 const OVERHEAT_FLOW = "OverheatFlow";
@@ -10,9 +10,17 @@ const CONSEQUENCE_STEP = "frameConnApplyNativeOverheatStatusConsequences";
 export function createOverheatingStatusController({
   applyStatus,
   applyUntilEndOfNextTurn,
-  installFlowStepBefore
+  installFlowStepBefore,
+  scheduleReactorMeltdown,
+  markReactorEngineeringCheckPending
 } = {}) {
-  for (const [name, value] of Object.entries({ applyStatus, applyUntilEndOfNextTurn, installFlowStepBefore })) {
+  for (const [name, value] of Object.entries({
+    applyStatus,
+    applyUntilEndOfNextTurn,
+    installFlowStepBefore,
+    scheduleReactorMeltdown,
+    markReactorEngineeringCheckPending
+  })) {
     if (typeof value !== "function") {
       throw new TypeError(`Frame Conn Overheating dependency ${name} must be a function.`);
     }
@@ -50,24 +58,32 @@ export function createOverheatingStatusController({
     const isNpc = typeof actor.is_npc === "function" ? actor.is_npc() : actor.type === "npc";
     if (!isMech && !isNpc) return true;
 
-    // Native Lancer treats 1-Stress NPC overheating as Destabilized Power Plant.
-    // The Flow prints that result but does not persist Exposed itself.
+    // Native Lancer's one-Stress NPC branch prints Destabilized Power Plant
+    // without rolling and without persisting Exposed.
     if (isNpc && Number(actor?.system?.stress?.max) === 1 && !data?.result?.roll) {
       await applyStatus(actor, "exposed");
       return true;
     }
 
     const remainingStress = Number(data?.remStress);
-    if (!Number.isFinite(remainingStress) || remainingStress <= 0) return true;
+
+    // Reaching zero Stress is a reactor meltdown at the end of the next turn.
+    if (remainingStress === 0) {
+      await scheduleReactorMeltdown(actor, 1, { reason: "zero-stress" });
+      return true;
+    }
 
     const roll = data?.result?.roll ?? null;
     const result = Number(roll?.total);
     if (!Number.isFinite(result)) return true;
 
-    // Multiple 1s are Irreversible Meltdown and override the ordinary roll-1 result.
-    if (result === 1 && nativeOverheatOneCount(roll) > 1) return true;
+    // Multiple 1s are Irreversible Meltdown: end of next turn.
+    if (result === 1 && nativeOverheatOneCount(roll) > 1) {
+      await scheduleReactorMeltdown(actor, 1, { reason: "irreversible-meltdown" });
+      return true;
+    }
 
-    // Emergency Shunt: Impaired until the end of the character's next turn.
+    // Emergency Shunt.
     if (result >= 5) {
       await applyUntilEndOfNextTurn(actor, ["impaired"], {
         sourceActionId: "native-overheat-emergency-shunt"
@@ -75,22 +91,25 @@ export function createOverheatingStatusController({
       return true;
     }
 
-    // Destabilized Power Plant: Exposed until cleared.
+    // Destabilized Power Plant.
     if (result >= 2) {
       await applyStatus(actor, "exposed");
       return true;
     }
 
-    // Meltdown result with 3+ Stress remaining: Exposed.
-    if (result === 1 && remainingStress >= 3) {
+    if (result !== 1) return true;
+
+    // Meltdown table result varies with remaining Stress.
+    if (remainingStress >= 3) {
       await applyStatus(actor, "exposed");
-      return true;
+    } else if (remainingStress === 2) {
+      // Native Foundry supplies the Engineering button. The reactor-meltdown
+      // controller observes the resulting native StatRollFlow.
+      await markReactorEngineeringCheckPending(actor);
+    } else if (remainingStress === 1) {
+      await scheduleReactorMeltdown(actor, 1, { reason: "one-stress-meltdown" });
     }
 
-    // At 2 Stress remaining, native Foundry Lancer inserts the Engineering
-    // check button into the Overheat card. Its success/failure must resolve
-    // before any further consequence can be known. At 1 Stress, the result is
-    // a reactor meltdown rather than a status.
     return true;
   }
 

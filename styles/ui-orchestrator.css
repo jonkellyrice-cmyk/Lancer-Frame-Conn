@@ -614,6 +614,18 @@
   min-width: 0;
   overflow-x: auto;
 }
+.frame-conn-mech-stats-grid.has-reactor-meltdown {
+  grid-template-columns:
+    minmax(96px, 1fr)
+    minmax(108px, 1.3fr)
+    minmax(108px, 1.3fr)
+    minmax(72px, 0.75fr)
+    minmax(82px, 0.85fr)
+    minmax(72px, 0.75fr)
+    minmax(108px, 1.3fr)
+    minmax(108px, 1.3fr)
+    minmax(108px, 1.3fr);
+}
 .frame-conn-stat-label {
   font-size: 0.62rem;
   letter-spacing: 0.07em;
@@ -657,6 +669,40 @@
 .frame-conn-stat-cell:nth-child(7)
 .frame-conn-stat-label {
   color: #d8b977;
+}
+.frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-cell:nth-child(2),
+.frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-cell:nth-child(5),
+.frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-cell:nth-child(7) {
+  background: transparent;
+}
+.frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-cell:nth-child(3),
+.frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-cell:nth-child(6),
+.frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-cell:nth-child(8) {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 184, 74, 0.055),
+      transparent
+    );
+}
+.frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-cell:nth-child(3) .frame-conn-stat-label,
+.frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-cell:nth-child(6) .frame-conn-stat-label,
+.frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-cell:nth-child(8) .frame-conn-stat-label {
+  color: #d8b977;
+}
+.frame-conn-stat-meltdown {
+  background:
+    linear-gradient(180deg, rgba(255, 68, 68, 0.16), rgba(255, 68, 68, 0.035));
+  box-shadow: inset 3px 0 0 #ff5757;
+}
+.frame-conn-stat-meltdown .frame-conn-stat-label {
+  color: #ff8b78;
+  text-shadow: 0 0 7px rgba(255, 87, 87, 0.55);
+}
+.frame-conn-stat-meltdown input[readonly] {
+  border-color: rgba(255, 87, 87, 0.55);
+  color: #ffb0a1;
+  box-shadow: inset 2px 0 0 rgba(255, 87, 87, 0.45);
 }
 /* ============================================================
    Current feature implementation -- Live telemetry states

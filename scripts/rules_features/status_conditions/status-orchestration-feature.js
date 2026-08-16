@@ -10,6 +10,7 @@ import { defineFrameConnFeature } from "../../feature-contract.js";
 import { createEngagedStatusController } from "./engaged-status.js";
 import { createDangerZoneStatusController } from "./danger-zone-status.js";
 import { createOverheatingStatusController } from "./overheating-status.js";
+import { createReactorMeltdownStatusController } from "./reactor-meltdown-status.js";
 
 const MODULE_ID = "lancer-frame-conn";
 const TIMED_FLAG = "timed-statuses";
@@ -264,15 +265,27 @@ const dangerZoneStatus = createDangerZoneStatusController({
   actorUuid
 });
 
+const installStatusOrchestrationFlowStepBefore = options => {
+  if (typeof runtime.installNativeFlowStepBefore !== "function") {
+    throw new Error("Frame Conn Status Orchestration native Flow extension is not configured.");
+  }
+  return runtime.installNativeFlowStepBefore(options);
+};
+
+const reactorMeltdownStatus = createReactorMeltdownStatusController({
+  applyStatus: applyNativeStatus,
+  actorUuid,
+  actorFromUuid,
+  turnKey,
+  installFlowStepBefore: installStatusOrchestrationFlowStepBefore
+});
+
 const overheatingStatus = createOverheatingStatusController({
   applyStatus: applyNativeStatus,
   applyUntilEndOfNextTurn,
-  installFlowStepBefore: options => {
-    if (typeof runtime.installNativeFlowStepBefore !== "function") {
-      throw new Error("Frame Conn Status Orchestration native Flow extension is not configured.");
-    }
-    return runtime.installNativeFlowStepBefore(options);
-  }
+  installFlowStepBefore: installStatusOrchestrationFlowStepBefore,
+  scheduleReactorMeltdown: reactorMeltdownStatus.schedule,
+  markReactorEngineeringCheckPending: reactorMeltdownStatus.markEngineeringCheckPending
 });
 
 async function syncGrapples() {
@@ -331,6 +344,7 @@ function hydrateStatusOrchestrationState() {
 async function handleCombatUpdate(combat) {
   hydrateStatusOrchestrationState();
   engagedStatus.syncDisengage(combat);
+  await reactorMeltdownStatus.syncCombat(combat);
   await syncTimedStatuses(combat);
   await syncGrapples();
   await dangerZoneStatus.syncAll();
@@ -346,7 +360,10 @@ async function handleTokenUpdate(tokenDocument, change = {}) {
   });
   return true;
 }
-async function handleActorUpdate(actor) { return dangerZoneStatus.syncActor(actor); }
+async function handleActorUpdate(actor) {
+  await reactorMeltdownStatus.reconcileActor(actor);
+  return dangerZoneStatus.syncActor(actor);
+}
 async function handleCombatDelete(combat) {
   for (const record of [...timedStatuses.values()]) if (!record.combatId || record.combatId === combat?.id) await clearTimedRecord(record);
   for (const record of [...grapples.values()]) await clearGrapple(record);
@@ -357,14 +374,14 @@ function diagnostics() { return Object.freeze({ runtimeBindings: runtimeBindings
 export const frameConnStatusOrchestrationFeature = defineFrameConnFeature({
   id: "status-orchestration",
   domain: "status.orchestration",
-  provides: ["status.orchestration", "status.timed", "status.grapple", "status.engaged.derived", "status.danger-zone.derived", "status.overheat-consequences"],
+  provides: ["status.orchestration", "status.timed", "status.grapple", "status.engaged.derived", "status.danger-zone.derived", "status.overheat-consequences", "status.reactor-meltdown-countdown"],
   dependsOn: ["native-adapter.status", "native-adapter.flow-extension", "sensors.measurement"],
   optionalDependsOn: [],
   state: {},
-  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, syncDangerZone: dangerZoneStatus.syncActor, syncDangerZones: dangerZoneStatus.syncAll, installOverheatingConsequences: overheatingStatus.install },
-  queries: { diagnostics, runtimeBindings, isDisengaged: engagedStatus.isDisengaged, getGrapplesForActor, getGrappleBetween, hydrateStatusOrchestrationState, dangerZoneThreshold: dangerZoneStatus.threshold },
-  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, updateActor: handleActorUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { overheatingStatus.install(); hydrateStatusOrchestrationState(); await syncGrapples(); await engagedStatus.syncEngaged(); return dangerZoneStatus.syncAll(); } },
+  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, syncDangerZone: dangerZoneStatus.syncActor, syncDangerZones: dangerZoneStatus.syncAll, installOverheatingConsequences: overheatingStatus.install, installReactorMeltdownEngineeringResolution: reactorMeltdownStatus.installEngineeringResolution, syncReactorMeltdownCountdown: reactorMeltdownStatus.syncCombat },
+  queries: { diagnostics, runtimeBindings, isDisengaged: engagedStatus.isDisengaged, getGrapplesForActor, getGrappleBetween, hydrateStatusOrchestrationState, dangerZoneThreshold: dangerZoneStatus.threshold, reactorMeltdownTimer: reactorMeltdownStatus.timer },
+  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, updateActor: handleActorUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { overheatingStatus.install(); reactorMeltdownStatus.installEngineeringResolution(); reactorMeltdownStatus.initializeCombat(); hydrateStatusOrchestrationState(); await syncGrapples(); await engagedStatus.syncEngaged(); return dangerZoneStatus.syncAll(); } },
   lifecycle: {},
-  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, isDisengaged: engagedStatus.isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, dangerZoneThreshold: dangerZoneStatus.threshold, syncDangerZone: dangerZoneStatus.syncActor, syncDangerZones: dangerZoneStatus.syncAll, installOverheatingConsequences: overheatingStatus.install, diagnostics, runtimeBindings },
+  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, isDisengaged: engagedStatus.isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, dangerZoneThreshold: dangerZoneStatus.threshold, syncDangerZone: dangerZoneStatus.syncActor, syncDangerZones: dangerZoneStatus.syncAll, installOverheatingConsequences: overheatingStatus.install, installReactorMeltdownEngineeringResolution: reactorMeltdownStatus.installEngineeringResolution, reactorMeltdownTimer: reactorMeltdownStatus.timer, scheduleReactorMeltdown: reactorMeltdownStatus.schedule, clearReactorMeltdown: reactorMeltdownStatus.clearCountdown, syncReactorMeltdownCountdown: reactorMeltdownStatus.syncCombat, diagnostics, runtimeBindings },
   metadata: { label: "Status Orchestration", nativeStatusAuthority: "native-adapter.status", coverPolicy: "Cover remains attacker-relative and is not represented as one global persistent status." }
 });
