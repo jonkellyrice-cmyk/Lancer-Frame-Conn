@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "id": "consolidate-development-tool-directories",
-  "enabled": true,
+  "enabled": false,
   "description": "Consolidate the hyphenated dev-scripts directory into dev_scripts while preserving distinct local and GitHub FilePatcher contracts and rewriting all non-workflow operational path references.",
   "moves": [
     {
@@ -60,5 +60,6 @@
       "to": "The separation between the local and GitHub executors is intentional even though both now live in the same development-tool directory:",
       "expected_occurrences": 1
     }
-  ]
+  ],
+  "last_applied_at": "2026-08-16T18:05:57.060Z"
 }

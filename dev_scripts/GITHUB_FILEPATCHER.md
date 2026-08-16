@@ -1,10 +1,10 @@
 # GitHub FilePatcher
 
-`dev-scripts/github-filepatcher.mjs` is a small deterministic repository mutation tool designed for changes authored through GitHub rather than an interactive local checkout.
+`dev_scripts/github-filepatcher.mjs` is a small deterministic repository mutation tool designed for changes authored through GitHub rather than an interactive local checkout.
 
-It exists because large direct source-file writes through API tooling can be fragile, difficult to review, or rejected by intermediary safety systems. Instead of asking a remote agent to rewrite arbitrary repository files directly, the agent writes a compact declarative patch to `dev-scripts/filepatcher.json`. GitHub Actions then checks out the repository, dry-runs the patch, applies it locally, validates the resulting diff, and commits the verified source change.
+It exists because large direct source-file writes through API tooling can be fragile, difficult to review, or rejected by intermediary safety systems. Instead of asking a remote agent to rewrite arbitrary repository files directly, the agent writes a compact declarative patch to `dev_scripts/github-filepatcher.json`. GitHub Actions then checks out the repository, dry-runs the patch, applies it locally, validates the resulting diff, and commits the verified source change.
 
-The separation is intentional:
+The separation between the local and GitHub executors is intentional even though both now live in the same development-tool directory:
 
 ```text
 model proposes
@@ -22,24 +22,19 @@ Git records
 
 ## Relationship to the existing Python FilePatcher
 
-Frame Conn already has the larger local FilePatcher under `dev_scripts/`:
+Frame Conn keeps both FilePatcher executors under `dev_scripts/`:
 
 ```bash
 npm run patch
-```
-
-That tool is unchanged. The GitHub-native patcher lives separately under the hyphenated `dev-scripts/` directory:
-
-```bash
 npm run github:patch
 ```
 
-The Python tool is the richer local authoring/validation system. The GitHub FilePatcher is the compact remote-execution bridge used when only the JSON patch specification should be written through the GitHub API and the actual source mutation should happen inside GitHub Actions.
+The Python tool remains the richer local authoring/validation system and uses `dev_scripts/filepatcher.json`. The GitHub FilePatcher remains the compact remote-execution bridge and uses the distinct `dev_scripts/github-filepatcher.json` contract so the two execution modes cannot overwrite one another.
 
 ## Components
 
 ```text
-dev-scripts/
+dev_scripts/
   github-filepatcher.mjs   deterministic patch executor
   filepatcher.json         authoritative GitHub patch specification
   README.md                this document
@@ -217,7 +212,7 @@ The workflow must live at:
 It triggers on pushes to `main` that change:
 
 ```text
-dev-scripts/filepatcher.json
+dev_scripts/github-filepatcher.json
 ```
 
 Execution order:

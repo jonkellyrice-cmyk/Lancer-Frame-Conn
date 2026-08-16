@@ -5,7 +5,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 
 const ROOT = process.cwd();
-const PATCH_FILE = path.join(ROOT, "dev-scripts", "filepatcher.json");
+const PATCH_FILE = path.join(ROOT, "dev_scripts", "github-filepatcher.json");
 const DEFAULT_MAX_FILES_CHANGED = 1;
 const DEFAULT_PROTECTED_PATHS = [".git", ".github/workflows", "node_modules"];
 const DRY_RUN = new Set(process.argv.slice(2)).has("--dry-run");
