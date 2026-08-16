@@ -1,17 +1,12 @@
 {
   "schema_version": 1,
-  "id": "promote-shared-integration-features",
-  "enabled": false,
-  "description": "Move Foundry integration and the system-bridge feature package out of player_features into shared scripts architecture while automatically rewriting relative imports.",
+  "id": "promote-system-bridge-feature-to-scripts-root",
+  "enabled": true,
+  "description": "Move the shared system-bridge feature composition file out of its now-redundant one-file folder and into the scripts application architecture root, rewriting imports automatically.",
   "moves": [
     {
-      "from": "scripts/player_features/foundry-integration-feature.js",
-      "to": "scripts/foundry-integration-feature.js"
-    },
-    {
-      "from": "scripts/player_features/feature_system_bridge",
-      "to": "scripts/feature_system_bridge"
+      "from": "scripts/feature_system_bridge/system-bridge-feature.js",
+      "to": "scripts/system-bridge-feature.js"
     }
-  ],
-  "last_applied_at": "2026-08-16T18:40:18.578Z"
+  ]
 }
