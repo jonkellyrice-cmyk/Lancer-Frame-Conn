@@ -834,3 +834,83 @@
       68px;
   }
 }
+
+/* ============================================================
+   Current feature implementation -- Critical telemetry pulses
+   ============================================================ */
+@keyframes frame-conn-meltdown-palette-pulse {
+  0%,
+  100% {
+    filter: none;
+  }
+  50% {
+    filter:
+      sepia(0.72)
+      saturate(2.4)
+      hue-rotate(315deg)
+      contrast(1.04)
+      drop-shadow(0 0 10px rgba(255, 48, 48, 0.28));
+  }
+}
+.frame-conn-shell.frame-conn-meltdown-warning {
+  animation:
+    frame-conn-meltdown-palette-pulse
+    5.5s
+    ease-in-out
+    infinite;
+}
+@keyframes frame-conn-heat-danger-zone-pulse {
+  0%,
+  100% {
+    background:
+      linear-gradient(180deg, rgba(255, 184, 74, 0.055), transparent);
+    box-shadow: none;
+  }
+  50% {
+    background:
+      linear-gradient(180deg, rgba(255, 132, 24, 0.24), rgba(255, 132, 24, 0.04));
+    box-shadow:
+      inset 0 0 18px rgba(255, 132, 24, 0.16),
+      0 0 9px rgba(255, 132, 24, 0.14);
+  }
+}
+@keyframes frame-conn-heat-exposed-pulse {
+  0%,
+  100% {
+    background:
+      linear-gradient(180deg, rgba(255, 184, 74, 0.055), transparent);
+    box-shadow: none;
+  }
+  50% {
+    background:
+      linear-gradient(180deg, rgba(224, 48, 48, 0.28), rgba(224, 48, 48, 0.045));
+    box-shadow:
+      inset 0 0 20px rgba(224, 48, 48, 0.18),
+      0 0 10px rgba(224, 48, 48, 0.15);
+  }
+}
+.frame-conn-stat-cell.frame-conn-heat-danger-zone {
+  animation:
+    frame-conn-heat-danger-zone-pulse
+    4.5s
+    ease-in-out
+    infinite;
+}
+.frame-conn-stat-cell.frame-conn-heat-exposed {
+  animation:
+    frame-conn-heat-exposed-pulse
+    4.5s
+    ease-in-out
+    infinite;
+}
+.frame-conn-stat-cell.frame-conn-heat-danger-zone .frame-conn-stat-label,
+.frame-conn-stat-cell.frame-conn-heat-exposed .frame-conn-stat-label {
+  color: #e7bd70;
+}
+@media (prefers-reduced-motion: reduce) {
+  .frame-conn-shell.frame-conn-meltdown-warning,
+  .frame-conn-stat-cell.frame-conn-heat-danger-zone,
+  .frame-conn-stat-cell.frame-conn-heat-exposed {
+    animation: none;
+  }
+}

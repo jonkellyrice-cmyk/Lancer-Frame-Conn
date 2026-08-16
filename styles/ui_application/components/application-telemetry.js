@@ -53,7 +53,16 @@ function defaultManualStats() {
       0,
 
     meltdownTimer:
-      null
+      null,
+
+    meltdownImminent:
+      false,
+
+    dangerZoneActive:
+      false,
+
+    exposedActive:
+      false
   };
 }
 
@@ -288,6 +297,21 @@ function getManualStats(
       actor.type ??
       null,
 
+    meltdownImminent:
+      system.meltdown_timer !== null &&
+      system.meltdown_timer !== undefined &&
+      system.meltdown_timer !== "",
+
+    dangerZoneActive:
+      Boolean(
+        system.statuses?.dangerzone
+      ),
+
+    exposedActive:
+      Boolean(
+        system.statuses?.exposed
+      ),
+
     repairsAvailable
   };
 }
@@ -443,10 +467,16 @@ function renderPairedStat({
   currentName,
   maximumName,
   currentValue,
-  maximumValue
+  maximumValue,
+  stateClass = ""
 }) {
+  const normalizedStateClass =
+    typeof stateClass === "string"
+      ? stateClass.trim()
+      : "";
+
   return `
-    <div class="frame-conn-stat-cell frame-conn-stat-paired">
+    <div class="frame-conn-stat-cell frame-conn-stat-paired${normalizedStateClass ? ` ${foundry.utils.escapeHTML(normalizedStateClass)}` : ""}">
       <span class="frame-conn-stat-label">
         ${foundry.utils.escapeHTML(label)}
       </span>
@@ -581,7 +611,14 @@ function renderMechStatsBar(
             stats.heatCurrent,
 
           maximumValue:
-            stats.heatMax
+            stats.heatMax,
+
+          stateClass:
+            stats.exposedActive
+              ? "frame-conn-heat-exposed"
+              : stats.dangerZoneActive
+                ? "frame-conn-heat-danger-zone"
+                : ""
         })}
 
         ${renderSingleStat({
