@@ -2,7 +2,7 @@
   "schema_version": 2,
   "id": "native-overcharge-execution-convergence",
   "description": "Route Frame Conn Overcharge activation through native Lancer before granting the turn-scale Quick Action.",
-  "planning_goal": "Preserve the current Frame Conn Overcharge UI and once-per-turn action-economy rules. When the player selects Overcharge directly or chooses to fund a Quick Action with Overcharge, resolve the controlled mech through the existing application boundary, capture the native actor's current Overcharge roll formula for presentation, invoke the existing special.overcharge execution route so actor.beginOverchargeFlow() owns Heat and persistent progression, and only after native success mark Frame Conn Overcharge used and grant its Quick Action. Do not tell the player to apply Heat manually. Existing non-Overcharge Quick Action and Boost behavior must remain unchanged.",
+  "planning_goal": "Preserve the current Frame Conn Overcharge UI and once-per-turn action-economy rules. When the player selects Overcharge directly or chooses to fund a Quick Action with Overcharge, resolve the controlled mech through the existing application boundary, capture the native actor's current Overcharge roll formula for presentation, invoke the existing special.overcharge execution route so actor.beginOverchargeFlow() owns Heat and persistent progression, and only after native success mark Frame Conn Overcharge used and grant its Quick Action. Replace the existing application Overcharge notifications that instruct manual Heat application with confirmation that native Lancer resolved Overcharge. Existing non-Overcharge Quick Action and Boost behavior must remain unchanged.",
   "policy": {
     "max_files_changed": 1,
     "allowed_paths": [
