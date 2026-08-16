@@ -84,7 +84,6 @@ function relativeModuleSpecifier(importerAbsolutePath, targetAbsolutePath, origi
 
 function buildMoveMaps(moves) {
   const oldToNew = new Map();
-  const newToOld = new Map();
   for (const move of moves) {
     const fromRoot = absolute(move.from);
     const toRoot = absolute(move.to);
@@ -94,15 +93,13 @@ function buildMoveMaps(moves) {
     if (fs.existsSync(toRoot)) fail(`Move destination already exists: ${move.to}`);
     for (const oldFile of listFilesRecursively(fromRoot)) {
       const rel = path.relative(fromRoot, oldFile);
-      const newFile = path.join(toRoot, rel);
-      oldToNew.set(oldFile, newFile);
-      newToOld.set(newFile, oldFile);
+      oldToNew.set(oldFile, path.join(toRoot, rel));
     }
   }
-  return { oldToNew, newToOld };
+  return oldToNew;
 }
 
-function collectSpecifierRecords(oldToNew) {
+function collectSpecifierRecords() {
   const records = [];
   const regex = /\b(?:import|export)\s+(?:[^"'`]*?\s+from\s+)?["']([^"']+)["']|\bimport\s*\(\s*["']([^"']+)["']\s*\)/g;
   for (const importer of listFilesRecursively(REPO_ROOT)) {
@@ -162,24 +159,26 @@ function rewriteImports(records, oldToNew) {
   return rewrittenFiles;
 }
 
-function validateRelativeImports() {
-  const unresolved = [];
-  const regex = /\b(?:import|export)\s+(?:[^"'`]*?\s+from\s+)?["']([^"']+)["']|\bimport\s*\(\s*["']([^"']+)["']\s*\)/g;
-  for (const importer of listFilesRecursively(REPO_ROOT)) {
-    if (!SOURCE_EXTENSIONS.has(path.extname(importer))) continue;
-    const content = fs.readFileSync(importer, "utf8");
-    let match;
-    while ((match = regex.exec(content))) {
-      const specifier = match[1] ?? match[2];
-      if (!specifier?.startsWith(".")) continue;
-      if (!resolveModuleTarget(importer, specifier)) {
-        unresolved.push(`${path.relative(REPO_ROOT, importer)} -> ${specifier}`);
-      }
+function validateAffectedImports(records, oldToNew) {
+  const failures = [];
+  for (const record of records) {
+    const importerNew = oldToNew.get(record.importerOld) ?? record.importerOld;
+    const targetNew = oldToNew.get(record.targetOld) ?? record.targetOld;
+    if (importerNew === record.importerOld && targetNew === record.targetOld) continue;
+    const expectedSpecifier = relativeModuleSpecifier(importerNew, targetNew, record.specifier);
+    const resolved = resolveModuleTarget(importerNew, expectedSpecifier);
+    if (resolved !== targetNew) {
+      failures.push(`${path.relative(REPO_ROOT, importerNew)} -> ${expectedSpecifier}`);
+      continue;
+    }
+    const content = fs.readFileSync(importerNew, "utf8");
+    if (!content.includes(`"${expectedSpecifier}"`) && !content.includes(`'${expectedSpecifier}'`)) {
+      failures.push(`${path.relative(REPO_ROOT, importerNew)} missing rewritten specifier ${expectedSpecifier}`);
     }
   }
-  if (unresolved.length) {
-    console.error("[path-mover] Unresolved relative imports after move:");
-    for (const item of unresolved) console.error(`  ${item}`);
+  if (failures.length) {
+    console.error("[path-mover] Relocation broke previously-resolved imports:");
+    for (const item of failures) console.error(`  ${item}`);
     process.exit(2);
   }
 }
@@ -197,12 +196,12 @@ const normalizedMoves = plan.moves.map(move => ({
   to: normalizeRepoPath(move.to)
 }));
 
-const { oldToNew } = buildMoveMaps(normalizedMoves);
-const importRecords = collectSpecifierRecords(oldToNew);
+const oldToNew = buildMoveMaps(normalizedMoves);
+const importRecords = collectSpecifierRecords();
 
 for (const move of normalizedMoves) gitMove(move.from, move.to);
 const rewrittenFiles = rewriteImports(importRecords, oldToNew);
-validateRelativeImports();
+validateAffectedImports(importRecords, oldToNew);
 
 plan.enabled = false;
 plan.last_applied_at = new Date().toISOString();
@@ -210,4 +209,4 @@ fs.writeFileSync(PLAN_PATH, `${JSON.stringify(plan, null, 2)}\n`, "utf8");
 
 console.log(`[path-mover] Moved ${normalizedMoves.length} path(s).`);
 console.log(`[path-mover] Rewrote imports in ${rewrittenFiles} file(s).`);
-console.log("[path-mover] Relative import validation passed.");
+console.log("[path-mover] Relocation import validation passed.");
