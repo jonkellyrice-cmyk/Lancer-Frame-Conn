@@ -1,72 +1,9 @@
 {
   "schema_version": 2,
-  "id": "scaffold-builders-and-progression-features",
-  "description": "Create inert documentation-first scaffolding for player character creation, mech building, level-up progression, and DM encounter/NPC builders.",
+  "id": "ready",
+  "description": "Neutral no-op state after scaffolding Character Creation, Mech Builder, Level Up, Encounter Builder, and NPC Builder feature families.",
   "policy": {
-    "max_files_changed": 10,
-    "allowed_paths": [
-      "scripts/player_features/character_creation/README.md",
-      "scripts/player_features/character_creation/character-creation-feature-package.js",
-      "scripts/player_features/mech_builder/README.md",
-      "scripts/player_features/mech_builder/mech-builder-feature-package.js",
-      "scripts/player_features/level_up/README.md",
-      "scripts/player_features/level_up/level-up-feature-package.js",
-      "scripts/dm_features/encounter_builder/README.md",
-      "scripts/dm_features/encounter_builder/encounter-builder-feature-package.js",
-      "scripts/dm_features/npc_builder/README.md",
-      "scripts/dm_features/npc_builder/npc-builder-feature-package.js"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "create_file",
-      "path": "scripts/player_features/character_creation/README.md",
-      "content": "# Frame Conn Player Features — Character Creation\n\nThis directory is reserved for a player-facing **Character Creation** workflow.\n\n## Future responsibility\n\nCharacter Creation should guide a player through building a new Lancer pilot using native Foundry Lancer Actor/Item data wherever possible. Planned concerns include identity/background, triggers, talents, licenses, starting gear, pilot equipment, mech access, and any other creation-time choices required by the rules.\n\nThe feature should validate prerequisites and completion state, present choices in a guided sequence, and write through native Lancer document structures rather than creating a parallel Frame Conn character model.\n\n## Relationship to other features\n\nCharacter Creation establishes the initial pilot state that later feeds **Level Up**, **Mech Builder**, Narrative Play, Hardsuit, and Frame Conn tactical play.\n\n## Current state\n\nScaffold only. Nothing in this directory is registered or executed yet.\n"
-    },
-    {
-      "type": "create_file",
-      "path": "scripts/player_features/character_creation/character-creation-feature-package.js",
-      "content": "/**\n * scripts/player_features/character_creation/character-creation-feature-package.js\n *\n * FRAME CONN CHARACTER CREATION FEATURE PACKAGE -- FUTURE SCAFFOLD\n *\n * Future aggregation point for guided pilot creation, creation-time\n * validation, native actor/item mutation, and creation UI features.\n *\n * This remains a sub-package of player_features and should eventually\n * be consumed by player-feature-registry.js.\n *\n * Current state: documentation-only scaffold.\n */\n"
-    },
-    {
-      "type": "create_file",
-      "path": "scripts/player_features/mech_builder/README.md",
-      "content": "# Frame Conn Player Features — Mech Builder\n\nThis directory is reserved for a player-facing **Mech Builder**.\n\n## Future responsibility\n\nThe Mech Builder should provide a focused workflow for constructing and editing a legal mech loadout from the pilot's licenses and unlocked content. Planned concerns include frame selection, HASE-derived stats where applicable, weapon mounts, weapons, mounted systems, core bonuses, frame traits/core systems, Limited resources, loadout capacity, and validation of build legality.\n\nIt should discover content from native Foundry Lancer Actor/Item data and the actor-owned feature registry. Native Lancer documents remain authoritative; Frame Conn should not maintain a duplicate mech build representation.\n\n## Relationship to Phase 2\n\nThis feature depends heavily on the Phase 2 actor-owned content infrastructure. The same normalized discovery layer used by tactical execution should power build selection and validation.\n\n## Current state\n\nScaffold only. Nothing in this directory is registered or executed yet.\n"
-    },
-    {
-      "type": "create_file",
-      "path": "scripts/player_features/mech_builder/mech-builder-feature-package.js",
-      "content": "/**\n * scripts/player_features/mech_builder/mech-builder-feature-package.js\n *\n * FRAME CONN MECH BUILDER FEATURE PACKAGE -- FUTURE SCAFFOLD\n *\n * Future aggregation point for mech build discovery, selection,\n * validation, native document updates, and builder UI features.\n *\n * This remains a sub-package of player_features and should reuse the\n * Phase 2 actor-owned content/system-bridge infrastructure.\n *\n * Current state: documentation-only scaffold.\n */\n"
-    },
-    {
-      "type": "create_file",
-      "path": "scripts/player_features/level_up/README.md",
-      "content": "# Frame Conn Player Features — Level Up\n\nThis directory is reserved for a guided player-facing **Level Up** workflow.\n\n## Future responsibility\n\nLevel Up should take an existing pilot from one License Level to the next and guide the choices unlocked by advancement. Planned concerns include license ranks, talents, mech skills/HASE increases, core bonuses at the appropriate levels, newly available frames/systems/weapons, respec or replacement choices where the rules permit them, and validation that advancement is complete and legal.\n\nThe feature should operate on native Foundry Lancer Actor/Item state and reuse Character Creation and Mech Builder choice/validation services instead of implementing separate content catalogs.\n\n## Design goal\n\nA player should be able to open one advancement workflow, see exactly what choices remain at the new LL, make them in a safe order, and finish with a valid native pilot/mech state.\n\n## Current state\n\nScaffold only. Nothing in this directory is registered or executed yet.\n"
-    },
-    {
-      "type": "create_file",
-      "path": "scripts/player_features/level_up/level-up-feature-package.js",
-      "content": "/**\n * scripts/player_features/level_up/level-up-feature-package.js\n *\n * FRAME CONN LEVEL UP FEATURE PACKAGE -- FUTURE SCAFFOLD\n *\n * Future aggregation point for License Level progression, advancement\n * choice validation, native actor/item updates, and level-up UI.\n *\n * This remains a sub-package of player_features and should reuse\n * Character Creation, Mech Builder, and actor-owned content services.\n *\n * Current state: documentation-only scaffold.\n */\n"
-    },
-    {
-      "type": "create_file",
-      "path": "scripts/dm_features/encounter_builder/README.md",
-      "content": "# Frame Conn DM Features — Encounter Builder\n\nThis directory is reserved for a GM-facing **Encounter Builder** for tactical and mission encounters.\n\n## Future responsibility\n\nThe Encounter Builder should help a GM assemble an encounter from NPCs, templates/features, terrain/scenario assumptions, SITREP choice, deployment groups, reinforcements, reserves, objectives, and encounter difficulty/structure.\n\nIt should integrate naturally with `dm_features/sitreps/` and the Mission Toolkit's **Boots on the Ground** stage so an encounter authored before play becomes the same encounter state operated during play.\n\nWhere Foundry can represent encounter participants, scenes, tokens, folders, or combatants natively, use those documents rather than maintaining disconnected copies.\n\n## Current state\n\nScaffold only. Nothing in this directory is registered or executed yet.\n"
-    },
-    {
-      "type": "create_file",
-      "path": "scripts/dm_features/encounter_builder/encounter-builder-feature-package.js",
-      "content": "/**\n * scripts/dm_features/encounter_builder/encounter-builder-feature-package.js\n *\n * FRAME CONN ENCOUNTER BUILDER FEATURE PACKAGE -- FUTURE SCAFFOLD\n *\n * Future aggregation point for encounter composition, SITREP linkage,\n * deployment/reinforcement planning, validation, and DM builder UI.\n *\n * This belongs to dm_features and should eventually be consumed by\n * dm-feature-registry.js.\n *\n * Current state: documentation-only scaffold.\n */\n"
-    },
-    {
-      "type": "create_file",
-      "path": "scripts/dm_features/npc_builder/README.md",
-      "content": "# Frame Conn DM Features — NPC Builder\n\nThis directory is reserved for a GM-facing **NPC Builder**.\n\n## Future responsibility\n\nThe NPC Builder should help the GM create and customize Lancer NPC combatants using native NPC classes, templates, optional systems/features, tiers, statistics, weapons, and other supported NPC content.\n\nThe builder should understand native Foundry Lancer NPC Actor/Item structure and write to that structure directly through an appropriate adapter/service boundary. It must not invent a second Frame Conn NPC schema when native Lancer already has one.\n\n## Relationship to Encounter Builder\n\nNPC Builder creates or edits reusable NPC actors. Encounter Builder consumes those actors to assemble a specific encounter. Keeping those responsibilities distinct allows the same NPC definition to be reused across encounters and missions.\n\n## Current state\n\nScaffold only. Nothing in this directory is registered or executed yet.\n"
-    },
-    {
-      "type": "create_file",
-      "path": "scripts/dm_features/npc_builder/npc-builder-feature-package.js",
-      "content": "/**\n * scripts/dm_features/npc_builder/npc-builder-feature-package.js\n *\n * FRAME CONN NPC BUILDER FEATURE PACKAGE -- FUTURE SCAFFOLD\n *\n * Future aggregation point for native Lancer NPC content discovery,\n * creation/editing, validation, and DM-facing NPC builder UI.\n *\n * This belongs to dm_features and should eventually be consumed by\n * dm-feature-registry.js.\n *\n * Current state: documentation-only scaffold.\n */\n"
-    }
-  ]
+  "operations": []
 }
