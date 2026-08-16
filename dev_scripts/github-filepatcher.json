@@ -1,9 +1,90 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after scaffolding the Hardsuit player feature sub-family and separate helmet-HUD UI surface.",
+  "id": "scaffold-narrative-play-player-feature-and-ui",
+  "description": "Create inert documentation-first scaffolding for Narrative Play as a player_features sub-family, with Downtime nested inside it and a separate lightweight Narrative Play application surface.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 13,
+    "allowed_paths": [
+      "scripts/player_features/narrative_play/README.md",
+      "scripts/player_features/narrative_play/narrative-play-feature-package.js",
+      "scripts/player_features/narrative_play/skill_checks/README.md",
+      "scripts/player_features/narrative_play/skill_challenges/README.md",
+      "scripts/player_features/narrative_play/narrative_combat/README.md",
+      "scripts/player_features/narrative_play/pilot_harm/README.md",
+      "scripts/player_features/narrative_play/downtime/README.md",
+      "scripts/player_features/narrative_play/downtime/downtime_actions/README.md",
+      "scripts/player_features/narrative_play/downtime/reserves/README.md",
+      "styles/ui_narrative_play/README.md",
+      "styles/ui_narrative_play/ui-narrative-play-application.js",
+      "styles/ui_narrative_play/ui-narrative-play-application.css",
+      "styles/ui_narrative_play/components/README.md"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "create_file",
+      "path": "scripts/player_features/narrative_play/README.md",
+      "content": "# Frame Conn Narrative Play\n\nThis directory is reserved for the **Narrative Play** sub-family of `player_features/`.\n\n## Gameplay identity\n\nNarrative Play is a distinct Lancer gameplay phase from tactical mech combat. It should therefore have its own player-facing interaction mode rather than appearing as another panel inside Frame Conn or Hardsuit.\n\nThe three principal player interfaces are intended to represent different contexts:\n\n- **Frame Conn** — mech cockpit instrumentation during tactical mech combat.\n- **Hardsuit** — pilot helmet HUD while dismounted during tactical mech combat.\n- **Narrative Play** — a lightweight interface for goals, skill checks, consequences, challenges, narrative combat, pilot harm/recovery, downtime, and reserves outside structured mech turns.\n\n## Future responsibility\n\nNarrative Play will eventually coordinate:\n\n- goal declaration and GM-defined consequences before rolls;\n- trigger/background selection and native pilot skill checks;\n- ordinary, Difficult, Risky, and Heroic checks;\n- Teamwork, pushing, and retry restrictions;\n- consequence categories such as Harm, Time, Resources, Collateral, Position, and Effect;\n- group and extended Skill Challenges;\n- player initiative and NPC response in narrative scenes;\n- narrative combat and pilot harm/recovery;\n- Downtime and mission Reserves between missions.\n\n## Package boundary\n\nNarrative Play remains part of the broader **player feature package**. A future `narrative-play-feature-package.js` may aggregate its internal player-facing features for inclusion by `player-feature-registry.js`. It should reuse shared rules/services and should not create another application-wide feature registry.\n\n## Current state\n\nScaffold only. Nothing in this directory is registered or executed yet.\n"
+    },
+    {
+      "type": "create_file",
+      "path": "scripts/player_features/narrative_play/narrative-play-feature-package.js",
+      "content": "/**\n * scripts/player_features/narrative_play/narrative-play-feature-package.js\n *\n * FRAME CONN NARRATIVE PLAY FEATURE PACKAGE -- FUTURE SCAFFOLD\n *\n * ROLE:\n *   This file may eventually aggregate the player-facing features\n *   that make up Frame Conn's Narrative Play experience.\n *\n * FUTURE COMPOSITION:\n *   - narrative skill checks and consequence presentation;\n *   - skill challenges;\n *   - narrative combat;\n *   - pilot harm and recovery;\n *   - downtime actions;\n *   - reserves and mission-preparation handoff;\n *   - Narrative Play UI feature registration.\n *\n * ARCHITECTURAL RULE:\n *   Narrative Play is a sub-package of player_features. It should\n *   eventually be consumed by player-feature-registry.js rather than\n *   creating a new application-wide FrameConnFeatureRegistry.\n *\n * CURRENT STATE:\n *   Documentation-only scaffold. Intentionally exports nothing and is\n *   not imported by player-feature-registry.js yet.\n */\n"
+    },
+    {
+      "type": "create_file",
+      "path": "scripts/player_features/narrative_play/skill_checks/README.md",
+      "content": "# Narrative Play — Skill Checks\n\nFuture responsibility: coordinate the player-facing workflow for narrative skill checks.\n\nPlanned support includes:\n\n- player names the goal before rolling;\n- GM establishes consequences of failure where appropriate;\n- player chooses the relevant trigger/background;\n- ordinary, Difficult, Risky, and Heroic roll modes;\n- Accuracy/Difficulty and other native modifiers;\n- result interpretation for 9 or less, 10+, and Heroic 20+ outcomes;\n- Teamwork assistance;\n- pushing failed checks and enforcing the rule against simply repeating the same failed approach without changed circumstances;\n- clear chat/UI presentation of the goal, stakes, roll mode, result, and consequences.\n\nUse native Foundry Lancer pilot roll data/execution wherever possible rather than creating a separate Narrative Play dice engine.\n"
+    },
+    {
+      "type": "create_file",
+      "path": "scripts/player_features/narrative_play/skill_challenges/README.md",
+      "content": "# Narrative Play — Skill Challenges\n\nFuture responsibility: support group and extended narrative challenges where success depends on a series of skill checks rather than one roll.\n\nPlanned support includes:\n\n- define the challenge goal and stakes;\n- identify participating characters;\n- record individual successes/failures;\n- determine group challenge outcomes from the proportion of successful rolls;\n- support ties or special adjudication where the rules call for them;\n- support extended challenges with multiple stages/rounds of rolls;\n- track progress such as completed stages, wins/losses, current complications, and remaining objectives;\n- keep the state visible to players while preserving GM-only information where necessary.\n\nThe challenge layer should compose ordinary Narrative Play skill checks rather than duplicate their roll logic.\n"
+    },
+    {
+      "type": "create_file",
+      "path": "scripts/player_features/narrative_play/narrative_combat/README.md",
+      "content": "# Narrative Play — Narrative Combat\n\nFuture responsibility: support fights and dangerous action scenes resolved through Narrative Play rather than tactical mech combat.\n\nPlanned support includes:\n\n- player initiative rather than mech-style initiative turns;\n- player-declared goals and GM-established Risky/Difficult/Heroic framing;\n- NPC behavior determined from player outcomes rather than independent tactical turns;\n- narrative Harm as a consequence when appropriate;\n- pilot weapons/gear influencing fictional positioning and consequences without recreating tactical weapon combat;\n- transition into tactical mech combat when mechs are involved or when the table wants structured tactical resolution.\n\nThis feature should remain clearly separate from the Hardsuit tactical-pilot combat mode even though both use pilot Actors.\n"
+    },
+    {
+      "type": "create_file",
+      "path": "scripts/player_features/narrative_play/pilot_harm/README.md",
+      "content": "# Narrative Play — Pilot Harm and Recovery\n\nFuture responsibility: present and coordinate pilot injury/recovery rules used during Narrative Play.\n\nPlanned support includes:\n\n- native pilot HP and Armor;\n- narrative minor, major, and lethal harm guidance;\n- Down and Out resolution when a pilot reaches 0 HP;\n- the native/random outcome roll and resulting HP/Down-and-Out/death state;\n- Stunned/Evasion effects associated with Down and Out where applicable;\n- recovery through appropriate rest and Full Repair timing;\n- handoff into tactical modes without maintaining a duplicate pilot HP model.\n\nNative Foundry Lancer Actor state should remain authoritative wherever it already represents these values.\n"
+    },
+    {
+      "type": "create_file",
+      "path": "scripts/player_features/narrative_play/downtime/README.md",
+      "content": "# Narrative Play — Downtime\n\nDowntime is a **sub-feature family of Narrative Play** covering the time between missions, whether that interval represents a few hours or several months.\n\nDowntime should support both freeform roleplay and structured mechanical actions. The structured system exists to create persistent story/campaign state and Reserves; it should not replace ordinary roleplay.\n\nPlanned subfolders:\n\n- `downtime_actions/` — reusable structured downtime action definitions and their roll/outcome workflows.\n- `reserves/` — mission-duration advantages earned or granted through downtime and other fiction.\n\nDowntime should integrate forward into the DM Mission Toolkit's Preparation and Reserves stages while remaining a player-facing Narrative Play experience when pilots choose and resolve their own downtime actions.\n"
+    },
+    {
+      "type": "create_file",
+      "path": "scripts/player_features/narrative_play/downtime/downtime_actions/README.md",
+      "content": "# Narrative Play — Downtime Actions\n\nFuture responsibility: define reusable structured downtime actions with consistent player-input, roll, outcome, and persistence contracts.\n\nInitial core action set includes:\n\n- Power at a Cost;\n- Buy Some Time;\n- Gather Information;\n- Get a Damn Drink;\n- Get Creative;\n- Get Focused;\n- Get Organized;\n- Get Connected;\n- Scrounge and Barter.\n\nEach action should eventually be able to define required narrative input, relevant triggers, native roll execution, 9-/10–19/20+ outcome bands, post-roll choices, complications, persistent project/contact/organization changes, and Reserves generated.\n\nCustom GM-created downtime actions should use the same definition model rather than requiring bespoke UI code.\n"
+    },
+    {
+      "type": "create_file",
+      "path": "scripts/player_features/narrative_play/downtime/reserves/README.md",
+      "content": "# Narrative Play — Reserves\n\nFuture responsibility: represent mission-duration advantages earned during Downtime or granted directly by the GM.\n\nPlanned reserve families include:\n\n- story/resources such as Access, Backing, Supplies, Disguise, Diversion, Blackmail, Reputation, Safe Harbor, Tracking, and Knowledge;\n- mech equipment/gear advantages such as extra Limited uses, temporary gear, extra repairs, Core battery use, mission-specific modifications, and support equipment;\n- tactical advantages such as Scouting, Vehicles, Reinforcements, environmental shielding, Accuracy, Bombardment, Ambush, alternate insertion, and NHP assistance.\n\nThe subsystem should track availability, ownership/source where useful, consumption, and mission expiration. When a Reserve maps to native Lancer Actor/Item state, prefer that native state rather than creating a disconnected counter.\n\nPlayer-visible Reserve state should hand off cleanly to the GM Mission Toolkit's Preparation/Reserves views.\n"
+    },
+    {
+      "type": "create_file",
+      "path": "styles/ui_narrative_play/README.md",
+      "content": "# Frame Conn Narrative Play UI\n\nThis directory is reserved for a **separate, very lightweight player-facing Foundry application** used during Narrative Play and Downtime.\n\n## Relationship to the other player interfaces\n\nFrame Conn now anticipates three distinct player-facing interface contexts:\n\n- **Frame Conn** — full mech cockpit instrumentation for tactical mech combat.\n- **Hardsuit** — smaller helmet HUD for a dismounted pilot during tactical mech combat.\n- **Narrative Play** — the simplest interface, focused on narrative intent, rolls, consequences, challenges, and between-mission choices rather than tactical telemetry.\n\nNarrative Play should not be implemented as a tab inside either combat interface because it represents a different gameplay phase and interaction model.\n\n## Presentation goal\n\nKeep the window minimal. Likely persistent information includes the current goal/stakes, chosen trigger/roll mode, challenge progress when applicable, important pilot condition/harm state, and compact access to Downtime/Reserves when between missions. Most interaction should occur through focused prompts and concise result cards rather than a dense dashboard.\n\n## Current state\n\nScaffold only. No application class, styles, imports, or runtime registration are active yet.\n"
+    },
+    {
+      "type": "create_file",
+      "path": "styles/ui_narrative_play/ui-narrative-play-application.js",
+      "content": "/**\n * styles/ui_narrative_play/ui-narrative-play-application.js\n *\n * FRAME CONN NARRATIVE PLAY APPLICATION -- FUTURE SCAFFOLD\n *\n * This will become the stable public composition surface for the\n * lightweight player-facing Narrative Play Foundry application.\n *\n * Future responsibilities:\n *   - Foundry Application lifecycle for Narrative Play;\n *   - compact goal/stakes and roll-context presentation;\n *   - skill-check and challenge interaction;\n *   - narrative harm/recovery presentation;\n *   - Downtime and Reserves presentation;\n *   - bind UI intent to Narrative Play/player feature APIs.\n *\n * Current state: documentation-only scaffold. Nothing is exported,\n * registered, or instantiated yet.\n */\n"
+    },
+    {
+      "type": "create_file",
+      "path": "styles/ui_narrative_play/ui-narrative-play-application.css",
+      "content": "/*\n * styles/ui_narrative_play/ui-narrative-play-application.css\n *\n * Future stylesheet boundary for the lightweight Narrative Play\n * application. It should be visually related to the wider Frame Conn\n * product while being substantially quieter and simpler than either\n * the mech cockpit or Hardsuit tactical HUD.\n *\n * Scaffold only: intentionally contains no active selectors yet.\n */\n"
+    },
+    {
+      "type": "create_file",
+      "path": "styles/ui_narrative_play/components/README.md",
+      "content": "# Narrative Play UI Components\n\nFuture focused presentation modules for the Narrative Play interface belong here.\n\nLikely component families include:\n\n- goal and stakes summary;\n- trigger/background and roll-mode chooser;\n- consequence preview/result presentation;\n- Teamwork and push controls;\n- Skill Challenge progress;\n- narrative pilot harm/recovery state;\n- Downtime action chooser and outcome prompts;\n- projects, contacts, and organizations;\n- Reserves inventory and mission handoff.\n\nComponents should remain presentation-focused and delegate behavior to `scripts/player_features/narrative_play/` and shared services.\n"
+    }
+  ]
 }
