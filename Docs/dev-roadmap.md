@@ -492,6 +492,153 @@ shared services / native adapter
 
 Native Lancer Actor/Item/status state remains authoritative wherever it already exists. Frame Conn rules features should automate missing orchestration, not create a parallel rules engine.
 
+## Complete status and condition implementation — CROSS-CUTTING PHASE 2 TRACK
+
+The current rules-side status work is only the beginning. Frame Conn ultimately needs a complete implementation/audit of **all standard Lancer statuses and conditions**, not only the subset currently touched by universal actions.
+
+This work should proceed concurrently with Phase 2 actor-owned content because many statuses and conditions are created, modified, ignored, cleared, or interacted with by weapons, mounted systems, talents, frame traits, core powers, manufacturer core bonuses, NPC features, pilot rules, and reserves.
+
+Required program:
+
+- build an authoritative catalog of every standard Lancer status and condition and the native Foundry representation, if any;
+- identify which effects Foundry Lancer already enforces correctly and leave those native-owned;
+- identify native omissions where Foundry records/displays a status but does not enforce its rules consequences;
+- implement only the missing orchestration through `rules_features`, lifecycle, spatial services, action economy, targeting, native adapter, or other appropriate shared services;
+- ensure every status/condition has correct application, removal, duration, expiration, and clearing behavior;
+- implement roll modifiers, action restrictions, targeting restrictions, movement restrictions, damage interactions, save/check interactions, reaction interactions, and other mechanical consequences where the rules require them;
+- support derived states such as Engaged that arise from geometry or relationships rather than a player explicitly pressing a status button;
+- support status/condition immunities and exceptions supplied by actor-owned content without hard-coding them into generic rules code;
+- make status state visible enough in Frame Conn to diagnose during play without duplicating the native Foundry status model;
+- add regression/live-play coverage so a new Phase 2 feature cannot silently bypass or duplicate status rules.
+
+Architectural principle:
+
+> Native Foundry Lancer owns any status/condition behavior it already implements correctly. Frame Conn owns the missing rule automation and cross-feature orchestration around that native state.
+
+This is not a separate end-of-project cleanup pass. It is a **continuous Phase 2 workstream** that should advance whenever newly-supported actor-owned content introduces additional status/condition semantics.
+
+---
+
+# Phase 3 — Dismounted pilots in mech combat
+
+After the mech action/content layer is substantially complete, Frame Conn should add a dedicated combat mode for pilots who leave their mechs during tactical mech combat. This phase belongs **after the mech-focused action work but before the GM Mission Toolkit / broader narrative-play product work**.
+
+The existing Mount / Dismount / Eject relationship work is the prerequisite. Once a pilot is physically represented on the Scene outside their mech, Frame Conn needs to switch from mech-command presentation to an appropriate pilot-in-mech-combat command set while continuing to share the same encounter action economy.
+
+## Pilot/mech occupancy and control
+
+Required support:
+
+- know whether the pilot is physically inside and controlling their mech;
+- when mounted, preserve the rule that the pilot is protected by the mech and normally cannot be independently targeted or affected from outside it;
+- Dismount/Eject places the pilot token into tactical play and exposes the pilot-specific action set;
+- Mount removes/hides the pilot token and returns control to the mech;
+- support unlicensed/incorrectly interfaced mechs where applicable, including the appropriate Impaired/Slowed penalties rather than assuming every pilot/mech pairing is fully licensed;
+- preserve the possibility of AI/NHP-controlled mechs acting independently where native Lancer actor data supports it.
+
+## Pilot combat statistics
+
+Use the pilot's native Foundry/Lancer combat data wherever available, including pilot HP, Evasion, E-Defense, Speed, Armor, Grit, gear, and pilot weapons. Do not create a second Frame Conn pilot sheet.
+
+## Fighting on the ground
+
+Implement the special rules for unmounted characters in mech combat:
+
+- pilot/unmounted attacks and saves use **Grit** where the mech-combat pilot rules call for it rather than narrative triggers;
+- unmounted biological characters use the appropriate **Biological** rules and are immune to tech actions except the explicitly allowed exceptions such as Lock On and Scan;
+- electronic effects which can legitimately affect Biological targets must still work where the rules permit;
+- Heat dealt to a Biological character should resolve using the pilot-combat conversion to equivalent Energy damage rather than creating a Heat track for the pilot;
+- pilots should not cause mechs to become Engaged and should not obstruct mech movement simply because their token is present, regardless of pilot Size;
+- unmounted characters should not receive mech-only talents/bonuses or other chassis-specific benefits unless a rule explicitly says otherwise.
+
+These rules should be implemented through targeting/spatial/status/rules services so they work even when actions originate outside the Frame Conn UI.
+
+## Shared pilot/mech action economy
+
+Pilot actions during mech combat draw from the same turn economy as the mech:
+
+- one standard movement;
+- two Quick Actions or one Full Action;
+- allow the player to split their turn between mech and pilot where the rules permit, e.g. act in the mech, Eject/Dismount, then continue on foot using the remaining action/movement budget.
+
+The turn-state model therefore needs to follow the **pilot/mech activation relationship**, not assume the controlled token remains the same document for the entire activation.
+
+## Pilot-accessible universal actions
+
+When on foot in mech combat, expose the universal actions that pilots are allowed to use under the mech-combat rules, including as applicable:
+
+- Boost;
+- Hide;
+- Search;
+- Activate;
+- Skill Check;
+- Disengage;
+- Prepare;
+- Mount;
+- Overwatch.
+
+These should reuse the same universal-action implementations where their semantics truly match, but route through pilot actors/stats/equipment rather than mech actors.
+
+## Fight — pilot Full Action
+
+Add the pilot **Fight** action:
+
+- choose a pilot weapon;
+- choose a target in the weapon's Range or Threat and valid line of sight;
+- resolve through native pilot-weapon attack execution where available;
+- support cover and the additional difficulty for ranged attacks while Engaged according to the pilot-combat rules;
+- use pilot weapon damage/tags/resources from the actual actor-owned pilot equipment.
+
+This phase therefore depends on the broader weapon/item discovery infrastructure from Phase 2, but needs a pilot-specific execution/presentation layer.
+
+## Jockey — pilot Full Action
+
+Implement Jockey as its own relationship-driven action rather than a generic attack:
+
+- pilot must be adjacent to the target mech;
+- resolve the contested check using the pilot's appropriate Grit-based skill check against the mech's Hull side of the contest;
+- on success, place the pilot into a persistent **jockeying** relationship with that mech/token;
+- support the mech attempting to shake the pilot off through the appropriate opposed Full Action;
+- support the pilot voluntarily jumping off as part of movement where allowed;
+- once successfully jockeying, expose the continuing Full Action choices such as **Distract**, **Shred**, and **Damage** with their proper rules consequences;
+- ensure hostile movement, token occupancy, targeting, and relationship cleanup are handled coherently when either participant moves, is destroyed, leaves the Scene, or the pilot stops jockeying.
+
+## Reload — pilot Quick Action
+
+Add the pilot **Reload** action for one pilot weapon with the Loading tag, delegating to native pilot-weapon state where available.
+
+## Pilot Overwatch and pilot reactions
+
+Pilot Overwatch and other reactions should reuse the reaction infrastructure built for mech play, but calculate Range/Threat, weapon legality, and attack execution from the pilot's own equipment and position.
+
+## NHP / AI control handoff
+
+Where a mech has native AI/NHP capability, preserve the distinction between:
+
+- the pilot physically leaving the cockpit;
+- the mech being unable to act because it has no controller;
+- an AI/NHP taking control and receiving its own allowed actions/reactions.
+
+Do not invent a generic autonomous-mech system if Foundry Lancer already exposes enough AI/NHP state to delegate this correctly; audit native behavior first.
+
+## Pilot-combat UI goal
+
+The player should not need a completely separate application. Frame Conn should recognize the current pilot/mech occupancy state and present the appropriate command surface while preserving one coherent activation budget.
+
+Conceptually:
+
+```text
+MOUNTED
+Frame Conn mech cockpit
+        ↓ Dismount / Eject
+ON FOOT DURING MECH COMBAT
+Frame Conn pilot combat controls
+Fight / Jockey / Reload / allowed universal actions
+        ↓ Mount
+MOUNTED
+Frame Conn mech cockpit
+```
+
 ---
 
 # Long-term feature tracks
@@ -879,7 +1026,20 @@ Then begin Phase 2:
 11. Activate / Protocol actor-owned action discovery;
 12. shared resource discovery/service;
 13. Resources UI;
-14. Prepare delayed-action integration over the resulting execution layer.
+14. Prepare delayed-action integration over the resulting execution layer;
+15. continue the complete status/condition audit and automation alongside each Phase 2 domain rather than deferring it to the end.
+
+After the mech-focused Phase 2 work is substantially complete:
+
+1. finish Mount / Dismount / Eject as the pilot↔mech occupancy prerequisite;
+2. implement the **Dismounted Pilots in Mech Combat** phase;
+3. pilot Fight and pilot-weapon execution;
+4. Jockey relationship and continuing Jockey actions;
+5. pilot Reload;
+6. pilot Overwatch/reactions and remaining pilot-allowed universal actions;
+7. AI/NHP control handoff audit.
+
+Only after the tactical mech + dismounted-pilot combat experience is broadly complete should development priority move to the larger GM Mission Toolkit, Narrative Play, and Downtime product tracks.
 
 ---
 
