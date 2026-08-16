@@ -3,29 +3,24 @@
  * @module engaged-status
  * @responsibility Own Frame Conn's derived Engaged status and Disengage suppression semantics.
  *
- * Engaged is continuously derived from hostile adjacency, with Grapple able to
- * force the relationship and Disengage suppressing it for the actor's current
- * turn. Native Lancer status representation and mutation remain delegated to
- * the caller-supplied native status boundary.
+ * Engaged is a spatial relationship: hostile characters gain Engaged only while
+ * their occupied Foundry grid spaces are adjacent. Native Lancer status
+ * representation and mutation remain delegated to the caller-supplied native
+ * status boundary.
  */
 
 export function createEngagedStatusController({
   applyStatus,
   removeStatus,
-  distance,
-  distanceConfigured,
-  forcedPair,
   turnKey,
   actorUuid,
   tokens = () => globalThis.canvas?.tokens?.placeables ?? [],
+  grid = () => globalThis.canvas?.grid ?? null,
   isGameMaster = () => Boolean(globalThis.game?.user?.isGM)
 } = {}) {
   for (const [name, value] of Object.entries({
     applyStatus,
     removeStatus,
-    distance,
-    distanceConfigured,
-    forcedPair,
     turnKey,
     actorUuid
   })) {
@@ -42,7 +37,35 @@ export function createEngagedStatusController({
     return left !== 0 && right !== 0 && Math.sign(left) !== Math.sign(right);
   }
 
-  const hiddenActor = actor => Boolean(actor?.system?.statuses?.hidden);
+  function occupiedGridOffsets(token) {
+    const tokenDocument = token?.document ?? null;
+    if (typeof tokenDocument?.getOccupiedGridSpaceOffsets !== "function") return [];
+
+    const offsets = tokenDocument.getOccupiedGridSpaceOffsets();
+    return Array.isArray(offsets) ? offsets : [];
+  }
+
+  /**
+   * Foundry 13 exposes exact occupied grid spaces for a TokenDocument and an
+   * exact grid adjacency test. Using those APIs avoids center-distance guesses
+   * and correctly handles hex grids and Size 2+ token footprints.
+   */
+  function tokensAreAdjacent(leftToken, rightToken) {
+    const activeGrid = grid();
+    if (!activeGrid || typeof activeGrid.testAdjacency !== "function") return false;
+
+    const leftOffsets = occupiedGridOffsets(leftToken);
+    const rightOffsets = occupiedGridOffsets(rightToken);
+    if (leftOffsets.length === 0 || rightOffsets.length === 0) return false;
+
+    for (const leftOffset of leftOffsets) {
+      for (const rightOffset of rightOffsets) {
+        if (activeGrid.testAdjacency(leftOffset, rightOffset)) return true;
+      }
+    }
+
+    return false;
+  }
 
   async function applyDisengage(actor, combat = globalThis.game?.combat) {
     const uuid = actorUuid(actor);
@@ -72,11 +95,11 @@ export function createEngagedStatusController({
   }
 
   /**
-   * Engaged is continuously derived from hostile adjacency. GM-only mutation
-   * prevents multiple clients from racing to write the same native status.
+   * Reconcile the native Engaged status from actual hostile adjacency only.
+   * GM-only mutation prevents multiple clients from racing to write statuses.
    */
   async function syncEngaged() {
-    if (!isGameMaster() || !distanceConfigured()) return false;
+    if (!isGameMaster()) return false;
 
     const sceneTokens = tokens();
     const expected = new Map();
@@ -90,13 +113,8 @@ export function createEngagedStatusController({
         const left = sceneTokens[i];
         const right = sceneTokens[j];
         if (!left?.actor || !right?.actor) continue;
-
-        const isForcedPair = Boolean(forcedPair(left.actor, right.actor));
-        if (!hostilePair(left, right) && !isForcedPair) continue;
-        if (!isForcedPair && (hiddenActor(left.actor) || hiddenActor(right.actor))) continue;
-
-        const measuredDistance = distance(left, right);
-        if (!Number.isFinite(measuredDistance) || measuredDistance > 1) continue;
+        if (!hostilePair(left, right)) continue;
+        if (!tokensAreAdjacent(left, right)) continue;
 
         expected.set(left.actor.uuid, true);
         expected.set(right.actor.uuid, true);
@@ -117,6 +135,13 @@ export function createEngagedStatusController({
     return true;
   }
 
+  function tokenUpdateChangesAdjacency(change = {}) {
+    if (!change || typeof change !== "object") return false;
+    return ["x", "y", "elevation", "width", "height"].some(key =>
+      Object.prototype.hasOwnProperty.call(change, key)
+    );
+  }
+
   function diagnostics() {
     return Object.freeze({
       disengagedActors: [...disengagedActors.values()].map(record => ({ ...record }))
@@ -128,6 +153,8 @@ export function createEngagedStatusController({
     syncDisengage,
     isDisengaged,
     syncEngaged,
+    tokenUpdateChangesAdjacency,
+    tokensAreAdjacent,
     diagnostics
   });
 }

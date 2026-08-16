@@ -343,9 +343,6 @@ async function endGrappleForActor(actor) {
 const engagedStatus = createEngagedStatusController({
   applyStatus: applyNativeStatus,
   removeStatus: removeNativeStatus,
-  distance: (leftToken, rightToken) => runtime.distance(leftToken, rightToken),
-  distanceConfigured: () => typeof runtime.distance === "function",
-  forcedPair: (leftActor, rightActor) => grapples.has(grappleId(leftActor, rightActor)),
   turnKey,
   actorUuid
 });
@@ -408,16 +405,20 @@ async function handleCombatUpdate(combat) {
   engagedStatus.syncDisengage(combat);
   await syncTimedStatuses(combat);
   await syncGrapples();
-  await engagedStatus.syncEngaged();
   await syncDangerZones();
   return true;
 }
-async function handleTokenUpdate() { hydrateStatusOrchestrationState(); await syncGrapples(); await engagedStatus.syncEngaged(); return true; }
+async function handleTokenUpdate(_tokenDocument, change = {}) {
+  if (!engagedStatus.tokenUpdateChangesAdjacency(change)) return false;
+  hydrateStatusOrchestrationState();
+  await syncGrapples();
+  await engagedStatus.syncEngaged();
+  return true;
+}
 async function handleActorUpdate(actor) { return syncDangerZone(actor); }
 async function handleCombatDelete(combat) {
   for (const record of [...timedStatuses.values()]) if (!record.combatId || record.combatId === combat?.id) await clearTimedRecord(record);
   for (const record of [...grapples.values()]) await clearGrapple(record);
-  await engagedStatus.syncEngaged();
   return true;
 }
 function diagnostics() { return Object.freeze({ runtimeBindings: runtimeBindings(), timedStatuses: [...timedStatuses.values()].map(record => ({ ...record })), grapples: [...grapples.values()].map(record => ({ ...record })), engaged: engagedStatus.diagnostics() }); }
