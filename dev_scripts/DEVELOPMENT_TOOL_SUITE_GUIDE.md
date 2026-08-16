@@ -21,6 +21,9 @@ dev_scripts/
   automatic-patch-staging.mjs     corridor -> dependency-ordered staged patch specs
   change-propagation-simulator.mjs exact staged transition -> temporal compatibility/risk report
   runtime-contract-probes.mjs      goal -> reversible Foundry runtime probe bundle
+  domain-decomposer.mjs           file/domain evidence -> reviewable decomposition plan
+  domain-decomposer-executor.mjs  approved plan -> dependency-closed FilePatcher extraction
+  domain-decomposer-policy.json   LOC pressure + decomposition-resistant architecture policy
   repo-audit.mjs                  repository integrity + dependency watershed
   symbol-family-audit.mjs         symbol-family topology / ownership audit
   effect-atlas.mjs                side-effect ownership audit
@@ -88,6 +91,13 @@ npm run change-propagation:self-test
 # 9 — Runtime Contract Probes
 npm run runtime-probes
 npm run runtime-probes:self-test
+
+# 10 — Domain Decomposer
+npm run decompose
+npm run decompose:self-test
+npm run decompose:apply -- --dry-run
+npm run decompose:apply -- --apply
+npm run decompose:apply:self-test
 ```
 
 ---
