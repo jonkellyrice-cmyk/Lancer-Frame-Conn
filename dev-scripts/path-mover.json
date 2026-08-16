@@ -83,22 +83,6 @@
       "from": "The separation is intentional:",
       "to": "The separation between the local and GitHub executors is intentional even though both now live in the same development-tool directory:",
       "expected_occurrences": 1
-    },
-    {
-      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "from": "There are two similarly named tool directories. They have different jobs:\n\n```text\ndev_scripts/\n  filepatcher.py                  rich local FilePatcher / recovery executor\n  filepatcher.json                local Python FilePatcher patch contract\n  filepatcher-bootstrap.md        authoritative Python FilePatcher authoring contract\n  PATCH_DSL.md                    Patch DSL syntax guide\n  patch-dsl-compiler.mjs          DSL compiler for GitHub FilePatcher JSON\n  patch-corridor-planner.mjs      goal -> likely patch corridor planner\n  automatic-patch-staging.mjs     corridor -> dependency-ordered staged patch specs\n  change-propagation-simulator.mjs exact staged transition -> temporal compatibility/risk report\n  runtime-contract-probes.mjs      goal -> reversible Foundry runtime probe bundle\n  repo-audit.mjs                  repository integrity + dependency watershed\n  symbol-family-audit.mjs         symbol-family topology / ownership audit\n  effect-atlas.mjs                side-effect ownership audit\n  dependency_graph.py             detailed static dependency graph diagnostic\n  backups/                        local Python FilePatcher backups\n  patch-history/                  local Python FilePatcher patch history\ndev-scripts/\n  github-filepatcher.mjs          narrow remote/GitHub patch executor\n  filepatcher.json                authoritative GitHub patch specification\n  README.md                       GitHub FilePatcher-specific documentation\n\n.github/workflows/\n  github-filepatcher.yml          automatic remote patch workflow\n```",
-      "to": "The development tools now live in one canonical directory:\n\n```text\ndev_scripts/\n  filepatcher.py                  rich local FilePatcher / recovery executor\n  filepatcher.json                local Python FilePatcher patch contract\n  github-filepatcher.mjs          narrow remote/GitHub patch executor\n  github-filepatcher.json         authoritative GitHub patch specification\n  GITHUB_FILEPATCHER.md           GitHub FilePatcher-specific documentation\n  path-mover.mjs                  relocation + relative-import rewrite executor\n  path-mover.json                 declarative relocation plan\n  filepatcher-bootstrap.md        authoritative Python FilePatcher authoring contract\n  PATCH_DSL.md                    Patch DSL syntax guide\n  patch-dsl-compiler.mjs          DSL compiler for GitHub FilePatcher JSON\n  patch-corridor-planner.mjs      goal -> likely patch corridor planner\n  automatic-patch-staging.mjs     corridor -> dependency-ordered staged patch specs\n  change-propagation-simulator.mjs exact staged transition -> temporal compatibility/risk report\n  runtime-contract-probes.mjs     goal -> reversible Foundry runtime probe bundle\n  repo-audit.mjs                  repository integrity + dependency watershed\n  symbol-family-audit.mjs         symbol-family topology / ownership audit\n  effect-atlas.mjs                side-effect ownership audit\n  dependency_graph.py             detailed static dependency graph diagnostic\n  backups/                        local Python FilePatcher backups\n  patch-history/                  local Python FilePatcher patch history\n\n.github/workflows/\n  github-filepatcher.yml          automatic remote patch workflow\n  path-mover.yml                  automatic relocation workflow\n```",
-      "expected_occurrences": 1
-    },
-    {
-      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "from": "dev-scripts/filepatcher.json",
-      "to": "dev_scripts/github-filepatcher.json"
-    },
-    {
-      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "from": "dev-scripts/",
-      "to": "dev_scripts/"
     }
   ]
 }
