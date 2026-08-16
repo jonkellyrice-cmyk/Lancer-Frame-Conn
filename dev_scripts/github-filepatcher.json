@@ -1,9 +1,89 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after removing Frame Conn Danger Zone derivation and Thermal Runaway Exposed injection in favor of native Foundry Lancer behavior.",
+  "id": "restore-danger-zone-and-native-overheat-consequences",
+  "description": "Restore Frame Conn automation only for status consequences the native Foundry Lancer system does not apply: derived Danger Zone and statuses resulting from the already-resolved native OverheatFlow table roll.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 4,
+    "allowed_paths": [
+      "scripts/rules_features/status_conditions/danger-zone-status.js",
+      "scripts/rules_features/status_conditions/overheating-status.js",
+      "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "scripts/runtime-orchestrator.js"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "create_file",
+      "path": "scripts/rules_features/status_conditions/danger-zone-status.js",
+      "content": "/**\n * @file scripts/rules_features/status_conditions/danger-zone-status.js\n * @module danger-zone-status\n * @responsibility Derive Lancer Danger Zone from current Heat and Heat Cap when the native Foundry Lancer system does not persist the status automatically.\n */\n\nexport function createDangerZoneStatusController({\n  applyStatus,\n  removeStatus,\n  actorUuid,\n  actors = () => globalThis.game?.actors?.contents ?? []\n} = {}) {\n  for (const [name, value] of Object.entries({ applyStatus, removeStatus, actorUuid })) {\n    if (typeof value !== \"function\") {\n      throw new TypeError(`Frame Conn Danger Zone dependency ${name} must be a function.`);\n    }\n  }\n\n  function canAuthoritativelyMutateActor(actor) {\n    const users = [...(globalThis.game?.users ?? [])];\n    const activeGmExists = users.some(user => user?.active && user?.isGM);\n    if (activeGmExists) return Boolean(globalThis.game?.user?.isGM);\n    return Boolean(actor?.isOwner);\n  }\n\n  function threshold(actor) {\n    const heatCap = Number(actor?.system?.heat?.max);\n    if (!Number.isFinite(heatCap) || heatCap <= 0) return null;\n    return Math.ceil(heatCap / 2);\n  }\n\n  async function syncActor(actor) {\n    if (!actor || actor.type !== \"mech\") return false;\n\n    const heat = Number(actor?.system?.heat?.value);\n    const heatCap = Number(actor?.system?.heat?.max);\n    const dangerThreshold = threshold(actor);\n    if (!Number.isFinite(heat) || dangerThreshold === null) return false;\n\n    const shouldBeActive = heat >= dangerThreshold;\n    const isActive = Boolean(actor?.system?.statuses?.dangerzone);\n\n    if (shouldBeActive === isActive) {\n      return Object.freeze({\n        actorUuid: actorUuid(actor),\n        heat,\n        heatCap,\n        threshold: dangerThreshold,\n        active: isActive,\n        changed: false\n      });\n    }\n\n    if (!canAuthoritativelyMutateActor(actor)) return false;\n\n    const result = shouldBeActive\n      ? await applyStatus(actor, \"dangerzone\")\n      : await removeStatus(actor, \"dangerzone\");\n\n    return Object.freeze({\n      actorUuid: actorUuid(actor),\n      heat,\n      heatCap,\n      threshold: dangerThreshold,\n      active: shouldBeActive,\n      changed: Boolean(result?.changed)\n    });\n  }\n\n  async function syncAll() {\n    const results = [];\n    for (const actor of [...actors()]) {\n      if (actor?.type !== \"mech\") continue;\n      results.push(await syncActor(actor));\n    }\n    return Object.freeze(results);\n  }\n\n  return Object.freeze({ threshold, syncActor, syncAll });\n}\n"
+    },
+    {
+      "type": "create_file",
+      "path": "scripts/rules_features/status_conditions/overheating-status.js",
+      "content": "/**\n * @file scripts/rules_features/status_conditions/overheating-status.js\n * @module overheating-status\n * @responsibility Apply the mechanical status consequences of the native Foundry Lancer OverheatFlow result without re-rolling or replacing the native overheating check.\n */\n\nconst OVERHEAT_FLOW = \"OverheatFlow\";\nconst CONSEQUENCE_STEP = \"frameConnApplyNativeOverheatStatusConsequences\";\n\nexport function createOverheatingStatusController({\n  applyStatus,\n  applyUntilEndOfNextTurn,\n  installFlowStepBefore\n} = {}) {\n  for (const [name, value] of Object.entries({ applyStatus, applyUntilEndOfNextTurn, installFlowStepBefore })) {\n    if (typeof value !== \"function\") {\n      throw new TypeError(`Frame Conn Overheating dependency ${name} must be a function.`);\n    }\n  }\n\n  function selectedNativeOverheatRoll(roll) {\n    const firstTerm = Array.isArray(roll?.terms) ? roll.terms[0] : null;\n    if (!Array.isArray(firstTerm?.rolls) || firstTerm.rolls.length <= 1) return roll;\n\n    const chosenIndex = Array.isArray(firstTerm?.results)\n      ? firstTerm.results.findIndex(result => !result?.discarded)\n      : -1;\n\n    return chosenIndex >= 0\n      ? firstTerm.rolls[chosenIndex] ?? roll\n      : roll;\n  }\n\n  function nativeOverheatOneCount(roll) {\n    const selectedRoll = selectedNativeOverheatRoll(roll);\n    const dieTerm = Array.isArray(selectedRoll?.terms)\n      ? selectedRoll.terms.find(term => Array.isArray(term?.results))\n      : null;\n\n    if (!dieTerm) return 0;\n    return dieTerm.results.filter(result => Number(result?.result) === 1).length;\n  }\n\n  async function applyNativeOverheatStatusConsequences(state) {\n    const actor = state?.actor ?? null;\n    const data = state?.data ?? null;\n    if (!actor || !data) return true;\n\n    const isMech = typeof actor.is_mech === \"function\" ? actor.is_mech() : actor.type === \"mech\";\n    const isNpc = typeof actor.is_npc === \"function\" ? actor.is_npc() : actor.type === \"npc\";\n    if (!isMech && !isNpc) return true;\n\n    // Native Lancer treats 1-Stress NPC overheating as Destabilized Power Plant.\n    // The Flow prints that result but does not persist Exposed itself.\n    if (isNpc && Number(actor?.system?.stress?.max) === 1 && !data?.result?.roll) {\n      await applyStatus(actor, \"exposed\");\n      return true;\n    }\n\n    const remainingStress = Number(data?.remStress);\n    if (!Number.isFinite(remainingStress) || remainingStress <= 0) return true;\n\n    const roll = data?.result?.roll ?? null;\n    const result = Number(roll?.total);\n    if (!Number.isFinite(result)) return true;\n\n    // Multiple 1s are Irreversible Meltdown and override the ordinary roll-1 result.\n    if (result === 1 && nativeOverheatOneCount(roll) > 1) return true;\n\n    // Emergency Shunt: Impaired until the end of the character's next turn.\n    if (result >= 5) {\n      await applyUntilEndOfNextTurn(actor, [\"impaired\"], {\n        sourceActionId: \"native-overheat-emergency-shunt\"\n      });\n      return true;\n    }\n\n    // Destabilized Power Plant: Exposed until cleared.\n    if (result >= 2) {\n      await applyStatus(actor, \"exposed\");\n      return true;\n    }\n\n    // Meltdown result with 3+ Stress remaining: Exposed.\n    if (result === 1 && remainingStress >= 3) {\n      await applyStatus(actor, \"exposed\");\n      return true;\n    }\n\n    // At 2 Stress remaining, native Foundry Lancer inserts the Engineering\n    // check button into the Overheat card. Its success/failure must resolve\n    // before any further consequence can be known. At 1 Stress, the result is\n    // a reactor meltdown rather than a status.\n    return true;\n  }\n\n  function install() {\n    return installFlowStepBefore({\n      stepName: CONSEQUENCE_STEP,\n      beforeStep: \"noStressRemaining\",\n      flowNames: [OVERHEAT_FLOW],\n      step: applyNativeOverheatStatusConsequences\n    });\n  }\n\n  return Object.freeze({\n    install,\n    applyNativeOverheatStatusConsequences,\n    nativeOverheatOneCount\n  });\n}\n"
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "import { defineFrameConnFeature } from \"../../feature-contract.js\";\nimport { createEngagedStatusController } from \"./engaged-status.js\";",
+      "replace": "import { defineFrameConnFeature } from \"../../feature-contract.js\";\nimport { createEngagedStatusController } from \"./engaged-status.js\";\nimport { createDangerZoneStatusController } from \"./danger-zone-status.js\";\nimport { createOverheatingStatusController } from \"./overheating-status.js\";",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "const runtime = { applyStatus: null, removeStatus: null, distance: null };",
+      "replace": "const runtime = { applyStatus: null, removeStatus: null, distance: null, installNativeFlowStepBefore: null };",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "    statusApplication: typeof runtime.applyStatus === \"function\",\n    statusRemoval: typeof runtime.removeStatus === \"function\",\n    spatialDistance: typeof runtime.distance === \"function\"",
+      "replace": "    statusApplication: typeof runtime.applyStatus === \"function\",\n    statusRemoval: typeof runtime.removeStatus === \"function\",\n    spatialDistance: typeof runtime.distance === \"function\",\n    nativeFlowExtension: typeof runtime.installNativeFlowStepBefore === \"function\"",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "const engagedStatus = createEngagedStatusController({\n  applyStatus: applyNativeStatus,\n  removeStatus: removeNativeStatus,\n  turnKey,\n  actorUuid\n});",
+      "replace": "const engagedStatus = createEngagedStatusController({\n  applyStatus: applyNativeStatus,\n  removeStatus: removeNativeStatus,\n  turnKey,\n  actorUuid\n});\n\nconst dangerZoneStatus = createDangerZoneStatusController({\n  applyStatus: applyNativeStatus,\n  removeStatus: removeNativeStatus,\n  actorUuid\n});\n\nconst overheatingStatus = createOverheatingStatusController({\n  applyStatus: applyNativeStatus,\n  applyUntilEndOfNextTurn,\n  installFlowStepBefore: options => {\n    if (typeof runtime.installNativeFlowStepBefore !== \"function\") {\n      throw new Error(\"Frame Conn Status Orchestration native Flow extension is not configured.\");\n    }\n    return runtime.installNativeFlowStepBefore(options);\n  }\n});",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "  await syncTimedStatuses(combat);\n  await syncGrapples();\n  return true;",
+      "replace": "  await syncTimedStatuses(combat);\n  await syncGrapples();\n  await dangerZoneStatus.syncAll();\n  return true;",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "async function handleCombatDelete(combat) {",
+      "replace": "async function handleActorUpdate(actor) { return dangerZoneStatus.syncActor(actor); }\nasync function handleCombatDelete(combat) {",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "  provides: [\"status.orchestration\", \"status.timed\", \"status.grapple\", \"status.engaged.derived\"],\n  dependsOn: [\"native-adapter.status\", \"sensors.measurement\"],",
+      "replace": "  provides: [\"status.orchestration\", \"status.timed\", \"status.grapple\", \"status.engaged.derived\", \"status.danger-zone.derived\", \"status.overheat-consequences\"],\n  dependsOn: [\"native-adapter.status\", \"native-adapter.flow-extension\", \"sensors.measurement\"],",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged },\n  queries: { diagnostics, runtimeBindings, isDisengaged: engagedStatus.isDisengaged, getGrapplesForActor, getGrappleBetween, hydrateStatusOrchestrationState },\n  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { hydrateStatusOrchestrationState(); await syncGrapples(); return engagedStatus.syncEngaged(); } },\n  lifecycle: {},\n  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, isDisengaged: engagedStatus.isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, diagnostics, runtimeBindings },",
+      "replace": "  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, syncDangerZone: dangerZoneStatus.syncActor, syncDangerZones: dangerZoneStatus.syncAll, installOverheatingConsequences: overheatingStatus.install },\n  queries: { diagnostics, runtimeBindings, isDisengaged: engagedStatus.isDisengaged, getGrapplesForActor, getGrappleBetween, hydrateStatusOrchestrationState, dangerZoneThreshold: dangerZoneStatus.threshold },\n  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, updateActor: handleActorUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { overheatingStatus.install(); hydrateStatusOrchestrationState(); await syncGrapples(); await engagedStatus.syncEngaged(); return dangerZoneStatus.syncAll(); } },\n  lifecycle: {},\n  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, isDisengaged: engagedStatus.isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, dangerZoneThreshold: dangerZoneStatus.threshold, syncDangerZone: dangerZoneStatus.syncActor, syncDangerZones: dangerZoneStatus.syncAll, installOverheatingConsequences: overheatingStatus.install, diagnostics, runtimeBindings },",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "      distance:\n        (sourceToken, targetToken) =>\n          frameConnSensorsApi.distance(sourceToken, targetToken)\n    });",
+      "replace": "      distance:\n        (sourceToken, targetToken) =>\n          frameConnSensorsApi.distance(sourceToken, targetToken),\n\n      installNativeFlowStepBefore:\n        options =>\n          frameConnNativeAdapterApi\n            .installFlowStepBefore(\n              options\n            )\n    });",
+      "expected_occurrences": 1
+    }
+  ]
 }
