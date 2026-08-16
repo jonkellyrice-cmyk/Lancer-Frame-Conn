@@ -1585,14 +1585,7 @@ function configureFrameConnRuntimeBindings() {
 
       distance:
         (sourceToken, targetToken) =>
-          frameConnSensorsApi.distance(sourceToken, targetToken),
-
-      installNativeFlowStepBefore:
-        options =>
-          frameConnNativeAdapterApi
-            .installFlowStepBefore(
-              options
-            )
+          frameConnSensorsApi.distance(sourceToken, targetToken)
     });
 
 

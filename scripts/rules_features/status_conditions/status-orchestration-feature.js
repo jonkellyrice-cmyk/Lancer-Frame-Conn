@@ -12,10 +12,8 @@ import { createEngagedStatusController } from "./engaged-status.js";
 const MODULE_ID = "lancer-frame-conn";
 const TIMED_FLAG = "timed-statuses";
 const GRAPPLE_FLAG = "grapple-relationships";
-const THERMAL_RUNAWAY_FLOW_STEP = "frameConnApplyThermalRunawayExposed";
-const THERMAL_RUNAWAY_FLOW = "OverheatFlow";
 
-const runtime = { applyStatus: null, removeStatus: null, distance: null, installNativeFlowStepBefore: null };
+const runtime = { applyStatus: null, removeStatus: null, distance: null };
 const timedStatuses = new Map();
 const grapples = new Map();
 
@@ -35,8 +33,7 @@ function runtimeBindings() {
   return Object.freeze({
     statusApplication: typeof runtime.applyStatus === "function",
     statusRemoval: typeof runtime.removeStatus === "function",
-    spatialDistance: typeof runtime.distance === "function",
-    nativeFlowExtension: typeof runtime.installNativeFlowStepBefore === "function"
+    spatialDistance: typeof runtime.distance === "function"
   });
 }
 
@@ -92,95 +89,6 @@ async function bestEffortUnsetFlag(actor, key) {
 function nativeStatusConfigured(statusId) {
   return Array.isArray(globalThis.CONFIG?.statusEffects) &&
     globalThis.CONFIG.statusEffects.some(status => status?.id === statusId);
-}
-
-function canAuthoritativelyMutateActor(actor) {
-  const users = [...(globalThis.game?.users ?? [])];
-  const activeGmExists = users.some(user => user?.active && user?.isGM);
-  if (activeGmExists) return Boolean(globalThis.game?.user?.isGM);
-  return Boolean(actor?.isOwner);
-}
-
-function dangerZoneThreshold(actor) {
-  const heatCap = Number(actor?.system?.heat?.max);
-  if (!Number.isFinite(heatCap) || heatCap <= 0) return null;
-  return Math.ceil(heatCap / 2);
-}
-
-async function syncDangerZone(actor) {
-  if (!actor || actor.type !== "mech") return false;
-
-  const heat = Number(actor?.system?.heat?.value);
-  const threshold = dangerZoneThreshold(actor);
-  if (!Number.isFinite(heat) || threshold === null) return false;
-
-  const shouldBeInDangerZone = heat >= threshold;
-  const isInDangerZone = Boolean(actor?.system?.statuses?.dangerzone);
-
-  if (shouldBeInDangerZone === isInDangerZone) {
-    return Object.freeze({
-      actorUuid: actorUuid(actor),
-      heat,
-      heatCap: Number(actor.system.heat.max),
-      threshold,
-      active: isInDangerZone,
-      changed: false
-    });
-  }
-
-  if (!canAuthoritativelyMutateActor(actor)) return false;
-
-  const result = shouldBeInDangerZone
-    ? await applyNativeStatus(actor, "dangerzone")
-    : await removeNativeStatus(actor, "dangerzone");
-
-  return Object.freeze({
-    actorUuid: actorUuid(actor),
-    heat,
-    heatCap: Number(actor.system.heat.max),
-    threshold,
-    active: shouldBeInDangerZone,
-    changed: Boolean(result?.changed)
-  });
-}
-
-async function syncDangerZones() {
-  const actors = [...(globalThis.game?.actors?.contents ?? [])];
-  const results = [];
-  for (const actor of actors) {
-    if (actor?.type !== "mech") continue;
-    results.push(await syncDangerZone(actor));
-  }
-  return Object.freeze(results);
-}
-
-/**
- * Native Lancer already owns the Thermal Runaway reactor transition through
- * OverheatFlow. By the time this step runs, preOverheatRollChecks has verified
- * Heat > Heat Cap, spent 1 Stress, and replaced current Heat with only the
- * overflow beyond Heat Cap. Frame Conn adds only the missing persistent
- * Exposed consequence. Native overheat rerolls are not new Thermal Runaway
- * events and must not reapply this consequence.
- */
-async function applyThermalRunawayExposed(state) {
-  if (state?.data?.reroll_data) return true;
-  const actor = state?.actor ?? null;
-  const isMech = Boolean(actor && (typeof actor.is_mech === "function" ? actor.is_mech() : actor.type === "mech"));
-  if (!isMech) return true;
-  await applyNativeStatus(actor, "exposed");
-  return true;
-}
-
-function installThermalRunawayExtension() {
-  if (typeof runtime.installNativeFlowStepBefore !== "function") {
-    throw new Error("Frame Conn Status Orchestration native Flow extension is not configured.");
-  }
-  return runtime.installNativeFlowStepBefore({
-    stepName: THERMAL_RUNAWAY_FLOW_STEP,
-    beforeStep: "rollOverheatTable",
-    flowNames: [THERMAL_RUNAWAY_FLOW],
-    step: applyThermalRunawayExposed
-  });
 }
 
 async function applyStatuses(actor, statusIds = []) {
@@ -405,7 +313,6 @@ async function handleCombatUpdate(combat) {
   engagedStatus.syncDisengage(combat);
   await syncTimedStatuses(combat);
   await syncGrapples();
-  await syncDangerZones();
   return true;
 }
 async function handleTokenUpdate(tokenDocument, change = {}) {
@@ -418,7 +325,6 @@ async function handleTokenUpdate(tokenDocument, change = {}) {
   });
   return true;
 }
-async function handleActorUpdate(actor) { return syncDangerZone(actor); }
 async function handleCombatDelete(combat) {
   for (const record of [...timedStatuses.values()]) if (!record.combatId || record.combatId === combat?.id) await clearTimedRecord(record);
   for (const record of [...grapples.values()]) await clearGrapple(record);
@@ -429,14 +335,14 @@ function diagnostics() { return Object.freeze({ runtimeBindings: runtimeBindings
 export const frameConnStatusOrchestrationFeature = defineFrameConnFeature({
   id: "status-orchestration",
   domain: "status.orchestration",
-  provides: ["status.orchestration", "status.timed", "status.grapple", "status.engaged.derived", "status.danger-zone.derived", "status.thermal-runaway"],
-  dependsOn: ["native-adapter.status", "native-adapter.flow-extension", "sensors.measurement"],
+  provides: ["status.orchestration", "status.timed", "status.grapple", "status.engaged.derived"],
+  dependsOn: ["native-adapter.status", "sensors.measurement"],
   optionalDependsOn: [],
   state: {},
-  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, syncDangerZone, syncDangerZones, installThermalRunawayExtension },
+  commands: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged },
   queries: { diagnostics, runtimeBindings, isDisengaged: engagedStatus.isDisengaged, getGrapplesForActor, getGrappleBetween, hydrateStatusOrchestrationState },
-  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, updateActor: handleActorUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { installThermalRunawayExtension(); hydrateStatusOrchestrationState(); await syncGrapples(); await engagedStatus.syncEngaged(); return syncDangerZones(); } },
+  hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { hydrateStatusOrchestrationState(); await syncGrapples(); return engagedStatus.syncEngaged(); } },
   lifecycle: {},
-  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, isDisengaged: engagedStatus.isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, dangerZoneThreshold, syncDangerZone, syncDangerZones, installThermalRunawayExtension, diagnostics, runtimeBindings },
+  api: { configureRuntime, applyStatuses, removeStatuses, applyUntilEndOfNextTurn, establishGrapple, getGrapplesForActor, getGrappleBetween, endGrappleBetween, endGrappleForActor, applyDisengage: engagedStatus.applyDisengage, isDisengaged: engagedStatus.isDisengaged, hydrateStatusOrchestrationState, syncTimedStatuses, syncGrapples, syncEngaged: engagedStatus.syncEngaged, diagnostics, runtimeBindings },
   metadata: { label: "Status Orchestration", nativeStatusAuthority: "native-adapter.status", coverPolicy: "Cover remains attacker-relative and is not represented as one global persistent status." }
 });
