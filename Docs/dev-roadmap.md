@@ -1,120 +1,202 @@
 # Frame Conn Development Roadmap
 
-This document records the current development state of Frame Conn based on live Foundry playtesting. It is intended to be the concise working roadmap for universal actions and the next architecture milestones before deeper weapon, mount, system, trait, core-power, talent, and resource integration.
+This document records the current development state of Frame Conn based on live Foundry playtesting. It is the working roadmap for universal actions, rules automation, maintenance controls, actor-owned content integration, and resource management.
 
 ## Status legend
 
-- **DONE** — live-tested and behaving correctly enough to treat as complete for the current milestone.
-- **PARTIAL** — substantially implemented, but still has a known behavior gap or needs further live verification.
-- **TODO** — execution shell may exist, but the mechanic is not yet implemented correctly.
-- **CONTENT-DEPENDENT** — requires actor-owned weapons, mounts, systems, traits, talents, core powers, core bonuses, or similar content discovery before it can be considered complete.
+- **DONE** — implemented and live-tested well enough to treat as complete for the current milestone.
+- **FIX IMPLEMENTED / RETEST** — a concrete fix has been implemented, but the corrected behavior still needs live Foundry confirmation.
+- **PARTIAL** — substantially implemented, but a known rules or state-management gap remains.
+- **TODO** — an execution shell may exist, but the mechanic is not yet implemented correctly.
+- **CONTENT-DEPENDENT** — requires actor-owned weapons, mounts, systems, traits, talents, core powers, core bonuses, or similar discovery/execution infrastructure.
 
 ---
 
-## Universal actions — done
+# Phase 1 — Universal actions and core combat rules
+
+## Done
 
 ### Quick Tech — Lock On — DONE
 
 Live-tested successfully.
 
-Expected behavior:
+Current behavior:
 
-- no roll;
+- no attack roll;
 - acquire exactly one valid target;
 - target must be within Sensors;
-- apply the native Lancer `lockon` status to the target;
-- enemy/NPC mutation is GM-authoritative when required by Foundry permissions.
+- apply native Lancer `lockon` state;
+- enemy/NPC mutation uses the appropriate Foundry authority path.
 
 ### Stabilize — DONE
 
-Live-tested successfully through the native Lancer Stabilize workflow.
+Live-tested successfully through native Lancer Stabilize execution.
 
-Keep native Lancer as the execution authority. Do not duplicate native cooling, repair, reload, Burn, Exposed, or related Stabilize behavior in Frame Conn unless a specific native omission needs an explicit Frame Conn interaction.
+Native Lancer remains authoritative for cooling, repair, reload, Burn, Exposed clearing, and other Stabilize effects.
 
 ### Shut Down — DONE
 
 Live-tested successfully.
 
-Applies the native `shutdown` status.
+Applies native Shutdown state.
 
 ### Boot Up — DONE
 
 Live-tested successfully.
 
-Removes the native `shutdown` status.
+Removes native Shutdown state.
 
 ### Hide — DONE
 
 Live-tested successfully for the current implementation scope.
 
-Applies native Hidden state and uses Frame Conn status orchestration for the application side.
+Applies native Hidden state through Frame Conn status orchestration.
 
-### Skill Check — DONE / DOCUMENTATION VERIFY
+### Skill Check — DONE
 
-The mech-skill check path is functioning.
-
-Verify that the implementation and documentation explicitly record this as an intentional supported state rather than an accidental consequence of the generic HULL / AGI / SYS / ENG execution path.
+The mech-skill check path is functioning through HULL / AGI / SYS / ENG selection and native roll execution.
 
 ### Search — DONE
 
-Live-tested successfully as far as current testing could determine.
+Live-tested successfully.
 
-A successful Search correctly removes the target's native Hidden condition.
+A successful Search removes the target's native Hidden condition.
+
+### Overcharge — DONE
+
+Frame Conn now delegates Overcharge to native Lancer execution rather than maintaining an independent escalation model.
+
+Native Lancer owns:
+
+- the escalating Overcharge formula;
+- `system.overcharge_sequence`;
+- Heat rolling/application;
+- native chat output;
+- any system-specific Overcharge modifications.
+
+Frame Conn owns only the turn-level availability/additional Quick Action semantics and presentation.
+
+### Overheating rules — DONE
+
+The native Lancer OverheatFlow remains authoritative for the overheating roll and table result. Frame Conn supplies the missing automatic consequences.
+
+Implemented rules include:
+
+- Danger Zone derived from Heat and Heat Cap;
+- Emergency Shunt applying Impaired until the end of the mech's next turn;
+- Destabilized Power Plant applying Exposed;
+- Direct overheating-result Exposed handling;
+- Engineering-check branch handling where required;
+- reactor-meltdown countdown state;
+- terminal reactor-meltdown resolution;
+- red Burst 2 template;
+- automatic Agility saves for affected characters;
+- one shared 4d6 explosive damage roll;
+- full damage on failed save and half damage on successful save;
+- native damage application;
+- removal of the annihilated mech token from the Scene;
+- reactor-meltdown telemetry warning state.
+
+### Structure damage — DONE EXCEPT MOUNT/SYSTEM TRAUMA SELECTION
+
+Native Lancer StructureFlow remains authoritative for the structure damage check/table roll. Frame Conn supplies missing automatic consequences.
+
+Implemented:
+
+- Glancing Blow automatically applies Impaired until end of next turn;
+- Direct Hit at 3+ Structure automatically applies Stunned until end of next turn;
+- Direct Hit at 2 Structure automatically launches the native Hull check;
+- successful Hull check applies Stunned until end of next turn;
+- failed Hull check destroys the mech and removes its token;
+- Direct Hit at 1 Structure destroys the mech;
+- Crushing Hit destroys the mech;
+- any direct transition to 0 Structure removes the destroyed mech token;
+- Structure telemetry pulses by remaining Structure: 4 normal, 3 yellow, 2 orange, 1 red.
+
+Still deferred:
+
+- System Trauma choice between weapon mount and mounted system destruction;
+- selecting exactly which eligible mount/system is destroyed.
+
+This is intentionally deferred to Phase 2 because it depends on mount/system discovery.
+
+### Self-Destruct — DONE
+
+Self-Destruct is executable from the committed-plan panel.
+
+Execution prompts for:
+
+- **NOW**;
+- **1 ROUND**;
+- **2 ROUNDS**.
+
+It reuses the authoritative reactor-meltdown countdown and terminal explosion resolver rather than maintaining duplicate explosion logic.
+
+Terminal behavior therefore uses the same:
+
+- red Burst 2 template;
+- Agility saves;
+- 4d6 explosive damage;
+- full/half damage handling;
+- native damage application;
+- source-token annihilation.
+
+### Quick Tech — Invade — Fragment Signal — DONE
+
+Fragment Signal executes and applies its intended status consequences through the current status/lifecycle architecture.
+
+Treat the current implementation as complete for Phase 1 unless further live play reveals an expiry defect.
+
+### Movement policy — DONE
+
+Frame Conn observes token movement but does not police it.
+
+Current policy:
+
+> Observe movement; do not police physical token movement.
+
+Frame Conn does not automatically spend Boost, automatically Overcharge because a token moved farther than expected, reject token dragging, or warn that the player moved too far.
+
+Movement measurement remains available for telemetry and rules that genuinely depend on distance traveled.
 
 ---
 
-## Universal actions — partial or incomplete
+## Not done / current live defects
 
-### Overcharge — PARTIAL
+### Brace — TODO
 
-Overcharge substantially works, but Frame Conn's escalation state must not exist independently from the native Lancer actor state.
+Current live failure:
 
-Required fix:
+> No prompt appears asking whether the character wants to Brace when the relevant attack/damage opportunity occurs.
 
-- use the same authoritative escalating Overcharge/Heat cost represented by the character sheet/native Lancer system;
-- Frame Conn must read/delegate to native state rather than maintain a separate escalation counter.
+Required work:
+
+- trace the native attack/damage event where the Brace opportunity becomes known;
+- prompt the player to **Brace / Do Not Brace**;
+- explain the immediate consequence in the prompt;
+- only consume the reaction and apply Brace effects if accepted;
+- preserve native Lancer attack/damage execution rather than replacing it.
 
 ### Grapple — TODO
 
-The attack portion exists, but Grapple needs dedicated post-hit resolution instead of falling through the generic attack/damage workflow.
+The attack portion exists, but Grapple needs dedicated post-hit handling instead of flowing into generic damage resolution.
 
-Required behavior after a successful Grapple attack includes the Grapple relationship and its specific status/rules consequences; it should not proceed as though it were an ordinary weapon attack that now needs a damage roll.
+Required work after a successful Grapple attack:
+
+- establish the Grapple relationship;
+- apply/update the correct relationship-driven rules state;
+- integrate with Engaged derivation;
+- do **not** treat Grapple as an ordinary damaging attack awaiting generic damage resolution.
 
 ### Ram — TODO
 
-The attack portion exists, but Ram needs dedicated post-hit resolution instead of falling through the generic attack/damage workflow.
+The attack portion exists, but Ram needs dedicated post-hit handling instead of generic damage resolution.
 
-Required behavior after a successful Ram attack includes Prone and any applicable forced-movement handling; it should not proceed as an ordinary attack awaiting generic damage resolution.
+Required work after a successful Ram attack:
 
-### Quick Tech — Invade — Fragment Signal — PARTIAL / EXPIRY TEST NEEDED
-
-The action currently works and applies its intended statuses.
-
-Still needs live verification that Impaired and Slowed expire at the correct rules timing: the end of the target's next turn.
-
-### Quick Tech — Bolster — PARTIAL
-
-The action executes, but the granted Accuracy is not currently represented as a durable, consumable game state.
-
-Required work:
-
-- record Bolster on the target;
-- make the next applicable skill check or save consume/use that Accuracy according to Lancer rules;
-- avoid a Frame Conn-only shadow value if an authoritative native representation can be used or extended safely.
-
-### Quick Tech — Scan — TODO / TARGETING BUG
-
-Current failure:
-
-> You must target a token to scan.
-
-This occurs even when a Foundry token is already targeted.
-
-Required work:
-
-- trace the native Scan target-input shape;
-- adapt Frame Conn's selected-target representation to what the native Scan workflow actually expects;
-- preserve the native Scan workflow as execution authority.
+- apply the correct Prone result;
+- support any required forced-movement interaction;
+- do **not** route Ram through ordinary weapon damage resolution.
 
 ### Disengage — TODO / EXECUTION FAILURE
 
@@ -124,208 +206,190 @@ Current live error:
 
 Required work:
 
-- trace the transaction result and exact failure boundary;
-- preserve Disengage's current intended status/reaction-suppression semantics once execution succeeds.
+- trace the canonical execution transaction and identify the exact failure boundary;
+- preserve the intended Disengage reaction-suppression semantics once execution succeeds;
+- verify duration/turn expiration through the rules-side status architecture.
 
-### Brace — TODO
+### Quick Tech — Scan — FIX IMPLEMENTED / RETEST
 
-Current failure: no Brace prompt appears when the relevant damage/reaction opportunity occurs.
+Previous live failure:
+
+> You must target a token to scan.
+
+This occurred even while a Foundry token was visibly targeted.
+
+The traced defect was that Frame Conn called native Lancer's `actor.beginScanFlow()` without passing the selected target token. The implementation has now been changed so Frame Conn resolves the existing Foundry target and calls the native Scan flow with that token.
+
+Required next step:
+
+- live-test the corrected path in Foundry;
+- confirm an already-targeted token is accepted;
+- confirm the fallback target-selection prompt works if no target exists;
+- confirm native Scan output is otherwise unchanged.
+
+### Quick Tech — Bolster — PARTIAL
+
+Bolster executes, but the Accuracy it grants the target on the target's next skill check or save is not currently represented as durable/consumable state.
 
 Required work:
 
-- verify the native damage/attack hook where the Brace opportunity should be surfaced;
-- present a player prompt explaining the consequence;
-- allow Brace / Do Not Brace;
-- only spend the reaction and apply Brace state if accepted.
+- record the granted Accuracy on the target;
+- make the next eligible skill check or save consume that Accuracy;
+- make the state visible enough to diagnose during play;
+- prefer native Lancer state if an appropriate representation exists;
+- only add narrow Frame Conn-owned state if native Lancer has no usable representation.
 
 ### Mount / Dismount / Eject — TODO
 
-The action currently executes as a no-roll shell but has no meaningful gameplay effect.
+The action currently exists and can be committed/executed, but it does not yet change pilot/mech state.
 
-Desired pilot/mech state model:
+Desired relationship model:
 
-- Frame Conn must know whether the pilot is currently inside/piloting the mech;
-- if piloting, execution should offer **Dismount** or **Eject**;
-- Dismount should place/show the pilot token in the mech's current space;
-- Eject should use its separate rules consequences and should not simply behave as Dismount;
-- if the pilot token is already outside the mech in the appropriate space, execution should allow **Mount**;
-- mounting should remove/hide the pilot token from the map and mark the mech as occupied/piloted;
-- Foundry Lancer does not appear to expose a complete native occupied/unoccupied mech state, so Frame Conn may need to own this narrow relationship state while continuing to use native Actors/Tokens as authority for actual documents.
+#### If the pilot is inside the mech
 
-This should be modeled as a pilot↔mech relationship, not as a generic status icon.
+Executing the command should offer:
 
-### Prepare — TODO
+- **Dismount**;
+- **Eject**.
 
-Prepare needs a real delayed-action/reaction model.
+Dismount should:
 
-Required work:
+- place/show the pilot's human token in the same map space as the mech;
+- mark the mech as no longer occupied/piloted.
 
-- choose the action being prepared;
-- declare/store its trigger;
-- reserve/track the prepared action appropriately;
-- execute it later as the relevant reaction when the trigger occurs;
-- the prepared action itself may still require a roll, target, weapon, system, or other execution workflow when ultimately fired.
+Eject should use its own Lancer-specific consequences rather than simply aliasing Dismount.
 
-### Self-Destruct — TODO
+#### If the pilot is outside the mech
 
-The no-roll action shell currently executes but has no mechanical effect.
+If the pilot token is in the mech's space and belongs to that mech's pilot, executing the command should allow **Mount**.
 
-Required implementation includes the actual Self-Destruct state/workflow, including the mech being reduced to the appropriate destroyed state and the resulting area damage/explosion rules. The exact timing/countdown/native behavior should be verified against authoritative Lancer rules/native implementation before coding rather than approximated.
+Mount should:
 
----
+- remove/hide the human pilot token from the Scene;
+- mark the mech as occupied/piloted.
 
-## Content-dependent action infrastructure
+Foundry Lancer does not currently appear to expose a complete native occupied/unoccupied mech relationship, so Frame Conn may need to own this narrow pilot↔mech relationship state while leaving Actor and Token documents native-authoritative.
 
-The following should not be completed by inventing generic effects. They need actor-owned content discovery and execution routing first.
-
-### Activate — CONTENT-DEPENDENT
-
-Activate must discover and present valid activations supplied by the actor's actual content, including as applicable:
-
-- mounted systems;
-- mech/frame traits;
-- core powers;
-- weapons;
-- core bonuses;
-- pilot talents;
-- other actor-owned features that expose Quick or Full activations.
-
-Frame Conn should be the command/presentation layer; native Lancer/content-specific execution remains authoritative where available.
-
-### Protocol — CONTENT-DEPENDENT
-
-Protocols must be discovered from actor-owned content rather than represented as a fixed universal list.
-
-Potential sources include:
-
-- mounted systems;
-- mech/frame traits;
-- core powers;
-- weapons;
-- core bonuses;
-- pilot talents;
-- other actor-owned features with Protocol timing.
-
-### Skirmish — CONTENT-DEPENDENT
-
-Must become mount- and weapon-aware.
-
-Required direction:
-
-- discover the actor's actual mounts and weapons;
-- select the legal weapon/mount configuration;
-- delegate the attack to native Lancer weapon execution;
-- preserve target selection and action economy through Frame Conn.
-
-### Barrage — CONTENT-DEPENDENT
-
-Must become mount- and weapon-aware and honor Barrage-specific multi-mount/multi-weapon rules rather than using the generic Basic Attack shell.
-
-### Overwatch — CONTENT-DEPENDENT
-
-Must become weapon-, mount-, Threat-, and reaction-aware.
-
-The reaction trigger and legal weapon selection should use the same future weapon/mount discovery layer used by Skirmish and Barrage.
-
-### Mounted systems — CONTENT-DEPENDENT
-
-Mounted-system discovery and execution is a major next-stage dependency for Activate, Protocol, Full Tech choices, resources, and numerous frame/system-specific actions.
+This should be modeled as a relationship, not as a generic status icon.
 
 ---
 
-## Non-action infrastructure
+# Maintenance / non-action controls
 
 ### Rest — TODO / NATIVE CAPABILITY AUDIT
 
-Determine whether native Foundry Lancer exposes a Rest workflow or macro. It is not currently obvious on the standard character sheet.
+Rest may or may not have a native Foundry Lancer workflow. It is not currently obvious on the standard character sheet.
 
-If native support exists, Frame Conn should delegate to it. If not, implement Rest from authoritative Lancer rules through a dedicated non-combat-maintenance boundary rather than pretending it is a combat action.
+Required work:
+
+- trace whether native Lancer exposes Rest through an actor entry point, utility, macro, or flow;
+- delegate to native behavior if it exists;
+- otherwise implement Rest through authoritative Lancer rules in a dedicated maintenance boundary;
+- do not pretend Rest is a combat Quick/Full action.
 
 ### Full Repair — TODO
 
 Native Foundry Lancer exposes Full Repair through a character-sheet macro, so Frame Conn should wire that existing native capability into the UI.
 
-Full Repair is not a combat action and should probably appear as its own maintenance/control command rather than consume the turn action economy.
+Full Repair is not a combat action. It should appear as its own maintenance/control command rather than consume turn action economy.
 
 ---
 
-## Movement policy change
+# Phase 2 — Actor-owned content infrastructure
 
-### Remove movement policing / automatic Boost behavior
+The next major phase is actor-owned content discovery and native execution integration.
 
-Player feedback from live VTT play: Frame Conn should **not police physical token movement**.
+Required domains:
 
-Maps frequently require tokens to be repositioned around walls, terrain, templates, mistakes, scene setup, and other VTT concerns that do not correspond one-to-one with rules movement.
+1. **Mounted systems**
+2. **Weapon mounts**
+3. **Weapons**
+4. **Pilot talents**
+5. **Mech/frame traits**
+6. **Core powers**
+7. **Manufacturer core bonuses**
 
-Required change:
+These should be discovered from the actual actor/item model rather than represented as hard-coded generic lists.
 
-- stop automatically triggering or spending **Boost** because a token moved beyond its standard movement allowance;
-- stop automatically triggering an **Overcharge → Boost** path because a token continued moving;
-- remove warnings for moving "too far";
-- do not constrain or reject token dragging based on tracked movement allowance.
-
-Do **not** delete movement measurement/tracking entirely. Movement distance remains useful for presentation, effects that genuinely depend on distance traveled, and future rules calculations. The change is specifically:
-
-> observe movement; do not police token movement.
-
-Frame Conn action buttons should remain the authoritative way the player declares that they used Boost/Overcharge for action-economy purposes.
+The System Bridge / actor-owned feature registry should remain the authoritative Frame Conn boundary for discovering and normalizing this content, while native Lancer remains the preferred execution authority.
 
 ---
 
-## Status and condition architecture
+# Dependent actions
 
-Statuses/conditions need two distinct execution streams.
+These actions should not be considered complete until the Phase 2 content layer exists.
 
-### 1. Player-facing action consequences
+### Prepare — CONTENT-DEPENDENT / DELAYED-ACTION INFRASTRUCTURE
 
-Actions that explicitly apply or remove statuses may continue through the normal action execution spine.
+Prepare requires a real delayed-action/reaction model.
 
-Examples:
+Required work:
 
-- Lock On → apply Lock On;
-- Hide → apply Hidden;
-- Search → remove Hidden on success;
-- Ram → apply Prone on success;
-- Fragment Signal → apply Impaired/Slowed;
-- Shut Down / Boot Up → apply/remove Shutdown.
+- choose the action being prepared;
+- store its trigger/condition;
+- reserve and track the prepared action;
+- expose the prepared action when its trigger occurs;
+- execute the prepared action later as the relevant reaction;
+- when finally executed, the prepared action may itself require a target, attack/check roll, weapon, system, or other actor-owned execution path.
 
-### 2. Rules-driven status orchestration
+### Activate — CONTENT-DEPENDENT
 
-Statuses and conditions that arise indirectly from state, geometry, timing, damage, heat, or other circumstances should be handled by a separate rules/runtime stream rather than mixed into player-facing UI code.
+Activate must be aware of actor-owned executable content including:
 
-Examples include:
+- mounted systems;
+- mech/frame traits;
+- core powers;
+- weapons;
+- manufacturer core bonuses;
+- pilot talents;
+- other actor-owned features exposing activations.
 
-- Danger Zone derived from Heat;
-- Exposed from Thermal Runaway;
-- Engaged derived from spatial relationships;
-- timed status expiration;
-- other conditions created or removed because of rules state rather than a player pressing a status button.
+Frame Conn should discover valid activations and present them; native/content-specific execution should remain authoritative where available.
 
-Architectural rule:
+### Protocol — CONTENT-DEPENDENT
 
-```text
-Player-facing command/presentation
-        ↓ only when an action explicitly causes an effect
-Action Execution
-        ↓
-Status Orchestration / Native Adapter
+Protocol execution must discover Protocol-timed abilities from actor-owned content including:
 
-Rules state / geometry / timing / native events
-        ↓
-Rules-side Status Orchestration
-        ↓
-Native Adapter
-```
+- mounted systems;
+- mech/frame traits;
+- core powers;
+- weapons;
+- manufacturer core bonuses;
+- pilot talents;
+- other actor-owned Protocol features.
 
-Frame Conn can grow beyond a cockpit UI, but pure rules automation should remain architecturally separate from the player-facing command flow except at deliberate interaction boundaries.
+### Skirmish — CONTENT-DEPENDENT
 
-Native Lancer ActiveEffects/status state remains authoritative; do not create a parallel Frame Conn status system.
+Skirmish must become weapon-mount and weapon aware.
+
+Required direction:
+
+- discover actual mounts and weapons;
+- present legal weapon choices;
+- respect mount/weapon state such as destroyed, Loading, Limited, etc.;
+- delegate the attack to native Lancer weapon execution;
+- preserve Frame Conn targeting and action-economy semantics.
+
+### Barrage — CONTENT-DEPENDENT
+
+Barrage must become mount- and weapon-aware and correctly support Barrage-specific multi-mount/multi-weapon selection rather than using a generic Basic Attack shell.
+
+### Overwatch — CONTENT-DEPENDENT
+
+Overwatch must become:
+
+- weapon aware;
+- mount aware;
+- Threat aware;
+- reaction-trigger aware.
+
+It should consume the same future mount/weapon discovery layer used by Skirmish and Barrage.
 
 ---
 
-## Resource management roadmap
+# Resource management roadmap
 
-Frame Conn needs an actor-owned resource layer that is aware of the character's actual build.
+Resource management must become aware of the actor's actual build.
 
 Resource discovery must include, as applicable:
 
@@ -334,69 +398,123 @@ Resource discovery must include, as applicable:
 - mech/frame traits;
 - core powers;
 - pilot talents;
-- core bonuses;
-- other actor-owned features exposing charges, Limited uses, counters, per-scene/per-round resources, or similar state.
+- manufacturer core bonuses;
+- other actor-owned features exposing charges, Limited uses, counters, stacks, per-round/per-scene/per-mission resources, or similar state.
 
-### Resources UI
+## Resources UI
 
-Add a dedicated **Resources** tab/panel to Frame Conn showing relevant current/max state.
+Add a dedicated **Resources** tab/panel to Frame Conn.
 
-Examples of useful representations:
+It should let players inspect relevant current/max values such as:
 
 - current / maximum uses;
 - Limited charges;
-- counters/stacks;
-- scene/mission/rest-refresh state;
+- counters and stacks;
+- scene/mission/rest-refresh resources;
 - core-power availability;
-- other native resource fields discoverable from actor-owned content.
+- other actor-owned resource state exposed by native Lancer items/features.
 
-### Resource execution
+## Resource execution
 
-Some resources are consumed by ordinary actions and should update through native execution automatically.
+Some resources are consumed naturally by actions and should continue to update through native execution.
 
-Others behave more like free activations and may have no clean universal action category. For those, the Resources UI may expose an **Execute / Use** control when appropriate.
+Other resources do not correspond cleanly to Quick, Full, Protocol, Reaction, or another normal action. Some behave effectively like undefined/free activations.
+
+For those cases the Resources UI may expose an **Execute / Use** button directly beside the resource when appropriate.
 
 Rules:
 
-- prefer native Lancer resource state and execution when available;
-- do not create independent Frame Conn counters for resources already represented by the native actor/item;
-- Frame Conn-owned state should be reserved for genuinely missing orchestration concepts, not duplication.
+- prefer native Lancer resource state and execution whenever available;
+- never create a duplicate Frame Conn counter when native Actor/Item data already owns the state;
+- Frame Conn-owned resource state should exist only where native Lancer genuinely lacks a representation;
+- resource execution must still use the canonical execution/rules boundary rather than UI code mutating documents directly.
 
 ---
 
-## Recommended next implementation order
+# Rules-side status and condition architecture
 
-Before deep weapon/mount integration, close the remaining universal-action/runtime defects that do not depend heavily on equipment:
+Statuses and conditions use two distinct execution streams.
 
-1. Scan targeting bug.
+## Player-facing action consequences
+
+Actions that explicitly apply or remove statuses continue through the normal action execution spine.
+
+Examples:
+
+- Lock On → Lock On;
+- Hide → Hidden;
+- Search → remove Hidden;
+- Ram → Prone after successful Ram resolution;
+- Fragment Signal → Impaired / Slowed;
+- Shut Down / Boot Up → apply/remove Shutdown.
+
+## Rules-driven consequences
+
+Statuses or terminal consequences caused by rules state, geometry, timing, Heat, Structure, or native-flow results belong under `scripts/rules_features/`.
+
+Current examples include:
+
+- Engaged derived from hostile adjacency;
+- Danger Zone derived from Heat;
+- overheating-result Impaired/Exposed;
+- reactor-meltdown countdown and terminal explosion;
+- StructureFlow result consequences;
+- timed status expiration.
+
+Architectural rule:
+
+```text
+Player-facing command/presentation
+        ↓
+Action Execution
+        ↓
+shared rules/services/native adapter
+
+Rules state / geometry / timing / native events
+        ↓
+rules_features
+        ↓
+shared services / native adapter
+```
+
+Native Lancer Actor/Item/status state remains authoritative wherever it already exists. Frame Conn rules features should automate missing orchestration, not create a parallel rules engine.
+
+---
+
+# Recommended next implementation order
+
+Close the remaining Phase 1 live defects before deep actor-owned content work:
+
+1. Live-retest Scan target propagation.
 2. Disengage execution failure.
-3. Brace prompt/runtime trigger.
-4. Overcharge native escalation-state convergence.
-5. Grapple dedicated post-hit handling.
-6. Ram dedicated post-hit handling.
-7. Bolster persistent/consumable Accuracy state.
-8. Fragment Signal expiry live verification/fix if needed.
-9. Movement-policy change: observe but stop policing/auto-Boost behavior.
-10. Mount/Dismount/Eject pilot↔mech relationship model.
-11. Prepare delayed-action infrastructure.
-12. Self-Destruct authoritative workflow.
-13. Rest / Full Repair non-action maintenance commands.
+3. Brace reaction prompt/runtime trigger.
+4. Grapple dedicated post-hit handling.
+5. Ram dedicated post-hit handling.
+6. Bolster durable/consumable Accuracy state.
+7. Mount/Dismount/Eject pilot↔mech relationship model.
+8. Rest native-capability audit.
+9. Full Repair maintenance control.
 
-Then begin the major actor-owned-content phase:
+Then begin Phase 2:
 
-1. mount and weapon discovery;
-2. Skirmish;
-3. Barrage;
-4. Overwatch;
-5. mounted-system discovery;
-6. Activate and Protocol discovery;
-7. shared resource discovery/service;
-8. Resources UI;
-9. expansion to frame traits, core powers, talents, core bonuses, and other owned features.
+1. mounted-system discovery;
+2. weapon-mount discovery;
+3. weapon discovery;
+4. Skirmish;
+5. Barrage;
+6. Overwatch;
+7. mech/frame trait discovery;
+8. core-power discovery;
+9. pilot-talent discovery;
+10. manufacturer core-bonus discovery;
+11. Activate / Protocol actor-owned action discovery;
+12. shared resource discovery/service;
+13. Resources UI;
+14. Prepare delayed-action integration over the resulting execution layer.
 
 ---
 
-## Guiding architectural boundary
+# Guiding architectural boundary
 
 Frame Conn should continue converging on this division of responsibility:
 
@@ -408,17 +526,20 @@ presentation
 target acquisition
 semantic intent
         ↓
-CANONICAL EXECUTION / RULES SERVICES
+SHARED APPLICATION / EXECUTION ARCHITECTURE
 action economy
-status orchestration
-resource orchestration
-lifecycle
-spatial/rules evaluation
+execution transactions
+system bridge
+native adapter
         ↓
-NATIVE ADAPTER
+RULES FEATURES
+reactive rules
+derived statuses
+lifecycle
+terminal consequences
         ↓
 FOUNDRY LANCER
-Actors / Items / Flows / ActiveEffects / rolls / chat / document mutation
+Actors / Items / Flows / statuses / rolls / chat / document mutation
 ```
 
-The player-facing cockpit should not become the rules engine, and the rules engine should not require the player-facing cockpit to function.
+The player-facing cockpit should not become the rules engine, and rules automation should not depend on the cockpit being open in order to function.
