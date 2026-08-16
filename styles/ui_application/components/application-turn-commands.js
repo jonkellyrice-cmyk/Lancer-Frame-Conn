@@ -342,10 +342,108 @@ function executeFullAction(
 
 
 /* ============================================================
+   Application -- Native Overcharge execution
+   ============================================================ */
+
+async function executeNativeFrameConnOvercharge(
+  application,
+  state,
+  registry
+) {
+  const overchargeAction =
+    registry.get(
+      "special.overcharge"
+    );
+
+
+  if (
+    !overchargeAction
+  ) {
+    throw new Error(
+      "Frame Conn could not resolve the Overcharge action."
+    );
+  }
+
+
+  const permission =
+    state.canUseAction(
+      overchargeAction
+    );
+
+
+  if (
+    !permission.allowed
+  ) {
+    throw new Error(
+      permission.reason ??
+      "Overcharge is not available."
+    );
+  }
+
+
+  const token =
+    application.getControlledToken();
+
+  const actor =
+    token?.actor ??
+    null;
+
+
+  if (
+    !actor
+  ) {
+    throw new Error(
+      "Select the mech token that should Overcharge."
+    );
+  }
+
+
+  const nativeHeatFormula =
+    typeof actor
+      .strussHelper
+      ?.getOverchargeRoll ===
+      "function"
+      ? actor.strussHelper
+          .getOverchargeRoll()
+      : null;
+
+
+  const nativeResult =
+    await executeFrameConnApplicationActionRoll(
+      actor,
+      overchargeAction
+    );
+
+
+  if (
+    nativeResult === false
+  ) {
+    throw new Error(
+      "Native Lancer Overcharge did not complete."
+    );
+  }
+
+
+  state.useOvercharge({
+    heatFormula:
+      nativeHeatFormula
+  });
+
+
+  return {
+    actor,
+    heatFormula:
+      nativeHeatFormula,
+    nativeResult
+  };
+}
+
+
+/* ============================================================
    Application -- Quick-action execution
    ============================================================ */
 
-function executeQuickAction(
+async function executeQuickAction(
   application,
   actionId,
   useOvercharge = false
@@ -390,21 +488,21 @@ function executeQuickAction(
 
 
   try {
-    let automaticallyTriggeredOvercharge =
+    let resolvedNativeOvercharge =
       false;
-
-    let overchargeHeatFormula =
-      null;
 
 
     if (
       useOvercharge &&
       !state.overcharge.used
     ) {
-      overchargeHeatFormula =
-        state.useOvercharge();
+      await executeNativeFrameConnOvercharge(
+        application,
+        state,
+        registry
+      );
 
-      automaticallyTriggeredOvercharge =
+      resolvedNativeOvercharge =
         true;
     }
 
@@ -442,10 +540,10 @@ function executeQuickAction(
 
 
     if (
-      automaticallyTriggeredOvercharge
+      resolvedNativeOvercharge
     ) {
-      ui.notifications.warn(
-        `Overcharge triggered. Apply ${overchargeHeatFormula} Heat. ${action.label} was recorded using the granted Quick Action.`
+      ui.notifications.info(
+        `Overcharge resolved through native Lancer. ${action.label} was recorded using the granted Quick Action.`
       );
     } else {
       ui.notifications.info(
@@ -973,7 +1071,7 @@ function onCommand(
    Application -- Generic action selection
    ============================================================ */
 
-function onActionSelected(
+async function onActionSelected(
   application,
   actionId
 ) {
@@ -1062,15 +1160,18 @@ function onActionSelected(
     }
 
     try {
-      const heatFormula =
-        state.useOvercharge();
+      await executeNativeFrameConnOvercharge(
+        application,
+        state,
+        registry
+      );
 
       application.render(
         false
       );
 
       ui.notifications.info(
-        `Overcharge selected. Apply ${heatFormula} Heat. One additional quick action is available.`
+        "Overcharge resolved through native Lancer. One additional quick action is available."
       );
     } catch (
       error
