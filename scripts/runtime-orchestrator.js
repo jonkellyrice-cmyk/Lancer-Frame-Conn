@@ -1650,6 +1650,12 @@ function configureFrameConnRuntimeBindings() {
         options =>
           executeFrameConnCanonicalAction(
             options
+          ),
+
+      resolveRequiredTarget:
+        action =>
+          resolveFrameConnRequiredTarget(
+            action
           )
     });
 

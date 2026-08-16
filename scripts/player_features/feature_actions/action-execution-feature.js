@@ -123,6 +123,9 @@ const MODULE_TITLE =
 
 const frameConnActionExecutionRuntimeBindings = {
   executeCanonicalAction:
+    null,
+
+  resolveRequiredTarget:
     null
 };
 
@@ -146,7 +149,8 @@ function configureFrameConnActionExecutionRuntime(
 
   const allowedKeys =
     new Set([
-      "executeCanonicalAction"
+      "executeCanonicalAction",
+      "resolveRequiredTarget"
     ]);
 
 
@@ -198,6 +202,11 @@ function getFrameConnActionExecutionRuntimeBindings() {
     executeCanonicalAction:
       typeof frameConnActionExecutionRuntimeBindings
         .executeCanonicalAction ===
+        "function",
+
+    requiredTargetResolution:
+      typeof frameConnActionExecutionRuntimeBindings
+        .resolveRequiredTarget ===
         "function"
   });
 }
@@ -750,8 +759,9 @@ function executeFrameConnBasicTechAttack(
 }
 
 
-function executeFrameConnScan(
-  actor
+async function executeFrameConnScan(
+  actor,
+  action
 ) {
   if (
     typeof actor
@@ -764,8 +774,34 @@ function executeFrameConnScan(
   }
 
 
+  const resolveRequiredTarget =
+    frameConnActionExecutionRuntimeBindings
+      .resolveRequiredTarget;
+
+  if (
+    typeof resolveRequiredTarget !==
+    "function"
+  ) {
+    throw new Error(
+      "Frame Conn Scan target resolution has not been configured."
+    );
+  }
+
+  const targetToken =
+    await resolveRequiredTarget(
+      action
+    );
+
+  if (!targetToken) {
+    throw new Error(
+      "Scan requires exactly one target token."
+    );
+  }
+
   return (
-    actor.beginScanFlow()
+    actor.beginScanFlow(
+      targetToken
+    )
   );
 }
 
@@ -982,7 +1018,8 @@ async function frameConnExecuteActionRoll(
   ) {
     return (
       executeFrameConnScan(
-        actor
+        actor,
+        action
       )
     );
   }
