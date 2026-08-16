@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "id": "promote-runtime-orchestrator-to-scripts-root",
-  "enabled": true,
+  "enabled": false,
   "description": "Move runtime-orchestrator.js from player_features to scripts so it can serve as the composition root for player_features and rules_features while automatically rewriting relative imports and the Foundry runtime entrypoint.",
   "moves": [
     {
@@ -16,5 +16,6 @@
       "to": "scripts/runtime-orchestrator.js",
       "expected_occurrences": 1
     }
-  ]
+  ],
+  "last_applied_at": "2026-08-16T18:21:42.861Z"
 }
