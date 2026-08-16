@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "tool": "legacy-assimilation-atlas",
+  "mode": "pre-corridor evidence pass",
+  "legacy_root": "scripts/dm_features/sitreps/legacy-sitrep-module",
+  "target_root": "scripts/dm_features/sitreps",
+  "summary": {
+    "primary_decision": "preserve SITREP domain behavior; discard the standalone module shell",
+    "runtime_shell_must_not_be_enabled": true,
+    "repo_health_blocker": "legacy tracker imports stale ./program.js and ./dsl.js paths while the transplanted files are named sitrep-program.js and sitrep-dsl.js",
+    "major_cross_domain_extraction": "elevation-los.js belongs under foundry_features rather than SITREPs"
+  },
+  "files": [
+    {
+      "file": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/lancer-sitrep-tracker.js",
+      "primary_disposition": "PRESERVE_AND_DECOMPOSE",
+      "preserve": [
+        "SITREP type definitions and setup semantics",
+        "Gauntlet control weighting",
+        "Control scoring and final resolution",
+        "Escort objective/extraction resolution",
+        "Extraction objective/extraction resolution",
+        "Holdout score and final resolution",
+        "Recon scan state and true-zone resolution",
+        "victory/defeat/draw domain decisions"
+      ],
+      "replace_or_delegate": [
+        "legacy HUD rendering",
+        "direct Dialog setup presentation",
+        "direct ChatMessage output",
+        "direct Foundry lifecycle wiring",
+        "direct spatial/adjacency helpers where Frame Conn already owns the capability"
+      ],
+      "target": "scripts/dm_features/sitreps/ feature modules plus DM UI"
+    },
+    {
+      "file": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/sitrep-kernel.js",
+      "primary_disposition": "DECOMPOSE",
+      "preserve": [
+        "SITREP state lookup intent",
+        "faction classification semantics",
+        "defeated-combatant semantics",
+        "control-zone/controller domain helpers",
+        "combatant lookup intent"
+      ],
+      "reuse_existing": [
+        "token adjacency should delegate to Frame Conn targeting/spatial ownership"
+      ],
+      "rewrite_adapter": [
+        "Scene Region access/membership should be isolated behind shared Foundry/spatial services",
+        "active combat lookup should use an existing shared combat/context boundary when available"
+      ],
+      "compatibility": [
+        "legacy module namespace lancer-sitrep-tracker",
+        "legacy Combat flag key sitrep"
+      ]
+    },
+    {
+      "file": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/sitrep-program.js",
+      "primary_disposition": "DELETE_SHELL",
+      "reason": "Creates a standalone runtime authority by registering init/ready/hooks, resize listeners, combat-tracker injection, and game.lancerSitrep.",
+      "replacement": "Frame Conn feature registration, lifecycle services, Foundry integration, and runtime-orchestrator public API composition"
+    },
+    {
+      "file": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/sitrep-ui-boilerplate.js",
+      "primary_disposition": "REPLACE_UI",
+      "reason": "Standalone draggable/minimizable DOM HUD should be replaced by the DM application architecture.",
+      "compatibility": [
+        "localStorage key lancer-sitrep-tracker.hudState may be intentionally abandoned or migrated"
+      ],
+      "possible_reuse": [
+        "escape semantics and general UX intent only; not the DOM shell"
+      ]
+    },
+    {
+      "file": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/sitrep-dsl.js",
+      "primary_disposition": "REPLACE_UI",
+      "reason": "This is presentation-string boilerplate tied to the legacy HUD; semantic labels may survive but the helper layer should not compete with Frame Conn UI composition.",
+      "target": "DM UI presentation components"
+    },
+    {
+      "file": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/elevation-los.js",
+      "primary_disposition": "MOVE_DOMAIN",
+      "reason": "Generic Foundry wall/light/vision behavior, prototype wrapping, configuration injection, and Foundry hooks are platform-level features rather than SITREP rules.",
+      "target": "scripts/foundry_features/elevation_los/",
+      "migration_note": "Must be refactored out of direct init/ready/hook ownership before registration."
+    },
+    {
+      "file": "scripts/dm_features/sitreps/legacy-sitrep-module/styles/lancer-sitrep-tracker.css",
+      "primary_disposition": "REPLACE_UI",
+      "reason": "Visual intent can inform the future SITREP/DM interface, but the legacy standalone HUD stylesheet should not become the authoritative DM UI architecture."
+    },
+    {
+      "file": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/elevation-los.js.bak",
+      "primary_disposition": "DELETE_SHELL",
+      "reason": "Legacy backup artifact."
+    },
+    {
+      "file": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/lancer-sitrep-tracker.js.bak",
+      "primary_disposition": "DELETE_SHELL",
+      "reason": "Legacy backup artifact."
+    },
+    {
+      "file": "scripts/dm_features/sitreps/legacy-sitrep-module/styles/lancer-sitrep-tracker.css.bak",
+      "primary_disposition": "DELETE_SHELL",
+      "reason": "Legacy backup artifact."
+    }
+  ],
+  "integration_invariants": [
+    "module.json continues to load only scripts/runtime-orchestrator.js",
+    "legacy sitrep-program.js is never imported by the authoritative runtime",
+    "SITREP features enter through dm-feature-registry and the shared Frame Conn feature graph",
+    "SITREP UI belongs to the separate DM application surface",
+    "existing targeting/spatial and Foundry integration capabilities are reused rather than copied",
+    "elevation/LOS is extracted to foundry_features before it becomes active",
+    "legacy persisted state receives an explicit migration decision before namespace changes"
+  ]
+}
