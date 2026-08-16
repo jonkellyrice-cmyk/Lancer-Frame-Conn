@@ -37,6 +37,12 @@
       "from": "scripts/player_features/feature-registry.js",
       "to": "scripts/player_features/player-feature-registry.js",
       "expected_occurrences": 4
+    },
+    {
+      "path": "dev_scripts/repo-audit.mjs",
+      "from": "\"player_features\",\n      \"feature-registry.js\"",
+      "to": "\"player_features\",\n      \"player-feature-registry.js\"",
+      "expected_occurrences": 1
     }
   ]
 }
