@@ -1,9 +1,34 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after fixing immediate telemetry refresh and reactor meltdown countdown progression.",
+  "id": "fix-reactor-meltdown-end-of-activation-resolution",
+  "description": "Move reactor meltdown countdown progression from activation start to activation end, preserve the scheduled activation without decrementing it, detonate when an activation that began at timer 0 closes, and harden terminal blast resolution against reentrant Foundry combat hooks with visible failure diagnostics.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 1,
+    "allowed_paths": [
+      "scripts/rules_features/status_conditions/reactor-meltdown-status.js"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/reactor-meltdown-status.js",
+      "search": "  let observedCombatTurnKey = null;\n  let observedCombatActorUuid = null;",
+      "replace": "  let observedCombatTurnKey = null;\n  let observedCombatActorUuid = null;\n  const terminalResolutionInFlight = new Set();",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/reactor-meltdown-status.js",
+      "search": "  async function triggerMeltdown(actor) {\n    if (!actor || !canAdvanceCountdown(actor)) return false;\n\n    // Mark the native actor before resolving the terminal blast. The mech Actor\n    // remains available for logs/history, while its scene Token is vaporized.\n    await applyStatus(actor, \"reactor_meltdown\");\n\n    const explosion = await resolveReactorMeltdownExplosion({ actor });\n\n    await updateTimer(actor, null);\n    await clearRecord(actor);\n\n    return explosion;\n  }\n\n  async function beginActorTurn(actor, combat) {\n    const currentTimer = timer(actor);\n    if (currentTimer === null || currentTimer <= 0) return false;\n\n    const currentTurnKey = turnKey(combat);\n    const countdownRecord = record(actor) ?? {};\n    if (!currentTurnKey) return false;\n    if (countdownRecord.scheduledTurnKey === currentTurnKey) return false;\n    if (countdownRecord.lastProcessedTurnKey === currentTurnKey) return false;\n\n    await updateTimer(actor, currentTimer - 1);\n    await writeRecord(actor, {\n      ...countdownRecord,\n      actorUuid: actorUuid(actor),\n      stage: \"countdown\",\n      lastProcessedTurnKey: currentTurnKey\n    });\n    return true;\n  }\n\n  async function finishActorTurn(actor) {\n    if (!actor || timer(actor) !== 0) return false;\n    return triggerMeltdown(actor);\n  }",
+      "replace": "  async function triggerMeltdown(actor) {\n    if (!actor || !canAdvanceCountdown(actor)) return false;\n\n    const uuid = actorUuid(actor);\n    if (!uuid || terminalResolutionInFlight.has(uuid)) return false;\n    terminalResolutionInFlight.add(uuid);\n\n    try {\n      // Mark the native actor before resolving the terminal blast. The mech\n      // Actor remains available for logs/history while its Scene token is\n      // vaporized by the terminal resolution.\n      await applyStatus(actor, \"reactor_meltdown\");\n\n      const explosion = await resolveReactorMeltdownExplosion({ actor });\n\n      await updateTimer(actor, null);\n      await clearRecord(actor);\n\n      return explosion;\n    } catch (error) {\n      console.error(\"Frame Conn | Reactor meltdown terminal resolution failed.\", error);\n      globalThis.ui?.notifications?.error?.(\n        `Frame Conn reactor meltdown failed to resolve for ${actor?.name ?? \"the melting mech\"}. Check the console for details.`\n      );\n      return false;\n    } finally {\n      terminalResolutionInFlight.delete(uuid);\n    }\n  }\n\n  async function finishActorTurn(actor, completedTurnKey) {\n    if (!actor || !completedTurnKey) return false;\n\n    const currentTimer = timer(actor);\n    if (currentTimer === null) return false;\n\n    const countdownRecord = record(actor) ?? {};\n\n    // A countdown created during this activation starts counting only after\n    // this activation has fully passed. Do not immediately consume one of its\n    // future turns on the same turn that scheduled it.\n    if (countdownRecord.scheduledTurnKey === completedTurnKey) {\n      return false;\n    }\n\n    if (countdownRecord.lastProcessedTurnKey === completedTurnKey) {\n      return false;\n    }\n\n    // Zero means this was the terminal activation. The explosion occurs when\n    // that activation closes, before the next combatant/round proceeds.\n    if (currentTimer === 0) {\n      return triggerMeltdown(actor);\n    }\n\n    await updateTimer(actor, currentTimer - 1);\n    await writeRecord(actor, {\n      ...countdownRecord,\n      actorUuid: actorUuid(actor),\n      stage: \"countdown\",\n      lastProcessedTurnKey: completedTurnKey\n    });\n\n    return true;\n  }",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/reactor-meltdown-status.js",
+      "search": "    if (currentTurnKey === observedCombatTurnKey) return false;\n\n    const previousActor = actorFromUuid(observedCombatActorUuid);\n    if (previousActor) await finishActorTurn(previousActor);\n\n    const currentActor = actorFromUuid(currentActorUuid);\n    if (currentActor) await beginActorTurn(currentActor, combat);\n\n    observedCombatTurnKey = currentTurnKey;\n    observedCombatActorUuid = currentActorUuid;\n    return true;",
+      "replace": "    if (currentTurnKey === observedCombatTurnKey) return false;\n\n    const completedTurnKey = observedCombatTurnKey;\n    const completedActorUuid = observedCombatActorUuid;\n\n    // Commit the newly observed combat identity before running end-of-turn\n    // consequences. Terminal meltdown resolution mutates Scene documents and\n    // may provoke nested Foundry hooks; those hooks must see this transition as\n    // already claimed rather than attempting to close the same activation a\n    // second time.\n    observedCombatTurnKey = currentTurnKey;\n    observedCombatActorUuid = currentActorUuid;\n\n    const previousActor = actorFromUuid(completedActorUuid);\n    if (previousActor) {\n      await finishActorTurn(previousActor, completedTurnKey);\n    }\n\n    return true;",
+      "expected_occurrences": 1
+    }
+  ]
 }
