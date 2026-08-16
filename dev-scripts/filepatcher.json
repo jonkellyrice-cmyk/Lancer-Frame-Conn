@@ -1,7 +1,8 @@
 {
   "schema_version": 2,
-  "id": "validate-lock-on-gm-authority",
-  "description": "No-op acceptance state after completing no-roll Lock On with GM-authoritative native status application.",
+  "id": "plan-change-propagation-simulator",
+  "description": "Plan incorporation of the Change Propagation Simulator into the Frame Conn development toolchain.",
+  "planning_goal": "repository tooling change propagation simulator contract delta intermediate state compatibility strategy behavioral fan-out verification targeting FilePatcher bridge integration documentation",
   "policy": {
     "max_files_changed": 1
   },
