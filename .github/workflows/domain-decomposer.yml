@@ -1,0 +1,88 @@
+name: Domain Decomposer
+
+on:
+  push:
+    paths:
+      - "dev_scripts/domain-decomposer-plan.json"
+
+permissions:
+  contents: write
+
+jobs:
+  apply-approved-plan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Read plan approval
+        id: plan
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const plan = JSON.parse(fs.readFileSync('dev_scripts/domain-decomposer-plan.json', 'utf8'));
+          const candidates = Array.isArray(plan.candidates) ? plan.candidates : [];
+          const approved = plan.approved === true && candidates.length > 0 && candidates.every(candidate => candidate.execution?.approved === true);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `approved=${approved ? 'true' : 'false'}\n`);
+          NODE
+
+      - name: Executor self-test
+        if: steps.plan.outputs.approved == 'true'
+        run: npm run decompose:apply:self-test
+
+      - name: Dry-run approved decomposition
+        if: steps.plan.outputs.approved == 'true'
+        run: npm run decompose:apply -- --dry-run
+
+      - name: Apply approved decomposition
+        if: steps.plan.outputs.approved == 'true'
+        run: npm run decompose:apply -- --apply
+
+      - name: Remove generated patch artifact
+        if: steps.plan.outputs.approved == 'true'
+        run: rm -f dev_scripts/domain-decomposer-generated-patch.json
+
+      - name: Repository audit
+        if: steps.plan.outputs.approved == 'true'
+        run: npm run audit
+
+      - name: Symbol family audit
+        if: steps.plan.outputs.approved == 'true'
+        run: npm run symbol-family-audit
+
+      - name: Effect atlas
+        if: steps.plan.outputs.approved == 'true'
+        run: npm run effect-atlas
+
+      - name: Verify structural-only scope
+        if: steps.plan.outputs.approved == 'true'
+        shell: bash
+        run: |
+          unexpected=$(git status --porcelain | awk '{print $2}' | grep -v '^scripts/dm_features/sitreps/legacy-sitrep-module/scripts/lancer-sitrep-tracker.js$' | grep -v '^scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/' || true)
+          if [ -n "$unexpected" ]; then
+            echo "Unexpected changed paths:"
+            echo "$unexpected"
+            exit 1
+          fi
+
+      - name: Commit approved decomposition
+        if: steps.plan.outputs.approved == 'true'
+        shell: bash
+        run: |
+          if git diff --quiet && [ -z "$(git status --porcelain)" ]; then
+            echo "No decomposition changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/dm_features/sitreps/legacy-sitrep-module/scripts/lancer-sitrep-tracker.js
+          git add scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/
+          git commit -m "domain-decomposer: apply approved SITREP decomposition"
+          git push
