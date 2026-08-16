@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "ready",
-  "description": "Neutral no-op state after removing the invalid reactor_meltdown status application from terminal reactor meltdown resolution.",
+  "description": "Neutral no-op state after setting reactor meltdown Burst 2 templates to red.",
   "policy": {
     "max_files_changed": 1
   },
