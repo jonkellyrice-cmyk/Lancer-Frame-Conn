@@ -3,7 +3,7 @@
   "tool": "domain-decomposer",
   "tool_version": "1.0.0",
   "generated_at": "2026-08-16T23:52:00.000Z",
-  "approved": false,
+  "approved": true,
   "policy_file": "dev_scripts/domain-decomposer-policy.json",
   "behavior_change_allowed": false,
   "invariants": [
@@ -16,14 +16,13 @@
     "the legacy SITREP module remains quarantined and unregistered throughout decomposition"
   ],
   "review": {
-    "status": "reviewed-unapproved",
+    "status": "reviewed-approved",
     "source_sha": "7767a6609210d9f20ccfdc514e019e088a0d22b1",
     "source_lines": 2725,
     "top_level_symbols": 25,
     "summary": "The raw section-based decomposition was refined into smaller domain seams. calculateState, evaluateSitrep, and renderHUD remain intact in this first pass because each is already a coherent top-level responsibility; later assimilation may decompose their internal scenario branches where justified.",
-    "execution_blockers": [
-      "Do not approve execution until the executor is verified not to replicate the legacy side-effect import ./elevation-los.js into every extracted module. Side-effect imports must remain owned by the retained legacy spine or be explicitly reassigned in a later ownership migration."
-    ]
+    "execution_blockers": [],
+    "execution_readiness": "Executor import hardening verified through the normal FilePatcher gate: extracted modules copy only referenced value imports and bare side-effect imports remain on the retained legacy spine."
   },
   "supporting_suite": [
     {
@@ -219,7 +218,7 @@
         "mode": "symbol_extract",
         "require_dependency_closed_units": true,
         "preserve_original_exports": true,
-        "approved": false
+        "approved": true
       }
     }
   ],
