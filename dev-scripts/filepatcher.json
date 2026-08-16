@@ -1,17 +1,35 @@
 {
   "schema_version": 2,
-  "id": "exclude-recovery-history-from-change-propagation",
-  "description": "Exclude FilePatcher backup and patch-history trees from live change-propagation consumer evidence.",
+  "id": "wire-change-propagation-simulator",
+  "description": "Run the Change Propagation Simulator against FilePatcher's exact staged transition and permanently enforce its syntax and self-test.",
   "policy": {
     "max_files_changed": 1,
-    "allowed_paths": ["dev_scripts/change-propagation-simulator.mjs"]
+    "allowed_paths": ["dev-scripts/github-filepatcher.mjs"]
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "dev_scripts/change-propagation-simulator.mjs",
-      "search": "function repositoryFiles() {\n  const out = [];\n  const skip = new Set([\".git\",\"node_modules\",\".next\",\"dist\",\"coverage\"]);\n  function visit(dir) {\n    for (const entry of fs.readdirSync(dir, { withFileTypes:true })) {",
-      "replace": "function repositoryFiles() {\n  const out = [];\n  const skip = new Set([\".git\",\"node_modules\",\".next\",\"dist\",\"coverage\"]);\n  const excludedRecoveryTrees = [\"dev_scripts/backups\", \"dev_scripts/patch-history\"];\n  function visit(dir) {\n    const relativeDir = path.relative(ROOT, dir).split(path.sep).join(\"/\");\n    if (excludedRecoveryTrees.some((tree) => relativeDir === tree || relativeDir.startsWith(`${tree}/`))) return;\n    for (const entry of fs.readdirSync(dir, { withFileTypes:true })) {"
+      "path": "dev-scripts/github-filepatcher.mjs",
+      "search": "    path.join(ROOT, \"dev_scripts\", \"automatic-patch-staging.mjs\"),\n    path.join(ROOT, \"dev_scripts\", \"runtime-contract-probes.mjs\")\n  ];",
+      "replace": "    path.join(ROOT, \"dev_scripts\", \"automatic-patch-staging.mjs\"),\n    path.join(ROOT, \"dev_scripts\", \"runtime-contract-probes.mjs\"),\n    path.join(ROOT, \"dev_scripts\", \"change-propagation-simulator.mjs\")\n  ];"
+    },
+    {
+      "type": "replace_text",
+      "path": "dev-scripts/github-filepatcher.mjs",
+      "search": "  if (runtimeContractProbesSelfTest.error) fail(`Runtime Contract Probes self-test could not start: ${runtimeContractProbesSelfTest.error}`);\n  if (runtimeContractProbesSelfTest.status !== 0) fail(\"Runtime Contract Probes self-test failed.\");\n\n  console.log(\"[github-filepatcher] Developer tool syntax checks passed.\");",
+      "replace": "  if (runtimeContractProbesSelfTest.error) fail(`Runtime Contract Probes self-test could not start: ${runtimeContractProbesSelfTest.error}`);\n  if (runtimeContractProbesSelfTest.status !== 0) fail(\"Runtime Contract Probes self-test failed.\");\n\n  const changePropagationSimulator = path.join(ROOT, \"dev_scripts\", \"change-propagation-simulator.mjs\");\n  const changePropagationSelfTest = spawnSync(process.execPath, [changePropagationSimulator, \"--self-test\"], { cwd: ROOT, encoding: \"utf8\" });\n  if (changePropagationSelfTest.stdout) process.stdout.write(changePropagationSelfTest.stdout);\n  if (changePropagationSelfTest.stderr) process.stderr.write(changePropagationSelfTest.stderr);\n  if (changePropagationSelfTest.error) fail(`Change Propagation Simulator self-test could not start: ${changePropagationSelfTest.error}`);\n  if (changePropagationSelfTest.status !== 0) fail(\"Change Propagation Simulator self-test failed.\");\n\n  console.log(\"[github-filepatcher] Developer tool syntax checks passed.\");"
+    },
+    {
+      "type": "replace_text",
+      "path": "dev-scripts/github-filepatcher.mjs",
+      "search": "function reportCorridorScope(plan, corridorReport) {",
+      "replace": "function runChangePropagationSimulation(patch, plan, corridorReport, stagingReport) {\n  const simulatorScript = path.join(ROOT, \"dev_scripts\", \"change-propagation-simulator.mjs\");\n  if (!fs.existsSync(simulatorScript)) fail(`Change Propagation Simulator not found: ${simulatorScript}`);\n\n  const snapshotFile = path.join(os.tmpdir(), `frame-conn-transition-snapshot-${process.pid}.json`);\n  const outputFile = path.join(os.tmpdir(), `frame-conn-transition-report-${process.pid}.json`);\n  const changes = plan.changedFiles.map((relativePath) => {\n    const original = plan.originalFiles.get(relativePath);\n    return {\n      path: relativePath,\n      beforeExists: original?.exists ?? false,\n      before: original?.exists ? original.content : null,\n      afterExists: true,\n      after: plan.stagedFiles.get(relativePath) ?? null,\n    };\n  });\n  const snapshot = {\n    version: 1,\n    goal: patch.planningGoal,\n    patchId: patch.id ?? null,\n    corridor: corridorReport ? { clauseCoverage: corridorReport.clauseCoverage ?? null } : null,\n    staging: stagingReport ? { phases: stagingReport.phases ?? [], crossCutting: stagingReport.crossCutting ?? null } : null,\n    changes,\n  };\n  fs.writeFileSync(snapshotFile, `${JSON.stringify(snapshot, null, 2)}\\n`, \"utf8\");\n\n  const result = spawnSync(\n    process.execPath,\n    [simulatorScript, \"--snapshot\", snapshotFile, \"--output\", outputFile],\n    { cwd: ROOT, encoding: \"utf8\", maxBuffer: 8 * 1024 * 1024 }\n  );\n  if (result.stdout) process.stdout.write(result.stdout);\n  if (result.stderr) process.stderr.write(result.stderr);\n  if (result.error) fail(`Change Propagation Simulator could not start: ${result.error}`);\n  if (result.status !== 0) fail(`Change Propagation Simulator failed with exit code ${result.status}.`);\n\n  try {\n    const report = JSON.parse(fs.readFileSync(outputFile, \"utf8\"));\n    console.log(`[github-filepatcher] transition_breaking_deltas=${report.assessment?.breakingDeltaCount ?? 0}`);\n    console.log(`[github-filepatcher] transition_immediate_consumers=${report.assessment?.immediateConsumerCount ?? 0}`);\n    console.log(`[github-filepatcher] transition_high_fanout=${report.assessment?.highFanOutRiskCount ?? 0}`);\n    console.log(`[github-filepatcher] transition_verification_targets=${report.verificationTargets?.length ?? 0}`);\n    if (report.assessment?.safeStandalone === false) {\n      console.warn(\"[github-filepatcher] Change Propagation Simulator recommends a compatibility stage before treating this patch as a safe standalone transition.\");\n    }\n    return report;\n  } catch (error) {\n    fail(`Change Propagation Simulator report could not be read: ${error}`);\n  }\n}\n\nfunction reportCorridorScope(plan, corridorReport) {"
+    },
+    {
+      "type": "replace_text",
+      "path": "dev-scripts/github-filepatcher.mjs",
+      "search": "    const stagingReport = corridorReport\n      ? runAutomaticPatchStaging(patch.planningGoal, corridorReport)\n      : null;\n    if (corridorReport) {",
+      "replace": "    const stagingReport = corridorReport\n      ? runAutomaticPatchStaging(patch.planningGoal, corridorReport)\n      : null;\n    if (plan.changedFiles.length > 0) {\n      runChangePropagationSimulation(patch, plan, corridorReport, stagingReport);\n    }\n    if (corridorReport) {"
     }
   ]
 }
