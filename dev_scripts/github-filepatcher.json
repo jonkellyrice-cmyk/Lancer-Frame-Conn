@@ -1,84 +1,9 @@
 {
   "schema_version": 2,
-  "id": "scaffold-dm-feature-family-and-ui",
-  "description": "Create inert documentation-first scaffolding for DM-facing mission features and a separate DM application UI surface without registering or executing any new behavior.",
+  "id": "ready",
+  "description": "Neutral no-op state after scaffolding the DM feature family and separate DM UI surface.",
   "policy": {
-    "max_files_changed": 13,
-    "allowed_paths": [
-      "scripts/dm_features/README.md",
-      "scripts/dm_features/dm-feature-registry.js",
-      "scripts/dm_features/mission/README.md",
-      "scripts/dm_features/mission/briefing/README.md",
-      "scripts/dm_features/mission/preparation/README.md",
-      "scripts/dm_features/mission/reserves/README.md",
-      "scripts/dm_features/mission/boots_on_the_ground/README.md",
-      "scripts/dm_features/mission/debrief/README.md",
-      "styles/ui_dm/README.md",
-      "styles/ui_dm/ui-dm-application.js",
-      "styles/ui_dm/ui-dm-application.css",
-      "styles/ui_dm/components/README.md"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "create_file",
-      "path": "scripts/dm_features/README.md",
-      "content": "# Frame Conn DM Features\n\nThis directory is reserved for **GM/DM-facing feature code**. It is intentionally separate from `player_features/` and `rules_features/`.\n\n## Responsibility\n\nDM features will own workflows where the GM authors, organizes, reveals, tracks, or operates campaign and mission information. They should not become a second rules engine and should not contain player-cockpit presentation code.\n\nExamples include mission planning, objectives, briefing material, reserves organization, complications, scene/encounter notes, and mission debrief state.\n\n## Future composition\n\n`dm-feature-registry.js` will eventually declare the installed DM-facing feature package. `scripts/runtime-orchestrator.js` will remain the application-level composition root that combines player, rules, and DM feature families.\n\n## Current state\n\nScaffold only. Nothing in this directory is registered or executed yet.\n"
-    },
-    {
-      "type": "create_file",
-      "path": "scripts/dm_features/dm-feature-registry.js",
-      "content": "/**\n * ============================================================\n * FILE PATH / NAME\n * ============================================================\n *\n * scripts/dm_features/dm-feature-registry.js\n */\n\n/**\n * FRAME CONN DM FEATURE REGISTRY -- FUTURE SCAFFOLD\n *\n * ROLE:\n *   This file will eventually declare the GM/DM-facing Frame Conn\n *   feature package, parallel to player-feature-registry.js and\n *   rules-feature-registry.js.\n *\n * FUTURE RESPONSIBILITIES:\n *   - Import DM-facing mission/tooling features.\n *   - Export the canonical DM feature package.\n *   - Keep DM feature membership separate from player and rules\n *     feature membership while sharing feature-registry-core.js.\n *\n * DOES NOT OWN:\n *   - Registry mechanics.\n *   - Rules automation.\n *   - Player cockpit actions.\n *   - Foundry startup orchestration.\n *\n * CURRENT STATE:\n *   Documentation-only scaffold. Intentionally exports nothing and\n *   is not imported by runtime-orchestrator.js yet.\n */\n"
-    },
-    {
-      "type": "create_file",
-      "path": "scripts/dm_features/mission/README.md",
-      "content": "# Mission Feature Family\n\nThis directory will contain the GM-facing **Mission Toolkit**. Its job is to make mission planning data useful during play and make live-play developments useful during debrief and future mission planning.\n\nThe planned stages are:\n\n1. `briefing/` — situation, goals, stakes, intelligence, and player-facing briefing material.\n2. `preparation/` — approach, planning, loadout/intelligence review, contingencies, and pre-deployment choices.\n3. `reserves/` — mission reserves, support assets, strategic advantages, availability, use, and expiration.\n4. `boots_on_the_ground/` — live mission dashboard for objectives, complications, discoveries, scenes, encounters, and mission-state changes.\n5. `debrief/` — success/failure state, unresolved consequences, rewards, repairs/downtime handoff, faction/world changes, and hooks for the next mission.\n\nThis family will have a dedicated DM-facing UI under `styles/ui_dm/`; it should not render inside the player Frame Conn cockpit.\n"
-    },
-    {
-      "type": "create_file",
-      "path": "scripts/dm_features/mission/briefing/README.md",
-      "content": "# Mission Stage 1 — Briefing\n\nFuture responsibility: help the GM author and present the opening mission brief.\n\nPlanned data includes the **situation**, **goal/objectives**, **stakes**, factions, relevant people and locations, known threats, intelligence, uncertainties, and a clean separation between GM-only notes and material that can be revealed to players.\n\nThe briefing should become reusable mission state rather than disposable prose: objectives and known facts created here should flow into later preparation and live mission views.\n"
-    },
-    {
-      "type": "create_file",
-      "path": "scripts/dm_features/mission/preparation/README.md",
-      "content": "# Mission Stage 2 — Preparation\n\nFuture responsibility: organize pre-deployment planning after the briefing.\n\nPlanned support includes approach/insertion plans, intelligence gathering, relevant loadout review, player plans, contingencies, assumptions, preparation actions, and advantages that should carry into the mission.\n\nThis stage should consume information from Briefing and connect naturally to the Reserves stage.\n"
-    },
-    {
-      "type": "create_file",
-      "path": "scripts/dm_features/mission/reserves/README.md",
-      "content": "# Mission Stage 3 — Reserves\n\nFuture responsibility: organize strategic support and mission-duration advantages available to the group.\n\nPlanned support includes custom reserves plus rules-backed resources such as access, information, supplies, gear, allies, tactical advantages, temporary mech benefits, support actions, and other expendable mission assets.\n\nThis stage should eventually integrate with Narrative Play/Downtime so reserves earned between missions can be promoted directly into the next mission plan, then tracked as available, consumed, or expired during play.\n"
-    },
-    {
-      "type": "create_file",
-      "path": "scripts/dm_features/mission/boots_on_the_ground/README.md",
-      "content": "# Mission Stage 4 — Boots on the Ground\n\nFuture responsibility: provide the GM's live mission dashboard while play is underway.\n\nPlanned views include active and completed objectives, changing mission state, discovered information, complications, important NPCs/factions/locations, scenes and encounters, reserve usage, live notes, and transitions between narrative play and tactical mech combat.\n\nThis is GM mission control, not the player Frame Conn combat cockpit.\n"
-    },
-    {
-      "type": "create_file",
-      "path": "scripts/dm_features/mission/debrief/README.md",
-      "content": "# Mission Stage 5 — End of Mission / Debrief\n\nFuture responsibility: close the mission and carry its consequences forward.\n\nPlanned support includes objective outcomes, partial successes/failures, unresolved complications, rewards, reserve/reputation consequences, damage/repair and downtime handoff, NPC/faction/world-state changes, debrief notes, and hooks for future missions.\n\nThe debrief should transform live mission state into durable campaign state instead of forcing the GM to reconstruct everything manually afterward.\n"
-    },
-    {
-      "type": "create_file",
-      "path": "styles/ui_dm/README.md",
-      "content": "# Frame Conn DM UI\n\nThis directory is reserved for a **separate GM-facing Foundry application**. It will not be a tab or mode inside the player Frame Conn cockpit.\n\n## Future purpose\n\nThe DM application will present mission authoring and live mission-control tools such as Briefing, Preparation, Reserves, Boots on the Ground, and Debrief. It may later coordinate with Narrative Play and Downtime, but should remain optimized for GM workflow rather than player action selection.\n\n## Shared architecture\n\nThe DM UI should consume DM feature APIs and shared system-bridge/services. It should not mutate Foundry documents directly when a shared/native execution boundary already exists.\n\n## Current state\n\nScaffold only. No styles or application class are registered yet.\n"
-    },
-    {
-      "type": "create_file",
-      "path": "styles/ui_dm/ui-dm-application.js",
-      "content": "/**\n * styles/ui_dm/ui-dm-application.js\n *\n * FRAME CONN DM APPLICATION -- FUTURE SCAFFOLD\n *\n * This will become the stable public composition surface for the\n * separate GM-facing Frame Conn application window.\n *\n * Future responsibilities:\n *   - Foundry Application lifecycle for the DM mission workspace.\n *   - Compose mission-stage presentation components.\n *   - Bind UI intent to DM feature APIs.\n *   - Keep GM presentation separate from the player combat cockpit.\n *\n * Current state: documentation-only scaffold. Nothing is exported,\n * registered, or instantiated yet.\n */\n"
-    },
-    {
-      "type": "create_file",
-      "path": "styles/ui_dm/ui-dm-application.css",
-      "content": "/*\n * styles/ui_dm/ui-dm-application.css\n *\n * Future stylesheet boundary for the separate Frame Conn DM mission\n * application. Keep DM workspace styling independent from the player\n * cockpit so either interface can evolve without coupling layouts.\n *\n * Scaffold only: intentionally contains no active selectors yet.\n */\n"
-    },
-    {
-      "type": "create_file",
-      "path": "styles/ui_dm/components/README.md",
-      "content": "# DM UI Components\n\nFuture focused presentation modules for the separate GM mission application belong here.\n\nLikely component families include mission navigation, briefing editor/presenter, preparation planner, reserves inventory, live objectives/complications, scene and encounter organization, GM/private versus player-visible information controls, and debrief/campaign-handoff views.\n\nComponents should remain presentation-focused and delegate mission behavior/state changes to `scripts/dm_features/`.\n"
-    }
-  ]
+  "operations": []
 }
