@@ -888,7 +888,8 @@ async function executeFrameConnAuthoritativeLockOnRequest({
 async function executeFrameConnCanonicalAction({
   actor = null,
   action = null,
-  executionKind = null
+  executionKind = null,
+  executionOptions = null
 } = {}) {
   if (!actor) {
     throw new TypeError(
@@ -981,6 +982,43 @@ async function executeFrameConnCanonicalAction({
     null;
 
   switch (executionKind) {
+    case "self-destruct": {
+      const chosenRounds = Number(executionOptions?.rounds);
+      if (!Number.isInteger(chosenRounds) || chosenRounds < 0 || chosenRounds > 2) {
+        throw new Error("Self-Destruct requires a detonation timing of NOW, 1 ROUND, or 2 ROUNDS.");
+      }
+
+      if (chosenRounds > 0 && !globalThis.game?.combat?.started) {
+        throw new Error("Delayed Self-Destruct requires an active combat so future activations can be tracked.");
+      }
+
+      transaction = await frameConnExecutionTransactionApi
+        .runNativeExecutionTransactionWithGlobalHooks({
+          context: executionContext,
+          execute: async () => {
+            if (chosenRounds === 0) {
+              const result = await frameConnStatusOrchestrationApi.triggerReactorMeltdown(actor);
+              if (!result) throw new Error("Immediate Self-Destruct failed to resolve the reactor explosion.");
+              return result;
+            }
+
+            return frameConnStatusOrchestrationApi.scheduleReactorMeltdown(
+              actor,
+              chosenRounds - 1,
+              { reason: "self-destruct", combat: globalThis.game?.combat }
+            );
+          },
+          metadata: {
+            actionId: action.id,
+            executionKind,
+            source: "action-execution",
+            selfDestructRounds: chosenRounds,
+            terminalResolution: "reactor-meltdown"
+          }
+        });
+      break;
+    }
+
     case "basic-attack": {
       if (action.requiresTarget) {
         await resolveFrameConnRequiredTarget(

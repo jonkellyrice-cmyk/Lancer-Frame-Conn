@@ -167,8 +167,11 @@ export function createReactorMeltdownStatusController({
     });
   }
 
-  async function triggerMeltdown(actor) {
-    if (!actor || !canAdvanceCountdown(actor)) return false;
+  async function triggerMeltdown(actor, { actionAuthority = false } = {}) {
+    const authorized = actionAuthority
+      ? canMutateFromNativeFlow(actor)
+      : canAdvanceCountdown(actor);
+    if (!actor || !authorized) return false;
 
     const uuid = actorUuid(actor);
     if (!uuid || terminalResolutionInFlight.has(uuid)) return false;

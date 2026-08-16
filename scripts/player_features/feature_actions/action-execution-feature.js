@@ -206,7 +206,8 @@ function getFrameConnActionExecutionRuntimeBindings() {
 async function executeFrameConnCanonicalAction(
   actor,
   action,
-  executionKind
+  executionKind,
+  executionOptions = null
 ) {
   const executor =
     frameConnActionExecutionRuntimeBindings
@@ -226,7 +227,8 @@ async function executeFrameConnCanonicalAction(
   return executor({
     actor,
     action,
-    executionKind
+    executionKind,
+    executionOptions
   });
 }
 
@@ -247,7 +249,6 @@ export const FRAME_CONN_NO_ROLL_ACTIONS =
       "quick.boost",
       "quick.quick-tech.bolster",
       "quick.prepare",
-      "quick.self-destruct",
 
       "full.activate",
       "full.mount-dismount",
@@ -297,6 +298,36 @@ export const FRAME_CONN_MECH_STAT_CHOICES =
         "ENG"
     })
   ]);
+
+
+function frameConnChooseSelfDestructTiming(action) {
+  assertFrameConnExecutableAction(action);
+
+  return new Promise(resolve => {
+    let resolved = false;
+    const choose = rounds => {
+      if (resolved) return;
+      resolved = true;
+      resolve(Object.freeze({ rounds }));
+    };
+
+    new Dialog({
+      title: `${action.label} -- Detonation Timing`,
+      content: `
+        <p>Choose when the reactor overload detonates.</p>
+        <p><strong>NOW</strong> detonates immediately. Delayed choices detonate at the end of your corresponding future activation.</p>
+      `,
+      buttons: {
+        now: { label: "NOW", callback: () => choose(0) },
+        one: { label: "1 ROUND", callback: () => choose(1) },
+        two: { label: "2 ROUNDS", callback: () => choose(2) }
+      },
+      close: () => {
+        if (!resolved) resolve(null);
+      }
+    }).render(true);
+  });
+}
 
 
 /* ============================================================
@@ -357,6 +388,14 @@ function frameConnActionExecutionKind(
     )
   ) {
     return null;
+  }
+
+
+  if (
+    action.id ===
+      "quick.self-destruct"
+  ) {
+    return "self-destruct";
   }
 
 
@@ -852,6 +891,21 @@ async function frameConnExecuteActionRoll(
   }
 
 
+  if (kind === "self-destruct") {
+    const timing = await frameConnChooseSelfDestructTiming(action);
+    if (!timing) {
+      throw new Error("Self-Destruct timing selection was cancelled.");
+    }
+
+    return executeFrameConnCanonicalAction(
+      actor,
+      action,
+      kind,
+      timing
+    );
+  }
+
+
   /**
    * Canonically migrated actions enter the runtime-composed
    * System Bridge / Semantic Context / Transaction / Native Adapter
@@ -1007,6 +1061,7 @@ function getFrameConnActionExecutionDiagnostics(
     canonicalExecution:
       [
         "full.improvised-attack",
+        "quick.self-destruct",
         "quick.grapple",
         "quick.end-grapple",
         "quick.hide",
@@ -1074,7 +1129,10 @@ export const frameConnActionExecutionFeature =
         frameConnExecuteActionRoll,
 
       chooseMechStat:
-        frameConnChooseMechStat
+        frameConnChooseMechStat,
+
+      chooseSelfDestructTiming:
+        frameConnChooseSelfDestructTiming
     },
 
     queries: {
@@ -1110,6 +1168,9 @@ export const frameConnActionExecutionFeature =
 
       chooseMechStat:
         frameConnChooseMechStat,
+
+      chooseSelfDestructTiming:
+        frameConnChooseSelfDestructTiming,
 
       requiresNoRoll:
         frameConnActionRequiresNoRoll,
