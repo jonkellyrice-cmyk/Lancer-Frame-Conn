@@ -1,26 +1,77 @@
 {
   "schema_version": 1,
   "id": "consolidate-player-facing-script-features",
-  "enabled": true,
+  "enabled": false,
   "description": "Move every current top-level scripts entry into scripts/player_features while preserving runtime behavior and automatically rewriting relative imports. Keep scripts/rules_features reserved for non-player-facing rules automation.",
   "moves": [
-    { "from": "scripts/dsl.js", "to": "scripts/player_features/dsl.js" },
-    { "from": "scripts/feature-contract.js", "to": "scripts/player_features/feature-contract.js" },
-    { "from": "scripts/feature-registry-core.js", "to": "scripts/player_features/feature-registry-core.js" },
-    { "from": "scripts/feature-registry.js", "to": "scripts/player_features/feature-registry.js" },
-    { "from": "scripts/feature_actions", "to": "scripts/player_features/feature_actions" },
-    { "from": "scripts/feature_brace", "to": "scripts/player_features/feature_brace" },
-    { "from": "scripts/feature_lifecycle", "to": "scripts/player_features/feature_lifecycle" },
-    { "from": "scripts/feature_movement", "to": "scripts/player_features/feature_movement" },
-    { "from": "scripts/feature_semantic_execution_context", "to": "scripts/player_features/feature_semantic_execution_context" },
-    { "from": "scripts/feature_status_orchestration", "to": "scripts/player_features/feature_status_orchestration" },
-    { "from": "scripts/feature_system_bridge", "to": "scripts/player_features/feature_system_bridge" },
-    { "from": "scripts/feature_targeting_spatial", "to": "scripts/player_features/feature_targeting_spatial" },
-    { "from": "scripts/feature_turn", "to": "scripts/player_features/feature_turn" },
-    { "from": "scripts/foundry-integration-feature.js", "to": "scripts/player_features/foundry-integration-feature.js" },
-    { "from": "scripts/lancer-frame-helm.js.bak", "to": "scripts/player_features/lancer-frame-helm.js.bak" },
-    { "from": "scripts/runtime-orchestrator.js", "to": "scripts/player_features/runtime-orchestrator.js" },
-    { "from": "scripts/sensors-feature.js", "to": "scripts/player_features/sensors-feature.js" }
+    {
+      "from": "scripts/dsl.js",
+      "to": "scripts/player_features/dsl.js"
+    },
+    {
+      "from": "scripts/feature-contract.js",
+      "to": "scripts/player_features/feature-contract.js"
+    },
+    {
+      "from": "scripts/feature-registry-core.js",
+      "to": "scripts/player_features/feature-registry-core.js"
+    },
+    {
+      "from": "scripts/feature-registry.js",
+      "to": "scripts/player_features/feature-registry.js"
+    },
+    {
+      "from": "scripts/feature_actions",
+      "to": "scripts/player_features/feature_actions"
+    },
+    {
+      "from": "scripts/feature_brace",
+      "to": "scripts/player_features/feature_brace"
+    },
+    {
+      "from": "scripts/feature_lifecycle",
+      "to": "scripts/player_features/feature_lifecycle"
+    },
+    {
+      "from": "scripts/feature_movement",
+      "to": "scripts/player_features/feature_movement"
+    },
+    {
+      "from": "scripts/feature_semantic_execution_context",
+      "to": "scripts/player_features/feature_semantic_execution_context"
+    },
+    {
+      "from": "scripts/feature_status_orchestration",
+      "to": "scripts/player_features/feature_status_orchestration"
+    },
+    {
+      "from": "scripts/feature_system_bridge",
+      "to": "scripts/player_features/feature_system_bridge"
+    },
+    {
+      "from": "scripts/feature_targeting_spatial",
+      "to": "scripts/player_features/feature_targeting_spatial"
+    },
+    {
+      "from": "scripts/feature_turn",
+      "to": "scripts/player_features/feature_turn"
+    },
+    {
+      "from": "scripts/foundry-integration-feature.js",
+      "to": "scripts/player_features/foundry-integration-feature.js"
+    },
+    {
+      "from": "scripts/lancer-frame-helm.js.bak",
+      "to": "scripts/player_features/lancer-frame-helm.js.bak"
+    },
+    {
+      "from": "scripts/runtime-orchestrator.js",
+      "to": "scripts/player_features/runtime-orchestrator.js"
+    },
+    {
+      "from": "scripts/sensors-feature.js",
+      "to": "scripts/player_features/sensors-feature.js"
+    }
   ],
   "reference_rewrites": [
     {
@@ -40,5 +91,6 @@
       "to": "\"scripts\",\n      \"player_features\",\n      \"feature-registry.js\"",
       "expected_occurrences": 1
     }
-  ]
+  ],
+  "last_applied_at": "2026-08-16T18:16:31.059Z"
 }

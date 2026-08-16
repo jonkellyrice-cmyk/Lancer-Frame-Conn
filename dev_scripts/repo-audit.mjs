@@ -3,7 +3,7 @@
  * FILE PATH / NAME
  * ============================================================
  *
- * dev_scripts/repo-audit.mjs
+ * dev_scripts/player_features/repo-audit.mjs
  */
 
 
@@ -45,11 +45,11 @@
  *
  * RUN:
  *
- *   node dev_scripts/repo-audit.mjs
+ *   node dev_scripts/player_features/repo-audit.mjs
  *
  * OPTIONAL:
  *
- *   node dev_scripts/repo-audit.mjs --output dev_scripts/repo-audit-report.json
+ *   node dev_scripts/player_features/repo-audit.mjs --output dev_scripts/player_features/repo-audit-report.json
  *
  * DESIGN:
  *   Uses only Node.js built-in modules.
@@ -1883,6 +1883,7 @@ function auditRuntimeFeatureRegistration(
     path.join(
       REPOSITORY_ROOT,
       "scripts",
+      "player_features",
       "feature-registry.js"
     );
 
@@ -1907,7 +1908,7 @@ function auditRuntimeFeatureRegistration(
         "FEATURE_REGISTRY_MISSING",
 
       message:
-        "scripts/feature-registry.js could not be found or read.",
+        "scripts/player_features/feature-registry.js could not be found or read.",
 
       file:
         registryPath
@@ -1928,7 +1929,7 @@ function auditRuntimeFeatureRegistration(
 
         return (
           relative.startsWith(
-            "scripts/"
+            "scripts/player_features/"
           ) &&
           relative.endsWith(
             "-feature.js"
@@ -1968,7 +1969,7 @@ function auditRuntimeFeatureRegistration(
 
 
     const importSpecifier =
-      `./${relativePath(file).slice("scripts/".length)}`;
+      `./${relativePath(file).slice("scripts/player_features/".length)}`;
 
 
     if (
@@ -1984,7 +1985,7 @@ function auditRuntimeFeatureRegistration(
           "RUNTIME_FEATURE_NOT_IMPORTED_BY_REGISTRY",
 
         message:
-          `Runtime feature appears to declare a Frame Conn feature but is not imported by scripts/feature-registry.js.`,
+          `Runtime feature appears to declare a Frame Conn feature but is not imported by scripts/player_features/feature-registry.js.`,
 
         file,
 
@@ -3163,7 +3164,7 @@ function buildDependencyWatershed({
           river ===
           "ui"
             ? "styles/ui-registry.js"
-            : "scripts/feature-registry.js",
+            : "scripts/player_features/feature-registry.js",
 
         outlet:
           outletFiles.length >
@@ -3260,7 +3261,7 @@ function buildDependencyWatershed({
         "Runtime River",
 
       convergence:
-        "scripts/feature-registry.js"
+        "scripts/player_features/feature-registry.js"
     },
 
     {
@@ -3910,8 +3911,8 @@ function runAudit() {
 
   const featureDeclarationExcludedFiles =
     new Set([
-      "scripts/feature-contract.js",
-      "dev_scripts/repo-audit.mjs"
+      "scripts/player_features/feature-contract.js",
+      "dev_scripts/player_features/repo-audit.mjs"
     ]);
 
 

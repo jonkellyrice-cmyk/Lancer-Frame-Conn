@@ -64,7 +64,7 @@ import {
 } from "../feature-contract.js";
 
 import * as systemBridgeRuntime from
-  "../../system_bridge/system-bridge.js";
+  "../../../system_bridge/system-bridge.js";
 
 /* ============================================================
    RUNTIME CONFIGURATION

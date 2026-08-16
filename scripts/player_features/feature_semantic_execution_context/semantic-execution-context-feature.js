@@ -62,7 +62,7 @@ import {
 } from "../feature-contract.js";
 
 import * as executionContextRuntime from
-  "../../system_bridge/semantic_execution_context/execution-context.js";
+  "../../../system_bridge/semantic_execution_context/execution-context.js";
 
 /* ============================================================
    FEATURE DIAGNOSTICS

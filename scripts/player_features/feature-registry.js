@@ -274,12 +274,12 @@ import {
 
 import {
   frameConnExecutionTransactionFeature
-} from "../system_bridge/execution_transaction/execution-transaction-feature.js";
+} from "../../system_bridge/execution_transaction/execution-transaction-feature.js";
 
 
 import {
   frameConnNativeAdapterFeature
-} from "../system_bridge/native_adapter/native-adapter-feature.js";
+} from "../../system_bridge/native_adapter/native-adapter-feature.js";
 
 
 import {
@@ -311,7 +311,7 @@ import {
  */
 import {
   FRAME_CONN_UI_FEATURES
-} from "../styles/ui-registry.js";
+} from "../../styles/ui-registry.js";
 
 
 /* ============================================================

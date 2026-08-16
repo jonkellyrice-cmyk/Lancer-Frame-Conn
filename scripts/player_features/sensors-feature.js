@@ -75,7 +75,7 @@ import {
   renderFrameConnSensorContacts,
   destroyFrameConnSensorContacts,
   getFrameConnSensorLayer
-} from "../styles/ui-sensors.js";
+} from "../../styles/ui-sensors.js";
 
 
 /* ============================================================

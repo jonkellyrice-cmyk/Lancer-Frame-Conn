@@ -61,7 +61,7 @@ import {
 } from "../feature-contract.js";
 
 import * as lifecycleRuntime from
-  "../../system_bridge/lifecycle_service/lifecycle-service.js";
+  "../../../system_bridge/lifecycle_service/lifecycle-service.js";
 
 /* ============================================================
    RUNTIME CONFIGURATION

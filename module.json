@@ -17,7 +17,7 @@
   },
 
   "esmodules": [
-    "scripts/runtime-orchestrator.js"
+    "scripts/player_features/runtime-orchestrator.js"
   ],
 
   "styles": [
