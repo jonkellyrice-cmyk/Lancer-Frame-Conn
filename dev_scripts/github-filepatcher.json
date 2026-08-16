@@ -1,9 +1,125 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after restoring Danger Zone derivation and native OverheatFlow status consequence automation under rules_features/status_conditions.",
+  "id": "reactor-meltdown-countdown-and-telemetry",
+  "description": "Track imminent reactor meltdowns in native system.meltdown_timer, resolve the 2-Stress Engineering branch, count down on the actor's own turns, and conditionally show the timer left of HP in Frame Conn telemetry.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 5,
+    "allowed_paths": [
+      "scripts/rules_features/status_conditions/reactor-meltdown-status.js",
+      "scripts/rules_features/status_conditions/overheating-status.js",
+      "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "styles/ui_application/components/application-telemetry.js",
+      "styles/ui-orchestrator.css"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "create_file",
+      "path": "scripts/rules_features/status_conditions/reactor-meltdown-status.js",
+      "content": "/**\n * @file scripts/rules_features/status_conditions/reactor-meltdown-status.js\n * @module reactor-meltdown-status\n * @responsibility Own imminent reactor-meltdown countdown state and the Engineering-check branch that can create or prevent that countdown.\n *\n * Foundry Lancer already reserves actor.system.meltdown_timer for this purpose\n * and clears it during Full Repair, but does not advance the countdown. Frame\n * Conn therefore uses that native field instead of inventing a duplicate timer.\n */\n\nconst MODULE_ID = \"lancer-frame-conn\";\nconst MELTDOWN_FLAG = \"reactor-meltdown-countdown\";\nconst STAT_FLOW = \"StatRollFlow\";\nconst ENGINEERING_RESOLUTION_STEP = \"frameConnResolveReactorMeltdownEngineeringCheck\";\n\nexport function createReactorMeltdownStatusController({\n  applyStatus,\n  actorUuid,\n  actorFromUuid,\n  turnKey,\n  installFlowStepBefore\n} = {}) {\n  for (const [name, value] of Object.entries({ applyStatus, actorUuid, actorFromUuid, turnKey, installFlowStepBefore })) {\n    if (typeof value !== \"function\") {\n      throw new TypeError(`Frame Conn Reactor Meltdown dependency ${name} must be a function.`);\n    }\n  }\n\n  let observedCombatTurnKey = null;\n  let observedCombatActorUuid = null;\n\n  function canMutate(actor) {\n    const users = [...(globalThis.game?.users ?? [])];\n    const activeGmExists = users.some(user => user?.active && user?.isGM);\n    if (activeGmExists) return Boolean(globalThis.game?.user?.isGM);\n    return Boolean(actor?.isOwner);\n  }\n\n  function timer(actor) {\n    const value = actor?.system?.meltdown_timer;\n    if (value === null || value === undefined || value === \"\") return null;\n    const numeric = Number(value);\n    return Number.isFinite(numeric) && numeric >= 0 ? Math.floor(numeric) : null;\n  }\n\n  function record(actor) {\n    return actor?.getFlag?.(MODULE_ID, MELTDOWN_FLAG) ?? null;\n  }\n\n  async function writeRecord(actor, value) {\n    if (!actor?.isOwner || typeof actor.setFlag !== \"function\") return false;\n    await actor.setFlag(MODULE_ID, MELTDOWN_FLAG, value);\n    return true;\n  }\n\n  async function clearRecord(actor) {\n    if (!actor?.isOwner || typeof actor.unsetFlag !== \"function\") return false;\n    await actor.unsetFlag(MODULE_ID, MELTDOWN_FLAG);\n    return true;\n  }\n\n  async function updateTimer(actor, value) {\n    if (!canMutate(actor) || typeof actor?.update !== \"function\") return false;\n    await actor.update({ \"system.meltdown_timer\": value });\n    return true;\n  }\n\n  async function schedule(actor, turns, { reason = \"reactor-meltdown\", combat = globalThis.game?.combat } = {}) {\n    const countdown = Math.max(0, Math.floor(Number(turns)));\n    if (!Number.isFinite(countdown)) throw new TypeError(\"Reactor meltdown countdown must be a finite number of turns.\");\n\n    const currentTurnKey = turnKey(combat);\n    const currentActorUuid = combat?.combatant?.actor?.uuid ?? null;\n    const uuid = actorUuid(actor);\n\n    await updateTimer(actor, countdown);\n    await writeRecord(actor, {\n      actorUuid: uuid,\n      stage: \"countdown\",\n      reason,\n      scheduledTurnKey: currentTurnKey,\n      lastProcessedTurnKey: currentActorUuid === uuid ? currentTurnKey : null,\n      scheduledAt: Date.now()\n    });\n\n    return Object.freeze({ actorUuid: uuid, timer: countdown, reason });\n  }\n\n  async function markEngineeringCheckPending(actor) {\n    const existing = record(actor);\n    await writeRecord(actor, {\n      ...(existing && typeof existing === \"object\" ? existing : {}),\n      actorUuid: actorUuid(actor),\n      stage: \"awaiting-engineering\",\n      awaitingEngineeringSince: Date.now()\n    });\n    return true;\n  }\n\n  async function clearCountdown(actor) {\n    if (timer(actor) !== null) await updateTimer(actor, null);\n    await clearRecord(actor);\n    return true;\n  }\n\n  async function rollMeltdownDelay(actor) {\n    const roll = await new Roll(\"1d6\").evaluate();\n    const total = Math.max(1, Math.floor(Number(roll.total) || 1));\n\n    if (typeof roll.toMessage === \"function\") {\n      await roll.toMessage({\n        speaker: globalThis.ChatMessage?.getSpeaker?.({ actor }),\n        flavor: \"REACTOR MELTDOWN // TURNS UNTIL DETONATION\"\n      });\n    }\n\n    return total;\n  }\n\n  async function resolveEngineeringCheck(state) {\n    const actor = state?.actor ?? null;\n    const data = state?.data ?? null;\n    if (!actor || !data || data.path !== \"system.eng\") return true;\n\n    const countdownRecord = record(actor);\n    const activeTimer = timer(actor);\n    const isInitialMeltdownCheck = countdownRecord?.stage === \"awaiting-engineering\";\n    const isCountdownRetry = activeTimer !== null && countdownRecord?.stage === \"countdown\";\n    if (!isInitialMeltdownCheck && !isCountdownRetry) return true;\n\n    const total = Number(data?.result?.roll?.total);\n    if (!Number.isFinite(total)) return true;\n\n    if (total >= 10) {\n      await applyStatus(actor, \"exposed\");\n      await clearCountdown(actor);\n      return true;\n    }\n\n    if (isInitialMeltdownCheck) {\n      const delay = await rollMeltdownDelay(actor);\n      await schedule(actor, delay, { reason: \"failed-engineering-check\" });\n    }\n\n    return true;\n  }\n\n  function installEngineeringResolution() {\n    return installFlowStepBefore({\n      stepName: ENGINEERING_RESOLUTION_STEP,\n      beforeStep: \"printStatRollCard\",\n      flowNames: [STAT_FLOW],\n      step: resolveEngineeringCheck\n    });\n  }\n\n  async function triggerMeltdown(actor) {\n    if (!actor) return false;\n    await applyStatus(actor, \"reactor_meltdown\");\n    await updateTimer(actor, null);\n    await clearRecord(actor);\n    return true;\n  }\n\n  async function beginActorTurn(actor, combat) {\n    const currentTimer = timer(actor);\n    if (currentTimer === null || currentTimer <= 0) return false;\n\n    const currentTurnKey = turnKey(combat);\n    const countdownRecord = record(actor) ?? {};\n    if (!currentTurnKey) return false;\n    if (countdownRecord.scheduledTurnKey === currentTurnKey) return false;\n    if (countdownRecord.lastProcessedTurnKey === currentTurnKey) return false;\n\n    await updateTimer(actor, currentTimer - 1);\n    await writeRecord(actor, {\n      ...countdownRecord,\n      actorUuid: actorUuid(actor),\n      stage: \"countdown\",\n      lastProcessedTurnKey: currentTurnKey\n    });\n    return true;\n  }\n\n  async function finishActorTurn(actor) {\n    if (!actor || timer(actor) !== 0) return false;\n    return triggerMeltdown(actor);\n  }\n\n  function initializeCombat(combat = globalThis.game?.combat) {\n    observedCombatTurnKey = turnKey(combat);\n    observedCombatActorUuid = combat?.combatant?.actor?.uuid ?? null;\n    return true;\n  }\n\n  async function syncCombat(combat = globalThis.game?.combat) {\n    const currentTurnKey = turnKey(combat);\n    if (!currentTurnKey) {\n      observedCombatTurnKey = null;\n      observedCombatActorUuid = null;\n      return false;\n    }\n\n    const currentActorUuid = combat?.combatant?.actor?.uuid ?? null;\n    if (observedCombatTurnKey === null) {\n      observedCombatTurnKey = currentTurnKey;\n      observedCombatActorUuid = currentActorUuid;\n      return true;\n    }\n\n    if (currentTurnKey === observedCombatTurnKey) return false;\n\n    const previousActor = actorFromUuid(observedCombatActorUuid);\n    if (previousActor) await finishActorTurn(previousActor);\n\n    const currentActor = actorFromUuid(currentActorUuid);\n    if (currentActor) await beginActorTurn(currentActor, combat);\n\n    observedCombatTurnKey = currentTurnKey;\n    observedCombatActorUuid = currentActorUuid;\n    return true;\n  }\n\n  async function reconcileActor(actor) {\n    const countdownRecord = record(actor);\n    if (timer(actor) === null && countdownRecord?.stage === \"countdown\") {\n      await clearRecord(actor);\n      return true;\n    }\n    return false;\n  }\n\n  return Object.freeze({\n    timer,\n    schedule,\n    markEngineeringCheckPending,\n    clearCountdown,\n    resolveEngineeringCheck,\n    installEngineeringResolution,\n    initializeCombat,\n    syncCombat,\n    reconcileActor,\n    triggerMeltdown\n  });\n}\n"
+    },
+    {
+      "type": "replace_file",
+      "path": "scripts/rules_features/status_conditions/overheating-status.js",
+      "content": "/**\n * @file scripts/rules_features/status_conditions/overheating-status.js\n * @module overheating-status\n * @responsibility Apply mechanical consequences of the already-resolved native Foundry Lancer OverheatFlow without replacing its Stress, Heat, roll, or chat authority.\n */\n\nconst OVERHEAT_FLOW = \"OverheatFlow\";\nconst CONSEQUENCE_STEP = \"frameConnApplyNativeOverheatStatusConsequences\";\n\nexport function createOverheatingStatusController({\n  applyStatus,\n  applyUntilEndOfNextTurn,\n  installFlowStepBefore,\n  scheduleReactorMeltdown,\n  markReactorEngineeringCheckPending\n} = {}) {\n  for (const [name, value] of Object.entries({\n    applyStatus,\n    applyUntilEndOfNextTurn,\n    installFlowStepBefore,\n    scheduleReactorMeltdown,\n    markReactorEngineeringCheckPending\n  })) {\n    if (typeof value !== \"function\") {\n      throw new TypeError(`Frame Conn Overheating dependency ${name} must be a function.`);\n    }\n  }\n\n  function selectedNativeOverheatRoll(roll) {\n    const firstTerm = Array.isArray(roll?.terms) ? roll.terms[0] : null;\n    if (!Array.isArray(firstTerm?.rolls) || firstTerm.rolls.length <= 1) return roll;\n\n    const chosenIndex = Array.isArray(firstTerm?.results)\n      ? firstTerm.results.findIndex(result => !result?.discarded)\n      : -1;\n\n    return chosenIndex >= 0\n      ? firstTerm.rolls[chosenIndex] ?? roll\n      : roll;\n  }\n\n  function nativeOverheatOneCount(roll) {\n    const selectedRoll = selectedNativeOverheatRoll(roll);\n    const dieTerm = Array.isArray(selectedRoll?.terms)\n      ? selectedRoll.terms.find(term => Array.isArray(term?.results))\n      : null;\n\n    if (!dieTerm) return 0;\n    return dieTerm.results.filter(result => Number(result?.result) === 1).length;\n  }\n\n  async function applyNativeOverheatStatusConsequences(state) {\n    const actor = state?.actor ?? null;\n    const data = state?.data ?? null;\n    if (!actor || !data) return true;\n\n    const isMech = typeof actor.is_mech === \"function\" ? actor.is_mech() : actor.type === \"mech\";\n    const isNpc = typeof actor.is_npc === \"function\" ? actor.is_npc() : actor.type === \"npc\";\n    if (!isMech && !isNpc) return true;\n\n    // Native Lancer's one-Stress NPC branch prints Destabilized Power Plant\n    // without rolling and without persisting Exposed.\n    if (isNpc && Number(actor?.system?.stress?.max) === 1 && !data?.result?.roll) {\n      await applyStatus(actor, \"exposed\");\n      return true;\n    }\n\n    const remainingStress = Number(data?.remStress);\n\n    // Reaching zero Stress is a reactor meltdown at the end of the next turn.\n    if (remainingStress === 0) {\n      await scheduleReactorMeltdown(actor, 1, { reason: \"zero-stress\" });\n      return true;\n    }\n\n    const roll = data?.result?.roll ?? null;\n    const result = Number(roll?.total);\n    if (!Number.isFinite(result)) return true;\n\n    // Multiple 1s are Irreversible Meltdown: end of next turn.\n    if (result === 1 && nativeOverheatOneCount(roll) > 1) {\n      await scheduleReactorMeltdown(actor, 1, { reason: \"irreversible-meltdown\" });\n      return true;\n    }\n\n    // Emergency Shunt.\n    if (result >= 5) {\n      await applyUntilEndOfNextTurn(actor, [\"impaired\"], {\n        sourceActionId: \"native-overheat-emergency-shunt\"\n      });\n      return true;\n    }\n\n    // Destabilized Power Plant.\n    if (result >= 2) {\n      await applyStatus(actor, \"exposed\");\n      return true;\n    }\n\n    if (result !== 1) return true;\n\n    // Meltdown table result varies with remaining Stress.\n    if (remainingStress >= 3) {\n      await applyStatus(actor, \"exposed\");\n    } else if (remainingStress === 2) {\n      // Native Foundry supplies the Engineering button. The reactor-meltdown\n      // controller observes the resulting native StatRollFlow.\n      await markReactorEngineeringCheckPending(actor);\n    } else if (remainingStress === 1) {\n      await scheduleReactorMeltdown(actor, 1, { reason: \"one-stress-meltdown\" });\n    }\n\n    return true;\n  }\n\n  function install() {\n    return installFlowStepBefore({\n      stepName: CONSEQUENCE_STEP,\n      beforeStep: \"noStressRemaining\",\n      flowNames: [OVERHEAT_FLOW],\n      step: applyNativeOverheatStatusConsequences\n    });\n  }\n\n  return Object.freeze({\n    install,\n    applyNativeOverheatStatusConsequences,\n    nativeOverheatOneCount\n  });\n}\n"
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "import { createOverheatingStatusController } from \"./overheating-status.js\";",
+      "replace": "import { createOverheatingStatusController } from \"./overheating-status.js\";\nimport { createReactorMeltdownStatusController } from \"./reactor-meltdown-status.js\";",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "const overheatingStatus = createOverheatingStatusController({\n  applyStatus: applyNativeStatus,\n  applyUntilEndOfNextTurn,\n  installFlowStepBefore: options => {\n    if (typeof runtime.installNativeFlowStepBefore !== \"function\") {\n      throw new Error(\"Frame Conn Status Orchestration native Flow extension is not configured.\");\n    }\n    return runtime.installNativeFlowStepBefore(options);\n  }\n});",
+      "replace": "const installStatusOrchestrationFlowStepBefore = options => {\n  if (typeof runtime.installNativeFlowStepBefore !== \"function\") {\n    throw new Error(\"Frame Conn Status Orchestration native Flow extension is not configured.\");\n  }\n  return runtime.installNativeFlowStepBefore(options);\n};\n\nconst reactorMeltdownStatus = createReactorMeltdownStatusController({\n  applyStatus: applyNativeStatus,\n  actorUuid,\n  actorFromUuid,\n  turnKey,\n  installFlowStepBefore: installStatusOrchestrationFlowStepBefore\n});\n\nconst overheatingStatus = createOverheatingStatusController({\n  applyStatus: applyNativeStatus,\n  applyUntilEndOfNextTurn,\n  installFlowStepBefore: installStatusOrchestrationFlowStepBefore,\n  scheduleReactorMeltdown: reactorMeltdownStatus.schedule,\n  markReactorEngineeringCheckPending: reactorMeltdownStatus.markEngineeringCheckPending\n});",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "  engagedStatus.syncDisengage(combat);\n  await syncTimedStatuses(combat);",
+      "replace": "  engagedStatus.syncDisengage(combat);\n  await reactorMeltdownStatus.syncCombat(combat);\n  await syncTimedStatuses(combat);",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "async function handleActorUpdate(actor) { return dangerZoneStatus.syncActor(actor); }",
+      "replace": "async function handleActorUpdate(actor) {\n  await reactorMeltdownStatus.reconcileActor(actor);\n  return dangerZoneStatus.syncActor(actor);\n}",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "  provides: [\"status.orchestration\", \"status.timed\", \"status.grapple\", \"status.engaged.derived\", \"status.danger-zone.derived\", \"status.overheat-consequences\"],",
+      "replace": "  provides: [\"status.orchestration\", \"status.timed\", \"status.grapple\", \"status.engaged.derived\", \"status.danger-zone.derived\", \"status.overheat-consequences\", \"status.reactor-meltdown-countdown\"],",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "installOverheatingConsequences: overheatingStatus.install },",
+      "replace": "installOverheatingConsequences: overheatingStatus.install, installReactorMeltdownEngineeringResolution: reactorMeltdownStatus.installEngineeringResolution, syncReactorMeltdownCountdown: reactorMeltdownStatus.syncCombat },",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "dangerZoneThreshold: dangerZoneStatus.threshold },",
+      "replace": "dangerZoneThreshold: dangerZoneStatus.threshold, reactorMeltdownTimer: reactorMeltdownStatus.timer },",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, updateActor: handleActorUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { overheatingStatus.install(); hydrateStatusOrchestrationState(); await syncGrapples(); await engagedStatus.syncEngaged(); return dangerZoneStatus.syncAll(); } },",
+      "replace": "hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, updateActor: handleActorUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { overheatingStatus.install(); reactorMeltdownStatus.installEngineeringResolution(); reactorMeltdownStatus.initializeCombat(); hydrateStatusOrchestrationState(); await syncGrapples(); await engagedStatus.syncEngaged(); return dangerZoneStatus.syncAll(); } },",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "installOverheatingConsequences: overheatingStatus.install, diagnostics, runtimeBindings },",
+      "replace": "installOverheatingConsequences: overheatingStatus.install, installReactorMeltdownEngineeringResolution: reactorMeltdownStatus.installEngineeringResolution, reactorMeltdownTimer: reactorMeltdownStatus.timer, scheduleReactorMeltdown: reactorMeltdownStatus.schedule, clearReactorMeltdown: reactorMeltdownStatus.clearCountdown, syncReactorMeltdownCountdown: reactorMeltdownStatus.syncCombat, diagnostics, runtimeBindings },",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-telemetry.js",
+      "search": "    repairsMax:\n      0\n  };",
+      "replace": "    repairsMax:\n      0,\n\n    meltdownTimer:\n      null\n  };",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-telemetry.js",
+      "search": "    repairsMax:\n      repairsAvailable\n        ? rangeValue(\n            system.repairs,\n            \"max\",\n            fallback.repairsMax\n          )\n        : fallback.repairsMax,\n\n    speed:",
+      "replace": "    repairsMax:\n      repairsAvailable\n        ? rangeValue(\n            system.repairs,\n            \"max\",\n            fallback.repairsMax\n          )\n        : fallback.repairsMax,\n\n    meltdownTimer:\n      system.meltdown_timer === null ||\n      system.meltdown_timer === undefined\n        ? null\n        : finiteOr(\n            system.meltdown_timer,\n            null\n          ),\n\n    speed:",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-telemetry.js",
+      "search": "      <div class=\"frame-conn-mech-stats-grid\">\n        ${renderPairedStat({",
+      "replace": "      <div class=\"frame-conn-mech-stats-grid${stats.meltdownTimer !== null ? \" has-reactor-meltdown\" : \"\"}\">\n        ${\n          stats.meltdownTimer !== null\n            ? `\n              <div class=\"frame-conn-stat-cell frame-conn-stat-single frame-conn-stat-meltdown\" title=\"Reactor meltdown: turns until detonation\">\n                <span class=\"frame-conn-stat-label\">RCTR.MELT</span>\n                <input\n                  type=\"number\"\n                  min=\"0\"\n                  step=\"1\"\n                  inputmode=\"numeric\"\n                  value=\"${stats.meltdownTimer}\"\n                  aria-label=\"Reactor meltdown timer\"\n                  readonly\n                >\n              </div>\n            `\n            : \"\"\n        }\n\n        ${renderPairedStat({",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui-orchestrator.css",
+      "search": ".frame-conn-stat-label {\n  font-size: 0.62rem;",
+      "replace": ".frame-conn-mech-stats-grid.has-reactor-meltdown {\n  grid-template-columns:\n    minmax(96px, 1fr)\n    minmax(108px, 1.3fr)\n    minmax(108px, 1.3fr)\n    minmax(72px, 0.75fr)\n    minmax(82px, 0.85fr)\n    minmax(72px, 0.75fr)\n    minmax(108px, 1.3fr)\n    minmax(108px, 1.3fr)\n    minmax(108px, 1.3fr);\n}\n.frame-conn-stat-label {\n  font-size: 0.62rem;",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui-orchestrator.css",
+      "search": ".frame-conn-stat-cell:nth-child(2)\n.frame-conn-stat-label,\n.frame-conn-stat-cell:nth-child(5)\n.frame-conn-stat-label,\n.frame-conn-stat-cell:nth-child(7)\n.frame-conn-stat-label {\n  color: #d8b977;\n}",
+      "replace": ".frame-conn-stat-cell:nth-child(2)\n.frame-conn-stat-label,\n.frame-conn-stat-cell:nth-child(5)\n.frame-conn-stat-label,\n.frame-conn-stat-cell:nth-child(7)\n.frame-conn-stat-label {\n  color: #d8b977;\n}\n.frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-cell:nth-child(2),\n.frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-cell:nth-child(5),\n.frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-cell:nth-child(7) {\n  background: transparent;\n}\n.frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-cell:nth-child(3),\n.frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-cell:nth-child(6),\n.frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-cell:nth-child(8) {\n  background:\n    linear-gradient(\n      180deg,\n      rgba(255, 184, 74, 0.055),\n      transparent\n    );\n}\n.frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-cell:nth-child(3) .frame-conn-stat-label,\n.frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-cell:nth-child(6) .frame-conn-stat-label,\n.frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-cell:nth-child(8) .frame-conn-stat-label {\n  color: #d8b977;\n}\n.frame-conn-stat-meltdown {\n  background:\n    linear-gradient(180deg, rgba(255, 68, 68, 0.16), rgba(255, 68, 68, 0.035));\n  box-shadow: inset 3px 0 0 #ff5757;\n}\n.frame-conn-stat-meltdown .frame-conn-stat-label {\n  color: #ff8b78;\n  text-shadow: 0 0 7px rgba(255, 87, 87, 0.55);\n}\n.frame-conn-stat-meltdown input[readonly] {\n  border-color: rgba(255, 87, 87, 0.55);\n  color: #ffb0a1;\n  box-shadow: inset 2px 0 0 rgba(255, 87, 87, 0.45);\n}",
+      "expected_occurrences": 1
+    }
+  ]
 }
