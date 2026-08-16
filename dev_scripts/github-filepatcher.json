@@ -1,20 +1,9 @@
 {
   "schema_version": 2,
-  "id": "red-reactor-meltdown-template",
-  "description": "Make the automatically created reactor meltdown Burst 2 measured template default to red without changing its geometry or mechanical resolution.",
+  "id": "ready",
+  "description": "Neutral no-op state after setting reactor meltdown Burst 2 templates to red.",
   "policy": {
-    "max_files_changed": 1,
-    "allowed_paths": [
-      "scripts/rules_features/status_conditions/reactor-meltdown-resolution.js"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "scripts/rules_features/status_conditions/reactor-meltdown-resolution.js",
-      "search": "  templateObject.document.updateSource({\n    x: Math.round(center.x),\n    y: Math.round(center.y),\n    distance: (BURST_RANGE + sourceSize / 2) * gridDistance,\n    [`flags.${globalThis.game.system.id}.burstToken`]: sourceToken.id\n  });",
-      "replace": "  templateObject.document.updateSource({\n    x: Math.round(center.x),\n    y: Math.round(center.y),\n    distance: (BURST_RANGE + sourceSize / 2) * gridDistance,\n    borderColor: \"#ff0000\",\n    fillColor: \"#ff0000\",\n    [`flags.${globalThis.game.system.id}.burstToken`]: sourceToken.id\n  });",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
