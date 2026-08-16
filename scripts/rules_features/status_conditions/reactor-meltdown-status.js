@@ -29,11 +29,15 @@ export function createReactorMeltdownStatusController({
   let observedCombatTurnKey = null;
   let observedCombatActorUuid = null;
 
-  function canMutate(actor) {
+  function canAdvanceCountdown(actor) {
     const users = [...(globalThis.game?.users ?? [])];
     const activeGmExists = users.some(user => user?.active && user?.isGM);
     if (activeGmExists) return Boolean(globalThis.game?.user?.isGM);
     return Boolean(actor?.isOwner);
+  }
+
+  function canMutateFromNativeFlow(actor) {
+    return Boolean(globalThis.game?.user?.isGM || actor?.isOwner);
   }
 
   function timer(actor) {
@@ -59,8 +63,12 @@ export function createReactorMeltdownStatusController({
     return true;
   }
 
-  async function updateTimer(actor, value) {
-    if (!canMutate(actor) || typeof actor?.update !== "function") return false;
+  async function updateTimer(actor, value, { nativeFlowAuthority = false } = {}) {
+    const authorized = nativeFlowAuthority
+      ? canMutateFromNativeFlow(actor)
+      : canAdvanceCountdown(actor);
+
+    if (!authorized || typeof actor?.update !== "function") return false;
     await actor.update({ "system.meltdown_timer": value });
     return true;
   }
@@ -73,7 +81,7 @@ export function createReactorMeltdownStatusController({
     const currentActorUuid = combat?.combatant?.actor?.uuid ?? null;
     const uuid = actorUuid(actor);
 
-    await updateTimer(actor, countdown);
+    await updateTimer(actor, countdown, { nativeFlowAuthority: true });
     await writeRecord(actor, {
       actorUuid: uuid,
       stage: "countdown",
@@ -98,7 +106,9 @@ export function createReactorMeltdownStatusController({
   }
 
   async function clearCountdown(actor) {
-    if (timer(actor) !== null) await updateTimer(actor, null);
+    if (timer(actor) !== null) {
+      await updateTimer(actor, null, { nativeFlowAuthority: true });
+    }
     await clearRecord(actor);
     return true;
   }
