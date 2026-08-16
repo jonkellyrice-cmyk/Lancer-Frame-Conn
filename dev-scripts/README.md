@@ -53,7 +53,7 @@ package.json
 
 ## Planning-aware toolchain
 
-The GitHub FilePatcher now participates in an eight-capability evidence/planning/validation pipeline:
+The GitHub FilePatcher now participates in a nine-capability evidence/planning/validation pipeline:
 
 1. **Integration Surface Atlas** — discovers legitimate native Lancer integration surfaces from authoritative source.
 2. **Runtime Signal Map** — traces statically evidenced UI/event/Flow/effect paths.
@@ -62,7 +62,8 @@ The GitHub FilePatcher now participates in an eight-capability evidence/planning
 5. **Native Contract Catalog** — reuses version/hash-backed native facts and detects drift.
 6. **Automatic Patch Staging** — decomposes cross-cutting work into dependency-safe phases with exact scope locks.
 7. **Expanded Pattern-Aware DSL** — clones only proven local structural exemplars and compiles to ordinary FilePatcher JSON.
-8. **Runtime Contract Probes** — generates reversible Foundry instrumentation plus explicit manual checkpoints for live testing.
+8. **Change Propagation Simulator** — compares FilePatcher's exact staged before/after state, classifies contract deltas, derives intermediate-state obligations and compatibility strategies, predicts bounded behavioral amplification, and targets the most load-bearing verification.
+9. **Runtime Contract Probes** — generates reversible Foundry instrumentation plus explicit manual checkpoints for live testing.
 
 The complete operator contract lives in `dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md`.
 
@@ -84,23 +85,26 @@ Schema v2 patches may carry the complete behavior as `planning_goal`:
 }
 ```
 
-When present, FilePatcher runs this pre-mutation chain:
+When present, FilePatcher uses this pre-mutation chain. Mutation planning itself happens first so every downstream tool can reason over the exact staged state that FilePatcher would write:
 
 ```text
-planning_goal
+mutation planning (in memory)
     ↓
-Clause-Aware Patch Corridor
+planning_goal → Clause-Aware Patch Corridor
     ↓
 Automatic Patch Staging
+    ↓
+Change Propagation Simulator
+  exact staged before/after transition
     ↓
 Corridor Context Pack
     ↓
 Native Contract Catalog
     ↓
 Runtime Contract Probes (temporary bundle)
-    ↓
-mutation planning
 ```
+
+For patches without `planning_goal`, the simulator still runs whenever the mutation plan contains at least one changed file. Automatic bridge use is advisory: unsafe-transition findings are logged as compatibility warnings, while FilePatcher policy and the permanent audits remain the blocking gates.
 
 The Integration Surface Atlas and Runtime Signal Map are consulted when native proof is missing or drifted rather than rescanned automatically for every routine patch.
 
@@ -226,10 +230,14 @@ checkout main
 validate patcher syntax
         ↓
 dry-run
-  └─ planning_goal pipeline when present
+  ├─ exact staged mutation plan
+  ├─ Change Propagation Simulator when files would change
+  └─ planning_goal evidence pipeline when present
         ↓
 apply
-  ├─ planning_goal pipeline when present
+  ├─ exact staged mutation plan
+  ├─ Change Propagation Simulator when files would change
+  ├─ planning_goal evidence pipeline when present
   ├─ permanent developer-tool self-tests
   ├─ Repository Audit
   ├─ Symbol Family Audit
@@ -258,7 +266,8 @@ For a simple localized patch:
 2. Author the narrowest supported DSL/JSON change.
 3. Keep `policy.max_files_changed` at 1 and use exact `policy.allowed_paths` when practical.
 4. Push only the patch specification.
-5. Confirm dry-run, apply, permanent self-tests, architecture audits, diff validation, and the bot commit.
+5. Inspect the Change Propagation summary for breaking deltas, immediate consumers, fan-out risk, compatibility-stage warnings, and targeted verification.
+6. Confirm dry-run, apply, permanent self-tests, architecture audits, diff validation, and the bot commit.
 
 For cross-cutting/runtime-sensitive work:
 
@@ -299,6 +308,7 @@ Corridor Context Pack self-test
 Native Contract Catalog self-test + catalog verification
 Automatic Patch Staging self-test
 Runtime Contract Probes self-test
+Change Propagation Simulator self-test
 developer-tool syntax checks
 Repository Audit
 Symbol Family Audit
