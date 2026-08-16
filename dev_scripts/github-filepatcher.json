@@ -1,9 +1,91 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after setting reactor meltdown Burst 2 templates to red.",
+  "id": "structure-damage-consequences-and-telemetry",
+  "description": "Observe native Lancer StructureFlow results and apply missing Glancing Blow/Direct Hit status consequences, auto-launch the native Hull check at 2 Structure, remove scene tokens when Structure reaches 0, and add Structure telemetry warning pulses.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 4,
+    "allowed_paths": [
+      "scripts/rules_features/status_conditions/structure-damage-status.js",
+      "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "styles/ui_application/components/application-telemetry.js",
+      "styles/ui-orchestrator.css"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "create_file",
+      "path": "scripts/rules_features/status_conditions/structure-damage-status.js",
+      "content": "/**\n * @file scripts/rules_features/status_conditions/structure-damage-status.js\n * @module structure-damage-status\n * @responsibility Apply missing mechanical consequences of the native Foundry Lancer StructureFlow and remove destroyed tokens when Structure reaches 0.\n *\n * Native Lancer remains authoritative for:\n * - detecting HP reaching 0 when native Structure automation is enabled;\n * - spending Structure and restoring HP;\n * - rolling the Structure table;\n * - multiple-1 detection;\n * - StructureFlow chat output.\n */\n\nimport { rollNativeStat } from \"../../../system_bridge/native_adapter/native-adapter.js\";\n\nconst STRUCTURE_FLOW = \"StructureFlow\";\nconst CONSEQUENCE_STEP = \"frameConnApplyNativeStructureConsequences\";\n\nexport function createStructureDamageStatusController({\n  applyUntilEndOfNextTurn,\n  installFlowStepBefore\n} = {}) {\n  for (const [name, value] of Object.entries({ applyUntilEndOfNextTurn, installFlowStepBefore })) {\n    if (typeof value !== \"function\") {\n      throw new TypeError(`Frame Conn Structure Damage dependency ${name} must be a function.`);\n    }\n  }\n\n  const destructionInFlight = new Set();\n\n  function canAuthoritativelyDestroy(actor) {\n    const users = [...(globalThis.game?.users ?? [])];\n    const activeGmExists = users.some(user => user?.active && user?.isGM);\n    if (activeGmExists) return Boolean(globalThis.game?.user?.isGM);\n    return Boolean(actor?.isOwner);\n  }\n\n  function selectedStructureRoll(roll) {\n    const firstTerm = Array.isArray(roll?.terms) ? roll.terms[0] : null;\n    if (!Array.isArray(firstTerm?.rolls) || firstTerm.rolls.length <= 1) return roll;\n\n    const chosenIndex = Array.isArray(firstTerm?.results)\n      ? firstTerm.results.findIndex(result => !result?.discarded)\n      : -1;\n\n    return chosenIndex >= 0\n      ? firstTerm.rolls[chosenIndex] ?? roll\n      : roll;\n  }\n\n  function structureOneCount(roll) {\n    const selectedRoll = selectedStructureRoll(roll);\n    const dieTerm = Array.isArray(selectedRoll?.terms)\n      ? selectedRoll.terms.find(term => Array.isArray(term?.results))\n      : null;\n\n    if (!dieTerm) return 0;\n    return dieTerm.results.filter(result => Number(result?.result) === 1).length;\n  }\n\n  function removeNativeHullButton(data) {\n    if (!Array.isArray(data?.embedButtons)) return;\n    data.embedButtons = data.embedButtons.filter(button =>\n      !(typeof button === \"string\" && button.includes('data-check-type=\"hull\"'))\n    );\n  }\n\n  async function destroyActor(actor, { reason = \"structure-zero\" } = {}) {\n    if (!actor || !canAuthoritativelyDestroy(actor)) return false;\n\n    const structure = Number(actor?.system?.structure?.value);\n    if (!Number.isFinite(structure) || structure > 0) return false;\n\n    const uuid = actor?.uuid ?? actor?.id ?? null;\n    if (!uuid || destructionInFlight.has(uuid)) return false;\n    destructionInFlight.add(uuid);\n\n    try {\n      const activeTokens = (globalThis.canvas?.tokens?.placeables ?? [])\n        .filter(token => token?.actor?.uuid === actor.uuid || token?.actor?.id === actor.id);\n\n      const sceneGroups = new Map();\n      for (const token of activeTokens) {\n        const scene = token?.document?.parent ?? globalThis.canvas?.scene ?? null;\n        const tokenId = token?.document?.id ?? null;\n        if (!scene || !tokenId) continue;\n        if (!sceneGroups.has(scene)) sceneGroups.set(scene, []);\n        sceneGroups.get(scene).push(tokenId);\n      }\n\n      for (const [scene, tokenIds] of sceneGroups.entries()) {\n        if (tokenIds.length > 0) {\n          await scene.deleteEmbeddedDocuments(\"Token\", tokenIds);\n        }\n      }\n\n      console.info(\"Frame Conn | Destroyed actor token removed from scene.\", {\n        actorUuid: actor.uuid,\n        reason,\n        removedTokenCount: activeTokens.length\n      });\n      return activeTokens.length > 0;\n    } finally {\n      destructionInFlight.delete(uuid);\n    }\n  }\n\n  async function resolveNativeStructureConsequences(state) {\n    const actor = state?.actor ?? null;\n    const data = state?.data ?? null;\n    if (!actor || !data) return true;\n\n    const isMech = typeof actor.is_mech === \"function\" ? actor.is_mech() : actor.type === \"mech\";\n    const isNpc = typeof actor.is_npc === \"function\" ? actor.is_npc() : actor.type === \"npc\";\n    if (!isMech && !isNpc) return true;\n\n    const roll = data?.result?.roll ?? null;\n    const result = Number(roll?.total);\n    const remainingStructure = Number(data?.remStruct);\n    if (!Number.isFinite(result) || !Number.isFinite(remainingStructure)) return true;\n\n    // Native multiple-1 handling is Crushing Hit and already sets Structure to\n    // 0. The updateActor destruction observer owns removing the Scene token.\n    if (result === 1 && structureOneCount(roll) > 1) return true;\n\n    // Glancing Blow: Impaired until the end of the mech's next turn.\n    if (result >= 5) {\n      await applyUntilEndOfNextTurn(actor, [\"impaired\"], {\n        sourceActionId: \"native-structure-glancing-blow\"\n      });\n      return true;\n    }\n\n    if (result !== 1) return true;\n\n    // Direct Hit with 3+ Structure remaining: Stunned until end of next turn.\n    if (remainingStructure >= 3) {\n      await applyUntilEndOfNextTurn(actor, [\"stunned\"], {\n        sourceActionId: \"native-structure-direct-hit\"\n      });\n      return true;\n    }\n\n    // Direct Hit with exactly 2 Structure remaining: automatically launch the\n    // native Hull check instead of making the user click the card button.\n    if (remainingStructure === 2) {\n      removeNativeHullButton(data);\n\n      const execution = await rollNativeStat({\n        actor,\n        path: \"system.hull\",\n        title: \"STRUCTURE DAMAGE // DIRECT HIT // HULL CHECK\"\n      });\n\n      const total = Number(execution?.result?.roll?.total);\n      if (!Number.isFinite(total)) {\n        console.warn(\"Frame Conn | Direct Hit Hull check did not resolve to a numeric total.\", execution);\n        return true;\n      }\n\n      if (total >= 10) {\n        await applyUntilEndOfNextTurn(actor, [\"stunned\"], {\n          sourceActionId: \"native-structure-direct-hit-hull-success\"\n        });\n      } else if (typeof actor.update === \"function\") {\n        // A failed Hull check destroys the mech. Persist native Structure 0;\n        // the authoritative updateActor observer removes its Scene token.\n        await actor.update({ \"system.structure.value\": 0 });\n      }\n\n      return true;\n    }\n\n    // Direct Hit at 1 Structure is already converted to Structure 0 by native\n    // StructureFlow. The destruction observer removes the Scene token.\n    return true;\n  }\n\n  function install() {\n    return installFlowStepBefore({\n      stepName: CONSEQUENCE_STEP,\n      beforeStep: \"printStructureCard\",\n      flowNames: [STRUCTURE_FLOW],\n      step: resolveNativeStructureConsequences\n    });\n  }\n\n  async function reconcileActor(actor) {\n    const structure = Number(actor?.system?.structure?.value);\n    if (!Number.isFinite(structure) || structure > 0) return false;\n    return destroyActor(actor, { reason: \"structure-zero\" });\n  }\n\n  return Object.freeze({\n    install,\n    reconcileActor,\n    destroyActor,\n    resolveNativeStructureConsequences,\n    structureOneCount\n  });\n}\n"
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "import { createReactorMeltdownStatusController } from \"./reactor-meltdown-status.js\";",
+      "replace": "import { createReactorMeltdownStatusController } from \"./reactor-meltdown-status.js\";\nimport { createStructureDamageStatusController } from \"./structure-damage-status.js\";",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "const overheatingStatus = createOverheatingStatusController({\n  applyStatus: applyNativeStatus,\n  applyUntilEndOfNextTurn,\n  installFlowStepBefore: installStatusOrchestrationFlowStepBefore,\n  scheduleReactorMeltdown: reactorMeltdownStatus.schedule,\n  markReactorEngineeringCheckPending: reactorMeltdownStatus.markEngineeringCheckPending\n});",
+      "replace": "const overheatingStatus = createOverheatingStatusController({\n  applyStatus: applyNativeStatus,\n  applyUntilEndOfNextTurn,\n  installFlowStepBefore: installStatusOrchestrationFlowStepBefore,\n  scheduleReactorMeltdown: reactorMeltdownStatus.schedule,\n  markReactorEngineeringCheckPending: reactorMeltdownStatus.markEngineeringCheckPending\n});\n\nconst structureDamageStatus = createStructureDamageStatusController({\n  applyUntilEndOfNextTurn,\n  installFlowStepBefore: installStatusOrchestrationFlowStepBefore\n});",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "async function handleActorUpdate(actor) {\n  await reactorMeltdownStatus.reconcileActor(actor);\n  return dangerZoneStatus.syncActor(actor);\n}",
+      "replace": "async function handleActorUpdate(actor) {\n  await reactorMeltdownStatus.reconcileActor(actor);\n  await structureDamageStatus.reconcileActor(actor);\n  return dangerZoneStatus.syncActor(actor);\n}",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "  provides: [\"status.orchestration\", \"status.timed\", \"status.grapple\", \"status.engaged.derived\", \"status.danger-zone.derived\", \"status.overheat-consequences\", \"status.reactor-meltdown-countdown\"],\n  dependsOn: [\"native-adapter.status\", \"native-adapter.flow-extension\", \"sensors.measurement\"],",
+      "replace": "  provides: [\"status.orchestration\", \"status.timed\", \"status.grapple\", \"status.engaged.derived\", \"status.danger-zone.derived\", \"status.overheat-consequences\", \"status.reactor-meltdown-countdown\", \"status.structure-damage-consequences\"],\n  dependsOn: [\"native-adapter.status\", \"native-adapter.rolls\", \"native-adapter.flow-extension\", \"sensors.measurement\"],",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "installReactorMeltdownEngineeringResolution: reactorMeltdownStatus.installEngineeringResolution, syncReactorMeltdownCountdown: reactorMeltdownStatus.syncCombat",
+      "replace": "installReactorMeltdownEngineeringResolution: reactorMeltdownStatus.installEngineeringResolution, installStructureDamageConsequences: structureDamageStatus.install, syncReactorMeltdownCountdown: reactorMeltdownStatus.syncCombat",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, updateActor: handleActorUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { overheatingStatus.install(); reactorMeltdownStatus.installEngineeringResolution(); reactorMeltdownStatus.initializeCombat();",
+      "replace": "hooks: { updateCombat: handleCombatUpdate, updateToken: handleTokenUpdate, updateActor: handleActorUpdate, deleteCombat: handleCombatDelete, canvasReady: async () => { overheatingStatus.install(); reactorMeltdownStatus.installEngineeringResolution(); structureDamageStatus.install(); reactorMeltdownStatus.initializeCombat();",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
+      "search": "installReactorMeltdownEngineeringResolution: reactorMeltdownStatus.installEngineeringResolution, reactorMeltdownTimer: reactorMeltdownStatus.timer",
+      "replace": "installReactorMeltdownEngineeringResolution: reactorMeltdownStatus.installEngineeringResolution, installStructureDamageConsequences: structureDamageStatus.install, reactorMeltdownTimer: reactorMeltdownStatus.timer",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-telemetry.js",
+      "search": "    exposedActive:\n      Boolean(\n        system.statuses?.exposed\n      ),\n\n    repairsAvailable",
+      "replace": "    exposedActive:\n      Boolean(\n        system.statuses?.exposed\n      ),\n\n    structureWarningLevel:\n      (() => {\n        const structure = Number(system.structure?.value);\n        if (!Number.isFinite(structure)) return null;\n        if (structure === 3) return \"yellow\";\n        if (structure === 2) return \"orange\";\n        if (structure === 1) return \"red\";\n        return null;\n      })(),\n\n    repairsAvailable",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-telemetry.js",
+      "search": "          maximumValue:\n            stats.structureMax\n        })}",
+      "replace": "          maximumValue:\n            stats.structureMax,\n\n          stateClass:\n            stats.structureWarningLevel\n              ? `frame-conn-structure-${stats.structureWarningLevel}`\n              : \"\"\n        })}",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui-orchestrator.css",
+      "search": ".frame-conn-stat-cell.frame-conn-heat-danger-zone .frame-conn-stat-label,\n.frame-conn-stat-cell.frame-conn-heat-exposed .frame-conn-stat-label {\n  color: #e7bd70;\n}\n@media (prefers-reduced-motion: reduce) {\n  .frame-conn-stat-meltdown,\n  .frame-conn-stat-cell.frame-conn-heat-danger-zone,\n  .frame-conn-stat-cell.frame-conn-heat-exposed {\n    animation: none;\n  }\n}",
+      "replace": ".frame-conn-stat-cell.frame-conn-heat-danger-zone .frame-conn-stat-label,\n.frame-conn-stat-cell.frame-conn-heat-exposed .frame-conn-stat-label {\n  color: #e7bd70;\n}\n\n@keyframes frame-conn-structure-yellow-pulse {\n  0%, 100% {\n    background: linear-gradient(180deg, rgba(255, 184, 74, 0.055), transparent);\n    box-shadow: none;\n  }\n  50% {\n    background: linear-gradient(180deg, rgba(235, 204, 72, 0.22), rgba(235, 204, 72, 0.035));\n    box-shadow: inset 0 0 18px rgba(235, 204, 72, 0.14), 0 0 8px rgba(235, 204, 72, 0.11);\n  }\n}\n@keyframes frame-conn-structure-orange-pulse {\n  0%, 100% {\n    background: linear-gradient(180deg, rgba(255, 184, 74, 0.055), transparent);\n    box-shadow: none;\n  }\n  50% {\n    background: linear-gradient(180deg, rgba(255, 132, 24, 0.25), rgba(255, 132, 24, 0.04));\n    box-shadow: inset 0 0 18px rgba(255, 132, 24, 0.17), 0 0 9px rgba(255, 132, 24, 0.14);\n  }\n}\n@keyframes frame-conn-structure-red-pulse {\n  0%, 100% {\n    background: linear-gradient(180deg, rgba(255, 184, 74, 0.055), transparent);\n    box-shadow: none;\n  }\n  50% {\n    background: linear-gradient(180deg, rgba(224, 48, 48, 0.29), rgba(224, 48, 48, 0.045));\n    box-shadow: inset 0 0 20px rgba(224, 48, 48, 0.19), 0 0 10px rgba(224, 48, 48, 0.15);\n  }\n}\n.frame-conn-stat-cell.frame-conn-structure-yellow { animation: frame-conn-structure-yellow-pulse 4.5s ease-in-out infinite; }\n.frame-conn-stat-cell.frame-conn-structure-orange { animation: frame-conn-structure-orange-pulse 4.5s ease-in-out infinite; }\n.frame-conn-stat-cell.frame-conn-structure-red { animation: frame-conn-structure-red-pulse 4.5s ease-in-out infinite; }\n.frame-conn-stat-cell.frame-conn-structure-yellow .frame-conn-stat-label { color: #e7d56f; }\n.frame-conn-stat-cell.frame-conn-structure-orange .frame-conn-stat-label { color: #f0a24f; }\n.frame-conn-stat-cell.frame-conn-structure-red .frame-conn-stat-label { color: #ff766c; }\n\n@media (prefers-reduced-motion: reduce) {\n  .frame-conn-stat-meltdown,\n  .frame-conn-stat-cell.frame-conn-heat-danger-zone,\n  .frame-conn-stat-cell.frame-conn-heat-exposed,\n  .frame-conn-stat-cell.frame-conn-structure-yellow,\n  .frame-conn-stat-cell.frame-conn-structure-orange,\n  .frame-conn-stat-cell.frame-conn-structure-red {\n    animation: none;\n  }\n}",
+      "expected_occurrences": 1
+    }
+  ]
 }
