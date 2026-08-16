@@ -163,6 +163,19 @@ Movement measurement remains available for telemetry and rules that genuinely de
 
 ## Not done / current live defects
 
+### Reactor meltdown prevention check — TODO
+
+When a reactor meltdown countdown is active but the meltdown is not yet locked in as unavoidable, the affected mech should receive an automatic once-per-turn opportunity to halt it.
+
+Required behavior:
+
+- once per turn while a preventable reactor-meltdown countdown is active, automatically prompt the player to make the required **Engineering check**;
+- use native Lancer's Engineering/HASE roll path so Accuracy, Difficulty, chat output, and other native modifiers remain authoritative;
+- on a successful check, cancel/clear the pending meltdown countdown;
+- on a failed check, leave the countdown unchanged and do not offer another attempt until the mech's next turn;
+- do not offer this recovery check once the meltdown has reached a rules state where it is already locked in and can no longer be prevented;
+- the prompt belongs to rules-side reactor-meltdown orchestration and must work even if the Frame Conn cockpit UI is not open.
+
 ### Brace — TODO
 
 Current live failure:
@@ -481,12 +494,195 @@ Native Lancer Actor/Item/status state remains authoritative wherever it already 
 
 ---
 
+# Long-term feature tracks
+
+These are larger product areas beyond the current combat-action and actor-owned-content milestones. They should be treated as first-class Frame Conn feature families rather than miscellaneous UI additions.
+
+## GM Mission Toolkit — LONG-TERM
+
+Build a GM-focused mission planning, organization, and live-session feature set around the major stages of **The Mission**. The same structure should help the GM both author a mission before play and run/track it during play.
+
+### Stage 1 — Briefing
+
+Organize and present:
+
+- **the situation** — what is happening and why the pilots are being deployed;
+- **the goal** — the concrete objective or objectives;
+- **the stakes** — what happens if the mission succeeds, fails, stalls, or changes;
+- relevant factions, people, locations, intelligence, known threats, and uncertainties;
+- player-facing briefing material separated from GM-only notes.
+
+### Stage 2 — Preparation
+
+Support pre-deployment planning such as:
+
+- choosing approach and insertion plan;
+- gathering intelligence;
+- selecting or reviewing loadouts and mission-relevant equipment;
+- recording player plans, contingencies, and assumptions;
+- tracking preparation actions or narrative advantages that should matter later in the mission.
+
+### Stage 3 — Reserves
+
+Provide a dedicated place to plan and track mission reserves and other expendable strategic support.
+
+The toolkit should eventually integrate with whatever authoritative Lancer representation exists for reserves, while still providing GM organization for custom/non-mechanical support assets.
+
+### Stage 4 — Boots on the Ground
+
+Act as the live mission dashboard during play. Potential responsibilities include:
+
+- current objectives and changing mission state;
+- discovered information;
+- active complications and consequences;
+- important NPCs/factions/locations;
+- scene and encounter organization;
+- reserve use;
+- notes generated during play;
+- transitions between narrative play and mech combat.
+
+This should complement the existing player-facing Frame Conn combat cockpit rather than merge GM mission control into it.
+
+### Stage 5 — End of Mission and Debrief
+
+Support closing the mission and carrying its consequences forward:
+
+- objective success/failure/partial success;
+- unresolved complications;
+- rewards, reserves, reputation, or other mission consequences;
+- damage/repair and downtime handoff;
+- NPC/faction/world-state changes;
+- debrief notes and hooks for the next mission.
+
+### Mission Toolkit design goal
+
+The toolkit should not merely store notes. It should provide a structured mission-building workflow in which information entered during planning naturally becomes useful runtime information during the session, and runtime developments naturally feed the debrief and future mission state.
+
+---
+
+## Narrative Play module — LONG-TERM
+
+Build a dedicated narrative-play feature family implementing and supporting Lancer's non-mech-combat rules. It should be usable independently of the tactical combat cockpit while sharing actors, pilot data, rolls, chat, and other native Foundry/Lancer state where available.
+
+### Core narrative skill-check flow
+
+Support the complete narrative skill-check procedure:
+
+1. player states the **goal**;
+2. GM establishes the consequences of failure before the roll;
+3. determine relevant **triggers** and whether the GM is invoking the pilot's background;
+4. roll **1d20**, applying trigger bonuses plus Accuracy/Difficulty;
+5. resolve the roll against the normal narrative threshold, with **10+** succeeding and **9 or less** failing;
+6. preserve the rule that a player normally rolls only once to achieve a given goal unless circumstances meaningfully change or the character **pushes it**.
+
+### Difficulty, Risky, and Heroic rolls
+
+Represent the escalating narrative roll states:
+
+- **Difficult** — add Difficulty because the task is unusually hard;
+- **Risky** — consequences occur even on a normal success unless the character reaches the stronger result required by the rules;
+- **Heroic** — extreme tasks where success requires the exceptional **20+** result and consequences still matter below that threshold.
+
+The GM should be able to set these properties clearly before the roll so the stakes are visible to everyone.
+
+### Teamwork
+
+Support another character helping with a skill check, granting the appropriate Accuracy while preserving the rule that everyone helping shares the consequences/complications of failure.
+
+### Trying again and pushing it
+
+Track whether a failed attempt is being retried because circumstances changed or because the player is **pushing it**.
+
+Pushing a failed ordinary check should escalate it to Risky; pushing an already-Risky situation should follow the appropriate higher-stakes handling, including Heroic escalation when the GM allows it.
+
+### Consequences and complications
+
+Provide GM-facing tools to establish and record consequences before the roll, using the major consequence families from the narrative rules:
+
+- **Harm**;
+- **Time**;
+- **Resources**;
+- **Collateral**;
+- **Position**;
+- **Effect**.
+
+The module should help the GM state these clearly before a roll and record what actually happened afterward, without attempting to replace GM judgment with an automated consequence generator.
+
+### Skill challenges
+
+Support group and extended skill challenges:
+
+- multiple characters may contribute relevant skill checks;
+- track successes and failures;
+- determine challenge success from the required proportion or count;
+- support ties or special resolution rules where applicable;
+- support **extended challenges** with several distinct stages and multiple rounds of rolls.
+
+The UI should make the current challenge goal, stages, participants, successes, failures, and consequences easy to understand at a glance.
+
+### Player initiative and NPC action
+
+Narrative play should reflect Lancer's player-initiative structure:
+
+- players generally have the opportunity to act first;
+- the GM asks what they do rather than running a tactical initiative order;
+- NPC behavior is normally determined as a consequence of player action and established fictional positioning rather than independent tactical turns.
+
+The module may offer a lightweight scene/action tracker, but it should not force narrative play into the mech-combat initiative model.
+
+### Narrative combat
+
+Support resolving pilot-scale or otherwise narrative combat through skill checks rather than tactical attack rolls when appropriate.
+
+The GM must still be able to declare a check ordinary, Difficult, Risky, Heroic, or some combination as allowed by the rules based on the fictional approach and opposition. The module should also support structured multi-step narrative fights through skill challenges.
+
+### Pilot HP, harm, armor, and Down and Out
+
+Support the pilot-scale harm rules used in narrative play, including:
+
+- pilot HP and damage;
+- Armor reducing applicable damage;
+- armor-piercing or otherwise armor-ignoring harm where appropriate;
+- narrative harm guidance for minor, major, and lethal injury;
+- the **Down and Out** roll when a pilot reaches 0 HP;
+- recovery to 1 HP on the appropriate result;
+- Down and Out / Stunned consequences on intermediate results;
+- death on the terminal result or when the player chooses death where the rules allow it.
+
+Where native Foundry Lancer already owns pilot HP, armor, damage, or status state, the Narrative Play module should use that native state instead of duplicating it.
+
+### Narrative rest and recovery
+
+Support the narrative recovery rule where an hour of safe rest can restore a conscious pilot to full HP, while Down and Out recovery and Full Repair follow their separate rules.
+
+This should eventually share maintenance/recovery primitives with the existing Rest / Full Repair roadmap rather than creating incompatible parallel recovery implementations.
+
+### Narrative Play design goal
+
+The goal is a second major Frame Conn interaction mode:
+
+```text
+TACTICAL / MECH PLAY
+Frame Conn combat cockpit
+
+NARRATIVE PLAY
+Goals → stakes/consequences → trigger/background selection → roll → consequence tracking
+
+GM MISSION TOOLKIT
+Mission planning → mission state → scenes/challenges → debrief
+```
+
+These modes should share the same actors, native Lancer data, rules services, and Foundry integration while remaining distinct presentation experiences optimized for their different styles of play.
+
+---
+
 # Recommended next implementation order
 
 Close the remaining Phase 1 live defects before deep actor-owned content work:
 
 1. Live-retest Scan target propagation.
-2. Disengage execution failure.
+2. Reactor-meltdown once-per-turn Engineering recovery prompt.
+3. Disengage execution failure.
 3. Brace reaction prompt/runtime trigger.
 4. Grapple dedicated post-hit handling.
 5. Ram dedicated post-hit handling.
