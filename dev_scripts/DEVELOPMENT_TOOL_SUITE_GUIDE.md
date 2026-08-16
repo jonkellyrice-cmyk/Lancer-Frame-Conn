@@ -8,7 +8,7 @@ The guiding principle is: **author intent narrowly, execute deterministically, v
 
 ## 1. The suite at a glance
 
-There are two similarly named tool directories. They have different jobs:
+The development tools now live in one canonical `dev_scripts/` directory. The local and GitHub executors remain separate contracts within that directory:
 
 ```text
 dev_scripts/
@@ -28,10 +28,11 @@ dev_scripts/
   backups/                        local Python FilePatcher backups
   patch-history/                  local Python FilePatcher patch history
 
-dev-scripts/
   github-filepatcher.mjs          narrow remote/GitHub patch executor
-  filepatcher.json                authoritative GitHub patch specification
-  README.md                       GitHub FilePatcher-specific documentation
+  github-filepatcher.json         authoritative GitHub patch specification
+  GITHUB_FILEPATCHER.md           GitHub FilePatcher-specific documentation
+  path-mover.mjs                  relocation + relative-import rewrite executor
+  path-mover.json                 declarative relocation plan
 
 .github/workflows/
   github-filepatcher.yml          automatic remote patch workflow
@@ -123,7 +124,7 @@ Runtime Contract Probe plan
     ↓
 Patch DSL / pattern-aware shorthand / raw schema-v2 JSON
     ↓
-dev-scripts/filepatcher.json
+dev_scripts/github-filepatcher.json
     ↓
 GitHub FilePatcher builds exact staged before/after transition
     ↓
@@ -367,7 +368,7 @@ The planner consumes the repository audit, symbol-family audit, and effect atlas
 
 A corridor is guidance, not magical proof. If implementation discovers a real dependency outside the predicted corridor, expand the scope deliberately and explain why.
 
-Run the deterministic clause-decomposition self-test with `npm run patch-corridor:self-test`. When `planning_goal` is present in `dev-scripts/filepatcher.json`, the GitHub FilePatcher runs this clause-aware planner before mutation and reports how many changed files are inside or outside the certified corridor.
+Run the deterministic clause-decomposition self-test with `npm run patch-corridor:self-test`. When `planning_goal` is present in `dev_scripts/github-filepatcher.json`, the GitHub FilePatcher runs this clause-aware planner before mutation and reports how many changed files are inside or outside the certified corridor.
 
 ---
 
@@ -469,7 +470,7 @@ npm run patch:dsl
 npm run patch:dsl:self-test
 ```
 
-The Patch DSL is an authoring shorthand. It does **not** mutate source files. It compiles a concise textual patch description into ordinary schema-v2 `dev-scripts/filepatcher.json`, which remains the executable contract.
+The Patch DSL is an authoring shorthand. It does **not** mutate source files. It compiles a concise textual patch description into ordinary schema-v2 `dev_scripts/github-filepatcher.json`, which remains the executable contract.
 
 Core primitives include:
 
@@ -542,7 +543,7 @@ This level exists to save tokens and reduce duplicated boilerplate without turni
 
 # PART III — PATCH EXECUTORS
 
-## 10. GitHub FilePatcher — `dev-scripts/github-filepatcher.mjs`
+## 10. GitHub FilePatcher — `dev_scripts/github-filepatcher.mjs`
 
 Run manually with:
 
@@ -554,7 +555,7 @@ npm run github:patch
 Its authoritative patch document is:
 
 ```text
-dev-scripts/filepatcher.json
+dev_scripts/github-filepatcher.json
 ```
 
 This is the preferred remote execution bridge. It supports a deliberately small operation surface, including exact text replacement, file creation/replacement, and controlled tree-wide text migration. It does not provide arbitrary shell execution.
@@ -629,7 +630,7 @@ Treat this tool as the controlled local recovery executor, not as a reason to by
 The workflow triggers on a push to `main` that changes:
 
 ```text
-dev-scripts/filepatcher.json
+dev_scripts/github-filepatcher.json
 ```
 
 The current sequence is:
@@ -659,7 +660,7 @@ For a small localized change whose ownership/native contract is already known:
 1. Inspect the exact current target source.
 2. Author the smallest useful structural DSL, pattern-aware DSL, or raw JSON patch.
 3. Keep `max_files_changed` narrow and use exact `policy.allowed_paths`; one file/one commit remains the safe default when practical.
-4. Update only `dev-scripts/filepatcher.json`.
+4. Update only `dev_scripts/github-filepatcher.json`.
 5. Confirm dry-run, apply, permanent self-tests, architectural audits, and the bot-created source commit.
 
 For a cross-cutting, native-integration, or runtime-sensitive change:
