@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "document-unified-development-tool-directory",
-  "description": "Update the development tool suite guide to describe the unified dev_scripts directory and the renamed GitHub FilePatcher contract.",
+  "description": "Update the development tool suite guide after the FilePatcher self-test path was corrected for the unified dev_scripts directory.",
   "policy": {
     "max_files_changed": 1,
     "allowed_paths": [
