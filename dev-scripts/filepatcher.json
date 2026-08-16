@@ -1,49 +1,9 @@
 {
   "schema_version": 2,
-  "id": "native-overcharge-execution-convergence",
-  "description": "Route Frame Conn Overcharge activation through native Lancer before granting the turn-scale Quick Action.",
-  "planning_goal": "Preserve the current Frame Conn Overcharge UI and once-per-turn action-economy rules. When the player selects Overcharge directly or chooses to fund a Quick Action with Overcharge, resolve the controlled mech through the existing application boundary, capture the native actor's current Overcharge roll formula for presentation, invoke the existing special.overcharge execution route so actor.beginOverchargeFlow() owns Heat and persistent progression, and only after native success mark Frame Conn Overcharge used and grant its Quick Action. Replace the existing application Overcharge notifications that instruct manual Heat application with confirmation that native Lancer resolved Overcharge. Existing non-Overcharge Quick Action and Boost behavior must remain unchanged.",
+  "id": "ready",
+  "description": "No-op acceptance state after converging Frame Conn Overcharge on native Lancer heat and progression handling.",
   "policy": {
-    "max_files_changed": 1,
-    "allowed_paths": [
-      "styles/ui_application/components/application-turn-commands.js"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/components/application-turn-commands.js",
-      "search": "/* ============================================================\n   Application -- Quick-action execution\n   ============================================================ */\n\nfunction executeQuickAction(\n",
-      "replace": "/* ============================================================\n   Application -- Native Overcharge execution\n   ============================================================ */\n\nasync function executeNativeFrameConnOvercharge(\n  application,\n  state,\n  registry\n) {\n  const overchargeAction =\n    registry.get(\n      \"special.overcharge\"\n    );\n\n\n  if (\n    !overchargeAction\n  ) {\n    throw new Error(\n      \"Frame Conn could not resolve the Overcharge action.\"\n    );\n  }\n\n\n  const permission =\n    state.canUseAction(\n      overchargeAction\n    );\n\n\n  if (\n    !permission.allowed\n  ) {\n    throw new Error(\n      permission.reason ??\n      \"Overcharge is not available.\"\n    );\n  }\n\n\n  const token =\n    application.getControlledToken();\n\n  const actor =\n    token?.actor ??\n    null;\n\n\n  if (\n    !actor\n  ) {\n    throw new Error(\n      \"Select the mech token that should Overcharge.\"\n    );\n  }\n\n\n  const nativeHeatFormula =\n    typeof actor\n      .strussHelper\n      ?.getOverchargeRoll ===\n      \"function\"\n      ? actor.strussHelper\n          .getOverchargeRoll()\n      : null;\n\n\n  const nativeResult =\n    await executeFrameConnApplicationActionRoll(\n      actor,\n      overchargeAction\n    );\n\n\n  if (\n    nativeResult === false\n  ) {\n    throw new Error(\n      \"Native Lancer Overcharge did not complete.\"\n    );\n  }\n\n\n  state.useOvercharge({\n    heatFormula:\n      nativeHeatFormula\n  });\n\n\n  return {\n    actor,\n    heatFormula:\n      nativeHeatFormula,\n    nativeResult\n  };\n}\n\n\n/* ============================================================\n   Application -- Quick-action execution\n   ============================================================ */\n\nasync function executeQuickAction(\n",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/components/application-turn-commands.js",
-      "search": "  try {\n    let automaticallyTriggeredOvercharge =\n      false;\n\n    let overchargeHeatFormula =\n      null;\n\n\n    if (\n      useOvercharge &&\n      !state.overcharge.used\n    ) {\n      overchargeHeatFormula =\n        state.useOvercharge();\n\n      automaticallyTriggeredOvercharge =\n        true;\n    }\n\n\n    state.useAction(\n",
-      "replace": "  try {\n    let resolvedNativeOvercharge =\n      false;\n\n\n    if (\n      useOvercharge &&\n      !state.overcharge.used\n    ) {\n      await executeNativeFrameConnOvercharge(\n        application,\n        state,\n        registry\n      );\n\n      resolvedNativeOvercharge =\n        true;\n    }\n\n\n    state.useAction(\n",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/components/application-turn-commands.js",
-      "search": "    if (\n      automaticallyTriggeredOvercharge\n    ) {\n      ui.notifications.warn(\n        `Overcharge triggered. Apply ${overchargeHeatFormula} Heat. ${action.label} was recorded using the granted Quick Action.`\n      );\n    } else {\n      ui.notifications.info(\n        `${action.label} recorded${sourceLabel}.`\n      );\n    }\n",
-      "replace": "    if (\n      resolvedNativeOvercharge\n    ) {\n      ui.notifications.info(\n        `Overcharge resolved through native Lancer. ${action.label} was recorded using the granted Quick Action.`\n      );\n    } else {\n      ui.notifications.info(\n        `${action.label} recorded${sourceLabel}.`\n      );\n    }\n",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/components/application-turn-commands.js",
-      "search": "function onActionSelected(\n  application,\n  actionId\n) {\n",
-      "replace": "async function onActionSelected(\n  application,\n  actionId\n) {\n",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/components/application-turn-commands.js",
-      "search": "    try {\n      const heatFormula =\n        state.useOvercharge();\n\n      application.render(\n        false\n      );\n\n      ui.notifications.info(\n        `Overcharge selected. Apply ${heatFormula} Heat. One additional quick action is available.`\n      );\n    } catch (\n",
-      "replace": "    try {\n      await executeNativeFrameConnOvercharge(\n        application,\n        state,\n        registry\n      );\n\n      application.render(\n        false\n      );\n\n      ui.notifications.info(\n        \"Overcharge resolved through native Lancer. One additional quick action is available.\"\n      );\n    } catch (\n",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
