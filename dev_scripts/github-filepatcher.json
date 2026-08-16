@@ -1,27 +1,10 @@
 {
   "schema_version": 2,
-  "id": "phase-zero-sitrep-quarantine-import-repair",
-  "description": "Restore repository static health by correcting only the two stale internal import paths in the quarantined legacy SITREP tracker. Do not register or activate legacy SITREP runtime behavior.",
+  "id": "phase-zero-planning-baseline-verification",
+  "description": "Planning-only verification that the normal Frame Conn Patch Corridor can run again after quarantined legacy SITREP import repair.",
+  "planning_goal": "Verify that the repository baseline is healthy enough for the ordinary Patch Corridor and planning toolchain to analyze future SITREP assimilation work, without changing any source files or activating the quarantined legacy SITREP module.",
   "policy": {
-    "max_files_changed": 1,
-    "allowed_paths": [
-      "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/lancer-sitrep-tracker.js"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/lancer-sitrep-tracker.js",
-      "search": "} from \"./program.js\";",
-      "replace": "} from \"./sitrep-program.js\";",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/lancer-sitrep-tracker.js",
-      "search": "} from \"./dsl.js\";",
-      "replace": "} from \"./sitrep-dsl.js\";",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
