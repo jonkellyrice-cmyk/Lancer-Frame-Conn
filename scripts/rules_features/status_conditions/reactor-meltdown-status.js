@@ -175,11 +175,10 @@ export function createReactorMeltdownStatusController({
     terminalResolutionInFlight.add(uuid);
 
     try {
-      // Mark the native actor before resolving the terminal blast. The mech
-      // Actor remains available for logs/history while its Scene token is
-      // vaporized by the terminal resolution.
-      await applyStatus(actor, "reactor_meltdown");
-
+      // Reactor meltdown is a terminal event, not a native persistent status.
+      // Foundry Lancer does not define a reactor_meltdown status id, so proceed
+      // directly into the Burst 2 terminal resolver. The Actor remains
+      // available for logs/history while its Scene token is vaporized.
       const explosion = await resolveReactorMeltdownExplosion({ actor });
 
       await updateTimer(actor, null);
