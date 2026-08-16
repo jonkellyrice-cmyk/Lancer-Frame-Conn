@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "tool": "runtime-authority-audit",
+  "mode": "pre-corridor evidence pass",
+  "root": "scripts/dm_features/sitreps/legacy-sitrep-module",
+  "summary": {
+    "authoritative_runtime": "scripts/runtime-orchestrator.js",
+    "competing_runtime_authorities": 2,
+    "strict_result_if_enabled_now": "FAIL",
+    "default_diagnostic_result": "WARN"
+  },
+  "findings": [
+    {
+      "file": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/sitrep-program.js",
+      "authority": "COMPETING_RUNTIME_AUTHORITY",
+      "evidence": [
+        "Hooks.once(init)",
+        "Hooks.once(ready)",
+        "Hooks.on(...) registration loop",
+        "window.addEventListener(resize)",
+        "combat tracker button injection",
+        "game.lancerSitrep public-global assignment"
+      ],
+      "required_disposition": "remove standalone installProgram runtime and express lifecycle through Frame Conn feature registration/runtime bindings"
+    },
+    {
+      "file": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/lancer-sitrep-tracker.js",
+      "authority": "DIRECT_FEATURE_EFFECT",
+      "evidence": [
+        "calls installProgram(...) with ready callback, hook definitions, combat tracker UI injection, and public API"
+      ],
+      "required_disposition": "split domain feature APIs from lifecycle registration; do not call legacy installProgram"
+    },
+    {
+      "file": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/elevation-los.js",
+      "authority": "COMPETING_RUNTIME_AUTHORITY",
+      "evidence": [
+        "Hooks.once(init)",
+        "Hooks.once(ready)",
+        "multiple direct Hooks.on registrations",
+        "game.lancerElevationLOS assignment",
+        "AmbientLight prototype patch",
+        "vision/light configuration injection"
+      ],
+      "required_disposition": "move to foundry_features and refactor lifecycle/patch installation behind an explicit Foundry feature package"
+    },
+    {
+      "file": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/sitrep-ui-boilerplate.js",
+      "authority": "DIRECT_FEATURE_EFFECT",
+      "evidence": [
+        "direct document.body DOM mounting",
+        "pointer/click listeners",
+        "localStorage persistence"
+      ],
+      "required_disposition": "replace with separate DM application lifecycle/presentation"
+    }
+  ],
+  "activation_guard": {
+    "current_manifest_safe": true,
+    "reason": "module.json currently loads scripts/runtime-orchestrator.js only; the transplanted legacy subtree is not an entrypoint",
+    "forbidden_until_migrated": [
+      "adding lancer-sitrep-tracker.js to module.json",
+      "importing legacy sitrep-program.js from runtime-orchestrator.js",
+      "importing elevation-los.js for side effects from an active feature"
+    ]
+  },
+  "promotion_criterion": "After legacy startup/global ownership has been removed or delegated, runtime-authority-audit --strict should become a blocking gate for active source."
+}
