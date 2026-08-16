@@ -28,6 +28,11 @@
       "from": "scripts/runtime-orchestrator.js",
       "to": "scripts/player_features/runtime-orchestrator.js",
       "expected_occurrences": 1
+    },
+    {
+      "path": "dev_scripts/repo-audit.mjs",
+      "from": "scripts/",
+      "to": "scripts/player_features/"
     }
   ]
 }
