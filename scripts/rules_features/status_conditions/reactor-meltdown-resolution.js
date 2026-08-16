@@ -68,6 +68,8 @@ async function createMeltdownBurstTemplate(sourceToken) {
     x: Math.round(center.x),
     y: Math.round(center.y),
     distance: (BURST_RANGE + sourceSize / 2) * gridDistance,
+    borderColor: "#ff0000",
+    fillColor: "#ff0000",
     [`flags.${globalThis.game.system.id}.burstToken`]: sourceToken.id
   });
 
