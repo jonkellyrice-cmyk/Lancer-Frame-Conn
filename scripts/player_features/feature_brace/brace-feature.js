@@ -6,7 +6,7 @@
  * Frame Conn owns timing/state. Native Lancer remains authoritative for damageCalc
  * and attack Flow execution. Native packed braced/bracedCooldown fields are not used.
  */
-import { defineFrameConnFeature } from "../feature-contract.js";
+import { defineFrameConnFeature } from "../../feature-contract.js";
 
 const MODULE_ID = "lancer-frame-conn";
 const FLAG = "brace";

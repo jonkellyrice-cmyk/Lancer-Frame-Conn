@@ -58,7 +58,7 @@
 
 import {
   defineFrameConnFeature
-} from "../feature-contract.js";
+} from "../../feature-contract.js";
 
 import * as lifecycleRuntime from
   "../../../system_bridge/lifecycle_service/lifecycle-service.js";

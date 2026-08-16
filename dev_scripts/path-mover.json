@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "id": "split-shared-player-and-rules-feature-architecture",
-  "enabled": true,
+  "enabled": false,
   "description": "Promote shared feature architecture to scripts, rename the player feature registry, and move status orchestration into the rules status/condition domain while automatically rewriting relative imports.",
   "moves": [
     {
@@ -44,5 +44,6 @@
       "to": "\"player_features\",\n      \"player-feature-registry.js\"",
       "expected_occurrences": 1
     }
-  ]
+  ],
+  "last_applied_at": "2026-08-16T18:33:35.563Z"
 }

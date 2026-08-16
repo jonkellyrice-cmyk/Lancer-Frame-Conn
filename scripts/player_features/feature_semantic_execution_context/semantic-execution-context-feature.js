@@ -59,7 +59,7 @@
 
 import {
   defineFrameConnFeature
-} from "../feature-contract.js";
+} from "../../feature-contract.js";
 
 import * as executionContextRuntime from
   "../../../system_bridge/semantic_execution_context/execution-context.js";

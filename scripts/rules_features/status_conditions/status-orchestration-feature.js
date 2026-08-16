@@ -6,7 +6,7 @@
  * Native Adapter owns status representation/mutation. This feature owns only
  * action/lifecycle/spatial orchestration that native Lancer does not provide.
  */
-import { defineFrameConnFeature } from "../feature-contract.js";
+import { defineFrameConnFeature } from "../../feature-contract.js";
 
 const MODULE_ID = "lancer-frame-conn";
 const TIMED_FLAG = "timed-statuses";

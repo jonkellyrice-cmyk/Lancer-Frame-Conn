@@ -57,7 +57,7 @@
 
 import {
   defineFrameConnFeature
-} from "../feature-contract.js";
+} from "../../feature-contract.js";
 
 import * as targetingSpatialRuntime from
   "../../../system_bridge/targeting-spatial_service/targeting-spatial-service.js";

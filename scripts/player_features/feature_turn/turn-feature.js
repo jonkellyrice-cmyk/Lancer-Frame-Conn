@@ -118,7 +118,7 @@
 
 import {
   defineFrameConnFeature
-} from "../feature-contract.js";
+} from "../../feature-contract.js";
 
 
 /* ============================================================

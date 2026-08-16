@@ -215,7 +215,7 @@
 
 import {
   FrameConnFeatureRegistry
-} from "./feature-registry-core.js";
+} from "../feature-registry-core.js";
 
 
 /* ============================================================
@@ -289,7 +289,7 @@ import {
 
 import {
   frameConnStatusOrchestrationFeature
-} from "./feature_status_orchestration/status-orchestration-feature.js";
+} from "../rules_features/status_conditions/status-orchestration-feature.js";
 
 
 /* ============================================================

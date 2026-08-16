@@ -35,7 +35,7 @@
 
 import {
   defineFrameConnFeature
-} from "../../scripts/player_features/feature-contract.js";
+} from "../../scripts/feature-contract.js";
 
 
 /* ============================================================

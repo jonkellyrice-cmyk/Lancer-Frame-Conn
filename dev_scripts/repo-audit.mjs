@@ -1884,7 +1884,7 @@ function auditRuntimeFeatureRegistration(
       REPOSITORY_ROOT,
       "scripts",
       "player_features",
-      "feature-registry.js"
+      "player-feature-registry.js"
     );
 
 
@@ -1908,7 +1908,7 @@ function auditRuntimeFeatureRegistration(
         "FEATURE_REGISTRY_MISSING",
 
       message:
-        "scripts/player_features/feature-registry.js could not be found or read.",
+        "scripts/player_features/player-feature-registry.js could not be found or read.",
 
       file:
         registryPath
@@ -1985,7 +1985,7 @@ function auditRuntimeFeatureRegistration(
           "RUNTIME_FEATURE_NOT_IMPORTED_BY_REGISTRY",
 
         message:
-          `Runtime feature appears to declare a Frame Conn feature but is not imported by scripts/player_features/feature-registry.js.`,
+          `Runtime feature appears to declare a Frame Conn feature but is not imported by scripts/player_features/player-feature-registry.js.`,
 
         file,
 
@@ -3164,7 +3164,7 @@ function buildDependencyWatershed({
           river ===
           "ui"
             ? "styles/ui-registry.js"
-            : "scripts/player_features/feature-registry.js",
+            : "scripts/player_features/player-feature-registry.js",
 
         outlet:
           outletFiles.length >
@@ -3261,7 +3261,7 @@ function buildDependencyWatershed({
         "Runtime River",
 
       convergence:
-        "scripts/player_features/feature-registry.js"
+        "scripts/player_features/player-feature-registry.js"
     },
 
     {
@@ -3911,7 +3911,7 @@ function runAudit() {
 
   const featureDeclarationExcludedFiles =
     new Set([
-      "scripts/player_features/feature-contract.js",
+      "scripts/feature-contract.js",
       "dev_scripts/player_features/repo-audit.mjs"
     ]);
 

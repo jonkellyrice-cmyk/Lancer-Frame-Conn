@@ -110,11 +110,11 @@ import {
   defineFrameConnRequiresFullActionSystemMetadata,
   defineFrameConnMountDismountModesMetadata,
   defineFrameConnOverchargeMetadata
-} from "../dsl.js";
+} from "../../dsl.js";
 
 import {
   defineFrameConnFeature
-} from "../feature-contract.js";
+} from "../../feature-contract.js";
 
 
 /* ============================================================

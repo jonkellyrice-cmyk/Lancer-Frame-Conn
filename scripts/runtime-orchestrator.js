@@ -137,7 +137,7 @@
 
 import {
   frameConnFeatureRegistry
-} from "./player_features/feature-registry.js";
+} from "./player_features/player-feature-registry.js";
 
 
 /* ============================================================
