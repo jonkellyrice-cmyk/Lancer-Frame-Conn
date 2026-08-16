@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "consolidate-development-tool-directories",
   "enabled": true,
-  "description": "Consolidate the hyphenated dev-scripts directory into dev_scripts while preserving distinct local and GitHub FilePatcher contracts and rewriting all operational path references.",
+  "description": "Consolidate the hyphenated dev-scripts directory into dev_scripts while preserving distinct local and GitHub FilePatcher contracts and rewriting all non-workflow operational path references.",
   "moves": [
     {
       "from": "dev-scripts/README.md",
@@ -37,30 +37,6 @@
       "from": "path.join(ROOT, \"dev-scripts\", \"filepatcher.json\")",
       "to": "path.join(ROOT, \"dev_scripts\", \"github-filepatcher.json\")",
       "expected_occurrences": 1
-    },
-    {
-      "path": ".github/workflows/github-filepatcher.yml",
-      "from": "dev-scripts/filepatcher.json",
-      "to": "dev_scripts/github-filepatcher.json",
-      "expected_occurrences": 2
-    },
-    {
-      "path": ".github/workflows/github-filepatcher.yml",
-      "from": "dev-scripts/github-filepatcher.mjs",
-      "to": "dev_scripts/github-filepatcher.mjs",
-      "expected_occurrences": 1
-    },
-    {
-      "path": ".github/workflows/path-mover.yml",
-      "from": "dev-scripts/path-mover.json",
-      "to": "dev_scripts/path-mover.json",
-      "expected_occurrences": 1
-    },
-    {
-      "path": ".github/workflows/path-mover.yml",
-      "from": "dev-scripts/path-mover.mjs",
-      "to": "dev_scripts/path-mover.mjs",
-      "expected_occurrences": 3
     },
     {
       "path": "dev-scripts/README.md",
