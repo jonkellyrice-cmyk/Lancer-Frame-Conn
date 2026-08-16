@@ -12,96 +12,18 @@
     ]
   },
   "operations": [
-    {
-      "type": "replace_text",
-      "path": "scripts/player_features/feature_actions/action-execution-feature.js",
-      "search": "  actor,\n  action,\n  executionKind\n) {",
-      "replace": "  actor,\n  action,\n  executionKind,\n  executionOptions = null\n) {",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/player_features/feature_actions/action-execution-feature.js",
-      "search": "  return executor({\n    actor,\n    action,\n    executionKind\n  });",
-      "replace": "  return executor({\n    actor,\n    action,\n    executionKind,\n    executionOptions\n  });",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/player_features/feature_actions/action-execution-feature.js",
-      "search": "      \"quick.boost\",\n      \"quick.quick-tech.bolster\",\n      \"quick.prepare\",\n      \"quick.self-destruct\",\n\n      \"full.activate\",",
-      "replace": "      \"quick.boost\",\n      \"quick.quick-tech.bolster\",\n      \"quick.prepare\",\n\n      \"full.activate\",",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/player_features/feature_actions/action-execution-feature.js",
-      "search": "  ]);\n\n\n/* ============================================================\n   Action Execution -- Classification",
-      "replace": "  ]);\n\n\nfunction frameConnChooseSelfDestructTiming(action) {\n  assertFrameConnExecutableAction(action);\n\n  return new Promise(resolve => {\n    let resolved = false;\n    const choose = rounds => {\n      if (resolved) return;\n      resolved = true;\n      resolve(Object.freeze({ rounds }));\n    };\n\n    new Dialog({\n      title: `${action.label} -- Detonation Timing`,\n      content: `\n        <p>Choose when the reactor overload detonates.</p>\n        <p><strong>NOW</strong> detonates immediately. Delayed choices detonate at the end of your corresponding future activation.</p>\n      `,\n      buttons: {\n        now: { label: \"NOW\", callback: () => choose(0) },\n        one: { label: \"1 ROUND\", callback: () => choose(1) },\n        two: { label: \"2 ROUNDS\", callback: () => choose(2) }\n      },\n      close: () => {\n        if (!resolved) resolve(null);\n      }\n    }).render(true);\n  });\n}\n\n\n/* ============================================================\n   Action Execution -- Classification",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/player_features/feature_actions/action-execution-feature.js",
-      "search": "  if (\n    action.metadata\n      ?.statPath\n  ) {\n    return \"stat\";\n  }",
-      "replace": "  if (\n    action.id ===\n      \"quick.self-destruct\"\n  ) {\n    return \"self-destruct\";\n  }\n\n\n  if (\n    action.metadata\n      ?.statPath\n  ) {\n    return \"stat\";\n  }",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/player_features/feature_actions/action-execution-feature.js",
-      "search": "  /**\n   * Canonically migrated actions enter the runtime-composed",
-      "replace": "  if (kind === \"self-destruct\") {\n    const timing = await frameConnChooseSelfDestructTiming(action);\n    if (!timing) {\n      throw new Error(\"Self-Destruct timing selection was cancelled.\");\n    }\n\n    return executeFrameConnCanonicalAction(\n      actor,\n      action,\n      kind,\n      timing\n    );\n  }\n\n\n  /**\n   * Canonically migrated actions enter the runtime-composed",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/player_features/feature_actions/action-execution-feature.js",
-      "search": "        \"full.improvised-attack\",\n        \"quick.grapple\",",
-      "replace": "        \"full.improvised-attack\",\n        \"quick.self-destruct\",\n        \"quick.grapple\",",
-      "expected_occurrences": 2
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/player_features/feature_actions/action-execution-feature.js",
-      "search": "      chooseMechStat:\n        frameConnChooseMechStat\n    },",
-      "replace": "      chooseMechStat:\n        frameConnChooseMechStat,\n\n      chooseSelfDestructTiming:\n        frameConnChooseSelfDestructTiming\n    },",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/player_features/feature_actions/action-execution-feature.js",
-      "search": "      chooseMechStat:\n        frameConnChooseMechStat,\n\n      requiresNoRoll:",
-      "replace": "      chooseMechStat:\n        frameConnChooseMechStat,\n\n      chooseSelfDestructTiming:\n        frameConnChooseSelfDestructTiming,\n\n      requiresNoRoll:",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/rules_features/status_conditions/reactor-meltdown-status.js",
-      "search": "  async function triggerMeltdown(actor) {\n    if (!actor || !canAdvanceCountdown(actor)) return false;",
-      "replace": "  async function triggerMeltdown(actor, { actionAuthority = false } = {}) {\n    const authorized = actionAuthority\n      ? canMutateFromNativeFlow(actor)\n      : canAdvanceCountdown(actor);\n    if (!actor || !authorized) return false;",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/rules_features/status_conditions/status-orchestration-feature.js",
-      "search": "reactorMeltdownTimer: reactorMeltdownStatus.timer, scheduleReactorMeltdown: reactorMeltdownStatus.schedule, clearReactorMeltdown: reactorMeltdownStatus.clearCountdown, syncReactorMeltdownCountdown: reactorMeltdownStatus.syncCombat, diagnostics, runtimeBindings",
-      "replace": "reactorMeltdownTimer: reactorMeltdownStatus.timer, scheduleReactorMeltdown: reactorMeltdownStatus.schedule, triggerReactorMeltdown: actor => reactorMeltdownStatus.triggerMeltdown(actor, { actionAuthority: true }), clearReactorMeltdown: reactorMeltdownStatus.clearCountdown, syncReactorMeltdownCountdown: reactorMeltdownStatus.syncCombat, diagnostics, runtimeBindings",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "  actor = null,\n  action = null,\n  executionKind = null\n} = {}) {",
-      "replace": "  actor = null,\n  action = null,\n  executionKind = null,\n  executionOptions = null\n} = {}) {",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "  switch (executionKind) {\n    case \"basic-attack\": {",
-      "replace": "  switch (executionKind) {\n    case \"self-destruct\": {\n      const chosenRounds = Number(executionOptions?.rounds);\n      if (!Number.isInteger(chosenRounds) || chosenRounds < 0 || chosenRounds > 2) {\n        throw new Error(\"Self-Destruct requires a detonation timing of NOW, 1 ROUND, or 2 ROUNDS.\");\n      }\n\n      if (chosenRounds > 0 && !globalThis.game?.combat?.started) {\n        throw new Error(\"Delayed Self-Destruct requires an active combat so future activations can be tracked.\");\n      }\n\n      transaction = await frameConnExecutionTransactionApi\n        .runNativeExecutionTransactionWithGlobalHooks({\n          context: executionContext,\n          execute: async () => {\n            if (chosenRounds === 0) {\n              const result = await frameConnStatusOrchestrationApi.triggerReactorMeltdown(actor);\n              if (!result) throw new Error(\"Immediate Self-Destruct failed to resolve the reactor explosion.\");\n              return result;\n            }\n\n            // The reactor timer's 0 state means the active terminal turn.\n            // Scheduling N future rounds therefore stores N-1 while the\n            // current activation is protected by scheduledTurnKey.\n            return frameConnStatusOrchestrationApi.scheduleReactorMeltdown(\n              actor,\n              chosenRounds - 1,\n              { reason: \"self-destruct\", combat: globalThis.game?.combat }\n            );\n          },\n          metadata: {\n            actionId: action.id,\n            executionKind,\n            source: \"action-execution\",\n            selfDestructRounds: chosenRounds,\n            terminalResolution: \"reactor-meltdown\"\n          }\n        });\n      break;\n    }\n\n    case \"basic-attack\": {",
-      "expected_occurrences": 1
-    }
+    {"type":"replace_text","path":"scripts/player_features/feature_actions/action-execution-feature.js","search":"  actor,\n  action,\n  executionKind\n) {","replace":"  actor,\n  action,\n  executionKind,\n  executionOptions = null\n) {","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/player_features/feature_actions/action-execution-feature.js","search":"  return executor({\n    actor,\n    action,\n    executionKind\n  });","replace":"  return executor({\n    actor,\n    action,\n    executionKind,\n    executionOptions\n  });","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/player_features/feature_actions/action-execution-feature.js","search":"      \"quick.boost\",\n      \"quick.quick-tech.bolster\",\n      \"quick.prepare\",\n      \"quick.self-destruct\",\n\n      \"full.activate\",","replace":"      \"quick.boost\",\n      \"quick.quick-tech.bolster\",\n      \"quick.prepare\",\n\n      \"full.activate\",","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/player_features/feature_actions/action-execution-feature.js","search":"  ]);\n\n\n/* ============================================================\n   Action Execution -- Classification","replace":"  ]);\n\n\nfunction frameConnChooseSelfDestructTiming(action) {\n  assertFrameConnExecutableAction(action);\n\n  return new Promise(resolve => {\n    let resolved = false;\n    const choose = rounds => {\n      if (resolved) return;\n      resolved = true;\n      resolve(Object.freeze({ rounds }));\n    };\n\n    new Dialog({\n      title: `${action.label} -- Detonation Timing`,\n      content: `\n        <p>Choose when the reactor overload detonates.</p>\n        <p><strong>NOW</strong> detonates immediately. Delayed choices detonate at the end of your corresponding future activation.</p>\n      `,\n      buttons: {\n        now: { label: \"NOW\", callback: () => choose(0) },\n        one: { label: \"1 ROUND\", callback: () => choose(1) },\n        two: { label: \"2 ROUNDS\", callback: () => choose(2) }\n      },\n      close: () => {\n        if (!resolved) resolve(null);\n      }\n    }).render(true);\n  });\n}\n\n\n/* ============================================================\n   Action Execution -- Classification","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/player_features/feature_actions/action-execution-feature.js","search":"  if (\n    action.metadata\n      ?.statPath\n  ) {\n    return \"stat\";\n  }","replace":"  if (\n    action.id ===\n      \"quick.self-destruct\"\n  ) {\n    return \"self-destruct\";\n  }\n\n\n  if (\n    action.metadata\n      ?.statPath\n  ) {\n    return \"stat\";\n  }","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/player_features/feature_actions/action-execution-feature.js","search":"  /**\n   * Canonically migrated actions enter the runtime-composed","replace":"  if (kind === \"self-destruct\") {\n    const timing = await frameConnChooseSelfDestructTiming(action);\n    if (!timing) {\n      throw new Error(\"Self-Destruct timing selection was cancelled.\");\n    }\n\n    return executeFrameConnCanonicalAction(\n      actor,\n      action,\n      kind,\n      timing\n    );\n  }\n\n\n  /**\n   * Canonically migrated actions enter the runtime-composed","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/player_features/feature_actions/action-execution-feature.js","search":"        \"full.improvised-attack\",\n        \"quick.grapple\",","replace":"        \"full.improvised-attack\",\n        \"quick.self-destruct\",\n        \"quick.grapple\",","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/player_features/feature_actions/action-execution-feature.js","search":"      chooseMechStat:\n        frameConnChooseMechStat\n    },","replace":"      chooseMechStat:\n        frameConnChooseMechStat,\n\n      chooseSelfDestructTiming:\n        frameConnChooseSelfDestructTiming\n    },","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/player_features/feature_actions/action-execution-feature.js","search":"      chooseMechStat:\n        frameConnChooseMechStat,\n\n      requiresNoRoll:","replace":"      chooseMechStat:\n        frameConnChooseMechStat,\n\n      chooseSelfDestructTiming:\n        frameConnChooseSelfDestructTiming,\n\n      requiresNoRoll:","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/rules_features/status_conditions/reactor-meltdown-status.js","search":"  async function triggerMeltdown(actor) {\n    if (!actor || !canAdvanceCountdown(actor)) return false;","replace":"  async function triggerMeltdown(actor, { actionAuthority = false } = {}) {\n    const authorized = actionAuthority\n      ? canMutateFromNativeFlow(actor)\n      : canAdvanceCountdown(actor);\n    if (!actor || !authorized) return false;","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/rules_features/status_conditions/status-orchestration-feature.js","search":"reactorMeltdownTimer: reactorMeltdownStatus.timer, scheduleReactorMeltdown: reactorMeltdownStatus.schedule, clearReactorMeltdown: reactorMeltdownStatus.clearCountdown, syncReactorMeltdownCountdown: reactorMeltdownStatus.syncCombat, diagnostics, runtimeBindings","replace":"reactorMeltdownTimer: reactorMeltdownStatus.timer, scheduleReactorMeltdown: reactorMeltdownStatus.schedule, triggerReactorMeltdown: actor => reactorMeltdownStatus.triggerMeltdown(actor, { actionAuthority: true }), clearReactorMeltdown: reactorMeltdownStatus.clearCountdown, syncReactorMeltdownCountdown: reactorMeltdownStatus.syncCombat, diagnostics, runtimeBindings","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/runtime-orchestrator.js","search":"  actor = null,\n  action = null,\n  executionKind = null\n} = {}) {","replace":"  actor = null,\n  action = null,\n  executionKind = null,\n  executionOptions = null\n} = {}) {","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/runtime-orchestrator.js","search":"  switch (executionKind) {\n    case \"basic-attack\": {","replace":"  switch (executionKind) {\n    case \"self-destruct\": {\n      const chosenRounds = Number(executionOptions?.rounds);\n      if (!Number.isInteger(chosenRounds) || chosenRounds < 0 || chosenRounds > 2) {\n        throw new Error(\"Self-Destruct requires a detonation timing of NOW, 1 ROUND, or 2 ROUNDS.\");\n      }\n\n      if (chosenRounds > 0 && !globalThis.game?.combat?.started) {\n        throw new Error(\"Delayed Self-Destruct requires an active combat so future activations can be tracked.\");\n      }\n\n      transaction = await frameConnExecutionTransactionApi\n        .runNativeExecutionTransactionWithGlobalHooks({\n          context: executionContext,\n          execute: async () => {\n            if (chosenRounds === 0) {\n              const result = await frameConnStatusOrchestrationApi.triggerReactorMeltdown(actor);\n              if (!result) throw new Error(\"Immediate Self-Destruct failed to resolve the reactor explosion.\");\n              return result;\n            }\n\n            return frameConnStatusOrchestrationApi.scheduleReactorMeltdown(\n              actor,\n              chosenRounds - 1,\n              { reason: \"self-destruct\", combat: globalThis.game?.combat }\n            );\n          },\n          metadata: {\n            actionId: action.id,\n            executionKind,\n            source: \"action-execution\",\n            selfDestructRounds: chosenRounds,\n            terminalResolution: \"reactor-meltdown\"\n          }\n        });\n      break;\n    }\n\n    case \"basic-attack\": {","expected_occurrences":1}
   ]
 }
