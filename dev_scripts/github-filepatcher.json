@@ -1,9 +1,58 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after adding terminal reactor-meltdown Burst 2 save, damage, and token-removal resolution.",
+  "id": "fix-immediate-telemetry-and-meltdown-countdown",
+  "description": "Fix reactor meltdown countdown advancement across transient Foundry round transitions and immediately rerender Frame Conn telemetry when the displayed actor changes; derive Danger Zone presentation directly from live Heat/Heat Cap so warning animation has no status-sync lag.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 4,
+    "allowed_paths": [
+      "scripts/rules_features/status_conditions/reactor-meltdown-status.js",
+      "styles/ui_application/components/application-lifecycle.js",
+      "styles/ui_application/ui-application.js",
+      "styles/ui_application/components/application-telemetry.js"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "scripts/rules_features/status_conditions/reactor-meltdown-status.js",
+      "search": "  async function syncCombat(combat = globalThis.game?.combat) {\n    const currentTurnKey = turnKey(combat);\n    if (!currentTurnKey) {\n      observedCombatTurnKey = null;\n      observedCombatActorUuid = null;\n      return false;\n    }\n\n    const currentActorUuid = combat?.combatant?.actor?.uuid ?? null;",
+      "replace": "  async function syncCombat(combat = globalThis.game?.combat) {\n    // Foundry may emit a transient update while advancing a round where the\n    // Combat is still started but no current turn/combatant is momentarily\n    // available. Preserve the previously observed activation through that\n    // gap; otherwise the following valid turn has no previous activation to\n    // close and meltdown countdowns never advance.\n    if (!combat?.started) {\n      observedCombatTurnKey = null;\n      observedCombatActorUuid = null;\n      return false;\n    }\n\n    const currentTurnKey = turnKey(combat);\n    if (!currentTurnKey) return false;\n\n    const currentActorUuid = combat?.combatant?.actor?.uuid ?? null;",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-lifecycle.js",
+      "search": "function handleFrameConnApplicationDeleteToken() {\n  renderFrameConnApplication(\n    false\n  );\n}\n",
+      "replace": "function handleFrameConnApplicationDeleteToken() {\n  renderFrameConnApplication(\n    false\n  );\n}\n\n\nfunction handleFrameConnApplicationUpdateActor(\n  actor\n) {\n  if (\n    !frameConnApplicationDisplaysActor(\n      actor\n    )\n  ) {\n    return false;\n  }\n\n\n  // Actor telemetry is live state. Force the already-open application to\n  // rerender on the same Actor update instead of waiting for a combat, token,\n  // or control event to refresh the cockpit.\n  return renderFrameConnApplication(\n    true\n  );\n}\n",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-lifecycle.js",
+      "search": "  frameConnApplicationDisplaysActor,\n  handleFrameConnApplicationControlToken,\n  handleFrameConnApplicationDeleteToken\n};",
+      "replace": "  frameConnApplicationDisplaysActor,\n  handleFrameConnApplicationControlToken,\n  handleFrameConnApplicationDeleteToken,\n  handleFrameConnApplicationUpdateActor\n};",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/ui-application.js",
+      "search": "  frameConnApplicationDisplaysActor,\n  handleFrameConnApplicationControlToken,\n  handleFrameConnApplicationDeleteToken\n} from \"./components/application-lifecycle.js\";",
+      "replace": "  frameConnApplicationDisplaysActor,\n  handleFrameConnApplicationControlToken,\n  handleFrameConnApplicationDeleteToken,\n  handleFrameConnApplicationUpdateActor\n} from \"./components/application-lifecycle.js\";",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/ui-application.js",
+      "search": "      deleteToken:\n        handleFrameConnApplicationDeleteToken\n    },",
+      "replace": "      deleteToken:\n        handleFrameConnApplicationDeleteToken,\n\n      updateActor:\n        handleFrameConnApplicationUpdateActor\n    },",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-telemetry.js",
+      "search": "    dangerZoneActive:\n      Boolean(\n        system.statuses?.dangerzone\n      ),",
+      "replace": "    dangerZoneActive:\n      (() => {\n        const heat = Number(system.heat?.value);\n        const heatCap = Number(system.heat?.max);\n\n        return (\n          Number.isFinite(heat) &&\n          Number.isFinite(heatCap) &&\n          heatCap > 0 &&\n          heat >= Math.ceil(heatCap / 2)\n        );\n      })(),",
+      "expected_occurrences": 1
+    }
+  ]
 }
