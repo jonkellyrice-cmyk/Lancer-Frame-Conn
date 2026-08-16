@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "id": "nest-system-bridge-foundations",
+  "enabled": true,
+  "description": "Move the foundational system-bridge component packages beneath system_bridge and rewrite relative imports automatically.",
+  "moves": [
+    {
+      "from": "native_adapter",
+      "to": "system_bridge/native_adapter"
+    },
+    {
+      "from": "action_economy",
+      "to": "system_bridge/action_economy"
+    },
+    {
+      "from": "actor_owned_feature_registry",
+      "to": "system_bridge/actor_owned_feature_registry"
+    },
+    {
+      "from": "execution_transaction",
+      "to": "system_bridge/execution_transaction"
+    },
+    {
+      "from": "lifecycle_service",
+      "to": "system_bridge/lifecycle_service"
+    },
+    {
+      "from": "resource_service",
+      "to": "system_bridge/resource_service"
+    },
+    {
+      "from": "semantic_event_bus",
+      "to": "system_bridge/semantic_event_bus"
+    },
+    {
+      "from": "semantic_execution_context",
+      "to": "system_bridge/semantic_execution_context"
+    },
+    {
+      "from": "targeting-spatial_service",
+      "to": "system_bridge/targeting-spatial_service"
+    }
+  ]
+}
