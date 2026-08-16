@@ -27,7 +27,7 @@ import {
 
 import {
   installProgram
-} from "./program.js";
+} from "./sitrep-program.js";
 
 import {
   chatResult,
@@ -42,7 +42,7 @@ import {
   stat,
   statusBlock,
   strong
-} from "./dsl.js";
+} from "./sitrep-dsl.js";
 
 const DEFAULTS = {
   type: "gauntlet",
