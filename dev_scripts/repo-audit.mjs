@@ -1879,7 +1879,7 @@ function auditRuntimeFeatureRegistration(
   textByFile,
   features
 ) {
-  const registryPath =
+  const playerRegistryPath =
     path.join(
       REPOSITORY_ROOT,
       "scripts",
@@ -1887,18 +1887,33 @@ function auditRuntimeFeatureRegistration(
       "player-feature-registry.js"
     );
 
-
-  const registryText =
-    textByFile.get(
-      registryPath
-    ) ??
-    safeReadText(
-      registryPath
+  const rulesRegistryPath =
+    path.join(
+      REPOSITORY_ROOT,
+      "scripts",
+      "rules_features",
+      "rules-feature-registry.js"
     );
 
+  const playerRegistryText =
+    textByFile.get(
+      playerRegistryPath
+    ) ??
+    safeReadText(
+      playerRegistryPath
+    );
+
+  const rulesRegistryText =
+    textByFile.get(
+      rulesRegistryPath
+    ) ??
+    safeReadText(
+      rulesRegistryPath
+    );
 
   if (
-    !registryText
+    !playerRegistryText ||
+    !rulesRegistryText
   ) {
     addFinding({
       severity:
@@ -1908,10 +1923,12 @@ function auditRuntimeFeatureRegistration(
         "FEATURE_REGISTRY_MISSING",
 
       message:
-        "scripts/player_features/player-feature-registry.js could not be found or read.",
+        "Player and rules feature registries must both be present.",
 
       file:
-        registryPath
+        !playerRegistryText
+          ? playerRegistryPath
+          : rulesRegistryPath
     });
 
     return;
@@ -1928,8 +1945,13 @@ function auditRuntimeFeatureRegistration(
 
 
         return (
-          relative.startsWith(
-            "scripts/player_features/"
+          (
+            relative.startsWith(
+              "scripts/player_features/"
+            ) ||
+            relative.startsWith(
+              "scripts/rules_features/"
+            )
           ) &&
           relative.endsWith(
             "-feature.js"
@@ -1968,9 +1990,33 @@ function auditRuntimeFeatureRegistration(
     }
 
 
-    const importSpecifier =
-      `./${relativePath(file).slice("scripts/player_features/".length)}`;
+    const relative =
+      relativePath(
+        file
+      );
 
+    const isRulesFeature =
+      relative.startsWith(
+        "scripts/rules_features/"
+      );
+
+    const registryRoot =
+      isRulesFeature
+        ? "scripts/rules_features/"
+        : "scripts/player_features/";
+
+    const registryText =
+      isRulesFeature
+        ? rulesRegistryText
+        : playerRegistryText;
+
+    const registryLabel =
+      isRulesFeature
+        ? "scripts/rules_features/rules-feature-registry.js"
+        : "scripts/player_features/player-feature-registry.js";
+
+    const importSpecifier =
+      `./${relative.slice(registryRoot.length)}`;
 
     if (
       !registryText.includes(
@@ -1985,13 +2031,16 @@ function auditRuntimeFeatureRegistration(
           "RUNTIME_FEATURE_NOT_IMPORTED_BY_REGISTRY",
 
         message:
-          `Runtime feature appears to declare a Frame Conn feature but is not imported by scripts/player_features/player-feature-registry.js.`,
+          `Runtime feature appears to declare a Frame Conn feature but is not imported by ${registryLabel}.`,
 
         file,
 
         details: {
           expectedImport:
-            importSpecifier
+            importSpecifier,
+
+          registry:
+            registryLabel
         }
       });
     }

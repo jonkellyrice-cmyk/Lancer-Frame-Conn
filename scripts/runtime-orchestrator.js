@@ -136,8 +136,16 @@
    ============================================================ */
 
 import {
-  frameConnFeatureRegistry
+  FrameConnFeatureRegistry
+} from "./feature-registry-core.js";
+
+import {
+  FRAME_CONN_PLAYER_FEATURES
 } from "./player_features/player-feature-registry.js";
+
+import {
+  FRAME_CONN_RULES_FEATURES
+} from "./rules_features/rules-feature-registry.js";
 
 
 /* ============================================================
@@ -146,6 +154,27 @@ import {
 
 const MODULE_TITLE =
   "Frame Conn";
+
+
+/* ============================================================
+   Application-wide feature composition
+   ============================================================ */
+
+/**
+ * Player-facing and rules-driven packages remain independently
+ * declared, but they are registered into one shared graph here so
+ * required capabilities may cross the package boundary safely.
+ */
+export const frameConnFeatureRegistry =
+  new FrameConnFeatureRegistry();
+
+frameConnFeatureRegistry.registerMany([
+  ...FRAME_CONN_PLAYER_FEATURES,
+  ...FRAME_CONN_RULES_FEATURES
+]);
+
+frameConnFeatureRegistry
+  .validateDependencies();
 
 
 /* ============================================================
