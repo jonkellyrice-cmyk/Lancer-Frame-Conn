@@ -3,8 +3,8 @@ name: Path Mover
 on:
   push:
     paths:
-      - "dev-scripts/path-mover.json"
-      - "dev-scripts/path-mover.mjs"
+      - "dev_scripts/path-mover.json"
+      - "dev_scripts/path-mover.mjs"
       - ".github/workflows/path-mover.yml"
 
 permissions:
@@ -26,10 +26,10 @@ jobs:
           node-version: 22
 
       - name: Validate mover syntax
-        run: node --check dev-scripts/path-mover.mjs
+        run: node --check dev_scripts/path-mover.mjs
 
       - name: Apply declared moves and rewrite imports
-        run: node dev-scripts/path-mover.mjs
+        run: node dev_scripts/path-mover.mjs
 
       - name: Validate changed JavaScript syntax
         shell: bash
