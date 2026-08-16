@@ -481,7 +481,8 @@ function validateDeveloperToolSyntax() {
     path.join(ROOT, "dev_scripts", "corridor-context-pack.mjs"),
     path.join(ROOT, "dev_scripts", "native-contract-catalog.mjs"),
     path.join(ROOT, "dev_scripts", "automatic-patch-staging.mjs"),
-    path.join(ROOT, "dev_scripts", "runtime-contract-probes.mjs")
+    path.join(ROOT, "dev_scripts", "runtime-contract-probes.mjs"),
+    path.join(ROOT, "dev_scripts", "change-propagation-simulator.mjs")
   ];
 
   for (const tool of tools) {
@@ -554,6 +555,13 @@ function validateDeveloperToolSyntax() {
   if (runtimeContractProbesSelfTest.stderr) process.stderr.write(runtimeContractProbesSelfTest.stderr);
   if (runtimeContractProbesSelfTest.error) fail(`Runtime Contract Probes self-test could not start: ${runtimeContractProbesSelfTest.error}`);
   if (runtimeContractProbesSelfTest.status !== 0) fail("Runtime Contract Probes self-test failed.");
+
+  const changePropagationSimulator = path.join(ROOT, "dev_scripts", "change-propagation-simulator.mjs");
+  const changePropagationSelfTest = spawnSync(process.execPath, [changePropagationSimulator, "--self-test"], { cwd: ROOT, encoding: "utf8" });
+  if (changePropagationSelfTest.stdout) process.stdout.write(changePropagationSelfTest.stdout);
+  if (changePropagationSelfTest.stderr) process.stderr.write(changePropagationSelfTest.stderr);
+  if (changePropagationSelfTest.error) fail(`Change Propagation Simulator self-test could not start: ${changePropagationSelfTest.error}`);
+  if (changePropagationSelfTest.status !== 0) fail("Change Propagation Simulator self-test failed.");
 
   console.log("[github-filepatcher] Developer tool syntax checks passed.");
 }
@@ -689,6 +697,57 @@ function runRuntimeContractProbePlanning(goal, corridorReport) {
   }
 }
 
+function runChangePropagationSimulation(patch, plan, corridorReport, stagingReport) {
+  const simulatorScript = path.join(ROOT, "dev_scripts", "change-propagation-simulator.mjs");
+  if (!fs.existsSync(simulatorScript)) fail(`Change Propagation Simulator not found: ${simulatorScript}`);
+
+  const snapshotFile = path.join(os.tmpdir(), `frame-conn-transition-snapshot-${process.pid}.json`);
+  const outputFile = path.join(os.tmpdir(), `frame-conn-transition-report-${process.pid}.json`);
+  const changes = plan.changedFiles.map((relativePath) => {
+    const original = plan.originalFiles.get(relativePath);
+    return {
+      path: relativePath,
+      beforeExists: original?.exists ?? false,
+      before: original?.exists ? original.content : null,
+      afterExists: true,
+      after: plan.stagedFiles.get(relativePath) ?? null,
+    };
+  });
+  const snapshot = {
+    version: 1,
+    goal: patch.planningGoal,
+    patchId: patch.id ?? null,
+    corridor: corridorReport ? { clauseCoverage: corridorReport.clauseCoverage ?? null } : null,
+    staging: stagingReport ? { phases: stagingReport.phases ?? [], crossCutting: stagingReport.crossCutting ?? null } : null,
+    changes,
+  };
+  fs.writeFileSync(snapshotFile, `${JSON.stringify(snapshot, null, 2)}\n`, "utf8");
+
+  const result = spawnSync(
+    process.execPath,
+    [simulatorScript, "--snapshot", snapshotFile, "--output", outputFile],
+    { cwd: ROOT, encoding: "utf8", maxBuffer: 8 * 1024 * 1024 }
+  );
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+  if (result.error) fail(`Change Propagation Simulator could not start: ${result.error}`);
+  if (result.status !== 0) fail(`Change Propagation Simulator failed with exit code ${result.status}.`);
+
+  try {
+    const report = JSON.parse(fs.readFileSync(outputFile, "utf8"));
+    console.log(`[github-filepatcher] transition_breaking_deltas=${report.assessment?.breakingDeltaCount ?? 0}`);
+    console.log(`[github-filepatcher] transition_immediate_consumers=${report.assessment?.immediateConsumerCount ?? 0}`);
+    console.log(`[github-filepatcher] transition_high_fanout=${report.assessment?.highFanOutRiskCount ?? 0}`);
+    console.log(`[github-filepatcher] transition_verification_targets=${report.verificationTargets?.length ?? 0}`);
+    if (report.assessment?.safeStandalone === false) {
+      console.warn("[github-filepatcher] Change Propagation Simulator recommends a compatibility stage before treating this patch as a safe standalone transition.");
+    }
+    return report;
+  } catch (error) {
+    fail(`Change Propagation Simulator report could not be read: ${error}`);
+  }
+}
+
 function reportCorridorScope(plan, corridorReport) {
   if (!corridorReport) return;
   const predicted = new Set((corridorReport.files ?? []).map(entry => entry.file));
@@ -725,6 +784,9 @@ function main() {
     const stagingReport = corridorReport
       ? runAutomaticPatchStaging(patch.planningGoal, corridorReport)
       : null;
+    if (plan.changedFiles.length > 0) {
+      runChangePropagationSimulation(patch, plan, corridorReport, stagingReport);
+    }
     if (corridorReport) {
       runCorridorContextPack(corridorReport);
       queryNativeContractCatalog(patch.planningGoal);
