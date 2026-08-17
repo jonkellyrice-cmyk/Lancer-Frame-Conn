@@ -301,6 +301,15 @@
 #sidebar .frame-conn-sidebar-shell .frame-conn-action-category-grid,
 #sidebar .frame-conn-sidebar-shell .frame-conn-action-grid { grid-template-columns: 1fr; }
 
+/* Sidebar action timing order:
+   Protocols -> Quick -> Full -> Special -> Reactions -> Movement. */
+#sidebar .frame-conn-sidebar-actions .frame-conn-category-button[data-frame-conn-category="protocol"] { order: 1; }
+#sidebar .frame-conn-sidebar-actions .frame-conn-category-button[data-frame-conn-category="quick"] { order: 2; }
+#sidebar .frame-conn-sidebar-actions .frame-conn-category-button[data-frame-conn-category="full"] { order: 3; }
+#sidebar .frame-conn-sidebar-actions .frame-conn-category-button[data-frame-conn-category="special"] { order: 4; }
+#sidebar .frame-conn-sidebar-actions .frame-conn-category-button[data-frame-conn-category="reaction"] { order: 5; }
+#sidebar .frame-conn-sidebar-actions .frame-conn-category-button[data-frame-conn-category="movement"] { order: 6; }
+
 #sidebar .frame-conn-sidebar-shell button,
 #sidebar .frame-conn-sidebar-shell input,
 #sidebar .frame-conn-sidebar-shell select { max-width: 100%; }
