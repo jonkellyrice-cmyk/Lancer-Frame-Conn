@@ -79,13 +79,6 @@
     {
       "type": "replace_text",
       "path": "styles/ui_application/ui-application.js",
-      "search": "      render:\n        renderFrameConnApplication\n    },\n\n    queries: {",
-      "replace": "      render:\n        renderFrameConnApplication,\n\n      setPresentationMode:\n        setFrameConnApplicationPresentationMode\n    },\n\n    queries: {",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/ui-application.js",
       "search": "      runtimeBindings:\n        getFrameConnApplicationRuntimeBindings\n    },\n\n    hooks: {",
       "replace": "      runtimeBindings:\n        getFrameConnApplicationRuntimeBindings,\n\n      presentationMode:\n        getFrameConnPresentationMode\n    },\n\n    hooks: {",
       "expected_occurrences": 1
