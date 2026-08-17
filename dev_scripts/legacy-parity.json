@@ -57,7 +57,7 @@
       "id": "holdout-resolution",
       "legacy_source": "lancer-sitrep-tracker.js#evaluateSitrep(holdout)",
       "new_owner": "dm_features/sitreps/holdout",
-      "status": "NOT_MIGRATED",
+      "status": "MIGRATED_UNVERIFIED",
       "verification": ["base score behavior preserved", "round-end score changes preserved", "final score victory/defeat preserved", "capture/overrun messaging semantics preserved"]
     },
     {

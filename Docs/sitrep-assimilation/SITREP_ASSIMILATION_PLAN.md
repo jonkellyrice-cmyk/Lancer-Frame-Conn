@@ -253,7 +253,7 @@ legacy/decomposed/control-presentation.js          # semantics/evidence only
 legacy/decomposed/sitrep-encounter-resolution.js
 ```
 
-### 3C — Holdout
+### 3C — Holdout — COMPLETE
 
 Primary source:
 
