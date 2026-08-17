@@ -15,6 +15,7 @@
  *   - Mission Toolkit / debrief handoff.
  *
  * CURRENT STATE:
- *   Documentation-only scaffold. Intentionally exports nothing and
- *   is not imported by dm-feature-registry.js yet.
+ *   Phase 1 canonical state infrastructure now exists under ./state/.
+ *   This package itself remains intentionally unregistered and exports
+ *   no runtime feature definitions until later assimilation phases.
  */

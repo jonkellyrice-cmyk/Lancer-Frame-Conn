@@ -132,9 +132,9 @@ Completed work:
 
 Phase 0 exit criteria are satisfied.
 
-## Phase 1 — Establish the canonical SITREP state boundary
+## Phase 1 — Establish the canonical SITREP state boundary — COMPLETE
 
-Create the canonical state service **before moving individual scenario rules into active Frame Conn ownership**.
+The canonical state service now exists **before any individual scenario rules move into active Frame Conn ownership**. Canonical persistence uses `flags.lancer-frame-conn.sitrep`; legacy `flags.lancer-sitrep-tracker.sitrep` is centralized as read-only compatibility fallback. Canonical writes use a versioned envelope, and an explicit canonical `state: null` tombstone prevents stale legacy state from resurrecting after clear. No SITREP runtime hooks, UI, or scenario rules were activated in this phase.
 
 Primary migration evidence:
 

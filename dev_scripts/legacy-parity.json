@@ -99,7 +99,7 @@
       "id": "legacy-combat-flag-compatibility",
       "legacy_source": "flags.lancer-sitrep-tracker.sitrep",
       "new_owner": "canonical SITREP state service",
-      "status": "NOT_MIGRATED",
+      "status": "MIGRATED_UNVERIFIED",
       "verification": ["existing legacy-world SITREP flag is readable or intentionally migrated", "new writes have one canonical owner", "end/unset behavior preserves migration safety"]
     },
     {
