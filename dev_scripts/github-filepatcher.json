@@ -1,35 +1,9 @@
 {
   "schema_version": 2,
-  "id": "frame-helm-sidebar-layout-corrections",
-  "description": "Correct Frame Helm sidebar tab placement, opaque sidebar backing, and compact vertical telemetry composition without changing the preserved window presentation.",
+  "id": "ready",
+  "description": "Neutral no-op state after Frame Helm sidebar layout corrections.",
   "policy": {
-    "max_files_changed": 2,
-    "allowed_paths": [
-      "styles/ui_application/components/application-sidebar-presentation.js",
-      "styles/ui_application/ui-application.css"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/components/application-sidebar-presentation.js",
-      "search": "  const navigation = findSidebarNavigation(root);\n  const content = findSidebarContent(root);\n  const nativeButton = findNativeSidebarTabButton(navigation);\n  if (!navigation || !content || !nativeButton) return null;\n\n  let button = root.querySelector(`.${FRAME_CONN_SIDEBAR_BUTTON_CLASS}`);",
-      "replace": "  const navigation = findSidebarNavigation(root);\n  const content = findSidebarContent(root);\n  const nativeButton = findNativeSidebarTabButton(navigation);\n  if (!navigation || !content || !nativeButton) return null;\n\n  const nativeTabButtonStack =\n    nativeButton.parentElement ??\n    navigation;\n\n  const nativeCollapseControl =\n    nativeTabButtonStack.querySelector?.(\n      '[data-action=\"toggleState\"], [data-action=\"toggleExpanded\"], .sidebar-collapse, .collapse'\n    ) ??\n    null;\n\n  let button = root.querySelector(`.${FRAME_CONN_SIDEBAR_BUTTON_CLASS}`);",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/components/application-sidebar-presentation.js",
-      "search": "    button.innerHTML = '<i class=\"fas fa-robot\"></i>';\n    navigation.appendChild(button);\n\n    button.addEventListener(\"click\", event => {",
-      "replace": "    button.innerHTML = '<i class=\"fas fa-robot\"></i>';\n\n    if (\n      nativeCollapseControl &&\n      nativeCollapseControl.parentElement === nativeTabButtonStack\n    ) {\n      nativeTabButtonStack.insertBefore(\n        button,\n        nativeCollapseControl\n      );\n    } else {\n      nativeTabButtonStack.appendChild(\n        button\n      );\n    }\n\n    button.addEventListener(\"click\", event => {",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/ui-application.css",
-      "search": "#sidebar .frame-conn-sidebar-tab-button i { pointer-events: none; }\n\n#sidebar .frame-conn-sidebar-surface {\n  height: 100%;\n  min-height: 0;\n  overflow: hidden;\n  color: var(--fc-text);\n  background: var(--fc-bg-deep);\n}\n\n#sidebar .frame-conn-sidebar-scroll {\n  height: 100%;\n  min-height: 0;\n  overflow-x: hidden;\n  overflow-y: auto;\n  scrollbar-gutter: stable;\n}\n\n#sidebar .frame-conn-sidebar-shell {\n  min-width: 0;\n  width: 100%;\n  height: auto;\n  padding: 0.4rem;\n  gap: 0.4rem;\n}\n\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-bar { width: 100%; min-width: 0; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.3rem; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-stat-cell { min-width: 0; }",
-      "replace": "#sidebar .frame-conn-sidebar-tab-button i {\n  pointer-events: none;\n}\n\n#sidebar .frame-conn-sidebar-surface {\n  height: 100%;\n  min-height: 0;\n  overflow: hidden;\n  color: var(--fc-text);\n  background: #061014 !important;\n  background-image:\n    linear-gradient(180deg, rgba(37, 112, 119, 0.12), transparent 22%),\n    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.015) 0, rgba(255, 255, 255, 0.015) 1px, transparent 1px, transparent 4px);\n  box-shadow: inset 0 0 28px rgba(0, 0, 0, 0.52);\n}\n\n#sidebar .frame-conn-sidebar-scroll {\n  height: 100%;\n  min-height: 0;\n  overflow-x: hidden;\n  overflow-y: auto;\n  scrollbar-gutter: stable;\n  background: #061014;\n}\n\n#sidebar .frame-conn-sidebar-shell {\n  min-width: 0;\n  width: 100%;\n  height: auto;\n  padding: 0.55rem;\n  gap: 0.5rem;\n  background: #061014;\n}\n\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-bar {\n  display: flex;\n  flex-direction: column;\n  width: 100%;\n  min-width: 0;\n  min-height: 0;\n}\n\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-heading {\n  display: flex;\n  flex-direction: row;\n  align-items: baseline;\n  justify-content: space-between;\n  width: 100%;\n  min-width: 0;\n  gap: 0.5rem;\n  border-right: 0;\n  border-bottom: 1px solid var(--fc-cyan-muted);\n  padding: 0.5rem 0.6rem;\n}\n\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-heading small {\n  margin-top: 0;\n  text-align: right;\n  white-space: nowrap;\n}\n\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid,\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown {\n  grid-template-columns: repeat(2, minmax(0, 1fr));\n  width: 100%;\n  min-width: 0;\n  gap: 0.45rem;\n  padding: 0.45rem;\n  overflow: visible;\n}\n\n#sidebar .frame-conn-sidebar-shell .frame-conn-stat-cell {\n  width: 100%;\n  min-width: 0;\n  padding: 0.45rem 0.5rem;\n}\n\n#sidebar .frame-conn-sidebar-shell .frame-conn-stat-value-group {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);\n  align-items: center;\n  width: 100%;\n  min-width: 0;\n  gap: 0.2rem;\n}\n\n#sidebar .frame-conn-sidebar-shell .frame-conn-stat-cell input,\n#sidebar .frame-conn-sidebar-shell .frame-conn-stat-single input {\n  width: 100%;\n  min-width: 0;\n  max-width: none;\n}\n\n#sidebar .frame-conn-sidebar-shell .frame-conn-stat-label {\n  margin-bottom: 0.25rem;\n}\n\n#sidebar .frame-conn-sidebar-shell .frame-conn-stat-single {\n  align-items: stretch;\n}\n\n#sidebar .frame-conn-sidebar-shell .frame-conn-stat-single input {\n  align-self: stretch;\n}\n",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
