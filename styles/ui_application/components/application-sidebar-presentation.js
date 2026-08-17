@@ -130,6 +130,20 @@ function ensureFrameConnSidebarChrome(root) {
     button.addEventListener("click", event => {
       event.preventDefault();
       event.stopImmediatePropagation();
+
+      const foundrySidebar =
+        globalThis.ui?.sidebar ??
+        null;
+
+      if (
+        frameConnSidebarActive &&
+        foundrySidebar?.expanded !== false &&
+        typeof foundrySidebar?.collapse === "function"
+      ) {
+        foundrySidebar.collapse();
+        return;
+      }
+
       void openFrameConnSidebarPresentation();
     }, true);
   }

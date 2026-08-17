@@ -160,6 +160,14 @@
   pointer-events: none;
 }
 
+#sidebar .frame-conn-sidebar-tab-slot::before,
+#sidebar .frame-conn-sidebar-tab-slot::after,
+#sidebar .frame-conn-sidebar-tab-button::before,
+#sidebar .frame-conn-sidebar-tab-button::after {
+  display: none !important;
+  content: none !important;
+}
+
 #sidebar .frame-conn-sidebar-surface {
   height: 100%;
   min-height: 0;
