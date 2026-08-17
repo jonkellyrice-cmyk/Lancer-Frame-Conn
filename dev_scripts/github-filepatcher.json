@@ -1,37 +1,9 @@
 {
   "schema_version": 2,
-  "id": "cleanup-sitrep-elevation-ownership-residue",
-  "description": "Remove stale no-op Elevation/LOS side-effect imports from the quarantined SITREP sources already identified during ownership migration, and record accelerated completion of the Foundry-wide elevation phase.",
+  "id": "ready",
+  "description": "Neutral no-op state after Foundry-wide Elevation/LOS decomposition, ownership migration, and SITREP residue cleanup.",
   "policy": {
-    "max_files_changed": 10,
-    "allowed_paths": [
-      "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/lancer-sitrep-tracker.js",
-      "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/sitrep-state-composition.js",
-      "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/sitrep-setup-state.js",
-      "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/sitrep-encounter-resolution.js",
-      "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/recon-resolution.js",
-      "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/extraction-resolution.js",
-      "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/escort-resolution.js",
-      "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/sitrep-hud-rendering.js",
-      "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/sitrep-setup-dialog.js",
-      "Docs/sitrep-assimilation/SITREP_ASSIMILATION_PLAN.md"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {"type":"replace_text","path":"scripts/dm_features/sitreps/legacy-sitrep-module/scripts/lancer-sitrep-tracker.js","search":"import \"./elevation-los.js\";\n\n","replace":"","expected_occurrences":1},
-    {"type":"replace_text","path":"scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/sitrep-state-composition.js","search":"import \"../elevation-los.js\";\n\n","replace":"","expected_occurrences":1},
-    {"type":"replace_text","path":"scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/sitrep-setup-state.js","search":"import \"../elevation-los.js\";\n\n","replace":"","expected_occurrences":1},
-    {"type":"replace_text","path":"scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/sitrep-encounter-resolution.js","search":"import \"../elevation-los.js\";\n\n","replace":"","expected_occurrences":1},
-    {"type":"replace_text","path":"scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/recon-resolution.js","search":"import \"../elevation-los.js\";\n\n","replace":"","expected_occurrences":1},
-    {"type":"replace_text","path":"scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/extraction-resolution.js","search":"import \"../elevation-los.js\";\n\n","replace":"","expected_occurrences":1},
-    {"type":"replace_text","path":"scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/escort-resolution.js","search":"import \"../elevation-los.js\";\n\n","replace":"","expected_occurrences":1},
-    {"type":"replace_text","path":"scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/sitrep-hud-rendering.js","search":"import \"../elevation-los.js\";\n\n","replace":"","expected_occurrences":1},
-    {"type":"replace_text","path":"scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/sitrep-setup-dialog.js","search":"import \"../elevation-los.js\";\n\n","replace":"","expected_occurrences":1},
-    {
-      "type":"replace_text",
-      "path":"Docs/sitrep-assimilation/SITREP_ASSIMILATION_PLAN.md",
-      "search":"## Phase 7 — Extract Elevation/LOS into `foundry_features`\n\nMove useful behavior from legacy `elevation-los.js` into a dedicated Foundry feature family.\n\nPotential structure:\n\n```text\nscripts/foundry_features/elevation_los/\n  elevation-los-feature.js\n  wall-elevation-service.js\n  elevated-light-service.js\n  elevation-los-runtime-adapter.js\n```\n\nRequirements:\n\n- no SITREP dependency;\n- lifecycle registration through the Foundry feature package/authoritative runtime;\n- prototype wrapping installed exactly once;\n- legacy `flags.lancer-sitrep-tracker.elevationLOS` compatibility handled centrally;\n- public API exposed through Frame Conn composition only if actually needed.\n\nBecause the Domain Decomposer kept the Elevation/LOS side-effect import on the retained legacy spine, this migration can be performed cleanly without removing side-effect imports from numerous extracted modules.\n\nThis phase can proceed independently once its integration surface is certified, but Elevation/LOS must be out of legacy SITREP ownership before the old spine is deleted.",
-      "replace":"## Phase 7 — Extract Elevation/LOS into `foundry_features` — COMPLETE EARLY\n\nThis independent phase was deliberately pulled forward immediately after SITREP Phase 1 so later SITREP assimilation no longer carries unrelated Foundry platform behavior.\n\nCanonical structure now exists at:\n\n```text\nscripts/foundry_features/elevation_los/\n  elevation-los-contract.js\n  wall-elevation-state.js\n  elevation-vision-service.js\n  elevated-light-service.js\n  elevation-document-commands.js\n  elevation-config-presentation.js\n  elevation-los-feature.js\n```\n\nCompleted ownership migration:\n\n- generic elevation behavior is owned by `foundry_features`, not SITREPs;\n- `FRAME_CONN_FOUNDRY_FEATURES` is now a real package registered into the single application feature graph;\n- Foundry hooks are declared by `elevation-los-feature.js` and installed through the existing feature registry;\n- wrapper initialization remains under the authoritative runtime `init` boundary and perception refresh under `ready`;\n- canonical wall writes use `flags.lancer-frame-conn.elevationLOS`;\n- existing `flags.lancer-sitrep-tracker.elevationLOS` wall data remains readable through centralized compatibility fallback;\n- the former `game.lancerElevationLOS` parallel public global is gone; the feature API is exposed through `game.lancerFrameConn.elevationLOS`;\n- the legacy SITREP-side elevation module is inert and stale side-effect imports are being removed from quarantined migration sources.\n\nBehavioral parity remains `MIGRATED_UNVERIFIED` until live Foundry verification confirms wall ranges, movement/vision blocking, elevated light radii, configuration controls, and single wrapper installation."
-    }
-  ]
+  "operations": []
 }
