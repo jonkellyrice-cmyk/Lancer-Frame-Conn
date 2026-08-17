@@ -47,6 +47,40 @@ function findEmbeddedPanelHost(root) {
   return root ?? null;
 }
 
+function findNativeCombatantScrollContainer(root) {
+  if (!root?.querySelector) return null;
+
+  const combatant = root.querySelector(".combatant");
+  if (combatant) {
+    return combatant.closest("ol, ul, .directory-list, .combatants, .combatant-list") ?? combatant.parentElement;
+  }
+
+  return root.querySelector(".combat-tracker .directory-list, .combat-tracker .combatants, .combat-tracker .combatant-list");
+}
+
+function clearNativeCombatantScrollReservation(root) {
+  const container = findNativeCombatantScrollContainer(root);
+  if (!container) return;
+  container.style.removeProperty("max-height");
+  container.style.removeProperty("overflow-y");
+  container.style.removeProperty("overflow-x");
+}
+
+function reserveNativeCombatantScrollSpace(root, panel) {
+  const container = findNativeCombatantScrollContainer(root);
+  if (!container || !panel?.getBoundingClientRect) return;
+
+  const containerRect = container.getBoundingClientRect();
+  const panelRect = panel.getBoundingClientRect();
+  const availableHeight = Math.floor(panelRect.top - containerRect.top - 4);
+
+  if (!Number.isFinite(availableHeight) || availableHeight < 80) return;
+
+  container.style.maxHeight = `${availableHeight}px`;
+  container.style.overflowY = "auto";
+  container.style.overflowX = "hidden";
+}
+
 async function renderEmbeddedMissionPanel(root = combatTrackerRoot) {
   assertRuntime();
   if (!root?.querySelector) return null;
@@ -55,7 +89,10 @@ async function renderEmbeddedMissionPanel(root = combatTrackerRoot) {
   root.classList?.toggle("lancer-frame-conn-dm-host", embeddedPanelVisible);
 
   root.querySelector(".lancer-frame-conn-dm-embedded")?.remove();
-  if (!embeddedPanelVisible) return null;
+  if (!embeddedPanelVisible) {
+    clearNativeCombatantScrollReservation(root);
+    return null;
+  }
 
   const model = await buildDmSitrepViewModel({
     sitrepsApi: runtime.sitrepsApi,
@@ -79,6 +116,7 @@ async function renderEmbeddedMissionPanel(root = combatTrackerRoot) {
     foundryApi: runtime.foundryApi
   });
 
+  reserveNativeCombatantScrollSpace(root, panel);
   return panel;
 }
 
@@ -97,6 +135,7 @@ export async function closeFrameConnDmApplication() {
   embeddedPanelVisible = false;
   combatTrackerRoot?.classList?.remove("lancer-frame-conn-dm-host");
   combatTrackerRoot?.querySelector?.(".lancer-frame-conn-dm-embedded")?.remove();
+  clearNativeCombatantScrollReservation(combatTrackerRoot);
   return null;
 }
 
