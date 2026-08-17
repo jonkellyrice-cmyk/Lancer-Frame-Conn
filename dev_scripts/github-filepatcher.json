@@ -1,70 +1,106 @@
 {
   "schema_version": 2,
-  "id": "sitrep-phase-six-presentation-domain",
-  "description": "Execute the reviewed Phase 6 presentation-domain slice after Patch Corridor certified 7/9 clauses and refused only the new Escort command bootstrap plus an unclassifiable negative legacy-import phrase.",
+  "id": "sitrep-phase-six-dm-runtime-composition",
+  "description": "Compose the new DM Mission application into the authoritative Frame Conn feature graph and existing Foundry integration boundary.",
+  "planning_goal": "Complete the runtime-composition slice of SITREP Phase 6. Load the DM Mission stylesheet through the canonical UI registry, resolve and configure the registered ui-dm-application feature from runtime-orchestrator, inject canonical SITREP and Foundry APIs, expose the DM application through game.lancerFrameConn.dm, extend the existing Foundry getSceneControlButtons owner with one GM-only Mission launcher, expose active Combat/Region/Combatant queries through Foundry Integration, preserve dependency validation, and do not add a second init/ready authority or any direct legacy SITREP dependency.",
   "policy": {
     "max_files_changed": 3,
     "allowed_paths": [
-      "scripts/dm_features/sitreps/escort/escort-resolution.js",
-      "scripts/dm_features/sitreps/orchestration/sitrep-orchestrator.js",
-      "scripts/dm_features/sitreps/sitreps-feature-package.js"
+      "styles/ui-registry.css",
+      "scripts/foundry-integration-feature.js",
+      "scripts/runtime-orchestrator.js"
     ]
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "scripts/dm_features/sitreps/escort/escort-resolution.js",
-      "search": "export async function resolveEscortEncounterUpdate(combat, changes = {}, spatialOperations) {",
-      "replace": "export async function resolveEscortObjective(combat, outcome, spatialOperations) {\n  const sitrep = readSitrepState(combat);\n  if (!combat || !sitrep || sitrep.type !== \"escort\") {\n    return Object.freeze({ changed: false, state: sitrep, outputIntent: null, rejection: \"not-escort\" });\n  }\n\n  const state = await calculateEscortState(combat, sitrep, spatialOperations);\n  if (!state.valid) {\n    return Object.freeze({ changed: false, state: sitrep, derivedState: state, outputIntent: null, rejection: \"invalid-objective-configuration\" });\n  }\n\n  if (outcome === \"extracted\") {\n    const reason = \"The Objective was safely extracted.\";\n    const nextState = await updateSitrepState({ escortStatus: \"extracted\", status: \"victory\", resultReason: reason }, combat);\n    return Object.freeze({ changed: true, state: nextState, derivedState: state, outputIntent: outcomeIntent(\"victory\", reason, \"extracted\"), rejection: null });\n  }\n\n  if (outcome === \"destroyed\") {\n    const reason = \"The Objective was destroyed. Neither side achieved victory.\";\n    const nextState = await updateSitrepState({ escortStatus: \"destroyed\", status: \"draw\", resultReason: reason }, combat);\n    return Object.freeze({ changed: true, state: nextState, derivedState: state, outputIntent: outcomeIntent(\"draw\", reason, \"destroyed\"), rejection: null });\n  }\n\n  return Object.freeze({ changed: false, state: sitrep, derivedState: state, outputIntent: null, rejection: \"unknown-outcome\" });\n}\n\nexport async function resolveEscortEncounterUpdate(combat, changes = {}, spatialOperations) {",
+      "path": "styles/ui-registry.css",
+      "search": "@import \"./ui_application/ui-application.css\";\n\n\n/**\n * Future core feature imports",
+      "replace": "@import \"./ui_application/ui-application.css\";\n\n/** GM-only Frame Conn // Mission application. */\n@import \"./ui_dm/ui-dm-application.css\";\n\n\n/**\n * Future core feature imports",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/dm_features/sitreps/orchestration/sitrep-orchestrator.js",
-      "search": "import { resolveGauntletEncounterUpdate } from \"../gauntlet/gauntlet-resolution.js\";\nimport { resolveControlEncounterUpdate } from \"../control/control-resolution.js\";\nimport { resolveHoldoutEncounterUpdate } from \"../holdout/holdout-resolution.js\";\nimport { resolveEscortEncounterUpdate } from \"../escort/escort-resolution.js\";\nimport { resolveExtractionEncounterUpdate, resolveExtractionObjective } from \"../extraction/extraction-resolution.js\";\nimport { recordReconScan, resolveReconEncounterUpdate } from \"../recon/recon-resolution.js\";",
-      "replace": "import { calculateGauntletState } from \"../gauntlet/gauntlet-state.js\";\nimport { resolveGauntletEncounterUpdate } from \"../gauntlet/gauntlet-resolution.js\";\nimport { calculateControlState } from \"../control/control-state.js\";\nimport { resolveControlEncounterUpdate } from \"../control/control-resolution.js\";\nimport { calculateHoldoutState } from \"../holdout/holdout-state.js\";\nimport { resolveHoldoutEncounterUpdate } from \"../holdout/holdout-resolution.js\";\nimport { calculateEscortState } from \"../escort/escort-state.js\";\nimport { resolveEscortEncounterUpdate, resolveEscortObjective } from \"../escort/escort-resolution.js\";\nimport { calculateExtractionState } from \"../extraction/extraction-state.js\";\nimport { resolveExtractionEncounterUpdate, resolveExtractionObjective } from \"../extraction/extraction-resolution.js\";\nimport { calculateReconState } from \"../recon/recon-state.js\";\nimport { recordReconScan, resolveReconEncounterUpdate } from \"../recon/recon-resolution.js\";",
+      "path": "scripts/foundry-integration-feature.js",
+      "search": "const FRAME_CONN_SCENE_CONTROL_NAME =\n  \"lancer-frame-conn\";",
+      "replace": "const FRAME_CONN_SCENE_CONTROL_NAME =\n  \"lancer-frame-conn\";\n\nconst FRAME_CONN_DM_SCENE_CONTROL_NAME =\n  \"lancer-frame-conn-dm\";",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/dm_features/sitreps/orchestration/sitrep-orchestrator.js",
-      "search": "export function getSitrepOperationalState(combat = null) { return readSitrepStateRecord(combat); }\nexport function getSitrepOrchestrationDiagnostics()",
-      "replace": "export function getSitrepOperationalState(combat = null) { return readSitrepStateRecord(combat); }\n\nconst presentationStateCalculators = Object.freeze({\n  gauntlet: calculateGauntletState,\n  control: calculateControlState,\n  holdout: calculateHoldoutState,\n  escort: calculateEscortState,\n  extraction: calculateExtractionState,\n  recon: calculateReconState\n});\n\nexport async function getSitrepPresentationState(combat = null) {\n  const record = readSitrepStateRecord(combat);\n  const sitrep = record.state;\n  if (!record.combat || !sitrep) return null;\n  const calculator = presentationStateCalculators[sitrep.type];\n  if (!calculator) return null;\n  return calculator(record.combat, sitrep, requireSpatialOperations());\n}\n\nexport function getSitrepOrchestrationDiagnostics()",
+      "path": "scripts/foundry-integration-feature.js",
+      "search": "  closeApplication:\n    null,\n\n  executeLockOnAuthorityRequest:\n    null",
+      "replace": "  closeApplication:\n    null,\n\n  openDmApplication:\n    null,\n\n  executeLockOnAuthorityRequest:\n    null",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/dm_features/sitreps/orchestration/sitrep-orchestrator.js",
-      "search": "export async function scanReconRegion(combat, regionId) { assertManagePermission(); return publishResultIntents(await recordReconScan(combat, regionId, requireSpatialOperations())); }\nexport async function resolveExtractionOutcome(combat, outcome)",
-      "replace": "export async function scanReconRegion(combat, regionId) { assertManagePermission(); return publishResultIntents(await recordReconScan(combat, regionId, requireSpatialOperations())); }\nexport async function resolveEscortOutcome(combat, outcome) { assertManagePermission(); return publishResultIntents(await resolveEscortObjective(combat, outcome, requireSpatialOperations())); }\nexport async function resolveExtractionOutcome(combat, outcome)",
+      "path": "scripts/foundry-integration-feature.js",
+      "search": "    applicationClosing:\n      typeof frameConnFoundryIntegrationRuntimeBindings\n        .closeApplication ===\n        \"function\",\n\n    lockOnAuthorityExecution:",
+      "replace": "    applicationClosing:\n      typeof frameConnFoundryIntegrationRuntimeBindings\n        .closeApplication ===\n        \"function\",\n\n    dmApplicationOpening:\n      typeof frameConnFoundryIntegrationRuntimeBindings\n        .openDmApplication ===\n        \"function\",\n\n    lockOnAuthorityExecution:",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/dm_features/sitreps/sitreps-feature-package.js",
-      "search": "import { configureSitrepOrchestrationRuntime, configureSitrep, endSitrep, evaluateSitrepCombatChange, getSitrepOperationalState, getSitrepOrchestrationDiagnostics, handleSitrepCombatUpdate, resolveExtractionOutcome, scanReconRegion, setSitrepResult, startSitrep, toggleSitrepPause, validateSitrepSetup } from \"./orchestration/sitrep-orchestrator.js\";",
-      "replace": "import { configureSitrepOrchestrationRuntime, configureSitrep, endSitrep, evaluateSitrepCombatChange, getSitrepOperationalState, getSitrepOrchestrationDiagnostics, getSitrepPresentationState, handleSitrepCombatUpdate, resolveEscortOutcome, resolveExtractionOutcome, scanReconRegion, setSitrepResult, startSitrep, toggleSitrepPause, validateSitrepSetup } from \"./orchestration/sitrep-orchestrator.js\";",
+      "path": "scripts/foundry-integration-feature.js",
+      "search": "  return (\n    insertFrameConnSceneControlTool(\n      tokenControls\n    )\n  );\n}\n\n\n/* ============================================================\n   Foundry integration -- Target acquisition",
+      "replace": "  let changed = insertFrameConnSceneControlTool(tokenControls);\n\n  if (game?.user?.isGM && typeof frameConnFoundryIntegrationRuntimeBindings.openDmApplication === \"function\") {\n    const tools = tokenControls.tools;\n    const exists = Array.isArray(tools)\n      ? tools.some(tool => tool?.name === FRAME_CONN_DM_SCENE_CONTROL_NAME)\n      : Boolean(tools?.[FRAME_CONN_DM_SCENE_CONTROL_NAME]);\n\n    if (!exists) {\n      const dmTool = {\n        name: FRAME_CONN_DM_SCENE_CONTROL_NAME,\n        title: \"Frame Conn // Mission\",\n        icon: \"fa-solid fa-map\",\n        order: Array.isArray(tools) ? tools.length : Object.keys(tools ?? {}).length,\n        button: true,\n        visible: true,\n        onChange: () => frameConnFoundryIntegrationRuntimeBindings.openDmApplication()\n      };\n\n      if (Array.isArray(tools)) tools.push(dmTool);\n      else {\n        tokenControls.tools ??= {};\n        tokenControls.tools[FRAME_CONN_DM_SCENE_CONTROL_NAME] = dmTool;\n      }\n      changed = true;\n    }\n  }\n\n  return changed;\n}\n\n\n/* ============================================================\n   Foundry integration -- Target acquisition",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/dm_features/sitreps/sitreps-feature-package.js",
-      "search": "provides: [\"dm.sitreps\", \"dm.sitreps.state\", \"dm.sitreps.commands\", \"dm.sitreps.orchestration\"],",
-      "replace": "provides: [\"dm.sitreps\", \"dm.sitreps.state\", \"dm.sitreps.commands\", \"dm.sitreps.orchestration\", \"dm.sitreps.presentation-state\"],",
+      "path": "scripts/foundry-integration-feature.js",
+      "search": "function escapeFrameConnSemanticOutputText(value) {",
+      "replace": "function getFrameConnActiveCombat() {\n  return game?.combat ?? game?.combats?.active ?? null;\n}\n\nfunction listFrameConnCombatRegions(combat = getFrameConnActiveCombat()) {\n  const scene = combat?.scene ?? canvas?.scene ?? null;\n  return Array.from(scene?.regions ?? []);\n}\n\nfunction listFrameConnCombatants(combat = getFrameConnActiveCombat()) {\n  return Array.from(combat?.combatants ?? []);\n}\n\nfunction escapeFrameConnSemanticOutputText(value) {",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/dm_features/sitreps/sitreps-feature-package.js",
-      "search": "commands: { configureRuntime: configureSitrepOrchestrationRuntime, configure: configureSitrep, start: startSitrep, togglePause: toggleSitrepPause, end: endSitrep, setResult: setSitrepResult, evaluateCombatChange: evaluateSitrepCombatChange, scanReconRegion, resolveExtractionOutcome },\n  queries: { operationalState: getSitrepOperationalState, validateSetup: validateSitrepSetup, diagnostics: getSitrepOrchestrationDiagnostics },",
-      "replace": "commands: { configureRuntime: configureSitrepOrchestrationRuntime, configure: configureSitrep, start: startSitrep, togglePause: toggleSitrepPause, end: endSitrep, setResult: setSitrepResult, evaluateCombatChange: evaluateSitrepCombatChange, scanReconRegion, resolveEscortOutcome, resolveExtractionOutcome },\n  queries: { operationalState: getSitrepOperationalState, presentationState: getSitrepPresentationState, validateSetup: validateSitrepSetup, diagnostics: getSitrepOrchestrationDiagnostics },",
+      "path": "scripts/foundry-integration-feature.js",
+      "search": "      publishSemanticOutputIntent:\n        publishFrameConnSemanticOutputIntent,\n\n      diagnostics:",
+      "replace": "      publishSemanticOutputIntent:\n        publishFrameConnSemanticOutputIntent,\n\n      getActiveCombat:\n        getFrameConnActiveCombat,\n\n      listCombatRegions:\n        listFrameConnCombatRegions,\n\n      listCombatants:\n        listFrameConnCombatants,\n\n      diagnostics:",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
-      "path": "scripts/dm_features/sitreps/sitreps-feature-package.js",
-      "search": "api: { configureRuntime: configureSitrepOrchestrationRuntime, configure: configureSitrep, start: startSitrep, togglePause: toggleSitrepPause, end: endSitrep, setResult: setSitrepResult, evaluateCombatChange: evaluateSitrepCombatChange, scanReconRegion, resolveExtractionOutcome, operationalState: getSitrepOperationalState, validateSetup: validateSitrepSetup, diagnostics: getSitrepOrchestrationDiagnostics },",
-      "replace": "api: { configureRuntime: configureSitrepOrchestrationRuntime, configure: configureSitrep, start: startSitrep, togglePause: toggleSitrepPause, end: endSitrep, setResult: setSitrepResult, evaluateCombatChange: evaluateSitrepCombatChange, scanReconRegion, resolveEscortOutcome, resolveExtractionOutcome, operationalState: getSitrepOperationalState, presentationState: getSitrepPresentationState, validateSetup: validateSitrepSetup, diagnostics: getSitrepOrchestrationDiagnostics },",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "const frameConnSitrepsApi = frameConnFeatureRegistry.getApi(\"sitreps\");\nif (!frameConnSitrepsApi) throw new Error(\"Frame Conn | The registered SITREPs feature API could not be resolved.\");",
+      "replace": "const frameConnSitrepsApi = frameConnFeatureRegistry.getApi(\"sitreps\");\nif (!frameConnSitrepsApi) throw new Error(\"Frame Conn | The registered SITREPs feature API could not be resolved.\");\n\nconst frameConnDmApplicationApi = frameConnFeatureRegistry.getApi(\"ui-dm-application\");\nif (!frameConnDmApplicationApi) throw new Error(\"Frame Conn | The registered DM Application feature API could not be resolved.\");",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "      closeApplication:\n        (...args) =>\n          closeFrameConn(\n            ...args\n          ),\n\n      executeLockOnAuthorityRequest:",
+      "replace": "      closeApplication:\n        (...args) =>\n          closeFrameConn(\n            ...args\n          ),\n\n      openDmApplication:\n        (...args) =>\n          frameConnDmApplicationApi.open(\n            ...args\n          ),\n\n      executeLockOnAuthorityRequest:",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "  frameConnSitrepsApi.configureRuntime?.({\n    spatialOperations: Object.freeze({\n      resolveRegion: options => frameConnFoundryIntegrationApi.resolveSceneRegion(options),\n      tokenInsideRegion: (tokenDocument, region) => frameConnFoundryIntegrationApi.tokenInsideRegion(tokenDocument, region),\n      tokensAreAdjacent: async (firstToken, secondToken) => Boolean((await frameConnTargetingSpatialApi.queryAdjacency(firstToken, secondToken))?.adjacent)\n    }),\n    publishOutputIntent: intent => frameConnFoundryIntegrationApi.publishSemanticOutputIntent(intent),\n    canManageSitreps: () => frameConnFoundryIntegrationApi.isPrimaryGM()\n  });",
+      "replace": "  frameConnSitrepsApi.configureRuntime?.({\n    spatialOperations: Object.freeze({\n      resolveRegion: options => frameConnFoundryIntegrationApi.resolveSceneRegion(options),\n      tokenInsideRegion: (tokenDocument, region) => frameConnFoundryIntegrationApi.tokenInsideRegion(tokenDocument, region),\n      tokensAreAdjacent: async (firstToken, secondToken) => Boolean((await frameConnTargetingSpatialApi.queryAdjacency(firstToken, secondToken))?.adjacent)\n    }),\n    publishOutputIntent: intent => frameConnFoundryIntegrationApi.publishSemanticOutputIntent(intent),\n    canManageSitreps: () => frameConnFoundryIntegrationApi.isPrimaryGM()\n  });\n\n  frameConnDmApplicationApi.configureRuntime?.({\n    sitrepsApi: frameConnSitrepsApi,\n    foundryApi: frameConnFoundryIntegrationApi\n  });",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "      \"applicationOpening\",\n      \"applicationClosing\",\n      \"lockOnAuthorityExecution\"",
+      "replace": "      \"applicationOpening\",\n      \"applicationClosing\",\n      \"dmApplicationOpening\",\n      \"lockOnAuthorityExecution\"",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "  assertFrameConnRuntimeBindings(\"DM SITREPs\", frameConnSitrepsApi.diagnostics, [\"spatialConfigured\", \"outputPublisherConfigured\", \"authorizationConfigured\"]);\n\n  return true;",
+      "replace": "  assertFrameConnRuntimeBindings(\"DM SITREPs\", frameConnSitrepsApi.diagnostics, [\"spatialConfigured\", \"outputPublisherConfigured\", \"authorizationConfigured\"]);\n  assertFrameConnRuntimeBindings(\"DM Application\", frameConnDmApplicationApi.runtimeBindings, [\"sitreps\", \"foundry\"]);\n\n  return true;",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "      sitreps:\n        frameConnSitrepsApi,",
+      "replace": "      sitreps:\n        frameConnSitrepsApi,\n\n      dm: Object.freeze({\n        application: frameConnDmApplicationApi,\n        open: (...args) => frameConnDmApplicationApi.open(...args),\n        close: (...args) => frameConnDmApplicationApi.close(...args)\n      }),",
       "expected_occurrences": 1
     }
   ]
