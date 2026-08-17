@@ -1,6 +1,6 @@
 # Frame Conn Development Roadmap
 
-This document records the current development state of Frame Conn based on live Foundry playtesting. It is the working roadmap for universal actions, rules automation, maintenance controls, actor-owned content integration, and resource management.
+This document records the current development state of Frame Conn based on live Foundry playtesting. It is the working roadmap for universal actions, rules automation, maintenance controls, actor-owned content integration, resource management, player presentation, GM mission tooling, and generalized Foundry tactical support.
 
 ## Status legend
 
@@ -9,6 +9,66 @@ This document records the current development state of Frame Conn based on live 
 - **PARTIAL** — substantially implemented, but a known rules or state-management gap remains.
 - **TODO** — an execution shell may exist, but the mechanic is not yet implemented correctly.
 - **CONTENT-DEPENDENT** — requires actor-owned weapons, mounts, systems, traits, talents, core powers, core bonuses, or similar discovery/execution infrastructure.
+
+---
+
+# Current platform and presentation milestones
+
+These milestones were implemented earlier than the original roadmap sequencing and should now be treated as established infrastructure rather than future concepts.
+
+## Frame Helm dual presentation — DONE / LIVE POLISH CONTINUES
+
+Frame Helm now supports two per-user presentation modes over the same application/runtime state:
+
+- the preserved floating **Window** presentation;
+- a persistent **Foundry Sidebar** presentation with its own robot-icon tab.
+
+The sidebar reuses the same Frame Conn application object, action renderers, listeners, targeting, committed-plan execution, turn state, and native execution paths rather than maintaining a second gameplay implementation.
+
+Current sidebar behavior includes:
+
+- vertical telemetry with a 2-column × 4-row semantic layout;
+- full-width reactor-meltdown telemetry below the normal cards;
+- controlled-unit and action-budget presentation;
+- vertical action-category and action menus;
+- committed-plan and Execute controls;
+- persistent scroll position across Frame Conn rerenders;
+- mouse-wheel containment so sidebar scrolling does not zoom the canvas;
+- native-style sidebar expand/collapse behavior;
+- a client-scoped Window/Sidebar presentation preference.
+
+Minor visual tuning and niche live bugs may still be discovered, but the sidebar is now a real supported presentation surface rather than an experiment.
+
+## Canonical SITREP runtime and Combat Tracker presentation — DONE / LIVE VERIFICATION CONTINUES
+
+A substantial slice of the planned GM Mission Toolkit has already been implemented ahead of the original long-term sequencing.
+
+Canonical SITREP support now includes all six core SITREP families:
+
+- Gauntlet;
+- Control;
+- Holdout;
+- Escort;
+- Extraction;
+- Recon.
+
+The implementation includes:
+
+- one canonical SITREP state service under the Frame Conn namespace;
+- legacy-state compatibility/migration without requiring the retired standalone module to remain active;
+- scenario-specific setup, state, and resolution domains;
+- shared spatial delegation instead of duplicated geometry rules;
+- runtime registration through the normal Frame Conn feature architecture;
+- a GM-facing SITREP button in Foundry's Combat Tracker;
+- an embedded lower Combat Tracker mission panel instead of a floating GM window;
+- native Combat Tracker footer preservation and independent scrolling for the normal combatant list;
+- live recomputation when tokens enter or leave configured Regions;
+- neutral-token exclusion from allied/hostile zone counts;
+- GM-only management controls with player-visible read-only mission state;
+- per-SITREP default objective text;
+- live mission-state presentation including zone counts, control, score, round state, and scenario-specific state.
+
+The larger Mission Toolkit still remains a long-term product family, but its **Boots on the Ground / SITREP runtime slice is no longer future work**. Future GM-toolkit development should build outward from this canonical mission runtime rather than replace it.
 
 ---
 
@@ -521,7 +581,7 @@ This is not a separate end-of-project cleanup pass. It is a **continuous Phase 2
 
 # Phase 3 — Dismounted pilots in mech combat
 
-After the mech action/content layer is substantially complete, Frame Conn should add a dedicated combat mode for pilots who leave their mechs during tactical mech combat. This phase belongs **after the mech-focused action work but before the GM Mission Toolkit / broader narrative-play product work**.
+After the mech action/content layer is substantially complete, Frame Conn should add a dedicated combat mode for pilots who leave their mechs during tactical mech combat. This phase belongs **after the mech-focused action work and before major expansion of the broader Narrative Play and full Mission Toolkit product tracks**. The already-implemented SITREP runtime is an intentional early Mission Toolkit slice and should continue receiving compatibility/polish fixes without displacing the main tactical-combat priority.
 
 The existing Mount / Dismount / Eject relationship work is the prerequisite. Once a pilot is physically represented on the Scene outside their mech, Frame Conn needs to switch from mech-command presentation to an appropriate pilot-in-mech-combat command set while continuing to share the same encounter action economy.
 
@@ -645,9 +705,15 @@ Frame Conn mech cockpit
 
 These are larger product areas beyond the current combat-action and actor-owned-content milestones. They should be treated as first-class Frame Conn feature families rather than miscellaneous UI additions.
 
-## GM Mission Toolkit — LONG-TERM
+## GM Mission Toolkit — LONG-TERM, PARTIALLY STARTED
 
 Build a GM-focused mission planning, organization, and live-session feature set around the major stages of **The Mission**. The same structure should help the GM both author a mission before play and run/track it during play.
+
+### Current implemented slice — SITREP mission runtime
+
+The first real Mission Toolkit vertical slice now exists inside the Combat Tracker. It provides canonical setup/state/resolution and live presentation for Gauntlet, Control, Holdout, Escort, Extraction, and Recon, including live Region membership updates and player read-only visibility.
+
+This should be treated as the beginning of **Stage 4 — Boots on the Ground**, not as a separate throwaway subsystem. Future mission planning, reserves, briefing, debrief, encounter organization, and narrative transitions should be able to feed into or consume this same canonical mission-state architecture.
 
 ### Stage 1 — Briefing
 
@@ -1039,7 +1105,7 @@ After the mech-focused Phase 2 work is substantially complete:
 6. pilot Overwatch/reactions and remaining pilot-allowed universal actions;
 7. AI/NHP control handoff audit.
 
-Only after the tactical mech + dismounted-pilot combat experience is broadly complete should development priority move to the larger GM Mission Toolkit, Narrative Play, and Downtime product tracks.
+The main development priority should remain tactical mech combat, Phase 2 actor-owned content, and then dismounted-pilot combat. The already-implemented SITREP runtime should continue receiving targeted live fixes and incremental integration work, but broad expansion into Briefing, Preparation, Reserves, Debrief, Narrative Play, and Downtime should wait until the tactical combat foundation is broadly complete.
 
 ---
 
@@ -1072,3 +1138,54 @@ Actors / Items / Flows / statuses / rolls / chat / document mutation
 ```
 
 The player-facing cockpit should not become the rules engine, and rules automation should not depend on the cockpit being open in order to function.
+
+---
+
+# Generalized Foundry tactical tools — LONG-TERM
+
+Frame Conn should eventually include a small family of **generic Foundry battlefield-authoring and tactical-geometry tools** under `foundry_features/`. These tools should make it fast for a GM to create tactically meaningful maps without turning Frame Conn into a map editor or duplicating Foundry's core document model.
+
+The core goal is to make cover, walls, line of sight, elevation, and positional play easy enough to author that they are used consistently in real sessions rather than skipped because setup is tedious.
+
+## Quick wall and cover authoring
+
+Provide fast tools for placing and editing common battlefield geometry, including:
+
+- rapidly drawing short wall/obstacle segments;
+- creating common cover shapes with minimal clicks;
+- easy conversion between terrain that blocks movement, blocks vision, or does both;
+- quick designation of **soft cover** versus **hard cover** where the Lancer rules distinction matters;
+- convenient duplication, extension, snapping, and cleanup of repeated cover/wall elements;
+- elevation-aware wall/cover configuration using the existing generalized elevation/LOS feature rather than SITREP-owned geometry.
+
+The GM should be able to take a visually complete battlemap and make it mechanically usable in a few minutes instead of manually configuring every wall through Foundry's full wall-edit workflow.
+
+## Tactical geometry as a real rules input
+
+Once battlefield geometry is easy to author, Frame Conn should make better use of that information through shared targeting/spatial services:
+
+- reliable line-of-sight queries;
+- soft/hard-cover determination where it can be derived safely;
+- elevation-aware visibility and obstruction;
+- firing-line and positional queries needed by weapons, systems, traits, NPC features, and future rules automation;
+- support for flanking/positional mechanics where Lancer content or explicitly enabled optional rules make them relevant, without inventing a parallel default rule when native Lancer does not define one.
+
+The tactical map should become a meaningful input to combat automation rather than a mostly decorative background.
+
+## Make cover-bypassing equipment matter
+
+A major design reason for this track is that weapon tags and systems which circumvent cover or sight restrictions are only tactically interesting when cover and LOS are actually represented consistently on the battlefield.
+
+As actor-owned weapon/system integration matures, geometry-aware execution should therefore make properties such as **Seeking** and other cover/LOS-bypassing effects meaningfully distinguishable from ordinary attacks.
+
+Rules:
+
+- native Foundry wall, Region, Token, and Scene documents remain authoritative;
+- generic geometry belongs in `foundry_features/` or shared spatial services, not inside SITREP or individual action code;
+- Lancer-specific interpretation of that geometry belongs in the appropriate rules/action boundary;
+- never duplicate native LOS/cover behavior when Foundry Lancer already provides a correct authoritative query;
+- favor fast GM authoring and consistent tactical meaning over elaborate map-editor features.
+
+Long-term success condition:
+
+> A GM can take an ordinary battlemap, add the tactical geometry Frame Conn needs in minutes, and immediately gain reliable cover/LOS/elevation-aware play in which positioning and cover-bypassing equipment actually matter.
