@@ -14,8 +14,8 @@
     {
       "id": "sitrep-setup-and-edit",
       "legacy_source": "lancer-sitrep-tracker.js",
-      "new_owner": "dm_features/sitreps setup/domain + DM UI",
-      "status": "NOT_MIGRATED",
+      "new_owner": "dm_features/sitreps/orchestration/sitrep-setup.js + future DM UI",
+      "status": "MIGRATED_UNVERIFIED",
       "verification": ["GM can select SITREP type", "required regions/objectives are validated", "existing SITREP can be edited without resetting unrelated state"]
     },
     {
@@ -70,8 +70,8 @@
     {
       "id": "sitrep-pause-end-and-manual-result",
       "legacy_source": "lancer-sitrep-tracker.js#togglePause/endSitrep/setResult",
-      "new_owner": "dm_features/sitreps/session-control",
-      "status": "NOT_MIGRATED",
+      "new_owner": "dm_features/sitreps/orchestration/sitrep-orchestrator.js",
+      "status": "MIGRATED_UNVERIFIED",
       "verification": ["GM can pause/resume", "GM can declare victory/defeat", "ending clears active SITREP state through canonical service", "no duplicate authoritative result output"]
     },
     {

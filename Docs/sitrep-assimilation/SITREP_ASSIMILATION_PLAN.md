@@ -311,7 +311,7 @@ If `sitrep-state-composition.js` or `sitrep-encounter-resolution.js` remains dif
 
 The preferred eventual shape is one scenario domain per canonical folder, not one new cross-scenario mega-module.
 
-## Phase 4 — Build canonical SITREP setup and orchestration
+## Phase 4 — Build canonical SITREP setup and orchestration — COMPLETE
 
 After canonical state and scenario domains exist, replace the retained legacy composition responsibilities with proper Frame Conn feature orchestration.
 
