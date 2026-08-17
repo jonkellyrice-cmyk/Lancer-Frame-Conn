@@ -1,9 +1,132 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after completing Phase 1 canonical SITREP state infrastructure.",
+  "id": "foundry-elevation-los-ownership-migration",
+  "description": "Promote decomposed elevation/LOS behavior into the Foundry-wide feature family, centralize legacy wall-flag compatibility, register it through the authoritative runtime, and retire the legacy direct-hook spine.",
+  "planning_goal": "Make elevation/LOS a canonical scripts/foundry_features feature. Preserve legacy wall elevation reads from flags.lancer-sitrep-tracker.elevationLOS, write only flags.lancer-frame-conn.elevationLOS, declare Foundry hooks through a Frame Conn feature instead of direct Hooks registration, register FRAME_CONN_FOUNDRY_FEATURES in runtime-orchestrator, initialize wrappers at authoritative init, refresh at ready, expose the API only under game.lancerFrameConn, and remove all direct hook/public-global ownership from the legacy elevation-los spine. Do not change the actual elevation geometry, light-radius math, wall blocking semantics, or GM controls.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 9,
+    "allowed_paths": [
+      "scripts/foundry_features/elevation_los/elevation-los-contract.js",
+      "scripts/foundry_features/elevation_los/wall-elevation-state.js",
+      "scripts/foundry_features/elevation_los/elevation-config-presentation.js",
+      "scripts/foundry_features/elevation_los/elevation-los-feature.js",
+      "scripts/foundry_features/foundry-feature-registry.js",
+      "scripts/runtime-orchestrator.js",
+      "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/elevation-los.js",
+      "dev_scripts/legacy-parity.json",
+      "Docs/sitrep-assimilation/SITREP_ASSIMILATION_PLAN.md"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "scripts/foundry_features/elevation_los/elevation-los-contract.js",
+      "search": "export const MODULE_ID = \"lancer-sitrep-tracker\";\n\nexport const FEATURE_KEY = \"elevationLOS\";\n\nexport const STYLE_ID = \"lancer-elevation-los-styles\";",
+      "replace": "export const MODULE_ID = \"lancer-frame-conn\";\nexport const LEGACY_MODULE_ID = \"lancer-sitrep-tracker\";\n\nexport const FEATURE_KEY = \"elevationLOS\";\n\nexport const STYLE_ID = \"lancer-elevation-los-styles\";",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/foundry_features/elevation_los/wall-elevation-state.js",
+      "search": "import {\n  FEATURE_KEY,\n  MODULE_ID,\n  finiteNumberOr\n} from \"./elevation-los-contract.js\";\n\nexport function wallElevationRange(wallDocument) {\n  const data = wallDocument?.getFlag?.(\n    MODULE_ID,\n    FEATURE_KEY\n  ) ?? {};",
+      "replace": "import {\n  FEATURE_KEY,\n  LEGACY_MODULE_ID,\n  MODULE_ID,\n  finiteNumberOr\n} from \"./elevation-los-contract.js\";\n\nexport function readWallElevationData(wallDocument) {\n  const canonical = wallDocument?.getFlag?.(MODULE_ID, FEATURE_KEY);\n  if (canonical !== undefined && canonical !== null) return canonical;\n  return wallDocument?.getFlag?.(LEGACY_MODULE_ID, FEATURE_KEY) ?? {};\n}\n\nexport function wallElevationRange(wallDocument) {\n  const data = readWallElevationData(wallDocument);",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/foundry_features/elevation_los/elevation-config-presentation.js",
+      "search": "import {\n  FEATURE_KEY,\n  MODULE_ID,\n  STYLE_ID\n} from \"./elevation-los-contract.js\";",
+      "replace": "import {\n  FEATURE_KEY,\n  MODULE_ID,\n  STYLE_ID\n} from \"./elevation-los-contract.js\";\nimport {\n  readWallElevationData\n} from \"./wall-elevation-state.js\";",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/foundry_features/elevation_los/elevation-config-presentation.js",
+      "search": "  const stored = wallDocument.getFlag?.(\n    MODULE_ID,\n    FEATURE_KEY\n  ) ?? {};",
+      "replace": "  const stored = readWallElevationData(wallDocument);",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "create_file",
+      "path": "scripts/foundry_features/elevation_los/elevation-los-feature.js",
+      "content": "import { defineFrameConnFeature } from \"../../feature-contract.js\";\nimport { FEATURE_KEY, LEGACY_MODULE_ID, MODULE_ID } from \"./elevation-los-contract.js\";\nimport { wallElevationRange } from \"./wall-elevation-state.js\";\nimport { installVisionPolygonWrapper, refreshElevationVision } from \"./elevation-vision-service.js\";\nimport { horizontalRadiusAtGround, installAmbientLightRadiusWrapper } from \"./elevated-light-service.js\";\nimport { setAmbientLightElevation, setSelectedLightElevation, setSelectedWallRange, setWallRange } from \"./elevation-document-commands.js\";\nimport { injectAmbientLightElevationField, injectWallElevationFields, installStyles } from \"./elevation-config-presentation.js\";\n\nfunction initializeElevationLosFeature() {\n  installStyles();\n  installVisionPolygonWrapper();\n  installAmbientLightRadiusWrapper();\n}\n\nfunction readyElevationLosFeature() {\n  refreshElevationVision();\n}\n\nfunction handleUpdateToken(tokenDocument, changes) {\n  if (Object.prototype.hasOwnProperty.call(changes ?? {}, \"elevation\")) refreshElevationVision();\n}\n\nfunction handleUpdateWall(wallDocument, changes) {\n  const hasProperty = globalThis.foundry?.utils?.hasProperty;\n  const changedElevationData = Boolean(\n    hasProperty?.(changes, `flags.${MODULE_ID}.${FEATURE_KEY}`) ||\n    hasProperty?.(changes, `flags.${LEGACY_MODULE_ID}.${FEATURE_KEY}`)\n  );\n  if (changedElevationData || [\"c\", \"sight\", \"door\", \"ds\"].some(key => Object.prototype.hasOwnProperty.call(changes ?? {}, key))) {\n    refreshElevationVision();\n  }\n}\n\nfunction handleUpdateAmbientLight(lightDocument, changes) {\n  const relevant = [\"elevation\", \"x\", \"y\", \"walls\", \"config\"].some(key =>\n    Object.prototype.hasOwnProperty.call(changes ?? {}, key)\n  );\n  if (!relevant) return;\n  try { lightDocument.object?.initializeLightSource?.(); }\n  catch (error) { console.warn(`${MODULE_ID} | Could not directly reinitialize the light source.`, error); }\n  refreshElevationVision();\n}\n\nfunction handleCreateAmbientLight(lightDocument) {\n  try { lightDocument.object?.initializeLightSource?.(); } catch {}\n  refreshElevationVision();\n}\n\nexport const frameConnElevationLosFeature = defineFrameConnFeature({\n  id: \"elevation-los\",\n  domain: \"foundry-elevation-los\",\n  provides: [\"foundry.elevation-los\"],\n  hooks: {\n    renderWallConfig: injectWallElevationFields,\n    renderAmbientLightConfig: injectAmbientLightElevationField,\n    updateToken: handleUpdateToken,\n    updateWall: handleUpdateWall,\n    updateAmbientLight: handleUpdateAmbientLight,\n    createAmbientLight: handleCreateAmbientLight,\n    deleteAmbientLight: refreshElevationVision,\n    createWall: refreshElevationVision,\n    deleteWall: refreshElevationVision,\n    canvasReady: refreshElevationVision\n  },\n  api: {\n    initialize: initializeElevationLosFeature,\n    ready: readyElevationLosFeature,\n    refresh: refreshElevationVision,\n    getWallRange: wallElevationRange,\n    setWallRange,\n    setSelectedWallRange,\n    setAmbientLightElevation,\n    setSelectedLightElevation,\n    horizontalRadiusAtGround\n  },\n  metadata: {\n    ownership: \"foundry-wide\",\n    canonicalFlagNamespace: MODULE_ID,\n    legacyReadNamespace: LEGACY_MODULE_ID\n  }\n});\n"
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/foundry_features/foundry-feature-registry.js",
+      "search": "/**\n * scripts/foundry_features/foundry-feature-registry.js\n *\n * FRAME CONN FOUNDRY FEATURE REGISTRY -- FUTURE SCAFFOLD\n *\n * ROLE:\n *   This file may eventually declare the package of Frame Conn\n *   features that modify or extend generic Foundry VTT behavior.\n *\n * BOUNDARY:\n *   Foundry-wide/platform behavior only. Lancer-system integration,\n *   Lancer rules, player commands, and DM mission tooling retain\n *   their existing feature-family ownership.\n *\n * FUTURE COMPOSITION:\n *   scripts/feature-registry-core.js\n *              │\n *              ├─ player feature package\n *              ├─ rules feature package\n *              ├─ DM feature package\n *              └─ Foundry-wide feature package\n *                       │\n *                       ▼\n *              runtime-orchestrator.js\n *\n * CURRENT STATE:\n *   Documentation-only scaffold. Intentionally exports nothing and\n *   is not imported by runtime-orchestrator.js yet.\n */",
+      "replace": "/**\n * scripts/foundry_features/foundry-feature-registry.js\n *\n * Canonical package declaration for generic Foundry-wide Frame Conn features.\n */\n\nimport { frameConnElevationLosFeature } from \"./elevation_los/elevation-los-feature.js\";\n\nexport const FRAME_CONN_FOUNDRY_FEATURES = Object.freeze([\n  frameConnElevationLosFeature\n]);",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "import {\n  FRAME_CONN_RULES_FEATURES\n} from \"./rules_features/rules-feature-registry.js\";",
+      "replace": "import {\n  FRAME_CONN_RULES_FEATURES\n} from \"./rules_features/rules-feature-registry.js\";\n\nimport {\n  FRAME_CONN_FOUNDRY_FEATURES\n} from \"./foundry_features/foundry-feature-registry.js\";",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "frameConnFeatureRegistry.registerMany([\n  ...FRAME_CONN_PLAYER_FEATURES,\n  ...FRAME_CONN_RULES_FEATURES\n]);",
+      "replace": "frameConnFeatureRegistry.registerMany([\n  ...FRAME_CONN_PLAYER_FEATURES,\n  ...FRAME_CONN_RULES_FEATURES,\n  ...FRAME_CONN_FOUNDRY_FEATURES\n]);",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "const frameConnFoundryIntegrationApi =\n  frameConnFeatureRegistry.getApi(\n    \"foundry-integration\"\n  );",
+      "replace": "const frameConnFoundryIntegrationApi =\n  frameConnFeatureRegistry.getApi(\n    \"foundry-integration\"\n  );\n\nconst frameConnElevationLosApi =\n  frameConnFeatureRegistry.getApi(\n    \"elevation-los\"\n  );\n\nif (!frameConnElevationLosApi) {\n  throw new Error(\"Frame Conn | The registered Elevation / LOS feature API could not be resolved.\");\n}",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "    validateFrameConnRuntimeComposition();\n\n\n    /**\n     * Foundry Integration owns module-setting definitions.",
+      "replace": "    validateFrameConnRuntimeComposition();\n\n    frameConnElevationLosApi.initialize?.();\n\n\n    /**\n     * Foundry Integration owns module-setting definitions.",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "  async () => {\n    frameConnFoundryIntegrationApi\n      .registerSocket?.();",
+      "replace": "  async () => {\n    frameConnElevationLosApi.ready?.();\n\n    frameConnFoundryIntegrationApi\n      .registerSocket?.();",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "      foundry:\n        frameConnFoundryIntegrationApi,",
+      "replace": "      foundry:\n        frameConnFoundryIntegrationApi,\n\n      elevationLOS:\n        frameConnElevationLosApi,",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/elevation-los.js",
+      "search": "/* ==========================================================\n   Foundry hooks\n   ========================================================== */\n\nHooks.once(\"init\", () => {\n  installStyles();\n  installVisionPolygonWrapper();\n  installAmbientLightRadiusWrapper();\n});\n\nHooks.once(\"ready\", () => {\n  game.lancerElevationLOS = {\n    refresh: refreshElevationVision,\n    getWallRange: wallElevationRange,\n    setWallRange,\n    setSelectedWallRange,\n    setAmbientLightElevation,\n    setSelectedLightElevation,\n    horizontalRadiusAtGround\n  };\n\n  refreshElevationVision();\n});",
+      "replace": "/* ==========================================================\n   Legacy compatibility spine\n   ========================================================== */\n\n// Runtime ownership has moved to scripts/foundry_features/elevation_los/elevation-los-feature.js.\n// This quarantined file intentionally installs no startup hooks and publishes no game-level API.",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/elevation-los.js",
+      "search": "\nHooks.on(\n  \"renderWallConfig\",\n  injectWallElevationFields\n);",
+      "replace": "",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/elevation-los.js",
+      "search": "\nHooks.on(\n  \"renderAmbientLightConfig\",\n  injectAmbientLightElevationField\n);",
+      "replace": "",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/legacy-parity.json",
+      "search": "      \"id\": \"elevation-los-foundry-feature\",\n      \"legacy_source\": \"elevation-los.js\",\n      \"new_owner\": \"foundry_features/elevation_los\",\n      \"status\": \"NOT_MIGRATED\",",
+      "replace": "      \"id\": \"elevation-los-foundry-feature\",\n      \"legacy_source\": \"elevation-los.js\",\n      \"new_owner\": \"foundry_features/elevation_los\",\n      \"status\": \"MIGRATED_UNVERIFIED\",",
+      "expected_occurrences": 1
+    }
+  ]
 }
