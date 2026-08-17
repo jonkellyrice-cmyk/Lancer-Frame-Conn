@@ -1,9 +1,20 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after Frame Helm sidebar tab placement and wheel-boundary fixes.",
+  "id": "frame-helm-sidebar-scroll-position-preservation",
+  "description": "Preserve the Frame Helm sidebar scroll position across application rerenders triggered by sidebar button interactions.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 1,
+    "allowed_paths": [
+      "styles/ui_application/components/application-sidebar-presentation.js"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-sidebar-presentation.js",
+      "search": "  const data = await application.getData();\n  panel.innerHTML = renderFrameConnSidebarShell(application, data);\n  installFrameConnSidebarWheelBoundary(panel);\n  application.frameConnPresentationElement = $(panel);\n  activateFrameConnApplicationListeners(application, $(panel));",
+      "replace": "  const previousScrollSurface =\n    panel.querySelector?.(\".frame-conn-sidebar-scroll\") ??\n    null;\n\n  const previousScrollTop =\n    previousScrollSurface\n      ? previousScrollSurface.scrollTop\n      : null;\n\n  const data = await application.getData();\n  panel.innerHTML = renderFrameConnSidebarShell(application, data);\n  installFrameConnSidebarWheelBoundary(panel);\n\n  const nextScrollSurface =\n    panel.querySelector?.(\".frame-conn-sidebar-scroll\") ??\n    null;\n\n  if (\n    nextScrollSurface &&\n    Number.isFinite(previousScrollTop)\n  ) {\n    nextScrollSurface.scrollTop =\n      previousScrollTop;\n  }\n\n  application.frameConnPresentationElement = $(panel);\n  activateFrameConnApplicationListeners(application, $(panel));",
+      "expected_occurrences": 1
+    }
+  ]
 }
