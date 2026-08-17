@@ -88,11 +88,6 @@ export function getFrameConnDmApplication() {
 
 export async function openFrameConnDmApplication() {
   assertRuntime();
-  if (!runtime.foundryApi.isPrimaryGM?.()) {
-    ui.notifications.warn("Frame Conn // Mission is available to the active GM.");
-    return null;
-  }
-
   embeddedPanelVisible = true;
   if (combatTrackerRoot) await renderEmbeddedMissionPanel(combatTrackerRoot);
   return embeddedPanelController;
@@ -131,8 +126,6 @@ function handleSpatialDocumentChange() {
 }
 
 async function handleCombatTrackerRender(_application, html) {
-  if (!game?.user?.isGM) return false;
-
   const root = normalizeCombatTrackerRoot(html);
   if (!root?.querySelector) return false;
   combatTrackerRoot = root;
@@ -201,7 +194,7 @@ export const frameConnDmApplicationUiFeature = defineFrameConnFeature({
     runtimeBindings
   },
   metadata: {
-    audience: "gm",
+    audience: "all",
     label: "Frame Conn // Mission",
     presentationSurface: "combat-tracker-embedded-panel",
     companionStylesheet: "styles/ui_dm/ui-dm-application.css",

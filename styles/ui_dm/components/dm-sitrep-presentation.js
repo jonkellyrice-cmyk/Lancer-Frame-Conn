@@ -30,7 +30,7 @@ function controllerLabel(value) {
   return "UNCONTROLLED";
 }
 
-function zoneCards(zones = [], recon = false) {
+function zoneCards(zones = [], recon = false, canManage = false) {
   return `<div class="fc-dm-zone-grid">${zones.map(zone => `
     <article class="fc-dm-zone-card" data-controller="${esc(zone.controller)}">
       <strong>${esc(zone.name)}</strong>
@@ -38,12 +38,13 @@ function zoneCards(zones = [], recon = false) {
         ? zone.scanned ? (zone.isTrueZone ? "TRUE CONTROL ZONE" : "FALSE CONTROL ZONE") : "UNSCANNED"
         : esc(controllerLabel(zone.controller))}</span>
       <small>Allies ${esc(zone.friendly)} / Hostiles ${esc(zone.hostile)}</small>
-      ${recon ? `<button type="button" data-dm-sitrep-command="recon-scan" data-region-id="${esc(zone.id)}" ${zone.scanned ? "disabled" : ""}>Scan Zone</button>` : ""}
+      ${recon && canManage ? `<button type="button" data-dm-sitrep-command="recon-scan" data-region-id="${esc(zone.id)}" ${zone.scanned ? "disabled" : ""}>Scan Zone</button>` : ""}
     </article>`).join("")}</div>`;
 }
 
 function scenarioState(model) {
   const state = model.derivedState ?? {};
+  const canManage = Boolean(model.canManage);
   switch (model.type) {
     case "control":
       return `<div class="fc-dm-stat-grid">
@@ -51,7 +52,7 @@ function scenarioState(model) {
         ${stat("HOSTILE SCORE", state.hostileScore ?? 0, "hostile")}
         ${stat("ALLIED ZONES", state.friendlyZones ?? 0, "allied")}
         ${stat("HOSTILE ZONES", state.hostileZones ?? 0, "hostile")}
-      </div>${zoneCards(state.controlZones)}`;
+      </div>${zoneCards(state.controlZones, false, canManage)}`;
     case "holdout":
       return `<div class="fc-dm-zone-banner">${esc(state.regionName ?? "Control Zone")}</div>
         <div class="fc-dm-control-banner">${esc(controllerLabel(state.controller))}</div>
@@ -64,13 +65,13 @@ function scenarioState(model) {
     case "escort":
       return `<div class="fc-dm-objective-card"><span>ESCORT OBJECTIVE</span><strong>${esc(state.objectiveName ?? "Objective")}</strong><small>${state.objectiveInExtraction ? "In extraction zone" : "Not in extraction zone"}</small></div>
         <div class="fc-dm-stat-grid">${stat("ALLIED ADJACENT", state.friendlyAdjacent ?? 0, "allied")}${stat("HOSTILE ADJACENT", state.hostileAdjacent ?? 0, "hostile")}</div>
-        <div class="fc-dm-command-row"><button type="button" data-dm-sitrep-command="escort-extract" ${state.objectiveDestroyed || state.objectiveExtracted ? "disabled" : ""}>Extract Objective</button><button type="button" data-dm-sitrep-command="escort-destroy" ${state.objectiveDestroyed || state.objectiveExtracted ? "disabled" : ""}>Destroy Objective</button></div>`;
+        ${canManage ? `<div class="fc-dm-command-row"><button type="button" data-dm-sitrep-command="escort-extract" ${state.objectiveDestroyed || state.objectiveExtracted ? "disabled" : ""}>Extract Objective</button><button type="button" data-dm-sitrep-command="escort-destroy" ${state.objectiveDestroyed || state.objectiveExtracted ? "disabled" : ""}>Destroy Objective</button></div>` : ""}`;
     case "extraction":
       return `<div class="fc-dm-objective-card"><span>EXTRACTION OBJECTIVE</span><strong>${esc(state.objectiveName ?? "Objective")}</strong><small>${state.objectiveInExtraction ? "In extraction zone" : "Not in extraction zone"}</small></div>
         <div class="fc-dm-stat-grid">${stat("ALLIED ADJACENT", state.friendlyAdjacent ?? 0, "allied")}${stat("HOSTILE ADJACENT", state.hostileAdjacent ?? 0, "hostile")}${stat("ALLIES IN EXTRACTION", state.friendlyInExtractionZone ?? 0, "allied")}</div>
-        <div class="fc-dm-command-row"><button type="button" data-dm-sitrep-command="extraction-extract" ${!state.canExtractObjective || state.objectiveDestroyed || state.objectiveExtracted ? "disabled" : ""}>Extract Objective</button><button type="button" data-dm-sitrep-command="extraction-destroy" ${state.objectiveDestroyed || state.objectiveExtracted ? "disabled" : ""}>Destroy Objective</button></div>`;
+        ${canManage ? `<div class="fc-dm-command-row"><button type="button" data-dm-sitrep-command="extraction-extract" ${!state.canExtractObjective || state.objectiveDestroyed || state.objectiveExtracted ? "disabled" : ""}>Extract Objective</button><button type="button" data-dm-sitrep-command="extraction-destroy" ${state.objectiveDestroyed || state.objectiveExtracted ? "disabled" : ""}>Destroy Objective</button></div>` : ""}`;
     case "recon":
-      return zoneCards(state.reconZones, true);
+      return zoneCards(state.reconZones, true, canManage);
     default:
       return `<div class="fc-dm-zone-banner">${esc(state.regionName ?? "Control Zone")}</div>
         <div class="fc-dm-control-banner">${esc(controllerLabel(state.controller))}</div>
@@ -120,7 +121,7 @@ function missionPanel(model) {
     <div class="fc-dm-round-strip"><span>${esc(model.typeLabel)}</span><strong>ROUND ${esc(derived.currentRound ?? model.combatRound)} / ${esc(state.finalRound)}</strong></div>
     ${derived.valid === false ? `<div class="fc-dm-error">Configured battlefield references are incomplete or unavailable.</div>` : scenarioState(model)}
     ${state.resultReason ? `<div class="fc-dm-result-reason">${esc(state.resultReason)}</div>` : ""}
-    <div class="fc-dm-command-row mission-controls"><button type="button" data-dm-sitrep-command="toggle-pause">${state.status === "paused" ? "Resume" : "Pause"}</button><button type="button" data-dm-sitrep-command="victory">Declare Victory</button><button type="button" data-dm-sitrep-command="defeat">Declare Defeat</button><button type="button" data-dm-sitrep-command="edit">Configure</button><button type="button" class="danger" data-dm-sitrep-command="end">End SITREP</button></div>
+    ${model.canManage ? `<div class="fc-dm-command-row mission-controls"><button type="button" data-dm-sitrep-command="toggle-pause">${state.status === "paused" ? "Resume" : "Pause"}</button><button type="button" data-dm-sitrep-command="victory">Declare Victory</button><button type="button" data-dm-sitrep-command="defeat">Declare Defeat</button><button type="button" data-dm-sitrep-command="edit">Configure</button><button type="button" class="danger" data-dm-sitrep-command="end">End SITREP</button></div>` : ""}
   </section>`;
 }
 
@@ -130,6 +131,6 @@ export function renderDmSitrepApplication(model, { showSetup = false } = {}) {
   }
   return `<div class="fc-dm-shell" data-sitrep-type="${esc(model.type)}">
     <header class="fc-dm-app-header"><div><span>FRAME CONN // MISSION</span><strong>SITREP CONTROL</strong></div><small>${esc(model.source.toUpperCase())} STATE</small></header>
-    ${model.configured && !showSetup ? missionPanel(model) : setupForm(model)}
+    ${model.configured && (!showSetup || !model.canManage) ? missionPanel(model) : model.canManage ? setupForm(model) : `<div class="fc-dm-empty">No SITREP is currently configured.</div>`}
   </div>`;
 }
