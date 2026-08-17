@@ -1,9 +1,113 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after making Foundry's native combatant list independently scrollable around the embedded SITREP panel.",
+  "id": "frame-helm-sidebar-presentation-lifecycle",
+  "description": "Route the existing Frame Helm application through either the preserved window surface or the new vertical sidebar surface without duplicating gameplay state or command logic.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 5,
+    "allowed_paths": [
+      "styles/ui_application/components/application-budget-panel.js",
+      "styles/ui_application/components/application-lifecycle.js",
+      "styles/ui_application/components/application-turn-commands.js",
+      "styles/ui_application/ui-application.js",
+      "styles/ui_application/ui-application.css"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-budget-panel.js",
+      "search": "function renderBudgetPanel(\n  data,\n  committedPlan =\n    data?.committedPlan ??\n    null\n) {",
+      "replace": "function renderBudgetPanel(\n  data,\n  committedPlan =\n    data?.committedPlan ??\n    null,\n  {\n    includeCommittedPlan = true\n  } = {}\n) {",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-budget-panel.js",
+      "search": "    ${renderCommittedPlan(committedPlan)}\n  `;",
+      "replace": "    ${includeCommittedPlan ? renderCommittedPlan(committedPlan) : \"\"}\n  `;",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-lifecycle.js",
+      "search": "function isFrameConnApplicationRendered() {\n  return Boolean(\n    frameConnApplication\n      ?.rendered\n  );\n}",
+      "replace": "function isFrameConnApplicationRendered() {\n  return Boolean(\n    frameConnApplication\n      ?.isFrameConnPresentationRendered?.() ??\n    frameConnApplication\n      ?.rendered\n  );\n}",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-lifecycle.js",
+      "search": "  if (\n    !frameConnApplication\n      ?.rendered\n  ) {\n    return false;\n  }",
+      "replace": "  if (\n    !isFrameConnApplicationRendered()\n  ) {\n    return false;\n  }",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-lifecycle.js",
+      "search": "    !actor ||\n    !frameConnApplication\n      ?.rendered\n  ) {",
+      "replace": "    !actor ||\n    !isFrameConnApplicationRendered()\n  ) {",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/components/application-turn-commands.js",
+      "search": "    const input =\n      application.element.find(\n        \"[data-frame-conn-speed-input]\"\n      )[\n        0\n      ];",
+      "replace": "    const presentationElement =\n      application.getFrameConnInteractionElement?.() ??\n      application.element;\n\n    const input =\n      presentationElement.find(\n        \"[data-frame-conn-speed-input]\"\n      )[\n        0\n      ];",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/ui-application.js",
+      "search": "import {\n  activateFrameConnApplicationListeners\n} from \"./components/application-listeners.js\";",
+      "replace": "import {\n  activateFrameConnApplicationListeners\n} from \"./components/application-listeners.js\";\n\nimport {\n  getFrameConnPresentationMode,\n  setFrameConnPresentationModeValue,\n  renderFrameConnSidebarPresentation,\n  closeFrameConnSidebarPresentation,\n  isFrameConnSidebarPresentationActive,\n  handleFrameConnSidebarRender\n} from \"./components/application-sidebar-presentation.js\";",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/ui-application.js",
+      "search": "const MODULE_TITLE =\n  \"Frame Conn\";\n\n\n/* ============================================================\n   Frame Conn Application\n   ============================================================ */",
+      "replace": "const MODULE_TITLE =\n  \"Frame Conn\";\n\n\nasync function setFrameConnApplicationPresentationMode(\n  mode\n) {\n  const application =\n    peekFrameConnApplication();\n\n  const wasOpen =\n    Boolean(\n      application\n        ?.isFrameConnPresentationRendered?.()\n    );\n\n  if (wasOpen) {\n    await application.close();\n  }\n\n  const normalizedMode =\n    setFrameConnPresentationModeValue(\n      mode\n    );\n\n  if (wasOpen) {\n    application.render(\n      true\n    );\n  }\n\n  return normalizedMode;\n}\n\n\n/* ============================================================\n   Frame Conn Application\n   ============================================================ */",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/ui-application.js",
+      "search": "    this.manualStatsByUnit =\n      new Map();\n  }\n\n\n  /* ==========================================================\n     Application -- Header controls\n     ========================================================== */",
+      "replace": "    this.manualStatsByUnit =\n      new Map();\n\n    this.frameConnPresentationElement =\n      null;\n  }\n\n\n  render(\n    force = false,\n    options = {}\n  ) {\n    if (\n      getFrameConnPresentationMode() ===\n      \"sidebar\"\n    ) {\n      void renderFrameConnSidebarPresentation(\n        this,\n        {\n          activate:\n            Boolean(force) ||\n            isFrameConnSidebarPresentationActive()\n        }\n      );\n\n      return this;\n    }\n\n    return super.render(\n      force,\n      options\n    );\n  }\n\n\n  close(\n    options = {}\n  ) {\n    if (\n      getFrameConnPresentationMode() ===\n      \"sidebar\"\n    ) {\n      return closeFrameConnSidebarPresentation(\n        this\n      );\n    }\n\n    return super.close(\n      options\n    );\n  }\n\n\n  isFrameConnPresentationRendered() {\n    return Boolean(\n      this.rendered ||\n      isFrameConnSidebarPresentationActive()\n    );\n  }\n\n\n  getFrameConnInteractionElement() {\n    return (\n      this.frameConnPresentationElement ??\n      this.element\n    );\n  }\n\n\n  /* ==========================================================\n     Application -- Header controls\n     ========================================================== */",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/ui-application.js",
+      "search": "      render:\n        renderFrameConnApplication\n    },\n\n    queries: {",
+      "replace": "      render:\n        renderFrameConnApplication,\n\n      setPresentationMode:\n        setFrameConnApplicationPresentationMode\n    },\n\n    queries: {",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/ui-application.js",
+      "search": "      runtimeBindings:\n        getFrameConnApplicationRuntimeBindings\n    },\n\n    hooks: {",
+      "replace": "      runtimeBindings:\n        getFrameConnApplicationRuntimeBindings,\n\n      presentationMode:\n        getFrameConnPresentationMode\n    },\n\n    hooks: {",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/ui-application.js",
+      "search": "      updateActor:\n        handleFrameConnApplicationUpdateActor\n    },",
+      "replace": "      updateActor:\n        handleFrameConnApplicationUpdateActor,\n\n      renderSidebar:\n        handleFrameConnSidebarRender\n    },",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/ui-application.js",
+      "search": "      displaysActor:\n        frameConnApplicationDisplaysActor,\n\n      runtimeBindings:",
+      "replace": "      displaysActor:\n        frameConnApplicationDisplaysActor,\n\n      setPresentationMode:\n        setFrameConnApplicationPresentationMode,\n\n      getPresentationMode:\n        getFrameConnPresentationMode,\n\n      runtimeBindings:",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "append",
+      "path": "styles/ui_application/ui-application.css",
+      "content": "\n/* Frame Helm -- Foundry sidebar presentation */\n#sidebar .frame-conn-sidebar-tab-button i { pointer-events: none; }\n#sidebar .frame-conn-sidebar-surface { height: 100%; min-height: 0; overflow: hidden; color: var(--fc-text); background: var(--fc-bg-deep); }\n#sidebar .frame-conn-sidebar-scroll { height: 100%; min-height: 0; overflow-x: hidden; overflow-y: auto; scrollbar-gutter: stable; }\n#sidebar .frame-conn-sidebar-shell { min-width: 0; width: 100%; padding: 0.4rem; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-bar { width: 100%; min-width: 0; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.3rem; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-stat-cell { min-width: 0; }\n#sidebar .frame-conn-sidebar-unit, #sidebar .frame-conn-sidebar-budget, #sidebar .frame-conn-sidebar-actions, #sidebar .frame-conn-sidebar-plan { width: 100%; min-width: 0; margin-top: 0.45rem; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-budget-grid, #sidebar .frame-conn-sidebar-shell .frame-conn-action-category-grid, #sidebar .frame-conn-sidebar-shell .frame-conn-action-grid { grid-template-columns: 1fr; }\n#sidebar .frame-conn-sidebar-shell button, #sidebar .frame-conn-sidebar-shell input, #sidebar .frame-conn-sidebar-shell select { max-width: 100%; }\n#sidebar .frame-conn-sidebar-actions, #sidebar .frame-conn-sidebar-plan { border-top: 1px solid var(--fc-cyan-muted); padding-top: 0.45rem; }\n#sidebar .frame-conn-sidebar-plan { padding-bottom: 0.75rem; }\n"
+    }
+  ]
 }
