@@ -1,6 +1,7 @@
 /* Frame Helm sidebar presentation. */
 import { activateFrameConnApplicationListeners } from "./application-listeners.js";
 import { renderBudgetPanel } from "./application-budget-panel.js";
+import { getFrameConnApplication } from "./application-lifecycle.js";
 
 const FRAME_CONN_SIDEBAR_TAB_ID = "frame-conn";
 const FRAME_CONN_SIDEBAR_BUTTON_CLASS = "frame-conn-sidebar-tab-button";
@@ -149,7 +150,7 @@ async function renderFrameConnSidebarPresentation(application, { activate = fram
 
 async function openFrameConnSidebarPresentation(application = null) {
   frameConnSidebarActive = true;
-  const targetApplication = application ?? globalThis.game?.lancerFrameConn?.application?.getApplication?.() ?? null;
+  const targetApplication = application ?? getFrameConnApplication();
   if (!targetApplication) return false;
 
   const rendered = await renderFrameConnSidebarPresentation(targetApplication, { activate: true });
