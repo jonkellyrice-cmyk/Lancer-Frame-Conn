@@ -214,9 +214,31 @@ async function renderFrameConnSidebarPresentation(application, { activate = fram
   const panel = ensureFrameConnSidebarChrome(root);
   if (!panel) return false;
 
+  const previousScrollSurface =
+    panel.querySelector?.(".frame-conn-sidebar-scroll") ??
+    null;
+
+  const previousScrollTop =
+    previousScrollSurface
+      ? previousScrollSurface.scrollTop
+      : null;
+
   const data = await application.getData();
   panel.innerHTML = renderFrameConnSidebarShell(application, data);
   installFrameConnSidebarWheelBoundary(panel);
+
+  const nextScrollSurface =
+    panel.querySelector?.(".frame-conn-sidebar-scroll") ??
+    null;
+
+  if (
+    nextScrollSurface &&
+    Number.isFinite(previousScrollTop)
+  ) {
+    nextScrollSurface.scrollTop =
+      previousScrollTop;
+  }
+
   application.frameConnPresentationElement = $(panel);
   activateFrameConnApplicationListeners(application, $(panel));
 
