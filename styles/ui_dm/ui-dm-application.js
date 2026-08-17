@@ -115,6 +115,21 @@ function handleCombatChange() {
   return renderFrameConnDmApplication();
 }
 
+const SPATIAL_TOKEN_CHANGE_KEYS = Object.freeze(["x", "y", "elevation", "width", "height"]);
+
+function tokenSpatialStateChanged(changes = {}) {
+  return SPATIAL_TOKEN_CHANGE_KEYS.some(key => Object.prototype.hasOwnProperty.call(changes ?? {}, key));
+}
+
+function handleTokenSpatialUpdate(_tokenDocument, changes = {}) {
+  if (!tokenSpatialStateChanged(changes)) return null;
+  return renderFrameConnDmApplication();
+}
+
+function handleSpatialDocumentChange() {
+  return renderFrameConnDmApplication();
+}
+
 async function handleCombatTrackerRender(_application, html) {
   if (!game?.user?.isGM) return false;
 
@@ -168,7 +183,13 @@ export const frameConnDmApplicationUiFeature = defineFrameConnFeature({
     renderCombatTracker: handleCombatTrackerRender,
     updateCombat: handleCombatChange,
     createCombat: handleCombatChange,
-    deleteCombat: handleCombatChange
+    deleteCombat: handleCombatChange,
+    updateToken: handleTokenSpatialUpdate,
+    createToken: handleSpatialDocumentChange,
+    deleteToken: handleSpatialDocumentChange,
+    createRegion: handleSpatialDocumentChange,
+    updateRegion: handleSpatialDocumentChange,
+    deleteRegion: handleSpatialDocumentChange
   },
   lifecycle: {},
   api: {
