@@ -373,9 +373,11 @@ Completed registration work:
 
 At this point `runtime-authority-audit --strict` should show no active competing SITREP runtime authority.
 
-## Phase 6 — Rebuild SITREP presentation inside the DM UI
+## Phase 6 — Rebuild SITREP presentation inside the DM UI — COMPLETE
 
-The decomposition gives us isolated legacy presentation modules that can now be used as behavioral/presentation evidence without preserving the old HUD framework.
+Phase 6 now provides the separate GM-facing `Frame Conn // Mission` Foundry Application under `styles/ui_dm/`. The application consumes the registered `dm.sitreps` and `foundry.integration` APIs through runtime composition. It owns setup/configuration, live objective/progress presentation, scenario-specific state, Recon scans, Escort/Extraction objective commands, and mission controls without reading legacy flags or importing the old HUD/DSL. A GM-only Token-controls launcher opens the DM application through the existing Foundry Integration feature. The former movable HUD position/minimized `localStorage` state remains intentionally dropped.
+
+The SITREP domain exposes one canonical presentation-state query that delegates to the existing scenario calculators and shared spatial operations, so the DM UI does not recreate gameplay rules. The decomposition gives us isolated legacy presentation modules that remain behavioral/presentation evidence without preserving the old HUD framework.
 
 Primary migration evidence:
 
