@@ -43,7 +43,7 @@
       "id": "escort-resolution",
       "legacy_source": "lancer-sitrep-tracker.js#resolveEscortObjective",
       "new_owner": "dm_features/sitreps/escort",
-      "status": "NOT_MIGRATED",
+      "status": "MIGRATED_UNVERIFIED",
       "verification": ["objective destroyed outcome preserved", "objective extraction conditions preserved", "round-limit failure preserved", "GM/player-visible result output preserved semantically"]
     },
     {

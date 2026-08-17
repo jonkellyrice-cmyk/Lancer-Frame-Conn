@@ -263,7 +263,7 @@ legacy/decomposed/holdout-presentation.js          # semantics/evidence only
 legacy/decomposed/sitrep-encounter-resolution.js
 ```
 
-### 3D — Escort
+### 3D — Escort — COMPLETE
 
 Primary source:
 
