@@ -3,8 +3,6 @@
  * Structural decomposition only; behavior and public contracts must remain unchanged.
  */
 
-import "../elevation-los.js";
-
 import {
   MODULE_ID,
   FLAG_KEY,

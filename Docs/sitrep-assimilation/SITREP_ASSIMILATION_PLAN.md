@@ -413,31 +413,35 @@ Exit criteria:
 - the legacy presentation modules are no longer runtime dependencies;
 - parity ledger covers the meaningful information/actions formerly exposed by the HUD.
 
-## Phase 7 — Extract Elevation/LOS into `foundry_features`
+## Phase 7 — Extract Elevation/LOS into `foundry_features` — COMPLETE EARLY
 
-Move useful behavior from legacy `elevation-los.js` into a dedicated Foundry feature family.
+This independent phase was deliberately pulled forward immediately after SITREP Phase 1 so later SITREP assimilation no longer carries unrelated Foundry platform behavior.
 
-Potential structure:
+Canonical structure now exists at:
 
 ```text
 scripts/foundry_features/elevation_los/
-  elevation-los-feature.js
-  wall-elevation-service.js
+  elevation-los-contract.js
+  wall-elevation-state.js
+  elevation-vision-service.js
   elevated-light-service.js
-  elevation-los-runtime-adapter.js
+  elevation-document-commands.js
+  elevation-config-presentation.js
+  elevation-los-feature.js
 ```
 
-Requirements:
+Completed ownership migration:
 
-- no SITREP dependency;
-- lifecycle registration through the Foundry feature package/authoritative runtime;
-- prototype wrapping installed exactly once;
-- legacy `flags.lancer-sitrep-tracker.elevationLOS` compatibility handled centrally;
-- public API exposed through Frame Conn composition only if actually needed.
+- generic elevation behavior is owned by `foundry_features`, not SITREPs;
+- `FRAME_CONN_FOUNDRY_FEATURES` is now a real package registered into the single application feature graph;
+- Foundry hooks are declared by `elevation-los-feature.js` and installed through the existing feature registry;
+- wrapper initialization remains under the authoritative runtime `init` boundary and perception refresh under `ready`;
+- canonical wall writes use `flags.lancer-frame-conn.elevationLOS`;
+- existing `flags.lancer-sitrep-tracker.elevationLOS` wall data remains readable through centralized compatibility fallback;
+- the former `game.lancerElevationLOS` parallel public global is gone; the feature API is exposed through `game.lancerFrameConn.elevationLOS`;
+- the legacy SITREP-side elevation module is inert and stale side-effect imports are being removed from quarantined migration sources.
 
-Because the Domain Decomposer kept the Elevation/LOS side-effect import on the retained legacy spine, this migration can be performed cleanly without removing side-effect imports from numerous extracted modules.
-
-This phase can proceed independently once its integration surface is certified, but Elevation/LOS must be out of legacy SITREP ownership before the old spine is deleted.
+Behavioral parity remains `MIGRATED_UNVERIFIED` until live Foundry verification confirms wall ranges, movement/vision blocking, elevated light radii, configuration controls, and single wrapper installation.
 
 ## Phase 8 — Compatibility cleanup and legacy deletion
 

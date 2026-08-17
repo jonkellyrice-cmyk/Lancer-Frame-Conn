@@ -1,5 +1,3 @@
-import "./elevation-los.js";
-
 import {
   MODULE_ID,
   FLAG_KEY,
