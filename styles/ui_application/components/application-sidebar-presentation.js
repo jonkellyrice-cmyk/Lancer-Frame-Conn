@@ -248,6 +248,19 @@ async function renderFrameConnSidebarPresentation(application, { activate = fram
 
 async function openFrameConnSidebarPresentation(application = null) {
   frameConnSidebarActive = true;
+
+  const foundrySidebar =
+    globalThis.ui?.sidebar ??
+    null;
+
+  if (
+    foundrySidebar &&
+    foundrySidebar.expanded === false &&
+    typeof foundrySidebar.expand === "function"
+  ) {
+    foundrySidebar.expand();
+  }
+
   const targetApplication = application ?? getFrameConnApplication();
   if (!targetApplication) return false;
 
