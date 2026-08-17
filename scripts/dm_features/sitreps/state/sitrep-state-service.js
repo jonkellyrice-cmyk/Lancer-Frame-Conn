@@ -29,9 +29,18 @@ export function resolveSitrepCombat(combat = null) {
   return globalThis.game?.combat ?? globalThis.game?.combats?.active ?? null;
 }
 
-function readFlag(combat, namespace, key) {
+function readFlag(combat, namespace, key, { optional = false } = {}) {
   if (!combat?.getFlag) return undefined;
-  return combat.getFlag(namespace, key);
+
+  try {
+    return combat.getFlag(namespace, key);
+  } catch (error) {
+    if (optional) {
+      return undefined;
+    }
+
+    throw error;
+  }
 }
 
 export function readSitrepStateRecord(combat = null) {
@@ -59,7 +68,8 @@ export function readSitrepStateRecord(combat = null) {
   const legacyRaw = readFlag(
     resolvedCombat,
     LEGACY_SITREP_FLAG_NAMESPACE,
-    LEGACY_SITREP_FLAG_KEY
+    LEGACY_SITREP_FLAG_KEY,
+    { optional: true }
   );
 
   if (legacyRaw !== undefined && legacyRaw !== null) {
