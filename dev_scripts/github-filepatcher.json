@@ -1,47 +1,9 @@
 {
   "schema_version": 2,
-  "id": "sitrep-phase-three-f-recon-domain",
-  "description": "Assimilate Recon zone state, scan recording, true-zone reveal semantics, and final-round resolution onto canonical SITREP state.",
+  "id": "ready",
+  "description": "Neutral no-op state after completing SITREP assimilation Phase 3 scenario-domain migration.",
   "policy": {
-    "max_files_changed": 4,
-    "allowed_paths": [
-      "scripts/dm_features/sitreps/recon/recon-state.js",
-      "scripts/dm_features/sitreps/recon/recon-resolution.js",
-      "dev_scripts/legacy-parity.json",
-      "Docs/sitrep-assimilation/SITREP_ASSIMILATION_PLAN.md"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "create_file",
-      "path": "scripts/dm_features/sitreps/recon/recon-state.js",
-      "content": "/** Canonical Recon battlefield-state derivation. GM-secret truth remains domain state until presentation filtering. */\n\nimport { collectStandingSitrepCombatants, SITREP_FACTIONS } from \"../shared/sitrep-combatant-primitives.js\";\nimport { controllerFromCounts } from \"../shared/sitrep-control-primitives.js\";\nimport { currentSitrepRound, sitrepRoundsRemaining } from \"../shared/sitrep-round-primitives.js\";\nimport { resolveConfiguredSitrepRegions, tokenInsideConfiguredSitrepRegion } from \"../shared/sitrep-spatial-delegation.js\";\n\nexport function calculateReconState(combat, sitrep, spatialOperations) {\n  const state = { valid: false, currentRound: currentSitrepRound(combat, sitrep), roundsRemaining: sitrepRoundsRemaining(combat, sitrep), reconZones: [], reconTrueRegionId: sitrep?.reconTrueRegionId ?? \"\", reconTrueZoneController: \"none\", reconTrueZoneScanned: false };\n  if (!combat || !sitrep || sitrep.type !== \"recon\") return state;\n  const regionIds = Array.isArray(sitrep.reconRegionIds) ? sitrep.reconRegionIds : [];\n  const regions = resolveConfiguredSitrepRegions(spatialOperations, combat, regionIds);\n  const trueRegionId = String(sitrep.reconTrueRegionId ?? \"\");\n  const scannedRegionIds = Array.isArray(sitrep.reconScannedRegionIds) ? sitrep.reconScannedRegionIds : [];\n  state.valid = regions.length === 4 && regions.some(region => region.id === trueRegionId);\n  if (!state.valid) return state;\n  const standing = collectStandingSitrepCombatants(combat);\n  state.reconZones = regions.map((region, index) => {\n    let friendly = 0;\n    let hostile = 0;\n    for (const entry of standing) {\n      if (!tokenInsideConfiguredSitrepRegion(spatialOperations, entry.token, region)) continue;\n      if (entry.faction === SITREP_FACTIONS.FRIENDLY) friendly += 1;\n      if (entry.faction === SITREP_FACTIONS.HOSTILE) hostile += 1;\n    }\n    const controller = controllerFromCounts(friendly, hostile);\n    const isTrueZone = region.id === trueRegionId;\n    const scanned = scannedRegionIds.includes(region.id);\n    if (isTrueZone) { state.reconTrueZoneController = controller; state.reconTrueZoneScanned = scanned; }\n    return { id: region.id, name: region.name || `Objective ${String.fromCharCode(65 + index)}`, friendly, hostile, controller, scanned, isTrueZone };\n  });\n  return state;\n}\n"
-    },
-    {
-      "type": "create_file",
-      "path": "scripts/dm_features/sitreps/recon/recon-resolution.js",
-      "content": "/** Canonical Recon scan and final-result transitions. No direct UI/chat ownership. */\n\nimport { readSitrepState, updateSitrepState } from \"../state/sitrep-state-service.js\";\nimport { resolveConfiguredSitrepRegion } from \"../shared/sitrep-spatial-delegation.js\";\nimport { calculateReconState } from \"./recon-state.js\";\n\nexport async function recordReconScan(combat, regionId, spatialOperations) {\n  const sitrep = readSitrepState(combat);\n  if (!combat || !sitrep || sitrep.type !== \"recon\" || !regionId) return Object.freeze({ changed: false, state: sitrep, outputIntent: null, rejection: \"invalid-request\" });\n  const validRegionIds = Array.isArray(sitrep.reconRegionIds) ? sitrep.reconRegionIds : [];\n  if (!validRegionIds.includes(regionId)) return Object.freeze({ changed: false, state: sitrep, outputIntent: null, rejection: \"region-not-configured\" });\n  const scannedRegionIds = Array.isArray(sitrep.reconScannedRegionIds) ? [...sitrep.reconScannedRegionIds] : [];\n  if (scannedRegionIds.includes(regionId)) return Object.freeze({ changed: false, state: sitrep, outputIntent: null, rejection: \"already-scanned\" });\n  scannedRegionIds.push(regionId);\n  const nextState = await updateSitrepState({ reconScannedRegionIds: scannedRegionIds }, combat);\n  const region = resolveConfiguredSitrepRegion(spatialOperations, combat, regionId);\n  const isTrueZone = regionId === sitrep.reconTrueRegionId;\n  return Object.freeze({ changed: true, state: nextState, outputIntent: Object.freeze({ kind: \"sitrep-recon-scan\", sitrepType: \"recon\", regionId, regionName: region?.name || \"Control Zone\", isTrueZone, scanResult: isTrueZone ? \"true-control-zone\" : \"false-control-zone\" }), rejection: null });\n}\n\nexport async function resolveReconEncounterUpdate(combat, changes = {}, spatialOperations) {\n  const sitrep = readSitrepState(combat);\n  if (!combat || !sitrep || sitrep.type !== \"recon\" || !sitrep.active || sitrep.status !== \"active\") return Object.freeze({ changed: false, state: sitrep, outputIntent: null });\n  if (!Object.prototype.hasOwnProperty.call(changes ?? {}, \"round\") || Number(changes.round) <= Number(sitrep.finalRound)) return Object.freeze({ changed: false, state: sitrep, outputIntent: null });\n  const state = calculateReconState(combat, sitrep, spatialOperations);\n  if (!state.valid) return Object.freeze({ changed: false, state: sitrep, outputIntent: null });\n  const trueZone = state.reconZones.find(zone => zone.isTrueZone);\n  const alliesControlTrueZone = trueZone?.controller === \"friendly\" && Number(trueZone?.friendly ?? 0) > 0 && Number(trueZone?.hostile ?? 0) === 0;\n  const status = alliesControlTrueZone ? \"victory\" : \"defeat\";\n  const trueZoneStatus = trueZone?.controller ?? \"unresolved\";\n  const reason = alliesControlTrueZone\n    ? `The allies controlled the True Control Zone at the end of round ${sitrep.finalRound}.`\n    : `The allies did not control the True Control Zone at the end of round ${sitrep.finalRound}. Its final status was ${trueZoneStatus}.`;\n  const nextState = await updateSitrepState({ status, resultReason: reason }, combat);\n  return Object.freeze({ changed: true, state: nextState, derivedState: state, outputIntent: Object.freeze({ kind: \"sitrep-result\", sitrepType: \"recon\", status, reason }) });\n}\n"
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/legacy-parity.json",
-      "search": "\"id\": \"recon-scan-and-true-zone\",\n      \"legacy_source\": \"lancer-sitrep-tracker.js#recordReconScan/evaluateSitrep(recon)\",\n      \"new_owner\": \"dm_features/sitreps/recon\",\n      \"status\": \"NOT_MIGRATED\"",
-      "replace": "\"id\": \"recon-scan-and-true-zone\",\n      \"legacy_source\": \"lancer-sitrep-tracker.js#recordReconScan/evaluateSitrep(recon)\",\n      \"new_owner\": \"dm_features/sitreps/recon\",\n      \"status\": \"MIGRATED_UNVERIFIED\"",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "Docs/sitrep-assimilation/SITREP_ASSIMILATION_PLAN.md",
-      "search": "### 3F — Recon",
-      "replace": "### 3F — Recon — COMPLETE",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "Docs/sitrep-assimilation/SITREP_ASSIMILATION_PLAN.md",
-      "search": "## Phase 3 — Assimilate scenario rules one SITREP at a time",
-      "replace": "## Phase 3 — Assimilate scenario rules one SITREP at a time — COMPLETE",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
