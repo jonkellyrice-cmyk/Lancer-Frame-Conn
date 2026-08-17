@@ -1,20 +1,9 @@
 {
   "schema_version": 2,
-  "id": "frame-helm-sidebar-reactor-meltdown-row",
-  "description": "Make the active reactor-meltdown telemetry card render as a full-width row beneath the normal 2x4 telemetry card grid in Frame Helm sidebar mode.",
+  "id": "ready",
+  "description": "Neutral no-op state after Frame Helm sidebar reactor-meltdown telemetry row fix.",
   "policy": {
-    "max_files_changed": 1,
-    "allowed_paths": [
-      "styles/ui_application/ui-application.css"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/ui-application.css",
-      "search": "#sidebar .frame-conn-sidebar-shell .frame-conn-stat-cell {\n  width: 100%;\n  min-width: 0;\n  padding: 0.45rem 0.5rem;\n}\n",
-      "replace": "#sidebar .frame-conn-sidebar-shell .frame-conn-stat-cell {\n  width: 100%;\n  min-width: 0;\n  padding: 0.45rem 0.5rem;\n}\n\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-meltdown {\n  grid-column: 1 / -1;\n  order: 1;\n  min-height: 3.25rem;\n  margin-top: 0.1rem;\n}\n",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
