@@ -2,223 +2,95 @@
   "schema_version": 1,
   "tool": "domain-decomposer",
   "tool_version": "1.0.0",
-  "generated_at": "2026-08-16T23:52:00.000Z",
+  "generated_at": "2026-08-17T00:12:00.000Z",
   "approved": true,
   "policy_file": "dev_scripts/domain-decomposer-policy.json",
   "behavior_change_allowed": false,
   "invariants": [
-    "public contracts remain unchanged unless explicitly marked as an approved compatibility shim",
-    "runtime effects remain unchanged",
-    "persistent state and namespaces remain unchanged",
-    "native/Foundry integration behavior remains unchanged",
-    "decomposition changes symbol ownership and call topology only",
-    "the original file retains an intelligible public/composition spine when one exists",
-    "the legacy SITREP module remains quarantined and unregistered throughout decomposition"
+    "runtime effects remain unchanged during structural decomposition",
+    "persistent elevation flag namespaces remain unchanged during structural decomposition",
+    "Foundry integration behavior remains unchanged",
+    "the legacy elevation file remains the temporary hook/composition spine until the ownership migration patch"
   ],
   "review": {
     "status": "reviewed-approved",
-    "source_sha": "7767a6609210d9f20ccfdc514e019e088a0d22b1",
-    "source_lines": 2725,
-    "top_level_symbols": 25,
-    "summary": "The raw section-based decomposition was refined into smaller domain seams. calculateState, evaluateSitrep, and renderHUD remain intact in this first pass because each is already a coherent top-level responsibility; later assimilation may decompose their internal scenario branches where justified.",
+    "summary": "Decompose generic Foundry elevation/LOS behavior into acyclic domain modules at its final foundry_features destination before replacing the legacy direct-hook spine with a Frame Conn feature definition.",
     "execution_blockers": [],
-    "execution_readiness": "Executor import hardening verified through the normal FilePatcher gate: extracted modules copy only referenced value imports and bare side-effect imports remain on the retained legacy spine."
+    "execution_readiness": "Reviewed domain seams avoid command/geometry circular dependencies."
   },
   "supporting_suite": [
-    {
-      "tool": "legacy-assimilation-atlas",
-      "status": "available",
-      "evidence": "Legacy SITREP domain behavior is preserve/decompose; standalone runtime and UI shell are migration concerns rather than decomposition targets."
-    },
-    {
-      "tool": "runtime-authority-audit",
-      "status": "available",
-      "evidence": "The legacy installProgram runtime remains quarantined and must remain behaviorally unchanged during structural decomposition."
-    },
-    {
-      "tool": "state-namespace-atlas",
-      "status": "available",
-      "evidence": "Legacy Combat flags and public namespaces must not change during decomposition."
-    },
-    {
-      "tool": "symbol-family-audit",
-      "status": "available",
-      "evidence": "Top-level responsibilities divide cleanly into state, presentation, resolution, setup, and retained runtime-spine families."
-    }
+    {"tool":"runtime-authority-audit","status":"available","evidence":"Legacy direct hook/runtime ownership will be removed in the following ownership migration patch."},
+    {"tool":"state-namespace-atlas","status":"available","evidence":"Legacy wall flag compatibility must survive relocation."},
+    {"tool":"symbol-family-audit","status":"available","evidence":"Elevation responsibilities separate into contract, wall state, vision, light geometry, document commands, and config presentation."}
   ],
   "candidates": [
     {
-      "source": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/lancer-sitrep-tracker.js",
+      "source": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/elevation-los.js",
       "decision": "decompose",
       "recommendation": "HIGH",
-      "reason": "Very high size pressure combines with multiple independently coherent responsibilities. The file contains domain state composition, scenario presentation, encounter resolution, setup, and runtime composition in one 2,725-line implementation boundary.",
-      "role": {
-        "role": "implementation",
-        "decompose": true,
-        "source": "default"
-      },
-      "metrics": {
-        "lines": 2725,
-        "top_level_symbols": 25,
-        "imports": 5,
-        "size_pressure": {
-          "level": 5,
-          "label": "very-high"
-        },
-        "reviewed_domain_seams": 16,
-        "recommendation": "HIGH"
-      },
+      "reason": "Generic Foundry elevation functionality is unrelated to SITREPs and contains several cohesive responsibilities plus direct runtime wiring.",
+      "role": {"role":"implementation","decompose":true,"source":"reviewed"},
+      "metrics": {"size_pressure":{"level":4,"label":"high"},"reviewed_domain_seams":6,"recommendation":"HIGH"},
       "retained_spine": {
-        "file": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/lancer-sitrep-tracker.js",
-        "responsibility": "Remain the quarantined legacy composition spine. Retain the installProgram(...) invocation and original entry identity while all top-level implementation symbols move behind imports. No runtime ownership is changed in this decomposition pass.",
+        "file": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/elevation-los.js",
+        "responsibility": "Temporary behavior-preserving hook/composition spine only. It will be deleted after Frame Conn Foundry feature ownership is installed.",
         "symbol_candidates": []
       },
       "units": [
         {
-          "id": "configuration",
-          "action": "extract",
-          "target": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/sitrep-configuration.js",
-          "symbols": ["DEFAULTS", "SITREP_TYPES"],
-          "seam_confidence": "high",
-          "recursive_review_required": false
+          "id":"contract",
+          "action":"extract",
+          "target":"scripts/foundry_features/elevation_los/elevation-los-contract.js",
+          "symbols":["MODULE_ID","FEATURE_KEY","STYLE_ID","finiteNumberOr"],
+          "seam_confidence":"high",
+          "recursive_review_required":false
         },
         {
-          "id": "gauntlet-control-weight",
-          "action": "extract",
-          "target": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/gauntlet-control-weight.js",
-          "symbols": ["GAUNTLET_NPC_TEMPLATE_WEIGHTS", "gauntletControlWeight"],
-          "seam_confidence": "high",
-          "recursive_review_required": false
+          "id":"wall-state",
+          "action":"extract",
+          "target":"scripts/foundry_features/elevation_los/wall-elevation-state.js",
+          "symbols":["wallElevationRange","wallHasFiniteElevation","wallDocumentFromEdge","wallBlocksElevation"],
+          "seam_confidence":"high",
+          "recursive_review_required":false
         },
         {
-          "id": "state-composition",
-          "action": "extract",
-          "target": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/sitrep-state-composition.js",
-          "symbols": ["calculateState"],
-          "seam_confidence": "high",
-          "recursive_review_required": true,
-          "review_note": "Keep calculateState intact during structural decomposition. Its internal per-SITREP branches are candidates for later domain extraction during assimilation, not during behavior-preserving first-pass decomposition."
+          "id":"vision",
+          "action":"extract",
+          "target":"scripts/foundry_features/elevation_los/elevation-vision-service.js",
+          "symbols":["sourceDocumentFromPolygon","sourceElevationFromPolygon","installVisionPolygonWrapper","refreshElevationVision"],
+          "seam_confidence":"high",
+          "recursive_review_required":false
         },
         {
-          "id": "presentation-shared",
-          "action": "extract",
-          "target": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/sitrep-presentation-shared.js",
-          "symbols": ["esc", "progressPips", "controlLabel", "controlZoneLabel"],
-          "seam_confidence": "high",
-          "recursive_review_required": false
+          "id":"light",
+          "action":"extract",
+          "target":"scripts/foundry_features/elevation_los/elevated-light-service.js",
+          "symbols":["LIGHT_GROUND_ELEVATION","horizontalRadiusAtGround","sceneDistanceToPixels","preserveRadiusSign","radiusValueForReturnedUnits","installAmbientLightRadiusWrapper"],
+          "seam_confidence":"high",
+          "recursive_review_required":false
         },
         {
-          "id": "recon-presentation",
-          "action": "extract",
-          "target": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/recon-presentation.js",
-          "symbols": ["renderReconState"],
-          "seam_confidence": "high",
-          "recursive_review_required": false
+          "id":"document-commands",
+          "action":"extract",
+          "target":"scripts/foundry_features/elevation_los/elevation-document-commands.js",
+          "symbols":["setWallRange","setAmbientLightElevation","setSelectedLightElevation","setSelectedWallRange"],
+          "seam_confidence":"high",
+          "recursive_review_required":false
         },
         {
-          "id": "holdout-presentation",
-          "action": "extract",
-          "target": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/holdout-presentation.js",
-          "symbols": ["renderHoldoutState"],
-          "seam_confidence": "high",
-          "recursive_review_required": false
-        },
-        {
-          "id": "extraction-presentation",
-          "action": "extract",
-          "target": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/extraction-presentation.js",
-          "symbols": ["renderExtractionState"],
-          "seam_confidence": "high",
-          "recursive_review_required": false
-        },
-        {
-          "id": "escort-presentation",
-          "action": "extract",
-          "target": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/escort-presentation.js",
-          "symbols": ["renderEscortState"],
-          "seam_confidence": "high",
-          "recursive_review_required": false
-        },
-        {
-          "id": "control-presentation",
-          "action": "extract",
-          "target": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/control-presentation.js",
-          "symbols": ["renderControlState"],
-          "seam_confidence": "high",
-          "recursive_review_required": false
-        },
-        {
-          "id": "hud-rendering",
-          "action": "extract",
-          "target": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/sitrep-hud-rendering.js",
-          "symbols": ["renderHUD"],
-          "seam_confidence": "high",
-          "recursive_review_required": false,
-          "review_note": "The HUD remains legacy presentation. This extraction is structural only; later assimilation replaces it with ui_dm rather than preserving it as canonical presentation."
-        },
-        {
-          "id": "encounter-resolution",
-          "action": "extract",
-          "target": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/sitrep-encounter-resolution.js",
-          "symbols": ["setResult", "evaluateSitrep", "togglePause", "endSitrep"],
-          "seam_confidence": "medium",
-          "recursive_review_required": true,
-          "review_note": "evaluateSitrep is intentionally kept whole for this pass even though it dispatches across scenario types. Splitting those branches before a canonical state boundary exists would mix structural decomposition with behavioral migration."
-        },
-        {
-          "id": "recon-resolution",
-          "action": "extract",
-          "target": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/recon-resolution.js",
-          "symbols": ["recordReconScan"],
-          "seam_confidence": "high",
-          "recursive_review_required": false
-        },
-        {
-          "id": "extraction-resolution",
-          "action": "extract",
-          "target": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/extraction-resolution.js",
-          "symbols": ["resolveExtractionObjective"],
-          "seam_confidence": "high",
-          "recursive_review_required": false
-        },
-        {
-          "id": "escort-resolution",
-          "action": "extract",
-          "target": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/escort-resolution.js",
-          "symbols": ["resolveEscortObjective"],
-          "seam_confidence": "high",
-          "recursive_review_required": false
-        },
-        {
-          "id": "setup-presentation",
-          "action": "extract",
-          "target": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/sitrep-setup-presentation.js",
-          "symbols": ["setupDialogHTML"],
-          "seam_confidence": "high",
-          "recursive_review_required": false
-        },
-        {
-          "id": "setup-state",
-          "action": "extract",
-          "target": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/sitrep-setup-state.js",
-          "symbols": ["saveSetup"],
-          "seam_confidence": "high",
-          "recursive_review_required": false
-        },
-        {
-          "id": "setup-dialog",
-          "action": "extract",
-          "target": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/sitrep-setup-dialog.js",
-          "symbols": ["openSetupDialog"],
-          "seam_confidence": "high",
-          "recursive_review_required": false
+          "id":"config-presentation",
+          "action":"extract",
+          "target":"scripts/foundry_features/elevation_los/elevation-config-presentation.js",
+          "symbols":["wallConfigRoot","installStyles","injectWallElevationFields","injectAmbientLightElevationField"],
+          "seam_confidence":"high",
+          "recursive_review_required":false
         }
       ],
       "execution": {
-        "mode": "symbol_extract",
-        "require_dependency_closed_units": true,
-        "preserve_original_exports": true,
-        "approved": true
+        "mode":"symbol_extract",
+        "require_dependency_closed_units":true,
+        "preserve_original_exports":true,
+        "approved":true
       }
     }
   ],
