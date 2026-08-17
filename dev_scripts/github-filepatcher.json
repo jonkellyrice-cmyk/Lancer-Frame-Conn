@@ -1,9 +1,27 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after restoring the SITREP Combat Tracker launcher.",
+  "id": "hotfix-optional-legacy-sitrep-flag-read",
+  "description": "Treat the retired lancer-sitrep-tracker flag namespace as optional compatibility input so missing legacy module scope cannot crash the canonical Mission UI.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 1,
+    "allowed_paths": [
+      "scripts/dm_features/sitreps/state/sitrep-state-service.js"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "scripts/dm_features/sitreps/state/sitrep-state-service.js",
+      "search": "function readFlag(combat, namespace, key) {\n  if (!combat?.getFlag) return undefined;\n  return combat.getFlag(namespace, key);\n}",
+      "replace": "function readFlag(combat, namespace, key, { optional = false } = {}) {\n  if (!combat?.getFlag) return undefined;\n\n  try {\n    return combat.getFlag(namespace, key);\n  } catch (error) {\n    if (optional) {\n      return undefined;\n    }\n\n    throw error;\n  }\n}",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/dm_features/sitreps/state/sitrep-state-service.js",
+      "search": "  const legacyRaw = readFlag(\n    resolvedCombat,\n    LEGACY_SITREP_FLAG_NAMESPACE,\n    LEGACY_SITREP_FLAG_KEY\n  );",
+      "replace": "  const legacyRaw = readFlag(\n    resolvedCombat,\n    LEGACY_SITREP_FLAG_NAMESPACE,\n    LEGACY_SITREP_FLAG_KEY,\n    { optional: true }\n  );",
+      "expected_occurrences": 1
+    }
+  ]
 }
