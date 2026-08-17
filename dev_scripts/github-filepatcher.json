@@ -1,20 +1,9 @@
 {
   "schema_version": 2,
-  "id": "frame-helm-sidebar-expand-before-open",
-  "description": "Expand Foundry's main Sidebar through its public v13 API before rendering and activating the Frame Helm sidebar presentation.",
+  "id": "ready",
+  "description": "Neutral no-op state after Frame Helm collapsed-sidebar expansion fix.",
   "policy": {
-    "max_files_changed": 1,
-    "allowed_paths": [
-      "styles/ui_application/components/application-sidebar-presentation.js"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/components/application-sidebar-presentation.js",
-      "search": "async function openFrameConnSidebarPresentation(application = null) {\n  frameConnSidebarActive = true;\n  const targetApplication = application ?? getFrameConnApplication();\n  if (!targetApplication) return false;\n\n  const rendered = await renderFrameConnSidebarPresentation(targetApplication, { activate: true });",
-      "replace": "async function openFrameConnSidebarPresentation(application = null) {\n  frameConnSidebarActive = true;\n\n  const foundrySidebar =\n    globalThis.ui?.sidebar ??\n    null;\n\n  if (\n    foundrySidebar &&\n    foundrySidebar.expanded === false &&\n    typeof foundrySidebar.expand === \"function\"\n  ) {\n    foundrySidebar.expand();\n  }\n\n  const targetApplication = application ?? getFrameConnApplication();\n  if (!targetApplication) return false;\n\n  const rendered = await renderFrameConnSidebarPresentation(targetApplication, { activate: true });",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
