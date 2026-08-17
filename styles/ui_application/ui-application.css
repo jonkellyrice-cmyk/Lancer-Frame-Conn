@@ -156,14 +156,20 @@
    Frame Helm -- Foundry sidebar presentation
    ============================================================ */
 
-#sidebar .frame-conn-sidebar-tab-button i { pointer-events: none; }
+#sidebar .frame-conn-sidebar-tab-button i {
+  pointer-events: none;
+}
 
 #sidebar .frame-conn-sidebar-surface {
   height: 100%;
   min-height: 0;
   overflow: hidden;
   color: var(--fc-text);
-  background: var(--fc-bg-deep);
+  background: #061014 !important;
+  background-image:
+    linear-gradient(180deg, rgba(37, 112, 119, 0.12), transparent 22%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.015) 0, rgba(255, 255, 255, 0.015) 1px, transparent 1px, transparent 4px);
+  box-shadow: inset 0 0 28px rgba(0, 0, 0, 0.52);
 }
 
 #sidebar .frame-conn-sidebar-scroll {
@@ -172,19 +178,89 @@
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-gutter: stable;
+  background: #061014;
 }
 
 #sidebar .frame-conn-sidebar-shell {
   min-width: 0;
   width: 100%;
   height: auto;
-  padding: 0.4rem;
-  gap: 0.4rem;
+  padding: 0.55rem;
+  gap: 0.5rem;
+  background: #061014;
 }
 
-#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-bar { width: 100%; min-width: 0; }
-#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.3rem; }
-#sidebar .frame-conn-sidebar-shell .frame-conn-stat-cell { min-width: 0; }
+#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-bar {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-heading {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  width: 100%;
+  min-width: 0;
+  gap: 0.5rem;
+  border-right: 0;
+  border-bottom: 1px solid var(--fc-cyan-muted);
+  padding: 0.5rem 0.6rem;
+}
+
+#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-heading small {
+  margin-top: 0;
+  text-align: right;
+  white-space: nowrap;
+}
+
+#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid,
+#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  min-width: 0;
+  gap: 0.45rem;
+  padding: 0.45rem;
+  overflow: visible;
+}
+
+#sidebar .frame-conn-sidebar-shell .frame-conn-stat-cell {
+  width: 100%;
+  min-width: 0;
+  padding: 0.45rem 0.5rem;
+}
+
+#sidebar .frame-conn-sidebar-shell .frame-conn-stat-value-group {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  gap: 0.2rem;
+}
+
+#sidebar .frame-conn-sidebar-shell .frame-conn-stat-cell input,
+#sidebar .frame-conn-sidebar-shell .frame-conn-stat-single input {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+}
+
+#sidebar .frame-conn-sidebar-shell .frame-conn-stat-label {
+  margin-bottom: 0.25rem;
+}
+
+#sidebar .frame-conn-sidebar-shell .frame-conn-stat-single {
+  align-items: stretch;
+}
+
+#sidebar .frame-conn-sidebar-shell .frame-conn-stat-single input {
+  align-self: stretch;
+}
+
 #sidebar .frame-conn-sidebar-unit,
 #sidebar .frame-conn-sidebar-budget,
 #sidebar .frame-conn-sidebar-actions,

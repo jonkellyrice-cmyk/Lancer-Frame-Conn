@@ -81,6 +81,16 @@ function ensureFrameConnSidebarChrome(root) {
   const nativeButton = findNativeSidebarTabButton(navigation);
   if (!navigation || !content || !nativeButton) return null;
 
+  const nativeTabButtonStack =
+    nativeButton.parentElement ??
+    navigation;
+
+  const nativeCollapseControl =
+    nativeTabButtonStack.querySelector?.(
+      '[data-action="toggleState"], [data-action="toggleExpanded"], .sidebar-collapse, .collapse'
+    ) ??
+    null;
+
   let button = root.querySelector(`.${FRAME_CONN_SIDEBAR_BUTTON_CLASS}`);
   if (!button) {
     button = nativeButton.cloneNode(false);
@@ -91,7 +101,20 @@ function ensureFrameConnSidebarChrome(root) {
     button.title = "Frame Helm";
     button.setAttribute("aria-label", "Frame Helm");
     button.innerHTML = '<i class="fas fa-robot"></i>';
-    navigation.appendChild(button);
+
+    if (
+      nativeCollapseControl &&
+      nativeCollapseControl.parentElement === nativeTabButtonStack
+    ) {
+      nativeTabButtonStack.insertBefore(
+        button,
+        nativeCollapseControl
+      );
+    } else {
+      nativeTabButtonStack.appendChild(
+        button
+      );
+    }
 
     button.addEventListener("click", event => {
       event.preventDefault();
