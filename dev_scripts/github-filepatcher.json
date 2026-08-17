@@ -1,8 +1,7 @@
 {
   "schema_version": 2,
   "id": "sitrep-phase-six-presentation-domain",
-  "description": "Prepare the canonical SITREP domain API for the Phase 6 DM presentation without registering any UI yet.",
-  "planning_goal": "Prepare SITREP Phase 6 presentation-domain ownership. Expose one canonical presentation-state query that delegates to the existing per-SITREP state calculators through configured spatial operations, restore the legacy Escort GM extracted/destroyed objective command as a canonical orchestration command with semantic output intent, expose both through the registered SITREP feature API, and do not add UI, direct Foundry hooks, legacy imports, direct flag reads, or a second runtime authority.",
+  "description": "Execute the reviewed Phase 6 presentation-domain slice after Patch Corridor certified 7/9 clauses and refused only the new Escort command bootstrap plus an unclassifiable negative legacy-import phrase.",
   "policy": {
     "max_files_changed": 3,
     "allowed_paths": [
