@@ -1581,6 +1581,13 @@ function configureFrameConnRuntimeBindings() {
             ...args
           ),
 
+      applyApplicationPresentationMode:
+        mode =>
+          frameConnApplicationApi
+            .setPresentationMode?.(
+              mode
+            ),
+
       executeLockOnAuthorityRequest:
         request =>
           executeFrameConnAuthoritativeLockOnRequest(
@@ -1929,6 +1936,7 @@ function validateFrameConnRuntimeComposition() {
     [
       "applicationOpening",
       "applicationClosing",
+      "applicationPresentationMode",
       "lockOnAuthorityExecution"
     ]
   );
@@ -2058,6 +2066,13 @@ Hooks.once(
      */
     frameConnFoundryIntegrationApi
       .registerSettings?.();
+
+    void frameConnApplicationApi
+      .setPresentationMode?.(
+        frameConnFoundryIntegrationApi
+          .getPresentationMode?.() ??
+        "window"
+      );
 
 
     /**

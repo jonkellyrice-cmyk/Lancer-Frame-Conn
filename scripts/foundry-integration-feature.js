@@ -160,6 +160,9 @@ const frameConnFoundryIntegrationRuntimeBindings = {
   closeApplication:
     null,
 
+  applyApplicationPresentationMode:
+    null,
+
   executeLockOnAuthorityRequest:
     null
 };
@@ -251,6 +254,11 @@ function getFrameConnFoundryIntegrationRuntimeBindings() {
     applicationClosing:
       typeof frameConnFoundryIntegrationRuntimeBindings
         .closeApplication ===
+        "function",
+
+    applicationPresentationMode:
+      typeof frameConnFoundryIntegrationRuntimeBindings
+        .applyApplicationPresentationMode ===
         "function",
 
     lockOnAuthorityExecution:
@@ -370,6 +378,55 @@ function handleFrameConnEnabledSettingChange(
 }
 
 
+function getFrameConnPresentationModeSetting() {
+  const value =
+    game.settings.get(
+      MODULE_ID,
+      "presentationMode"
+    );
+
+  return value === "sidebar"
+    ? "sidebar"
+    : "window";
+}
+
+
+function setFrameConnPresentationModeSetting(
+  mode
+) {
+  const normalizedMode =
+    mode === "sidebar"
+      ? "sidebar"
+      : "window";
+
+  return game.settings.set(
+    MODULE_ID,
+    "presentationMode",
+    normalizedMode
+  );
+}
+
+
+function handleFrameConnPresentationModeSettingChange(
+  mode
+) {
+  const applyPresentationMode =
+    frameConnFoundryIntegrationRuntimeBindings
+      .applyApplicationPresentationMode;
+
+  if (
+    typeof applyPresentationMode !==
+      "function"
+  ) {
+    return null;
+  }
+
+  return applyPresentationMode(
+    mode
+  );
+}
+
+
 /* ============================================================
    Foundry settings -- Registration
    ============================================================ */
@@ -412,6 +469,44 @@ function registerFrameConnSettings() {
 
       onChange:
         handleFrameConnEnabledSettingChange
+    }
+  );
+
+  game.settings.register(
+    MODULE_ID,
+    "presentationMode",
+    {
+      name:
+        "Frame Helm Presentation",
+
+      hint:
+        "Choose whether Frame Helm opens as the existing floating window or as a vertical Foundry sidebar tab.",
+
+      scope:
+        "client",
+
+      config:
+        true,
+
+      type:
+        String,
+
+      choices: {
+        window:
+          "Window",
+
+        sidebar:
+          "Sidebar"
+      },
+
+      default:
+        "window",
+
+      restricted:
+        false,
+
+      onChange:
+        handleFrameConnPresentationModeSettingChange
     }
   );
 
@@ -1327,6 +1422,9 @@ export const frameConnFoundryIntegrationFeature =
       enabled:
         isFrameConnEnabled,
 
+      presentationMode:
+        getFrameConnPresentationModeSetting,
+
       tokenControls:
         getFrameConnTokenSceneControls,
 
@@ -1366,6 +1464,12 @@ export const frameConnFoundryIntegrationFeature =
 
       isEnabled:
         isFrameConnEnabled,
+
+      getPresentationMode:
+        getFrameConnPresentationModeSetting,
+
+      setPresentationMode:
+        setFrameConnPresentationModeSetting,
 
       open:
         openFrameConnFromFoundryIntegration,
