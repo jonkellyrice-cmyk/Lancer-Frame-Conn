@@ -1,9 +1,98 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after making SITREP zone counts refresh on token and Region spatial changes.",
+  "id": "sitrep-player-read-only-presentation",
+  "description": "Make the embedded SITREP panel visible to players while restricting all state-mutating SITREP controls and setup surfaces to the primary GM.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 2,
+    "allowed_paths": [
+      "styles/ui_dm/ui-dm-application.js",
+      "styles/ui_dm/components/dm-sitrep-presentation.js"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/ui-dm-application.js",
+      "search": "export async function openFrameConnDmApplication() {\n  assertRuntime();\n  if (!runtime.foundryApi.isPrimaryGM?.()) {\n    ui.notifications.warn(\"Frame Conn // Mission is available to the active GM.\");\n    return null;\n  }\n\n  embeddedPanelVisible = true;",
+      "replace": "export async function openFrameConnDmApplication() {\n  assertRuntime();\n  embeddedPanelVisible = true;",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/ui-dm-application.js",
+      "search": "async function handleCombatTrackerRender(_application, html) {\n  if (!game?.user?.isGM) return false;\n\n  const root = normalizeCombatTrackerRoot(html);",
+      "replace": "async function handleCombatTrackerRender(_application, html) {\n  const root = normalizeCombatTrackerRoot(html);",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/ui-dm-application.js",
+      "search": "    audience: \"gm\",",
+      "replace": "    audience: \"all\",",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/components/dm-sitrep-presentation.js",
+      "search": "function zoneCards(zones = [], recon = false) {",
+      "replace": "function zoneCards(zones = [], recon = false, canManage = false) {",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/components/dm-sitrep-presentation.js",
+      "search": "      ${recon ? `<button type=\"button\" data-dm-sitrep-command=\"recon-scan\" data-region-id=\"${esc(zone.id)}\" ${zone.scanned ? \"disabled\" : \"\"}>Scan Zone</button>` : \"\"}",
+      "replace": "      ${recon && canManage ? `<button type=\"button\" data-dm-sitrep-command=\"recon-scan\" data-region-id=\"${esc(zone.id)}\" ${zone.scanned ? \"disabled\" : \"\"}>Scan Zone</button>` : \"\"}",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/components/dm-sitrep-presentation.js",
+      "search": "function scenarioState(model) {\n  const state = model.derivedState ?? {};",
+      "replace": "function scenarioState(model) {\n  const state = model.derivedState ?? {};\n  const canManage = Boolean(model.canManage);",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/components/dm-sitrep-presentation.js",
+      "search": "      </div>${zoneCards(state.controlZones)}`;",
+      "replace": "      </div>${zoneCards(state.controlZones, false, canManage)}`;",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/components/dm-sitrep-presentation.js",
+      "search": "        <div class=\"fc-dm-command-row\"><button type=\"button\" data-dm-sitrep-command=\"escort-extract\" ${state.objectiveDestroyed || state.objectiveExtracted ? \"disabled\" : \"\"}>Extract Objective</button><button type=\"button\" data-dm-sitrep-command=\"escort-destroy\" ${state.objectiveDestroyed || state.objectiveExtracted ? \"disabled\" : \"\"}>Destroy Objective</button></div>`;",
+      "replace": "        ${canManage ? `<div class=\"fc-dm-command-row\"><button type=\"button\" data-dm-sitrep-command=\"escort-extract\" ${state.objectiveDestroyed || state.objectiveExtracted ? \"disabled\" : \"\"}>Extract Objective</button><button type=\"button\" data-dm-sitrep-command=\"escort-destroy\" ${state.objectiveDestroyed || state.objectiveExtracted ? \"disabled\" : \"\"}>Destroy Objective</button></div>` : \"\"}`;",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/components/dm-sitrep-presentation.js",
+      "search": "        <div class=\"fc-dm-command-row\"><button type=\"button\" data-dm-sitrep-command=\"extraction-extract\" ${!state.canExtractObjective || state.objectiveDestroyed || state.objectiveExtracted ? \"disabled\" : \"\"}>Extract Objective</button><button type=\"button\" data-dm-sitrep-command=\"extraction-destroy\" ${state.objectiveDestroyed || state.objectiveExtracted ? \"disabled\" : \"\"}>Destroy Objective</button></div>`;",
+      "replace": "        ${canManage ? `<div class=\"fc-dm-command-row\"><button type=\"button\" data-dm-sitrep-command=\"extraction-extract\" ${!state.canExtractObjective || state.objectiveDestroyed || state.objectiveExtracted ? \"disabled\" : \"\"}>Extract Objective</button><button type=\"button\" data-dm-sitrep-command=\"extraction-destroy\" ${state.objectiveDestroyed || state.objectiveExtracted ? \"disabled\" : \"\"}>Destroy Objective</button></div>` : \"\"}`;",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/components/dm-sitrep-presentation.js",
+      "search": "    case \"recon\":\n      return zoneCards(state.reconZones, true);",
+      "replace": "    case \"recon\":\n      return zoneCards(state.reconZones, true, canManage);",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/components/dm-sitrep-presentation.js",
+      "search": "    <div class=\"fc-dm-command-row mission-controls\"><button type=\"button\" data-dm-sitrep-command=\"toggle-pause\">${state.status === \"paused\" ? \"Resume\" : \"Pause\"}</button><button type=\"button\" data-dm-sitrep-command=\"victory\">Declare Victory</button><button type=\"button\" data-dm-sitrep-command=\"defeat\">Declare Defeat</button><button type=\"button\" data-dm-sitrep-command=\"edit\">Configure</button><button type=\"button\" class=\"danger\" data-dm-sitrep-command=\"end\">End SITREP</button></div>",
+      "replace": "    ${model.canManage ? `<div class=\"fc-dm-command-row mission-controls\"><button type=\"button\" data-dm-sitrep-command=\"toggle-pause\">${state.status === \"paused\" ? \"Resume\" : \"Pause\"}</button><button type=\"button\" data-dm-sitrep-command=\"victory\">Declare Victory</button><button type=\"button\" data-dm-sitrep-command=\"defeat\">Declare Defeat</button><button type=\"button\" data-dm-sitrep-command=\"edit\">Configure</button><button type=\"button\" class=\"danger\" data-dm-sitrep-command=\"end\">End SITREP</button></div>` : \"\"}",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/components/dm-sitrep-presentation.js",
+      "search": "    ${model.configured && !showSetup ? missionPanel(model) : setupForm(model)}",
+      "replace": "    ${model.configured && (!showSetup || !model.canManage) ? missionPanel(model) : model.canManage ? setupForm(model) : `<div class=\"fc-dm-empty\">No SITREP is currently configured.</div>`}",
+      "expected_occurrences": 1
+    }
+  ]
 }
