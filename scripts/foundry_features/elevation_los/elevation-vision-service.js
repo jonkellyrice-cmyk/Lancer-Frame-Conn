@@ -4,6 +4,7 @@
  */
 
 import {
+  MODULE_ID,
   finiteNumberOr
 } from "./elevation-los-contract.js";
 import {
