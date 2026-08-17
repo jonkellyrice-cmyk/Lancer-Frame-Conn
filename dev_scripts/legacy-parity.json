@@ -26,6 +26,13 @@
       "verification": ["ordinary unit weight preserved", "Grunt/Elite/Ultra weighting preserved", "template LID and fallback-name behavior reviewed"]
     },
     {
+      "id": "gauntlet-resolution",
+      "legacy_source": "sitrep-state-composition.js + lancer-sitrep-tracker.js#evaluateSitrep(gauntlet)",
+      "new_owner": "dm_features/sitreps/gauntlet",
+      "status": "MIGRATED_UNVERIFIED",
+      "verification": ["weighted standing and zone control preserved", "enemy-elimination victory preserved", "unassailable-control victory preserved", "final-round zone-control victory/defeat preserved", "result mutation uses canonical SITREP state service", "output is represented as semantic intent rather than direct chat ownership"]
+    },
+    {
       "id": "control-zone-scoring",
       "legacy_source": "lancer-sitrep-tracker.js#evaluateSitrep(control)",
       "new_owner": "dm_features/sitreps/control",

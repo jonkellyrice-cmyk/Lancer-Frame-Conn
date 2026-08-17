@@ -233,7 +233,7 @@ The decomposition now lets each scenario migration use narrow source modules rat
 
 Recommended order:
 
-### 3A — Gauntlet
+### 3A — Gauntlet — COMPLETE
 
 Primary source:
 
