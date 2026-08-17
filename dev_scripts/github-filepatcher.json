@@ -1,20 +1,9 @@
 {
   "schema_version": 2,
-  "id": "frame-helm-sidebar-category-list-flex-ordering",
-  "description": "Make the Frame Helm sidebar action-category list an explicit vertical flex container so the existing sidebar-only category order rules take effect.",
+  "id": "ready",
+  "description": "Neutral no-op state after Frame Helm sidebar category-list flex ordering fix.",
   "policy": {
-    "max_files_changed": 1,
-    "allowed_paths": [
-      "styles/ui_application/ui-application.css"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/ui-application.css",
-      "search": "/* Sidebar action timing order:\n   Protocols -> Quick -> Full -> Special -> Reactions -> Movement. */\n#sidebar .frame-conn-sidebar-actions .frame-conn-category-button[data-frame-conn-category=\"protocol\"] { order: 1; }",
-      "replace": "/* Sidebar action timing order:\n   Protocols -> Quick -> Full -> Special -> Reactions -> Movement. */\n#sidebar .frame-conn-sidebar-actions .frame-conn-category-list {\n  display: flex;\n  flex-direction: column;\n}\n\n#sidebar .frame-conn-sidebar-actions .frame-conn-category-button[data-frame-conn-category=\"protocol\"] { order: 1; }",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
