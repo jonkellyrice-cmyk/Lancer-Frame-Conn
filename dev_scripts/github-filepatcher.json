@@ -1,76 +1,34 @@
 {
   "schema_version": 2,
-  "id": "frame-helm-presentation-mode-setting",
-  "description": "Add a client-scoped Window/Sidebar Frame Helm presentation preference and compose it through Foundry Integration into the existing Application UI.",
+  "id": "frame-helm-sidebar-foundry-v13-lifecycle",
+  "description": "Use Foundry v13 ApplicationV2 rendering to attach the sidebar surface and defer reading the client presentation setting until ready.",
   "policy": {
     "max_files_changed": 2,
     "allowed_paths": [
-      "scripts/foundry-integration-feature.js",
+      "styles/ui_application/ui-application.js",
       "scripts/runtime-orchestrator.js"
     ]
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "scripts/foundry-integration-feature.js",
-      "search": "  closeApplication:\n    null,\n\n  executeLockOnAuthorityRequest:\n    null\n};",
-      "replace": "  closeApplication:\n    null,\n\n  applyApplicationPresentationMode:\n    null,\n\n  executeLockOnAuthorityRequest:\n    null\n};",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/foundry-integration-feature.js",
-      "search": "    applicationClosing:\n      typeof frameConnFoundryIntegrationRuntimeBindings\n        .closeApplication ===\n        \"function\",\n\n    lockOnAuthorityExecution:",
-      "replace": "    applicationClosing:\n      typeof frameConnFoundryIntegrationRuntimeBindings\n        .closeApplication ===\n        \"function\",\n\n    applicationPresentationMode:\n      typeof frameConnFoundryIntegrationRuntimeBindings\n        .applyApplicationPresentationMode ===\n        \"function\",\n\n    lockOnAuthorityExecution:",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/foundry-integration-feature.js",
-      "search": "function handleFrameConnEnabledSettingChange(\n  enabled\n) {\n  if (\n    enabled\n  ) {\n    return null;\n  }\n\n\n  return (\n    closeFrameConnFromFoundryIntegration()\n  );\n}\n\n\n/* ============================================================\n   Foundry settings -- Registration",
-      "replace": "function handleFrameConnEnabledSettingChange(\n  enabled\n) {\n  if (\n    enabled\n  ) {\n    return null;\n  }\n\n\n  return (\n    closeFrameConnFromFoundryIntegration()\n  );\n}\n\n\nfunction getFrameConnPresentationModeSetting() {\n  const value =\n    game.settings.get(\n      MODULE_ID,\n      \"presentationMode\"\n    );\n\n  return value === \"sidebar\"\n    ? \"sidebar\"\n    : \"window\";\n}\n\n\nfunction setFrameConnPresentationModeSetting(\n  mode\n) {\n  const normalizedMode =\n    mode === \"sidebar\"\n      ? \"sidebar\"\n      : \"window\";\n\n  return game.settings.set(\n    MODULE_ID,\n    \"presentationMode\",\n    normalizedMode\n  );\n}\n\n\nfunction handleFrameConnPresentationModeSettingChange(\n  mode\n) {\n  const applyPresentationMode =\n    frameConnFoundryIntegrationRuntimeBindings\n      .applyApplicationPresentationMode;\n\n  if (\n    typeof applyPresentationMode !==\n      \"function\"\n  ) {\n    return null;\n  }\n\n  return applyPresentationMode(\n    mode\n  );\n}\n\n\n/* ============================================================\n   Foundry settings -- Registration",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/foundry-integration-feature.js",
-      "search": "  game.settings.register(\n    MODULE_ID,\n    \"enabled\",\n    {\n      name:\n        \"Enable Frame Conn\",\n\n      hint:\n        \"Enables the Frame Conn action-selection interface.\",\n\n      scope:\n        \"world\",\n\n      config:\n        true,\n\n      type:\n        Boolean,\n\n      default:\n        true,\n\n      restricted:\n        true,\n\n      onChange:\n        handleFrameConnEnabledSettingChange\n    }\n  );\n\n\n  return true;",
-      "replace": "  game.settings.register(\n    MODULE_ID,\n    \"enabled\",\n    {\n      name:\n        \"Enable Frame Conn\",\n\n      hint:\n        \"Enables the Frame Conn action-selection interface.\",\n\n      scope:\n        \"world\",\n\n      config:\n        true,\n\n      type:\n        Boolean,\n\n      default:\n        true,\n\n      restricted:\n        true,\n\n      onChange:\n        handleFrameConnEnabledSettingChange\n    }\n  );\n\n  game.settings.register(\n    MODULE_ID,\n    \"presentationMode\",\n    {\n      name:\n        \"Frame Helm Presentation\",\n\n      hint:\n        \"Choose whether Frame Helm opens as the existing floating window or as a vertical Foundry sidebar tab.\",\n\n      scope:\n        \"client\",\n\n      config:\n        true,\n\n      type:\n        String,\n\n      choices: {\n        window:\n          \"Window\",\n\n        sidebar:\n          \"Sidebar\"\n      },\n\n      default:\n        \"window\",\n\n      restricted:\n        false,\n\n      onChange:\n        handleFrameConnPresentationModeSettingChange\n    }\n  );\n\n\n  return true;",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/foundry-integration-feature.js",
-      "search": "    queries: {\n      enabled:\n        isFrameConnEnabled,\n\n      tokenControls:",
-      "replace": "    queries: {\n      enabled:\n        isFrameConnEnabled,\n\n      presentationMode:\n        getFrameConnPresentationModeSetting,\n\n      tokenControls:",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/foundry-integration-feature.js",
-      "search": "      isEnabled:\n        isFrameConnEnabled,\n\n      open:",
-      "replace": "      isEnabled:\n        isFrameConnEnabled,\n\n      getPresentationMode:\n        getFrameConnPresentationModeSetting,\n\n      setPresentationMode:\n        setFrameConnPresentationModeSetting,\n\n      open:",
+      "path": "styles/ui_application/ui-application.js",
+      "search": "      renderSidebar:\n        handleFrameConnSidebarRender",
+      "replace": "      renderApplicationV2:\n        handleFrameConnSidebarRender",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
       "path": "scripts/runtime-orchestrator.js",
-      "search": "      closeApplication:\n        (...args) =>\n          closeFrameConn(\n            ...args\n          ),\n\n      executeLockOnAuthorityRequest:",
-      "replace": "      closeApplication:\n        (...args) =>\n          closeFrameConn(\n            ...args\n          ),\n\n      applyApplicationPresentationMode:\n        mode =>\n          frameConnApplicationApi\n            .setPresentationMode?.(\n              mode\n            ),\n\n      executeLockOnAuthorityRequest:",
+      "search": "    frameConnFoundryIntegrationApi\n      .registerSettings?.();\n\n    void frameConnApplicationApi\n      .setPresentationMode?.(\n        frameConnFoundryIntegrationApi\n          .getPresentationMode?.() ??\n        \"window\"\n      );\n\n\n    /**\n     * Actions retain synchronous catalog initialization",
+      "replace": "    frameConnFoundryIntegrationApi\n      .registerSettings?.();\n\n\n    /**\n     * Actions retain synchronous catalog initialization",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
       "path": "scripts/runtime-orchestrator.js",
-      "search": "      \"applicationOpening\",\n      \"applicationClosing\",\n      \"lockOnAuthorityExecution\"",
-      "replace": "      \"applicationOpening\",\n      \"applicationClosing\",\n      \"applicationPresentationMode\",\n      \"lockOnAuthorityExecution\"",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "    frameConnFoundryIntegrationApi\n      .registerSettings?.();\n\n\n    /**\n     * Actions retain synchronous catalog initialization",
-      "replace": "    frameConnFoundryIntegrationApi\n      .registerSettings?.();\n\n    void frameConnApplicationApi\n      .setPresentationMode?.(\n        frameConnFoundryIntegrationApi\n          .getPresentationMode?.() ??\n        \"window\"\n      );\n\n\n    /**\n     * Actions retain synchronous catalog initialization",
+      "search": "Hooks.once(\n  \"ready\",\n  async () => {\n    frameConnElevationLosApi.ready?.();",
+      "replace": "Hooks.once(\n  \"ready\",\n  async () => {\n    await frameConnApplicationApi\n      .setPresentationMode?.(\n        frameConnFoundryIntegrationApi\n          .getPresentationMode?.() ??\n        \"window\"\n      );\n\n    frameConnElevationLosApi.ready?.();",
       "expected_occurrences": 1
     }
   ]
