@@ -50,7 +50,7 @@
       "id": "extraction-resolution",
       "legacy_source": "lancer-sitrep-tracker.js#resolveExtractionObjective",
       "new_owner": "dm_features/sitreps/extraction",
-      "status": "NOT_MIGRATED",
+      "status": "MIGRATED_UNVERIFIED",
       "verification": ["objective must be in extraction zone", "adjacent allied requirement preserved", "uncontested requirement preserved", "destroyed objective draw preserved", "round-limit failure preserved"]
     },
     {

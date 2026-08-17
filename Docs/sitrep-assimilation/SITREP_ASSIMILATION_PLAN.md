@@ -274,7 +274,7 @@ legacy/decomposed/escort-presentation.js           # semantics/evidence only
 legacy/decomposed/sitrep-encounter-resolution.js
 ```
 
-### 3E — Extraction
+### 3E — Extraction — COMPLETE
 
 Primary source:
 
