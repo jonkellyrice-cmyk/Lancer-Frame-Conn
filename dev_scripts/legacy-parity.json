@@ -36,7 +36,7 @@
       "id": "control-zone-scoring",
       "legacy_source": "lancer-sitrep-tracker.js#evaluateSitrep(control)",
       "new_owner": "dm_features/sitreps/control",
-      "status": "NOT_MIGRATED",
+      "status": "MIGRATED_UNVERIFIED",
       "verification": ["completed round scores once", "friendly and hostile zone points preserved", "all-four-zones bonus preserved", "duplicate round scoring impossible", "final victory/defeat/draw resolution preserved"]
     },
     {

@@ -243,7 +243,7 @@ legacy/decomposed/sitrep-state-composition.js      # Gauntlet branch only
 legacy/decomposed/sitrep-encounter-resolution.js  # Gauntlet branch only
 ```
 
-### 3B — Control
+### 3B — Control — COMPLETE
 
 Primary source:
 
