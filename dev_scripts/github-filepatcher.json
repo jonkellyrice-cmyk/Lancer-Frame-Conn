@@ -1,56 +1,9 @@
 {
   "schema_version": 2,
-  "id": "frame-helm-sidebar-tab-and-wheel-boundary",
-  "description": "Make the Frame Helm robot tab its own native-style sidebar slot below the existing controls and consume wheel input inside the Helm scroll region so the battle map does not zoom.",
+  "id": "ready",
+  "description": "Neutral no-op state after Frame Helm sidebar tab placement and wheel-boundary fixes.",
   "policy": {
-    "max_files_changed": 2,
-    "allowed_paths": [
-      "styles/ui_application/components/application-sidebar-presentation.js",
-      "styles/ui_application/ui-application.css"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/components/application-sidebar-presentation.js",
-      "search": "const FRAME_CONN_SIDEBAR_BUTTON_CLASS = \"frame-conn-sidebar-tab-button\";\nconst FRAME_CONN_SIDEBAR_PANEL_CLASS = \"frame-conn-sidebar-surface\";",
-      "replace": "const FRAME_CONN_SIDEBAR_BUTTON_CLASS = \"frame-conn-sidebar-tab-button\";\nconst FRAME_CONN_SIDEBAR_SLOT_CLASS = \"frame-conn-sidebar-tab-slot\";\nconst FRAME_CONN_SIDEBAR_PANEL_CLASS = \"frame-conn-sidebar-surface\";",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/components/application-sidebar-presentation.js",
-      "search": "function removeFrameConnSidebarChrome(root = frameConnSidebarRoot) {\n  root?.querySelector?.(`.${FRAME_CONN_SIDEBAR_BUTTON_CLASS}`)?.remove();\n  root?.querySelector?.(`.${FRAME_CONN_SIDEBAR_PANEL_CLASS}`)?.remove();\n  frameConnSidebarActive = false;\n}",
-      "replace": "function removeFrameConnSidebarChrome(root = frameConnSidebarRoot) {\n  const slot =\n    root?.querySelector?.(`.${FRAME_CONN_SIDEBAR_SLOT_CLASS}`) ??\n    null;\n\n  if (slot) {\n    slot.remove();\n  } else {\n    root?.querySelector?.(`.${FRAME_CONN_SIDEBAR_BUTTON_CLASS}`)?.remove();\n  }\n\n  root?.querySelector?.(`.${FRAME_CONN_SIDEBAR_PANEL_CLASS}`)?.remove();\n  frameConnSidebarActive = false;\n}",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/components/application-sidebar-presentation.js",
-      "search": "  const nativeTabButtonStack =\n    nativeButton.parentElement ??\n    navigation;\n\n  const nativeCollapseControl =\n    nativeTabButtonStack.querySelector?.(\n      '[data-action=\"toggleState\"], [data-action=\"toggleExpanded\"], .sidebar-collapse, .collapse'\n    ) ??\n    null;\n\n  let button = root.querySelector(`.${FRAME_CONN_SIDEBAR_BUTTON_CLASS}`);\n  if (!button) {\n    button = nativeButton.cloneNode(false);\n    button.removeAttribute(\"id\");\n    button.classList.remove(\"active\");\n    button.classList.add(FRAME_CONN_SIDEBAR_BUTTON_CLASS);\n    button.dataset.tab = FRAME_CONN_SIDEBAR_TAB_ID;\n    button.title = \"Frame Helm\";\n    button.setAttribute(\"aria-label\", \"Frame Helm\");\n    button.innerHTML = '<i class=\"fas fa-robot\"></i>';\n\n    if (\n      nativeCollapseControl &&\n      nativeCollapseControl.parentElement === nativeTabButtonStack\n    ) {\n      nativeTabButtonStack.insertBefore(\n        button,\n        nativeCollapseControl\n      );\n    } else {\n      nativeTabButtonStack.appendChild(\n        button\n      );\n    }\n\n    button.addEventListener(\"click\", event => {",
-      "replace": "  const nativeTabSlot =\n    nativeButton.parentElement ??\n    null;\n\n  const nativeTabRail =\n    nativeTabSlot?.parentElement ??\n    navigation;\n\n  let button = root.querySelector(`.${FRAME_CONN_SIDEBAR_BUTTON_CLASS}`);\n  if (!button) {\n    button = nativeButton.cloneNode(false);\n    button.removeAttribute(\"id\");\n    button.classList.remove(\"active\");\n    button.classList.add(FRAME_CONN_SIDEBAR_BUTTON_CLASS);\n    button.dataset.tab = FRAME_CONN_SIDEBAR_TAB_ID;\n    button.title = \"Frame Helm\";\n    button.setAttribute(\"aria-label\", \"Frame Helm\");\n    button.innerHTML = '<i class=\"fas fa-robot\"></i>';\n\n    if (\n      nativeTabSlot &&\n      nativeTabRail\n    ) {\n      const frameConnTabSlot =\n        nativeTabSlot.cloneNode(false);\n\n      frameConnTabSlot.removeAttribute?.(\"id\");\n      frameConnTabSlot.classList?.remove?.(\"active\");\n      frameConnTabSlot.classList?.add?.(FRAME_CONN_SIDEBAR_SLOT_CLASS);\n      frameConnTabSlot.removeAttribute?.(\"data-tab\");\n      frameConnTabSlot.appendChild(button);\n      nativeTabRail.appendChild(frameConnTabSlot);\n    } else {\n      navigation.appendChild(button);\n    }\n\n    button.addEventListener(\"click\", event => {",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/components/application-sidebar-presentation.js",
-      "search": "function renderFrameConnSidebarShell(application, data) {\n  return `",
-      "replace": "function installFrameConnSidebarWheelBoundary(panel) {\n  const scrollSurface =\n    panel?.querySelector?.(\".frame-conn-sidebar-scroll\") ??\n    null;\n\n  if (\n    !scrollSurface ||\n    scrollSurface.dataset.frameConnWheelBoundary === \"true\"\n  ) {\n    return false;\n  }\n\n  scrollSurface.dataset.frameConnWheelBoundary =\n    \"true\";\n\n  scrollSurface.addEventListener(\n    \"wheel\",\n    event => {\n      const deltaScale =\n        event.deltaMode === 1\n          ? 16\n          : event.deltaMode === 2\n            ? Math.max(scrollSurface.clientHeight, 1)\n            : 1;\n\n      event.preventDefault();\n      event.stopPropagation();\n      event.stopImmediatePropagation();\n\n      scrollSurface.scrollTop +=\n        event.deltaY *\n        deltaScale;\n    },\n    {\n      passive: false\n    }\n  );\n\n  return true;\n}\n\nfunction renderFrameConnSidebarShell(application, data) {\n  return `",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/components/application-sidebar-presentation.js",
-      "search": "  panel.innerHTML = renderFrameConnSidebarShell(application, data);\n  application.frameConnPresentationElement = $(panel);\n  activateFrameConnApplicationListeners(application, $(panel));",
-      "replace": "  panel.innerHTML = renderFrameConnSidebarShell(application, data);\n  installFrameConnSidebarWheelBoundary(panel);\n  application.frameConnPresentationElement = $(panel);\n  activateFrameConnApplicationListeners(application, $(panel));",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/ui-application.css",
-      "search": "#sidebar .frame-conn-sidebar-scroll {\n  height: 100%;\n  min-height: 0;\n  overflow-x: hidden;\n  overflow-y: auto;\n  scrollbar-gutter: stable;\n  background: #061014;\n}",
-      "replace": "#sidebar .frame-conn-sidebar-scroll {\n  height: 100%;\n  min-height: 0;\n  overflow-x: hidden;\n  overflow-y: auto;\n  overscroll-behavior: contain;\n  scrollbar-gutter: stable;\n  background: #061014;\n}",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
