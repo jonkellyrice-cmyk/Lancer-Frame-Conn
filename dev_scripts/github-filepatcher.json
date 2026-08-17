@@ -1,9 +1,20 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after Frame Helm sidebar reactor-meltdown telemetry row fix.",
+  "id": "frame-helm-sidebar-telemetry-semantic-order",
+  "description": "Reorder Frame Helm sidebar telemetry cards into health-oriented left and heat-oriented right columns while preserving window presentation and keeping reactor meltdown beneath the normal telemetry grid.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 1,
+    "allowed_paths": [
+      "styles/ui_application/ui-application.css"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "styles/ui_application/ui-application.css",
+      "search": "#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-meltdown {\n  grid-column: 1 / -1;\n  order: 1;\n  min-height: 3.25rem;\n  margin-top: 0.1rem;\n}\n",
+      "replace": "#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-meltdown {\n  grid-column: 1 / -1;\n  order: 9;\n  min-height: 3.25rem;\n  margin-top: 0.1rem;\n}\n\n/* Sidebar semantic telemetry order:\n   HP / HEAT\n   STRUCT / STRESS\n   ARM / BURN\n   O.SHLD / REP */\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid:not(.has-reactor-meltdown) > .frame-conn-stat-cell:nth-child(1) { order: 1; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid:not(.has-reactor-meltdown) > .frame-conn-stat-cell:nth-child(2) { order: 2; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid:not(.has-reactor-meltdown) > .frame-conn-stat-cell:nth-child(6) { order: 3; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid:not(.has-reactor-meltdown) > .frame-conn-stat-cell:nth-child(7) { order: 4; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid:not(.has-reactor-meltdown) > .frame-conn-stat-cell:nth-child(3) { order: 5; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid:not(.has-reactor-meltdown) > .frame-conn-stat-cell:nth-child(5) { order: 6; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid:not(.has-reactor-meltdown) > .frame-conn-stat-cell:nth-child(4) { order: 7; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid:not(.has-reactor-meltdown) > .frame-conn-stat-cell:nth-child(8) { order: 8; }\n\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown > .frame-conn-stat-cell:nth-child(2) { order: 1; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown > .frame-conn-stat-cell:nth-child(3) { order: 2; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown > .frame-conn-stat-cell:nth-child(7) { order: 3; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown > .frame-conn-stat-cell:nth-child(8) { order: 4; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown > .frame-conn-stat-cell:nth-child(4) { order: 5; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown > .frame-conn-stat-cell:nth-child(6) { order: 6; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown > .frame-conn-stat-cell:nth-child(5) { order: 7; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown > .frame-conn-stat-cell:nth-child(9) { order: 8; }\n",
+      "expected_occurrences": 1
+    }
+  ]
 }
