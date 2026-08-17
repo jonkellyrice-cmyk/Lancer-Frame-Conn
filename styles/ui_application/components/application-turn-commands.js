@@ -860,8 +860,12 @@ function onCommand(
     command ===
     "set-speed"
   ) {
+    const presentationElement =
+      application.getFrameConnInteractionElement?.() ??
+      application.element;
+
     const input =
-      application.element.find(
+      presentationElement.find(
         "[data-frame-conn-speed-input]"
       )[
         0

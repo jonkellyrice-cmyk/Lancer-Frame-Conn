@@ -15,7 +15,10 @@ function renderBudgetPanel(
   data,
   committedPlan =
     data?.committedPlan ??
-    null
+    null,
+  {
+    includeCommittedPlan = true
+  } = {}
 ) {
   if (
     !data.hasTurnState
@@ -123,7 +126,7 @@ function renderBudgetPanel(
       </div>
     </section>
 
-    ${renderCommittedPlan(committedPlan)}
+    ${includeCommittedPlan ? renderCommittedPlan(committedPlan) : ""}
   `;
 }
 

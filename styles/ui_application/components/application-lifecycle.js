@@ -106,6 +106,8 @@ function peekFrameConnApplication() {
 function isFrameConnApplicationRendered() {
   return Boolean(
     frameConnApplication
+      ?.isFrameConnPresentationRendered?.() ??
+    frameConnApplication
       ?.rendered
   );
 }
@@ -119,8 +121,7 @@ function renderFrameConnApplication(
   force = false
 ) {
   if (
-    !frameConnApplication
-      ?.rendered
+    !isFrameConnApplicationRendered()
   ) {
     return false;
   }
@@ -209,8 +210,7 @@ function frameConnApplicationDisplaysActor(
 ) {
   if (
     !actor ||
-    !frameConnApplication
-      ?.rendered
+    !isFrameConnApplicationRendered()
   ) {
     return false;
   }
