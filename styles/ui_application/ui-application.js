@@ -156,6 +156,15 @@ import {
 } from "./components/application-listeners.js";
 
 import {
+  getFrameConnPresentationMode,
+  setFrameConnPresentationModeValue,
+  renderFrameConnSidebarPresentation,
+  closeFrameConnSidebarPresentation,
+  isFrameConnSidebarPresentationActive,
+  handleFrameConnSidebarRender
+} from "./components/application-sidebar-presentation.js";
+
+import {
   ensureTurnPlan,
   beginTurnPlan,
   resetTurnPlan,
@@ -197,6 +206,37 @@ const MODULE_ID =
 
 const MODULE_TITLE =
   "Frame Conn";
+
+
+async function setFrameConnApplicationPresentationMode(
+  mode
+) {
+  const application =
+    peekFrameConnApplication();
+
+  const wasOpen =
+    Boolean(
+      application
+        ?.isFrameConnPresentationRendered?.()
+    );
+
+  if (wasOpen) {
+    await application.close();
+  }
+
+  const normalizedMode =
+    setFrameConnPresentationModeValue(
+      mode
+    );
+
+  if (wasOpen) {
+    application.render(
+      true
+    );
+  }
+
+  return normalizedMode;
+}
 
 
 /* ============================================================
@@ -266,6 +306,70 @@ export class FrameConnApplication
 
     this.manualStatsByUnit =
       new Map();
+
+    this.frameConnPresentationElement =
+      null;
+  }
+
+
+  render(
+    force = false,
+    options = {}
+  ) {
+    if (
+      getFrameConnPresentationMode() ===
+      "sidebar"
+    ) {
+      void renderFrameConnSidebarPresentation(
+        this,
+        {
+          activate:
+            Boolean(force) ||
+            isFrameConnSidebarPresentationActive()
+        }
+      );
+
+      return this;
+    }
+
+    return super.render(
+      force,
+      options
+    );
+  }
+
+
+  close(
+    options = {}
+  ) {
+    if (
+      getFrameConnPresentationMode() ===
+      "sidebar"
+    ) {
+      return closeFrameConnSidebarPresentation(
+        this
+      );
+    }
+
+    return super.close(
+      options
+    );
+  }
+
+
+  isFrameConnPresentationRendered() {
+    return Boolean(
+      this.rendered ||
+      isFrameConnSidebarPresentationActive()
+    );
+  }
+
+
+  getFrameConnInteractionElement() {
+    return (
+      this.frameConnPresentationElement ??
+      this.element
+    );
   }
 
 
@@ -816,6 +920,9 @@ export const frameConnApplicationUiFeature =
       displaysActor:
         frameConnApplicationDisplaysActor,
 
+      presentationMode:
+        getFrameConnPresentationMode,
+
       runtimeBindings:
         getFrameConnApplicationRuntimeBindings
     },
@@ -828,7 +935,10 @@ export const frameConnApplicationUiFeature =
         handleFrameConnApplicationDeleteToken,
 
       updateActor:
-        handleFrameConnApplicationUpdateActor
+        handleFrameConnApplicationUpdateActor,
+
+      renderSidebar:
+        handleFrameConnSidebarRender
     },
 
     lifecycle: {},
@@ -860,6 +970,12 @@ export const frameConnApplicationUiFeature =
 
       displaysActor:
         frameConnApplicationDisplaysActor,
+
+      setPresentationMode:
+        setFrameConnApplicationPresentationMode,
+
+      getPresentationMode:
+        getFrameConnPresentationMode,
 
       runtimeBindings:
         getFrameConnApplicationRuntimeBindings
