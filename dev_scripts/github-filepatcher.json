@@ -1,28 +1,9 @@
 {
   "schema_version": 2,
-  "id": "frame-helm-sidebar-toggle-and-icon-cleanup",
-  "description": "Make the Frame Helm sidebar icon toggle Foundry's sidebar closed when already active, and suppress inherited Chat pseudo-icon content so only the robot icon is shown.",
+  "id": "ready",
+  "description": "Neutral no-op state after Frame Helm sidebar toggle and icon cleanup.",
   "policy": {
-    "max_files_changed": 2,
-    "allowed_paths": [
-      "styles/ui_application/components/application-sidebar-presentation.js",
-      "styles/ui_application/ui-application.css"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/components/application-sidebar-presentation.js",
-      "search": "    button.addEventListener(\"click\", event => {\n      event.preventDefault();\n      event.stopImmediatePropagation();\n      void openFrameConnSidebarPresentation();\n    }, true);",
-      "replace": "    button.addEventListener(\"click\", event => {\n      event.preventDefault();\n      event.stopImmediatePropagation();\n\n      const foundrySidebar =\n        globalThis.ui?.sidebar ??\n        null;\n\n      if (\n        frameConnSidebarActive &&\n        foundrySidebar?.expanded !== false &&\n        typeof foundrySidebar?.collapse === \"function\"\n      ) {\n        foundrySidebar.collapse();\n        return;\n      }\n\n      void openFrameConnSidebarPresentation();\n    }, true);",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/ui-application.css",
-      "search": "#sidebar .frame-conn-sidebar-tab-button i {\n  pointer-events: none;\n}\n",
-      "replace": "#sidebar .frame-conn-sidebar-tab-button i {\n  pointer-events: none;\n}\n\n#sidebar .frame-conn-sidebar-tab-slot::before,\n#sidebar .frame-conn-sidebar-tab-slot::after,\n#sidebar .frame-conn-sidebar-tab-button::before,\n#sidebar .frame-conn-sidebar-tab-button::after {\n  display: none !important;\n  content: none !important;\n}\n",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
