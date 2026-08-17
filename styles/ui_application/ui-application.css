@@ -236,10 +236,33 @@
 
 #sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-meltdown {
   grid-column: 1 / -1;
-  order: 1;
+  order: 9;
   min-height: 3.25rem;
   margin-top: 0.1rem;
 }
+
+/* Sidebar semantic telemetry order:
+   HP / HEAT
+   STRUCT / STRESS
+   ARM / BURN
+   O.SHLD / REP */
+#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid:not(.has-reactor-meltdown) > .frame-conn-stat-cell:nth-child(1) { order: 1; }
+#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid:not(.has-reactor-meltdown) > .frame-conn-stat-cell:nth-child(2) { order: 2; }
+#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid:not(.has-reactor-meltdown) > .frame-conn-stat-cell:nth-child(6) { order: 3; }
+#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid:not(.has-reactor-meltdown) > .frame-conn-stat-cell:nth-child(7) { order: 4; }
+#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid:not(.has-reactor-meltdown) > .frame-conn-stat-cell:nth-child(3) { order: 5; }
+#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid:not(.has-reactor-meltdown) > .frame-conn-stat-cell:nth-child(5) { order: 6; }
+#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid:not(.has-reactor-meltdown) > .frame-conn-stat-cell:nth-child(4) { order: 7; }
+#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid:not(.has-reactor-meltdown) > .frame-conn-stat-cell:nth-child(8) { order: 8; }
+
+#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown > .frame-conn-stat-cell:nth-child(2) { order: 1; }
+#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown > .frame-conn-stat-cell:nth-child(3) { order: 2; }
+#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown > .frame-conn-stat-cell:nth-child(7) { order: 3; }
+#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown > .frame-conn-stat-cell:nth-child(8) { order: 4; }
+#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown > .frame-conn-stat-cell:nth-child(4) { order: 5; }
+#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown > .frame-conn-stat-cell:nth-child(6) { order: 6; }
+#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown > .frame-conn-stat-cell:nth-child(5) { order: 7; }
+#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown > .frame-conn-stat-cell:nth-child(9) { order: 8; }
 
 #sidebar .frame-conn-sidebar-shell .frame-conn-stat-value-group {
   display: grid;
