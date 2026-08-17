@@ -1,61 +1,9 @@
 {
   "schema_version": 2,
-  "id": "reenable-sitrep-phase-six-dm-ui",
-  "description": "Carefully restore the Phase 6 DM application to the active feature graph after repairing the unrelated Elevation/LOS init crash.",
+  "id": "ready",
+  "description": "Neutral no-op state after carefully re-enabling SITREP Phase 6 DM UI composition.",
   "policy": {
-    "max_files_changed": 2,
-    "allowed_paths": [
-      "scripts/dm_features/dm-feature-registry.js",
-      "scripts/runtime-orchestrator.js"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_file",
-      "path": "scripts/dm_features/dm-feature-registry.js",
-      "content": "/** Canonical DM-facing feature package declaration. Startup remains owned by runtime-orchestrator.js. */\n\nimport { FRAME_CONN_SITREP_FEATURES } from \"./sitreps/sitreps-feature-package.js\";\nimport { frameConnDmApplicationUiFeature } from \"../../styles/ui_dm/ui-dm-application.js\";\n\nexport const FRAME_CONN_DM_FEATURES = Object.freeze([\n  ...FRAME_CONN_SITREP_FEATURES,\n  frameConnDmApplicationUiFeature\n]);\n"
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "const frameConnSitrepsApi = frameConnFeatureRegistry.getApi(\"sitreps\");\nif (!frameConnSitrepsApi) throw new Error(\"Frame Conn | The registered SITREPs feature API could not be resolved.\");",
-      "replace": "const frameConnSitrepsApi = frameConnFeatureRegistry.getApi(\"sitreps\");\nif (!frameConnSitrepsApi) throw new Error(\"Frame Conn | The registered SITREPs feature API could not be resolved.\");\n\nconst frameConnDmApplicationApi = frameConnFeatureRegistry.getApi(\"ui-dm-application\");\nif (!frameConnDmApplicationApi) throw new Error(\"Frame Conn | The registered DM Application feature API could not be resolved.\");",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "      closeApplication:\n        (...args) =>\n          closeFrameConn(\n            ...args\n          ),\n\n      executeLockOnAuthorityRequest:",
-      "replace": "      closeApplication:\n        (...args) =>\n          closeFrameConn(\n            ...args\n          ),\n\n      openDmApplication:\n        (...args) =>\n          frameConnDmApplicationApi.open(\n            ...args\n          ),\n\n      executeLockOnAuthorityRequest:",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "  frameConnSitrepsApi.configureRuntime?.({\n    spatialOperations: Object.freeze({\n      resolveRegion: options => frameConnFoundryIntegrationApi.resolveSceneRegion(options),\n      tokenInsideRegion: (tokenDocument, region) => frameConnFoundryIntegrationApi.tokenInsideRegion(tokenDocument, region),\n      tokensAreAdjacent: async (firstToken, secondToken) => Boolean((await frameConnTargetingSpatialApi.queryAdjacency(firstToken, secondToken))?.adjacent)\n    }),\n    publishOutputIntent: intent => frameConnFoundryIntegrationApi.publishSemanticOutputIntent(intent),\n    canManageSitreps: () => frameConnFoundryIntegrationApi.isPrimaryGM()\n  });",
-      "replace": "  frameConnSitrepsApi.configureRuntime?.({\n    spatialOperations: Object.freeze({\n      resolveRegion: options => frameConnFoundryIntegrationApi.resolveSceneRegion(options),\n      tokenInsideRegion: (tokenDocument, region) => frameConnFoundryIntegrationApi.tokenInsideRegion(tokenDocument, region),\n      tokensAreAdjacent: async (firstToken, secondToken) => Boolean((await frameConnTargetingSpatialApi.queryAdjacency(firstToken, secondToken))?.adjacent)\n    }),\n    publishOutputIntent: intent => frameConnFoundryIntegrationApi.publishSemanticOutputIntent(intent),\n    canManageSitreps: () => frameConnFoundryIntegrationApi.isPrimaryGM()\n  });\n\n  frameConnDmApplicationApi.configureRuntime?.({\n    sitrepsApi: frameConnSitrepsApi,\n    foundryApi: frameConnFoundryIntegrationApi\n  });",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "      \"applicationOpening\",\n      \"applicationClosing\",\n      \"lockOnAuthorityExecution\"",
-      "replace": "      \"applicationOpening\",\n      \"applicationClosing\",\n      \"dmApplicationOpening\",\n      \"lockOnAuthorityExecution\"",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "  assertFrameConnRuntimeBindings(\"DM SITREPs\", frameConnSitrepsApi.diagnostics, [\"spatialConfigured\", \"outputPublisherConfigured\", \"authorizationConfigured\"]);",
-      "replace": "  assertFrameConnRuntimeBindings(\"DM SITREPs\", frameConnSitrepsApi.diagnostics, [\"spatialConfigured\", \"outputPublisherConfigured\", \"authorizationConfigured\"]);\n  assertFrameConnRuntimeBindings(\"DM Application\", frameConnDmApplicationApi.runtimeBindings, [\"sitreps\", \"foundry\"]);",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "      sitreps:\n        frameConnSitrepsApi,",
-      "replace": "      sitreps:\n        frameConnSitrepsApi,\n\n      dm: Object.freeze({\n        application: frameConnDmApplicationApi,\n        open: (...args) => frameConnDmApplicationApi.open(...args),\n        close: (...args) => frameConnDmApplicationApi.close(...args)\n      }),",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
