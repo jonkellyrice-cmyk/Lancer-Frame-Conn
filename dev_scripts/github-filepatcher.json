@@ -78,13 +78,6 @@
     {
       "type": "replace_text",
       "path": "scripts/foundry-integration-feature.js",
-      "search": "      requestLockOnApplication:\n        requestFrameConnLockOnApplication",
-      "replace": "      requestLockOnApplication:\n        requestFrameConnLockOnApplication,\n\n      publishSemanticOutputIntent:\n        publishFrameConnSemanticOutputIntent",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/foundry-integration-feature.js",
       "search": "      runtimeBindings:\n        getFrameConnFoundryIntegrationRuntimeBindings\n    },",
       "replace": "      runtimeBindings:\n        getFrameConnFoundryIntegrationRuntimeBindings,\n\n      primaryGM:\n        isFrameConnPrimaryGM,\n\n      resolveSceneRegion:\n        resolveFrameConnSceneRegion,\n\n      tokenInsideRegion:\n        frameConnTokenInsideRegion\n    },",
       "expected_occurrences": 1
