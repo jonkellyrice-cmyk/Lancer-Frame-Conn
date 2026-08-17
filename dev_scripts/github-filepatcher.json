@@ -1,20 +1,9 @@
 {
   "schema_version": 2,
-  "id": "frame-helm-sidebar-action-category-order",
-  "description": "Reorder only the Frame Helm sidebar action-category menu so Protocols appear first, followed by Quick Actions, Full Actions, Special Actions, Reactions, and Movement, without changing registry order or the preserved Window presentation.",
+  "id": "ready",
+  "description": "Neutral no-op state after Frame Helm sidebar action-category ordering.",
   "policy": {
-    "max_files_changed": 1,
-    "allowed_paths": [
-      "styles/ui_application/ui-application.css"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "styles/ui_application/ui-application.css",
-      "search": "#sidebar .frame-conn-sidebar-shell .frame-conn-budget-grid,\n#sidebar .frame-conn-sidebar-shell .frame-conn-action-category-grid,\n#sidebar .frame-conn-sidebar-shell .frame-conn-action-grid { grid-template-columns: 1fr; }\n",
-      "replace": "#sidebar .frame-conn-sidebar-shell .frame-conn-budget-grid,\n#sidebar .frame-conn-sidebar-shell .frame-conn-action-category-grid,\n#sidebar .frame-conn-sidebar-shell .frame-conn-action-grid { grid-template-columns: 1fr; }\n\n/* Sidebar action timing order:\n   Protocols -> Quick -> Full -> Special -> Reactions -> Movement. */\n#sidebar .frame-conn-sidebar-actions .frame-conn-category-button[data-frame-conn-category=\"protocol\"] { order: 1; }\n#sidebar .frame-conn-sidebar-actions .frame-conn-category-button[data-frame-conn-category=\"quick\"] { order: 2; }\n#sidebar .frame-conn-sidebar-actions .frame-conn-category-button[data-frame-conn-category=\"full\"] { order: 3; }\n#sidebar .frame-conn-sidebar-actions .frame-conn-category-button[data-frame-conn-category=\"special\"] { order: 4; }\n#sidebar .frame-conn-sidebar-actions .frame-conn-category-button[data-frame-conn-category=\"reaction\"] { order: 5; }\n#sidebar .frame-conn-sidebar-actions .frame-conn-category-button[data-frame-conn-category=\"movement\"] { order: 6; }\n",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
