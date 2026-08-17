@@ -1,9 +1,61 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after completing SITREP assimilation Phase 6 DM presentation.",
+  "id": "hotfix-deactivate-phase-six-dm-ui",
+  "description": "Contain the Phase 6 load regression by leaving the new DM UI implementation inert while restoring the previously working runtime composition graph.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 2,
+    "allowed_paths": [
+      "scripts/dm_features/dm-feature-registry.js",
+      "scripts/runtime-orchestrator.js"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_file",
+      "path": "scripts/dm_features/dm-feature-registry.js",
+      "content": "/** Canonical DM-facing feature package declaration. Startup remains owned by runtime-orchestrator.js. */\n\nimport { FRAME_CONN_SITREP_FEATURES } from \"./sitreps/sitreps-feature-package.js\";\n\nexport const FRAME_CONN_DM_FEATURES = Object.freeze([\n  ...FRAME_CONN_SITREP_FEATURES\n]);\n"
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "const frameConnSitrepsApi = frameConnFeatureRegistry.getApi(\"sitreps\");\nif (!frameConnSitrepsApi) throw new Error(\"Frame Conn | The registered SITREPs feature API could not be resolved.\");\n\nconst frameConnDmApplicationApi = frameConnFeatureRegistry.getApi(\"ui-dm-application\");\nif (!frameConnDmApplicationApi) throw new Error(\"Frame Conn | The registered DM Application feature API could not be resolved.\");",
+      "replace": "const frameConnSitrepsApi = frameConnFeatureRegistry.getApi(\"sitreps\");\nif (!frameConnSitrepsApi) throw new Error(\"Frame Conn | The registered SITREPs feature API could not be resolved.\");",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "      closeApplication:\n        (...args) =>\n          closeFrameConn(\n            ...args\n          ),\n\n      openDmApplication:\n        (...args) =>\n          frameConnDmApplicationApi.open(\n            ...args\n          ),\n\n      executeLockOnAuthorityRequest:",
+      "replace": "      closeApplication:\n        (...args) =>\n          closeFrameConn(\n            ...args\n          ),\n\n      executeLockOnAuthorityRequest:",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "\n  frameConnDmApplicationApi.configureRuntime?.({ sitrepsApi: frameConnSitrepsApi, foundryApi: frameConnFoundryIntegrationApi });\n",
+      "replace": "\n",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "      \"applicationOpening\",\n      \"applicationClosing\",\n      \"dmApplicationOpening\",\n      \"lockOnAuthorityExecution\"",
+      "replace": "      \"applicationOpening\",\n      \"applicationClosing\",\n      \"lockOnAuthorityExecution\"",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "  assertFrameConnRuntimeBindings(\"DM SITREPs\", frameConnSitrepsApi.diagnostics, [\"spatialConfigured\", \"outputPublisherConfigured\", \"authorizationConfigured\"]);\n  assertFrameConnRuntimeBindings(\"DM Application\", frameConnDmApplicationApi.runtimeBindings, [\"sitreps\", \"foundry\"]);",
+      "replace": "  assertFrameConnRuntimeBindings(\"DM SITREPs\", frameConnSitrepsApi.diagnostics, [\"spatialConfigured\", \"outputPublisherConfigured\", \"authorizationConfigured\"]);",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "      sitreps:\n        frameConnSitrepsApi,\n\n      dm: Object.freeze({ application: frameConnDmApplicationApi, open: (...args) => frameConnDmApplicationApi.open(...args), close: (...args) => frameConnDmApplicationApi.close(...args) }),",
+      "replace": "      sitreps:\n        frameConnSitrepsApi,",
+      "expected_occurrences": 1
+    }
+  ]
 }
