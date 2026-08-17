@@ -359,6 +359,9 @@ if (
 const frameConnSitrepsApi = frameConnFeatureRegistry.getApi("sitreps");
 if (!frameConnSitrepsApi) throw new Error("Frame Conn | The registered SITREPs feature API could not be resolved.");
 
+const frameConnDmApplicationApi = frameConnFeatureRegistry.getApi("ui-dm-application");
+if (!frameConnDmApplicationApi) throw new Error("Frame Conn | The registered DM Application feature API could not be resolved.");
+
 
 /* ------------------------------------------------------------
    Action execution
@@ -1578,6 +1581,12 @@ function configureFrameConnRuntimeBindings() {
             ...args
           ),
 
+      openDmApplication:
+        (...args) =>
+          frameConnDmApplicationApi.open(
+            ...args
+          ),
+
       executeLockOnAuthorityRequest:
         request =>
           executeFrameConnAuthoritativeLockOnRequest(
@@ -1845,6 +1854,11 @@ function configureFrameConnRuntimeBindings() {
     canManageSitreps: () => frameConnFoundryIntegrationApi.isPrimaryGM()
   });
 
+  frameConnDmApplicationApi.configureRuntime?.({
+    sitrepsApi: frameConnSitrepsApi,
+    foundryApi: frameConnFoundryIntegrationApi
+  });
+
 
 
   /**
@@ -1921,6 +1935,7 @@ function validateFrameConnRuntimeComposition() {
     [
       "applicationOpening",
       "applicationClosing",
+      "dmApplicationOpening",
       "lockOnAuthorityExecution"
     ]
   );
@@ -1990,6 +2005,7 @@ function validateFrameConnRuntimeComposition() {
 
   assertFrameConnRuntimeBindings("Targeting / Spatial", frameConnTargetingSpatialApi.runtimeBindings, ["queryAdapter"]);
   assertFrameConnRuntimeBindings("DM SITREPs", frameConnSitrepsApi.diagnostics, ["spatialConfigured", "outputPublisherConfigured", "authorizationConfigured"]);
+  assertFrameConnRuntimeBindings("DM Application", frameConnDmApplicationApi.runtimeBindings, ["sitreps", "foundry"]);
 
   return true;
 }
@@ -2182,6 +2198,12 @@ Hooks.once(
 
       sitreps:
         frameConnSitrepsApi,
+
+      dm: Object.freeze({
+        application: frameConnDmApplicationApi,
+        open: (...args) => frameConnDmApplicationApi.open(...args),
+        close: (...args) => frameConnDmApplicationApi.close(...args)
+      }),
 
 
       /* --------------------------------------------------------

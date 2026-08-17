@@ -1,7 +1,9 @@
 /** Canonical DM-facing feature package declaration. Startup remains owned by runtime-orchestrator.js. */
 
 import { FRAME_CONN_SITREP_FEATURES } from "./sitreps/sitreps-feature-package.js";
+import { frameConnDmApplicationUiFeature } from "../../styles/ui_dm/ui-dm-application.js";
 
 export const FRAME_CONN_DM_FEATURES = Object.freeze([
-  ...FRAME_CONN_SITREP_FEATURES
+  ...FRAME_CONN_SITREP_FEATURES,
+  frameConnDmApplicationUiFeature
 ]);
