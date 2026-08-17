@@ -13,7 +13,7 @@ import { calculateExtractionState } from "../extraction/extraction-state.js";
 import { resolveExtractionEncounterUpdate, resolveExtractionObjective } from "../extraction/extraction-resolution.js";
 import { calculateReconState } from "../recon/recon-state.js";
 import { recordReconScan, resolveReconEncounterUpdate } from "../recon/recon-resolution.js";
-import { buildConfiguredSitrepState, validateSitrepSetup } from "./sitrep-setup.js";
+import { buildConfiguredSitrepState, getDefaultSitrepObjective, validateSitrepSetup } from "./sitrep-setup.js";
 
 const runtime = { spatialOperations: null, publishOutputIntent: null, canManageSitreps: () => Boolean(globalThis.game?.user?.isGM) };
 
@@ -68,4 +68,4 @@ export async function handleSitrepCombatUpdate(combat, changes = {}) {
 export async function scanReconRegion(combat, regionId) { assertManagePermission(); return publishResultIntents(await recordReconScan(combat, regionId, requireSpatialOperations())); }
 export async function resolveEscortOutcome(combat, outcome) { assertManagePermission(); return publishResultIntents(await resolveEscortObjective(combat, outcome, requireSpatialOperations())); }
 export async function resolveExtractionOutcome(combat, outcome) { assertManagePermission(); return publishResultIntents(await resolveExtractionObjective(combat, outcome, requireSpatialOperations())); }
-export { validateSitrepSetup };
+export { getDefaultSitrepObjective, validateSitrepSetup };

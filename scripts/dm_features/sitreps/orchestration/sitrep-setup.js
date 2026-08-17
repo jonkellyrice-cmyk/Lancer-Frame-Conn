@@ -5,6 +5,20 @@ import { normalizeSitrepState } from "../state/sitrep-state-normalization.js";
 
 const DEFAULT_ROUND_LIMIT_BY_TYPE = Object.freeze({ control: 6, holdout: 6, extraction: 10, escort: 8, gauntlet: 8, recon: 8 });
 
+export const DEFAULT_SITREP_OBJECTIVE_BY_TYPE = Object.freeze({
+  gauntlet: "Secure the control zone by the end of the final round.",
+  control: "Control more objective zones than the enemy and finish with the higher score.",
+  holdout: "Defend the objective zone and finish the final round with at least 1 point remaining.",
+  escort: "Bring the objective safely to the extraction zone before the final round ends.",
+  extraction: "Retrieve the objective and safely extract it before the final round ends.",
+  recon: "Identify the true control zone and control it at the end of the final round."
+});
+
+export function getDefaultSitrepObjective(type) {
+  const normalizedType = stringValue(type, FRAME_CONN_SITREP_DEFAULT_STATE.type).toLowerCase();
+  return DEFAULT_SITREP_OBJECTIVE_BY_TYPE[normalizedType] ?? "";
+}
+
 function stringValue(value, fallback = "") { const normalized = String(value ?? "").trim(); return normalized || fallback; }
 function stringList(value) { if (!Array.isArray(value)) return []; return [...new Set(value.map(candidate => String(candidate ?? "").trim()).filter(Boolean))]; }
 
@@ -48,7 +62,7 @@ export function buildConfiguredSitrepState(request = {}, combat = null, existing
   const base = normalizeSitrepState(existingState ?? FRAME_CONN_SITREP_DEFAULT_STATE) ?? { ...FRAME_CONN_SITREP_DEFAULT_STATE };
   const configured = {
     ...base, type,
-    title: stringValue(request.title, base.title), objective: stringValue(request.objective, base.objective),
+    title: stringValue(request.title, base.title), objective: stringValue(request.objective, getDefaultSitrepObjective(type)),
     regionId: stringValue(request.regionId, type === "gauntlet" || type === "holdout" ? base.regionId : ""),
     controlRegionIds: type === "control" ? stringList(request.controlRegionIds) : [],
     escortObjectiveCombatantId: type === "escort" ? stringValue(request.escortObjectiveCombatantId) : "",

@@ -40,11 +40,19 @@ function setupRequest(form) {
   };
 }
 
-function synchronizeFields(root) {
+function synchronizeFields(root, sitrepsApi, { typeChanged = false } = {}) {
   const type = root.querySelector("[data-dm-sitrep-type]")?.value ?? "gauntlet";
   for (const field of root.querySelectorAll("[data-sitrep-field]")) {
     field.hidden = !FIELD_TYPES[field.dataset.sitrepField]?.has(type);
   }
+
+  const objective = root.querySelector("textarea[name=\"objective\"]");
+  const previousDefault = root.dataset.sitrepDefaultObjective ?? "";
+  const nextDefault = sitrepsApi?.defaultObjective?.(type) ?? "";
+  const currentObjective = objective?.value?.trim?.() ?? "";
+  const mayReplaceObjective = !currentObjective || (typeChanged && currentObjective === previousDefault);
+  if (objective && nextDefault && mayReplaceObjective) objective.value = nextDefault;
+  root.dataset.sitrepDefaultObjective = nextDefault;
   root.dataset.sitrepType = type;
 }
 
@@ -88,8 +96,8 @@ async function execute(application, command, control, sitrepsApi, foundryApi) {
 export function activateDmSitrepListeners(application, html, { sitrepsApi, foundryApi } = {}) {
   const root = html?.[0] ?? html;
   if (!root) return;
-  synchronizeFields(root);
-  root.querySelector("[data-dm-sitrep-type]")?.addEventListener("change", () => synchronizeFields(root));
+  synchronizeFields(root, sitrepsApi);
+  root.querySelector("[data-dm-sitrep-type]")?.addEventListener("change", () => synchronizeFields(root, sitrepsApi, { typeChanged: true }));
 
   for (const control of root.querySelectorAll("[data-dm-sitrep-command]")) {
     control.addEventListener("click", async event => {
