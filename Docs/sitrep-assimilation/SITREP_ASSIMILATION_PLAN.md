@@ -227,7 +227,7 @@ Exit criteria:
 - shared primitives are presentation-free and hook-free;
 - scenario modules can depend on canonical state + shared primitives without importing the legacy kernel.
 
-## Phase 3 — Assimilate scenario rules one SITREP at a time
+## Phase 3 — Assimilate scenario rules one SITREP at a time — COMPLETE
 
 The decomposition now lets each scenario migration use narrow source modules rather than mining the old tracker repeatedly.
 
@@ -285,7 +285,7 @@ legacy/decomposed/extraction-presentation.js       # semantics/evidence only
 legacy/decomposed/sitrep-encounter-resolution.js
 ```
 
-### 3F — Recon
+### 3F — Recon — COMPLETE
 
 Primary source:
 

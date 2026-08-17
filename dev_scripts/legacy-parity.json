@@ -64,7 +64,7 @@
       "id": "recon-scan-and-true-zone",
       "legacy_source": "lancer-sitrep-tracker.js#recordReconScan/evaluateSitrep(recon)",
       "new_owner": "dm_features/sitreps/recon",
-      "status": "NOT_MIGRATED",
+      "status": "MIGRATED_UNVERIFIED",
       "verification": ["exactly four configured zones validated", "true zone remains GM-secret before scan", "zone cannot be redundantly scanned", "scan result reveals true/false status", "final true-zone control outcome preserved"]
     },
     {
