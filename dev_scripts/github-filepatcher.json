@@ -1,14 +1,13 @@
 {
   "schema_version": 2,
   "id": "frame-helm-sidebar-shared-presentation-support",
-  "description": "Prepare existing Frame Helm budget, lifecycle, turn-command, and CSS surfaces to support either window or sidebar presentation without changing the current default window behavior.",
+  "description": "Prepare existing Frame Helm budget, lifecycle, and turn-command surfaces to support either window or sidebar presentation without changing the current default window behavior.",
   "policy": {
-    "max_files_changed": 4,
+    "max_files_changed": 3,
     "allowed_paths": [
       "styles/ui_application/components/application-budget-panel.js",
       "styles/ui_application/components/application-lifecycle.js",
-      "styles/ui_application/components/application-turn-commands.js",
-      "styles/ui_application/ui-application.css"
+      "styles/ui_application/components/application-turn-commands.js"
     ]
   },
   "operations": [
@@ -53,11 +52,6 @@
       "search": "    const input =\n      application.element.find(\n        \"[data-frame-conn-speed-input]\"\n      )[\n        0\n      ];",
       "replace": "    const presentationElement =\n      application.getFrameConnInteractionElement?.() ??\n      application.element;\n\n    const input =\n      presentationElement.find(\n        \"[data-frame-conn-speed-input]\"\n      )[\n        0\n      ];",
       "expected_occurrences": 1
-    },
-    {
-      "type": "append",
-      "path": "styles/ui_application/ui-application.css",
-      "content": "\n/* Frame Helm -- Foundry sidebar presentation */\n#sidebar .frame-conn-sidebar-tab-button i { pointer-events: none; }\n#sidebar .frame-conn-sidebar-surface { height: 100%; min-height: 0; overflow: hidden; color: var(--fc-text); background: var(--fc-bg-deep); }\n#sidebar .frame-conn-sidebar-scroll { height: 100%; min-height: 0; overflow-x: hidden; overflow-y: auto; scrollbar-gutter: stable; }\n#sidebar .frame-conn-sidebar-shell { min-width: 0; width: 100%; padding: 0.4rem; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-bar { width: 100%; min-width: 0; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.3rem; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-stat-cell { min-width: 0; }\n#sidebar .frame-conn-sidebar-unit, #sidebar .frame-conn-sidebar-budget, #sidebar .frame-conn-sidebar-actions, #sidebar .frame-conn-sidebar-plan { width: 100%; min-width: 0; margin-top: 0.45rem; }\n#sidebar .frame-conn-sidebar-shell .frame-conn-budget-grid, #sidebar .frame-conn-sidebar-shell .frame-conn-action-category-grid, #sidebar .frame-conn-sidebar-shell .frame-conn-action-grid { grid-template-columns: 1fr; }\n#sidebar .frame-conn-sidebar-shell button, #sidebar .frame-conn-sidebar-shell input, #sidebar .frame-conn-sidebar-shell select { max-width: 100%; }\n#sidebar .frame-conn-sidebar-actions, #sidebar .frame-conn-sidebar-plan { border-top: 1px solid var(--fc-cyan-muted); padding-top: 0.45rem; }\n#sidebar .frame-conn-sidebar-plan { padding-bottom: 0.75rem; }\n"
     }
   ]
 }
