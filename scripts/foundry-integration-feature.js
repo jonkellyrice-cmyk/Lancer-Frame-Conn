@@ -142,9 +142,6 @@ const MODULE_TITLE =
 const FRAME_CONN_SCENE_CONTROL_NAME =
   "lancer-frame-conn";
 
-const FRAME_CONN_DM_SCENE_CONTROL_NAME =
-  "lancer-frame-conn-dm";
-
 
 /* ============================================================
    Foundry integration runtime bindings
@@ -161,9 +158,6 @@ const frameConnFoundryIntegrationRuntimeBindings = {
     null,
 
   closeApplication:
-    null,
-
-  openDmApplication:
     null,
 
   executeLockOnAuthorityRequest:
@@ -257,11 +251,6 @@ function getFrameConnFoundryIntegrationRuntimeBindings() {
     applicationClosing:
       typeof frameConnFoundryIntegrationRuntimeBindings
         .closeApplication ===
-        "function",
-
-    dmApplicationOpening:
-      typeof frameConnFoundryIntegrationRuntimeBindings
-        .openDmApplication ===
         "function",
 
     lockOnAuthorityExecution:
@@ -669,19 +658,7 @@ function addFrameConnControlButton(
   }
 
 
-  let changed = insertFrameConnSceneControlTool(tokenControls);
-
-  if (game?.user?.isGM && typeof frameConnFoundryIntegrationRuntimeBindings.openDmApplication === "function") {
-    const tools = tokenControls.tools;
-    const exists = Array.isArray(tools) ? tools.some(tool => tool?.name === FRAME_CONN_DM_SCENE_CONTROL_NAME) : Boolean(tools?.[FRAME_CONN_DM_SCENE_CONTROL_NAME]);
-    if (!exists) {
-      const dmTool = { name: FRAME_CONN_DM_SCENE_CONTROL_NAME, title: "Frame Conn // Mission", icon: "fa-solid fa-map", order: Array.isArray(tools) ? tools.length : Object.keys(tools ?? {}).length, button: true, visible: true, onChange: () => frameConnFoundryIntegrationRuntimeBindings.openDmApplication() };
-      if (Array.isArray(tools)) tools.push(dmTool);
-      else { tokenControls.tools ??= {}; tokenControls.tools[FRAME_CONN_DM_SCENE_CONTROL_NAME] = dmTool; }
-      changed = true;
-    }
-  }
-  return changed;
+  return insertFrameConnSceneControlTool(tokenControls);
 }
 
 

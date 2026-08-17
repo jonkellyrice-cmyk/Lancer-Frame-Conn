@@ -1581,12 +1581,6 @@ function configureFrameConnRuntimeBindings() {
             ...args
           ),
 
-      openDmApplication:
-        (...args) =>
-          frameConnDmApplicationApi.open(
-            ...args
-          ),
-
       executeLockOnAuthorityRequest:
         request =>
           executeFrameConnAuthoritativeLockOnRequest(
@@ -1935,7 +1929,6 @@ function validateFrameConnRuntimeComposition() {
     [
       "applicationOpening",
       "applicationClosing",
-      "dmApplicationOpening",
       "lockOnAuthorityExecution"
     ]
   );

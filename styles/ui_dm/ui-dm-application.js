@@ -89,6 +89,38 @@ function handleCombatChange() {
   return renderFrameConnDmApplication(true);
 }
 
+function normalizeCombatTrackerRoot(html) {
+  return html?.[0] ?? html ?? null;
+}
+
+function handleCombatTrackerRender(_application, html) {
+  if (!game?.user?.isGM) return false;
+
+  const root = normalizeCombatTrackerRoot(html);
+  if (!root?.querySelector) return false;
+
+  if (root.querySelector(".lancer-frame-conn-dm-open-button")) {
+    return false;
+  }
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "lancer-frame-conn-dm-open-button";
+  button.innerHTML = '<i class="fas fa-bullseye"></i> Sitrep';
+  button.addEventListener("click", event => {
+    event.preventDefault();
+    openFrameConnDmApplication();
+  });
+
+  const target =
+    root.querySelector(".combat-tracker-header") ??
+    root.querySelector("header") ??
+    root;
+
+  target.prepend(button);
+  return true;
+}
+
 export const frameConnDmApplicationUiFeature = defineFrameConnFeature({
   id: "ui-dm-application",
   domain: "ui.dm",
@@ -104,6 +136,7 @@ export const frameConnDmApplicationUiFeature = defineFrameConnFeature({
   },
   queries: { getApplication: getFrameConnDmApplication, runtimeBindings },
   hooks: {
+    renderCombatTracker: handleCombatTrackerRender,
     updateCombat: handleCombatChange,
     createCombat: handleCombatChange,
     deleteCombat: handleCombatChange
