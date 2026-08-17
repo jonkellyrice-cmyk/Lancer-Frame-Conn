@@ -35,8 +35,8 @@ export function tokenInsideConfiguredSitrepRegion(operations, tokenDocument, reg
   return Boolean(operations.tokenInsideRegion(tokenDocument, region));
 }
 
-export function sitrepTokensAreAdjacent(operations, firstToken, secondToken) {
+export async function sitrepTokensAreAdjacent(operations, firstToken, secondToken) {
   assertSitrepSpatialOperations(operations);
   if (!firstToken || !secondToken) return false;
-  return Boolean(operations.tokensAreAdjacent(firstToken, secondToken));
+  return Boolean(await operations.tokensAreAdjacent(firstToken, secondToken));
 }

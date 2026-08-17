@@ -1168,6 +1168,86 @@ function getFrameConnFoundryIntegrationDiagnostics() {
 
 
 /* ============================================================
+   Foundry integration -- DM SITREP adapters and semantic output
+   ============================================================ */
+
+function isFrameConnPrimaryGM() {
+  if (!game?.user?.isGM) return false;
+  const activeGM = game?.users?.activeGM ?? null;
+  return !activeGM || activeGM.id === game.user.id;
+}
+
+function resolveFrameConnTokenDocument(value) {
+  const direct = value?.document ?? value?.metadata?.tokenDocument ?? value ?? null;
+  if (direct && (direct.documentName === "Token" || direct.constructor?.metadata?.name === "Token")) return direct;
+  const tokenUuid = value?.tokenUuid ?? value?.uuid ?? (typeof value === "string" ? value : null);
+  if (tokenUuid && typeof globalThis.fromUuidSync === "function") {
+    const resolved = globalThis.fromUuidSync(tokenUuid);
+    return resolved?.document ?? resolved ?? null;
+  }
+  return null;
+}
+
+function createFrameConnTargetingSpatialQueryAdapter() {
+  return Object.freeze({
+    async resolveEntity(reference) {
+      const tokenDocument = resolveFrameConnTokenDocument(reference);
+      if (!tokenDocument) return null;
+      return { kind: "token", actorUuid: tokenDocument.actor?.uuid ?? null, tokenUuid: tokenDocument.uuid ?? null, sceneId: tokenDocument.parent?.id ?? null, name: tokenDocument.name ?? null, size: Number(tokenDocument.width ?? tokenDocument.actor?.system?.size ?? 1), disposition: tokenDocument.disposition ?? null, metadata: { tokenDocument } };
+    },
+    async measureDistance(source, target) {
+      const sourceDocument = resolveFrameConnTokenDocument(source);
+      const targetDocument = resolveFrameConnTokenDocument(target);
+      if (!sourceDocument || !targetDocument || typeof sourceDocument.computeRange !== "function") return { distance: null, valid: false, metadata: { reason: "native-compute-range-unavailable" } };
+      try {
+        const distance = Number(sourceDocument.computeRange(targetDocument));
+        return { distance: Number.isFinite(distance) ? distance : null, valid: Number.isFinite(distance), metadata: { source: "lancer-token-document.computeRange" } };
+      } catch (error) {
+        console.warn("Frame Conn | Native spatial distance query failed.", error);
+        return { distance: null, valid: false, metadata: { reason: "native-compute-range-failed" } };
+      }
+    }
+  });
+}
+
+function resolveFrameConnSceneRegion({ combat, regionId } = {}) {
+  if (!regionId) return null;
+  const scene = combat?.scene ?? canvas?.scene ?? null;
+  return scene?.regions?.get?.(regionId) ?? null;
+}
+
+function frameConnTokenInsideRegion(tokenLike, region) {
+  const tokenDocument = resolveFrameConnTokenDocument(tokenLike);
+  if (!tokenDocument || !region) return false;
+  try { if (typeof tokenDocument.testInsideRegion === "function") return Boolean(tokenDocument.testInsideRegion(region)); }
+  catch (error) { console.warn("Frame Conn | Native Region membership query failed.", error); }
+  return Boolean(tokenDocument.regions?.has?.(region.id));
+}
+
+function escapeFrameConnSemanticOutputText(value) {
+  return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('\"', "&quot;").replaceAll("'", "&#039;");
+}
+
+function frameConnSitrepResultLabel(status) {
+  if (status === "victory") return "MISSION SUCCESS";
+  if (status === "defeat") return "MISSION FAILED";
+  if (status === "draw") return "NO VICTOR";
+  return "MISSION UPDATE";
+}
+
+async function publishFrameConnSemanticOutputIntent(intent) {
+  if (!intent || typeof intent !== "object" || !isFrameConnPrimaryGM()) return null;
+  let content = null;
+  if (intent.kind === "sitrep-started") content = `<div class="frame-conn-sitrep-chat"><strong>${escapeFrameConnSemanticOutputText(intent.title || "SITREP STARTED")}</strong><br>Final round: ${escapeFrameConnSemanticOutputText(intent.finalRound)}</div>`;
+  else if (intent.kind === "sitrep-ended") content = `<div class="frame-conn-sitrep-chat"><strong>MISSION ENDED</strong></div>`;
+  else if (intent.kind === "sitrep-result" || intent.kind === "sitrep-objective-result") content = `<div class="frame-conn-sitrep-chat"><strong>${frameConnSitrepResultLabel(intent.status)}</strong><br>${escapeFrameConnSemanticOutputText(intent.reason)}</div>`;
+  else if (intent.kind === "sitrep-round-scored") content = `<div class="frame-conn-sitrep-chat"><strong>CONTROL ROUND ${escapeFrameConnSemanticOutputText(intent.round)} SCORED</strong><br>Allies +${escapeFrameConnSemanticOutputText(intent.friendlyPoints)} / Hostiles +${escapeFrameConnSemanticOutputText(intent.hostilePoints)}<br>Total: ${escapeFrameConnSemanticOutputText(intent.scores?.friendly)} - ${escapeFrameConnSemanticOutputText(intent.scores?.hostile)}</div>`;
+  else if (intent.kind === "sitrep-recon-scan") content = `<div class="frame-conn-sitrep-chat"><strong>${escapeFrameConnSemanticOutputText(intent.regionName || "Control Zone")} SCANNED</strong><br>${intent.isTrueZone ? "TRUE CONTROL ZONE" : "FALSE CONTROL ZONE"}</div>`;
+  if (!content) return null;
+  return ChatMessage.create({ speaker: { alias: "MISSION CONTROL" }, content });
+}
+
+/* ============================================================
    Foundry integration feature definition
    ============================================================ */
 
@@ -1197,7 +1277,11 @@ export const frameConnFoundryIntegrationFeature =
       "foundry.settings",
       "foundry.scene-controls",
       "foundry.socket",
-      "foundry.lock-on-authority"
+      "foundry.lock-on-authority",
+      "foundry.spatial-query-adapter",
+      "foundry.regions",
+      "foundry.gm-authority",
+      "foundry.semantic-output"
     ],
 
     dependsOn: [
@@ -1318,6 +1402,21 @@ export const frameConnFoundryIntegrationFeature =
 
       requestLockOnApplication:
         requestFrameConnLockOnApplication,
+
+      createTargetingSpatialQueryAdapter:
+        createFrameConnTargetingSpatialQueryAdapter,
+
+      resolveSceneRegion:
+        resolveFrameConnSceneRegion,
+
+      tokenInsideRegion:
+        frameConnTokenInsideRegion,
+
+      isPrimaryGM:
+        isFrameConnPrimaryGM,
+
+      publishSemanticOutputIntent:
+        publishFrameConnSemanticOutputIntent,
 
       diagnostics:
         getFrameConnFoundryIntegrationDiagnostics,

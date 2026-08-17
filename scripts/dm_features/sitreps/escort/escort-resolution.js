@@ -10,7 +10,7 @@ function outcomeIntent(status, reason, event) {
 export async function resolveEscortEncounterUpdate(combat, changes = {}, spatialOperations) {
   const sitrep = readSitrepState(combat);
   if (!combat || !sitrep || sitrep.type !== "escort" || !sitrep.active || sitrep.status !== "active") return Object.freeze({ changed: false, state: sitrep, outputIntent: null });
-  const state = calculateEscortState(combat, sitrep, spatialOperations);
+  const state = await calculateEscortState(combat, sitrep, spatialOperations);
   if (!state.valid) return Object.freeze({ changed: false, state: sitrep, outputIntent: null });
 
   let patch = null;

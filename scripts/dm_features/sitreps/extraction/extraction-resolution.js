@@ -8,7 +8,7 @@ function objectiveIntent(event, status, reason) { return Object.freeze({ kind: "
 export async function resolveExtractionObjective(combat, outcome, spatialOperations) {
   const sitrep = readSitrepState(combat);
   if (!combat || !sitrep || sitrep.type !== "extraction") return Object.freeze({ changed: false, state: sitrep, outputIntent: null, rejection: "not-extraction" });
-  const state = calculateExtractionState(combat, sitrep, spatialOperations);
+  const state = await calculateExtractionState(combat, sitrep, spatialOperations);
   if (!state.valid) return Object.freeze({ changed: false, state: sitrep, derivedState: state, outputIntent: null, rejection: "invalid-objective-configuration" });
   if (outcome === "extracted") {
     if (!state.canExtractObjective) return Object.freeze({ changed: false, state: sitrep, derivedState: state, outputIntent: null, rejection: "objective-not-extractable" });
@@ -27,7 +27,7 @@ export async function resolveExtractionObjective(combat, outcome, spatialOperati
 export async function resolveExtractionEncounterUpdate(combat, changes = {}, spatialOperations) {
   const sitrep = readSitrepState(combat);
   if (!combat || !sitrep || sitrep.type !== "extraction" || !sitrep.active || sitrep.status !== "active") return Object.freeze({ changed: false, state: sitrep, outputIntent: null });
-  const state = calculateExtractionState(combat, sitrep, spatialOperations);
+  const state = await calculateExtractionState(combat, sitrep, spatialOperations);
   if (!state.valid) return Object.freeze({ changed: false, state: sitrep, outputIntent: null });
   if (state.objectiveDestroyed && sitrep.extractionStatus !== "destroyed") return resolveExtractionObjective(combat, "destroyed", spatialOperations);
   if (Object.prototype.hasOwnProperty.call(changes ?? {}, "round") && Number(changes.round) > Number(sitrep.finalRound)) {

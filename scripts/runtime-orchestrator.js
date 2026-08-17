@@ -151,6 +151,10 @@ import {
   FRAME_CONN_FOUNDRY_FEATURES
 } from "./foundry_features/foundry-feature-registry.js";
 
+import {
+  FRAME_CONN_DM_FEATURES
+} from "./dm_features/dm-feature-registry.js";
+
 
 /* ============================================================
    Module identity
@@ -175,7 +179,8 @@ export const frameConnFeatureRegistry =
 frameConnFeatureRegistry.registerMany([
   ...FRAME_CONN_PLAYER_FEATURES,
   ...FRAME_CONN_RULES_FEATURES,
-  ...FRAME_CONN_FOUNDRY_FEATURES
+  ...FRAME_CONN_FOUNDRY_FEATURES,
+  ...FRAME_CONN_DM_FEATURES
 ]);
 
 frameConnFeatureRegistry
@@ -345,6 +350,14 @@ if (
     "Frame Conn | The registered Foundry Integration feature API could not be resolved."
   );
 }
+
+
+/* ------------------------------------------------------------
+   DM SITREPs
+   ------------------------------------------------------------ */
+
+const frameConnSitrepsApi = frameConnFeatureRegistry.getApi("sitreps");
+if (!frameConnSitrepsApi) throw new Error("Frame Conn | The registered SITREPs feature API could not be resolved.");
 
 
 /* ------------------------------------------------------------
@@ -1818,6 +1831,21 @@ function configureFrameConnRuntimeBindings() {
     });
 
 
+  frameConnTargetingSpatialApi.configureRuntime?.({
+    queryAdapter: frameConnFoundryIntegrationApi.createTargetingSpatialQueryAdapter()
+  });
+
+  frameConnSitrepsApi.configureRuntime?.({
+    spatialOperations: Object.freeze({
+      resolveRegion: options => frameConnFoundryIntegrationApi.resolveSceneRegion(options),
+      tokenInsideRegion: (tokenDocument, region) => frameConnFoundryIntegrationApi.tokenInsideRegion(tokenDocument, region),
+      tokensAreAdjacent: async (firstToken, secondToken) => Boolean((await frameConnTargetingSpatialApi.queryAdjacency(firstToken, secondToken))?.adjacent)
+    }),
+    publishOutputIntent: intent => frameConnFoundryIntegrationApi.publishSemanticOutputIntent(intent),
+    canManageSitreps: () => frameConnFoundryIntegrationApi.isPrimaryGM()
+  });
+
+
   /**
    * Lifecycle and Targeting / Spatial are now canonical registered
    * features and are resolved here through the registry like every
@@ -1958,6 +1986,9 @@ function validateFrameConnRuntimeComposition() {
       "canonicalActionExecution"
     ]
   );
+
+  assertFrameConnRuntimeBindings("Targeting / Spatial", frameConnTargetingSpatialApi.runtimeBindings, ["queryAdapter"]);
+  assertFrameConnRuntimeBindings("DM SITREPs", frameConnSitrepsApi.diagnostics, ["spatialConfigured", "outputPublisherConfigured", "authorizationConfigured"]);
 
   return true;
 }
@@ -2147,6 +2178,9 @@ Hooks.once(
 
       targetingSpatial:
         frameConnTargetingSpatialApi,
+
+      sitreps:
+        frameConnSitrepsApi,
 
 
       /* --------------------------------------------------------

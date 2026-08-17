@@ -359,9 +359,11 @@ Exit criteria:
 - no canonical SITREP module imports `sitrep-program.js`;
 - runtime-authority audit identifies only Frame Conn's normal runtime authority in active code.
 
-## Phase 5 — Register the DM SITREP feature package
+## Phase 5 — Register the DM SITREP feature package — COMPLETE
 
-Only once Phase 4 is self-contained and runtime-safe:
+Phase 5 is now composed through the authoritative runtime only. `FRAME_CONN_DM_FEATURES` contributes the canonical SITREP feature to the shared registry; the SITREP feature declares its `updateCombat` hook through the feature contract; runtime composition supplies primary-GM authority, semantic output publishing, native Region membership, and Targeting/Spatial adjacency. The Targeting/Spatial query adapter uses native Lancer `TokenDocument.computeRange` for footprint-aware range facts. No legacy SITREP startup shell or parallel `game.lancerSitrep` authority is active.
+
+Completed registration work:
 
 - make `sitreps-feature-package.js` export real feature definitions;
 - add SITREPs to `dm-feature-registry.js`;

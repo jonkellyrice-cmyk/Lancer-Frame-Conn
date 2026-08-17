@@ -4,7 +4,7 @@ import { combatantById, combatantIsDefeated, collectStandingSitrepCombatants, SI
 import { currentSitrepRound, sitrepRoundsRemaining } from "../shared/sitrep-round-primitives.js";
 import { resolveConfiguredSitrepRegion, sitrepTokensAreAdjacent, tokenInsideConfiguredSitrepRegion } from "../shared/sitrep-spatial-delegation.js";
 
-export function calculateExtractionState(combat, sitrep, spatialOperations) {
+export async function calculateExtractionState(combat, sitrep, spatialOperations) {
   const state = { valid: false, currentRound: currentSitrepRound(combat, sitrep), roundsRemaining: sitrepRoundsRemaining(combat, sitrep), objectiveName: "Missing Objective", objectiveDestroyed: false, objectiveExtracted: sitrep?.extractionStatus === "extracted", objectiveInExtraction: false, friendlyAdjacent: 0, hostileAdjacent: 0, friendlyInExtractionZone: 0, canExtractObjective: false };
   if (!combat || !sitrep || sitrep.type !== "extraction") return state;
   const extractionRegion = resolveConfiguredSitrepRegion(spatialOperations, combat, sitrep.extractionZoneRegionId);
@@ -19,7 +19,7 @@ export function calculateExtractionState(combat, sitrep, spatialOperations) {
   for (const entry of collectStandingSitrepCombatants(combat)) {
     if (entry.token.id === objectiveToken.id) continue;
     if (entry.faction === SITREP_FACTIONS.FRIENDLY && tokenInsideConfiguredSitrepRegion(spatialOperations, entry.token, extractionRegion)) state.friendlyInExtractionZone += 1;
-    if (!sitrepTokensAreAdjacent(spatialOperations, entry.token, objectiveToken)) continue;
+    if (!await sitrepTokensAreAdjacent(spatialOperations, entry.token, objectiveToken)) continue;
     if (entry.faction === SITREP_FACTIONS.FRIENDLY) state.friendlyAdjacent += 1;
     if (entry.faction === SITREP_FACTIONS.HOSTILE) state.hostileAdjacent += 1;
   }

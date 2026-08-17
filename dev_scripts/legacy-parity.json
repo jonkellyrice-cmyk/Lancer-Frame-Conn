@@ -84,15 +84,15 @@
     {
       "id": "spatial-region-membership",
       "legacy_source": "sitrep-kernel.js#tokenInsideRegion/controlRegionsFor/regionFor",
-      "new_owner": "shared targeting-spatial/Foundry region service via SITREP spatial delegation",
-      "status": "PARTIALLY_MIGRATED",
+      "new_owner": "Foundry integration Region adapter via SITREP spatial delegation",
+      "status": "MIGRATED_UNVERIFIED",
       "verification": ["token footprint/region membership behavior validated on Foundry 13", "large tokens handled correctly", "SITREP domain does not directly own generic spatial implementation"]
     },
     {
       "id": "spatial-adjacency",
       "legacy_source": "sitrep-kernel.js#tokensAreAdjacent",
-      "new_owner": "existing Frame Conn targeting/spatial service via SITREP spatial delegation",
-      "status": "PARTIALLY_MIGRATED",
+      "new_owner": "Frame Conn targeting/spatial query service backed by native Lancer TokenDocument.computeRange via SITREP spatial delegation",
+      "status": "MIGRATED_UNVERIFIED",
       "verification": ["hex adjacency correct", "Size 2+ footprints correct", "SITREP code delegates rather than duplicating adjacency"]
     },
     {
