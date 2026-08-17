@@ -2067,13 +2067,6 @@ Hooks.once(
     frameConnFoundryIntegrationApi
       .registerSettings?.();
 
-    void frameConnApplicationApi
-      .setPresentationMode?.(
-        frameConnFoundryIntegrationApi
-          .getPresentationMode?.() ??
-        "window"
-      );
-
 
     /**
      * Actions retain synchronous catalog initialization during
@@ -2109,6 +2102,13 @@ Hooks.once(
 Hooks.once(
   "ready",
   async () => {
+    await frameConnApplicationApi
+      .setPresentationMode?.(
+        frameConnFoundryIntegrationApi
+          .getPresentationMode?.() ??
+        "window"
+      );
+
     frameConnElevationLosApi.ready?.();
 
     frameConnFoundryIntegrationApi

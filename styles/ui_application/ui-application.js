@@ -937,7 +937,7 @@ export const frameConnApplicationUiFeature =
       updateActor:
         handleFrameConnApplicationUpdateActor,
 
-      renderSidebar:
+      renderApplicationV2:
         handleFrameConnSidebarRender
     },
 
