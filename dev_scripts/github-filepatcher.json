@@ -1,9 +1,27 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after adding canonical per-SITREP default objective text.",
+  "id": "sitrep-live-spatial-refresh",
+  "description": "Refresh the embedded SITREP Mission panel immediately when token or configured Region spatial state changes, without duplicating zone bookkeeping.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 1,
+    "allowed_paths": [
+      "styles/ui_dm/ui-dm-application.js"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/ui-dm-application.js",
+      "search": "function handleCombatChange() {\n  return renderFrameConnDmApplication();\n}\n",
+      "replace": "function handleCombatChange() {\n  return renderFrameConnDmApplication();\n}\n\nconst SPATIAL_TOKEN_CHANGE_KEYS = Object.freeze([\"x\", \"y\", \"elevation\", \"width\", \"height\"]);\n\nfunction tokenSpatialStateChanged(changes = {}) {\n  return SPATIAL_TOKEN_CHANGE_KEYS.some(key => Object.prototype.hasOwnProperty.call(changes ?? {}, key));\n}\n\nfunction handleTokenSpatialUpdate(_tokenDocument, changes = {}) {\n  if (!tokenSpatialStateChanged(changes)) return null;\n  return renderFrameConnDmApplication();\n}\n\nfunction handleSpatialDocumentChange() {\n  return renderFrameConnDmApplication();\n}\n",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/ui-dm-application.js",
+      "search": "  hooks: {\n    renderCombatTracker: handleCombatTrackerRender,\n    updateCombat: handleCombatChange,\n    createCombat: handleCombatChange,\n    deleteCombat: handleCombatChange\n  },",
+      "replace": "  hooks: {\n    renderCombatTracker: handleCombatTrackerRender,\n    updateCombat: handleCombatChange,\n    createCombat: handleCombatChange,\n    deleteCombat: handleCombatChange,\n    updateToken: handleTokenSpatialUpdate,\n    createToken: handleSpatialDocumentChange,\n    deleteToken: handleSpatialDocumentChange,\n    createRegion: handleSpatialDocumentChange,\n    updateRegion: handleSpatialDocumentChange,\n    deleteRegion: handleSpatialDocumentChange\n  },",
+      "expected_occurrences": 1
+    }
+  ]
 }
