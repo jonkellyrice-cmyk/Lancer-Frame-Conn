@@ -5,6 +5,7 @@ import { getFrameConnApplication } from "./application-lifecycle.js";
 
 const FRAME_CONN_SIDEBAR_TAB_ID = "frame-conn";
 const FRAME_CONN_SIDEBAR_BUTTON_CLASS = "frame-conn-sidebar-tab-button";
+const FRAME_CONN_SIDEBAR_SLOT_CLASS = "frame-conn-sidebar-tab-slot";
 const FRAME_CONN_SIDEBAR_PANEL_CLASS = "frame-conn-sidebar-surface";
 
 let frameConnPresentationMode = "window";
@@ -36,7 +37,16 @@ function findNativeSidebarTabButton(navigation) {
 }
 
 function removeFrameConnSidebarChrome(root = frameConnSidebarRoot) {
-  root?.querySelector?.(`.${FRAME_CONN_SIDEBAR_BUTTON_CLASS}`)?.remove();
+  const slot =
+    root?.querySelector?.(`.${FRAME_CONN_SIDEBAR_SLOT_CLASS}`) ??
+    null;
+
+  if (slot) {
+    slot.remove();
+  } else {
+    root?.querySelector?.(`.${FRAME_CONN_SIDEBAR_BUTTON_CLASS}`)?.remove();
+  }
+
   root?.querySelector?.(`.${FRAME_CONN_SIDEBAR_PANEL_CLASS}`)?.remove();
   frameConnSidebarActive = false;
 }
@@ -81,15 +91,13 @@ function ensureFrameConnSidebarChrome(root) {
   const nativeButton = findNativeSidebarTabButton(navigation);
   if (!navigation || !content || !nativeButton) return null;
 
-  const nativeTabButtonStack =
+  const nativeTabSlot =
     nativeButton.parentElement ??
-    navigation;
-
-  const nativeCollapseControl =
-    nativeTabButtonStack.querySelector?.(
-      '[data-action="toggleState"], [data-action="toggleExpanded"], .sidebar-collapse, .collapse'
-    ) ??
     null;
+
+  const nativeTabRail =
+    nativeTabSlot?.parentElement ??
+    navigation;
 
   let button = root.querySelector(`.${FRAME_CONN_SIDEBAR_BUTTON_CLASS}`);
   if (!button) {
@@ -103,17 +111,20 @@ function ensureFrameConnSidebarChrome(root) {
     button.innerHTML = '<i class="fas fa-robot"></i>';
 
     if (
-      nativeCollapseControl &&
-      nativeCollapseControl.parentElement === nativeTabButtonStack
+      nativeTabSlot &&
+      nativeTabRail
     ) {
-      nativeTabButtonStack.insertBefore(
-        button,
-        nativeCollapseControl
-      );
+      const frameConnTabSlot =
+        nativeTabSlot.cloneNode(false);
+
+      frameConnTabSlot.removeAttribute?.("id");
+      frameConnTabSlot.classList?.remove?.("active");
+      frameConnTabSlot.classList?.add?.(FRAME_CONN_SIDEBAR_SLOT_CLASS);
+      frameConnTabSlot.removeAttribute?.("data-tab");
+      frameConnTabSlot.appendChild(button);
+      nativeTabRail.appendChild(frameConnTabSlot);
     } else {
-      nativeTabButtonStack.appendChild(
-        button
-      );
+      navigation.appendChild(button);
     }
 
     button.addEventListener("click", event => {
@@ -141,6 +152,47 @@ function ensureFrameConnSidebarChrome(root) {
   return panel;
 }
 
+function installFrameConnSidebarWheelBoundary(panel) {
+  const scrollSurface =
+    panel?.querySelector?.(".frame-conn-sidebar-scroll") ??
+    null;
+
+  if (
+    !scrollSurface ||
+    scrollSurface.dataset.frameConnWheelBoundary === "true"
+  ) {
+    return false;
+  }
+
+  scrollSurface.dataset.frameConnWheelBoundary =
+    "true";
+
+  scrollSurface.addEventListener(
+    "wheel",
+    event => {
+      const deltaScale =
+        event.deltaMode === 1
+          ? 16
+          : event.deltaMode === 2
+            ? Math.max(scrollSurface.clientHeight, 1)
+            : 1;
+
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+
+      scrollSurface.scrollTop +=
+        event.deltaY *
+        deltaScale;
+    },
+    {
+      passive: false
+    }
+  );
+
+  return true;
+}
+
 function renderFrameConnSidebarShell(application, data) {
   return `
     <div class="frame-conn-sidebar-scroll">
@@ -164,6 +216,7 @@ async function renderFrameConnSidebarPresentation(application, { activate = fram
 
   const data = await application.getData();
   panel.innerHTML = renderFrameConnSidebarShell(application, data);
+  installFrameConnSidebarWheelBoundary(panel);
   application.frameConnPresentationElement = $(panel);
   activateFrameConnApplicationListeners(application, $(panel));
 
