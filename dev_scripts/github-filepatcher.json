@@ -1,9 +1,41 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after completing SITREP assimilation Phase 2 shared domain primitives.",
+  "id": "sitrep-phase-three-a-gauntlet-domain",
+  "description": "Assimilate Gauntlet derived state and encounter resolution onto canonical SITREP state plus shared Phase 2 primitives, without runtime registration or presentation effects.",
+  "planning_goal": "Complete SITREP Phase 3A Gauntlet. Create a canonical Gauntlet derived-state module that preserves weighted standing counts, weighted control-zone counts, enemy-elimination victory, unassailable-control victory, and final-round zone-control semantics. Delegate Region resolution/membership through the Phase 2 SITREP spatial delegation boundary and reuse canonical combatant/control/round primitives. Create a canonical Gauntlet resolution module that reads and mutates only through the Phase 1 SITREP state service, returns semantic output intents instead of creating ChatMessage or DOM effects, and performs no Hooks/runtime registration. Do not import the legacy SITREP kernel or tracker. Mark Gauntlet resolution MIGRATED_UNVERIFIED and Phase 3A complete only.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 4,
+    "allowed_paths": [
+      "scripts/dm_features/sitreps/gauntlet/gauntlet-state.js",
+      "scripts/dm_features/sitreps/gauntlet/gauntlet-resolution.js",
+      "dev_scripts/legacy-parity.json",
+      "Docs/sitrep-assimilation/SITREP_ASSIMILATION_PLAN.md"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "create_file",
+      "path": "scripts/dm_features/sitreps/gauntlet/gauntlet-state.js",
+      "content": "/** Canonical Gauntlet battlefield-state derivation. Presentation-free and hook-free. */\n\nimport { collectStandingSitrepCombatants, SITREP_FACTIONS } from \"../shared/sitrep-combatant-primitives.js\";\nimport { controllerFromCounts } from \"../shared/sitrep-control-primitives.js\";\nimport { currentSitrepRound, sitrepRoundsRemaining } from \"../shared/sitrep-round-primitives.js\";\nimport { resolveConfiguredSitrepRegion, tokenInsideConfiguredSitrepRegion } from \"../shared/sitrep-spatial-delegation.js\";\nimport { gauntletControlWeight } from \"./gauntlet-control-weight.js\";\n\nexport function createEmptyGauntletState(combat, sitrep) {\n  return {\n    valid: false,\n    currentRound: currentSitrepRound(combat, sitrep),\n    roundsRemaining: sitrepRoundsRemaining(combat, sitrep),\n    friendlyStanding: 0,\n    hostileStanding: 0,\n    friendlyInZone: 0,\n    hostileInZone: 0,\n    controller: \"none\",\n    regionName: \"Missing Region\",\n    immediateVictory: false,\n    immediateReason: \"\"\n  };\n}\n\nexport function calculateGauntletState(combat, sitrep, spatialOperations) {\n  const state = createEmptyGauntletState(combat, sitrep);\n  if (!combat || !sitrep || sitrep.type !== \"gauntlet\") return state;\n\n  const standingCombatants = collectStandingSitrepCombatants(combat, {\n    controlWeightForActor: gauntletControlWeight\n  });\n\n  for (const entry of standingCombatants) {\n    if (entry.faction === SITREP_FACTIONS.FRIENDLY) state.friendlyStanding += entry.controlWeight;\n    if (entry.faction === SITREP_FACTIONS.HOSTILE) state.hostileStanding += entry.controlWeight;\n  }\n\n  const region = resolveConfiguredSitrepRegion(spatialOperations, combat, sitrep.regionId);\n  if (!region) return state;\n\n  state.valid = true;\n  state.regionName = region.name || \"Control Zone\";\n\n  for (const entry of standingCombatants) {\n    if (!tokenInsideConfiguredSitrepRegion(spatialOperations, entry.token, region)) continue;\n    if (entry.faction === SITREP_FACTIONS.FRIENDLY) state.friendlyInZone += entry.controlWeight;\n    if (entry.faction === SITREP_FACTIONS.HOSTILE) state.hostileInZone += entry.controlWeight;\n  }\n\n  state.controller = controllerFromCounts(state.friendlyInZone, state.hostileInZone);\n\n  if (sitrep.rules?.enemyElimination && state.hostileStanding === 0 && state.friendlyStanding > 0) {\n    state.immediateVictory = true;\n    state.immediateReason = \"All hostile units have been defeated.\";\n  } else if (sitrep.rules?.unassailableControl && state.friendlyInZone > 0 && state.friendlyInZone > state.hostileStanding) {\n    state.immediateVictory = true;\n    state.immediateReason = \"The allies already in the zone outnumber every surviving hostile unit.\";\n  }\n\n  return state;\n}\n"
+    },
+    {
+      "type": "create_file",
+      "path": "scripts/dm_features/sitreps/gauntlet/gauntlet-resolution.js",
+      "content": "/** Canonical Gauntlet encounter transition semantics. No hooks, chat, or DOM ownership. */\n\nimport { readSitrepState, updateSitrepState } from \"../state/sitrep-state-service.js\";\nimport { calculateGauntletState } from \"./gauntlet-state.js\";\n\nfunction resultIntent(status, reason) {\n  return Object.freeze({\n    kind: \"sitrep-result\",\n    sitrepType: \"gauntlet\",\n    status,\n    reason\n  });\n}\n\nexport function deriveGauntletResolution(combat, sitrep, changes, spatialOperations) {\n  if (!combat || !sitrep || sitrep.type !== \"gauntlet\" || !sitrep.active || sitrep.status !== \"active\") return null;\n\n  const state = calculateGauntletState(combat, sitrep, spatialOperations);\n  if (!state.valid) return null;\n\n  if (state.immediateVictory) {\n    return { status: \"victory\", reason: state.immediateReason, state };\n  }\n\n  const roundChanged = Object.prototype.hasOwnProperty.call(changes ?? {}, \"round\");\n  if (!roundChanged) return null;\n\n  const previousRound = Number(combat.previous?.round ?? 0);\n  const finalRound = Number(sitrep.finalRound);\n  const currentRound = Number(combat.round);\n  const advancedPastFinalRound = currentRound > finalRound;\n  const fallbackPastFinalRound = previousRound === finalRound && currentRound !== previousRound;\n  if (!advancedPastFinalRound && !fallbackPastFinalRound) return null;\n\n  const won = Boolean(\n    sitrep.rules?.finalZoneControl &&\n    state.friendlyInZone > state.hostileInZone &&\n    state.friendlyInZone > 0\n  );\n\n  const reason = won\n    ? `At the end of round ${sitrep.finalRound}, allied units controlled the zone ${state.friendlyInZone} to ${state.hostileInZone}.`\n    : `At the end of round ${sitrep.finalRound}, allied units did not control the zone (${state.friendlyInZone} allied, ${state.hostileInZone} hostile).`;\n\n  return { status: won ? \"victory\" : \"defeat\", reason, state };\n}\n\nexport async function resolveGauntletEncounterUpdate(combat, changes = {}, spatialOperations) {\n  const sitrep = readSitrepState(combat);\n  const resolution = deriveGauntletResolution(combat, sitrep, changes, spatialOperations);\n  if (!resolution) return Object.freeze({ changed: false, state: sitrep, outputIntent: null });\n\n  const nextState = await updateSitrepState({\n    status: resolution.status,\n    resultReason: resolution.reason\n  }, combat);\n\n  return Object.freeze({\n    changed: true,\n    state: nextState,\n    derivedState: resolution.state,\n    outputIntent: resultIntent(resolution.status, resolution.reason)\n  });\n}\n"
+    },
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/legacy-parity.json",
+      "search": "    {\n      \"id\": \"control-zone-scoring\",",
+      "replace": "    {\n      \"id\": \"gauntlet-resolution\",\n      \"legacy_source\": \"sitrep-state-composition.js + lancer-sitrep-tracker.js#evaluateSitrep(gauntlet)\",\n      \"new_owner\": \"dm_features/sitreps/gauntlet\",\n      \"status\": \"MIGRATED_UNVERIFIED\",\n      \"verification\": [\"weighted standing and zone control preserved\", \"enemy-elimination victory preserved\", \"unassailable-control victory preserved\", \"final-round zone-control victory/defeat preserved\", \"result mutation uses canonical SITREP state service\", \"output is represented as semantic intent rather than direct chat ownership\"]\n    },\n    {\n      \"id\": \"control-zone-scoring\",",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "Docs/sitrep-assimilation/SITREP_ASSIMILATION_PLAN.md",
+      "search": "### 3A — Gauntlet",
+      "replace": "### 3A — Gauntlet — COMPLETE",
+      "expected_occurrences": 1
+    }
+  ]
 }
