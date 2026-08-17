@@ -1,9 +1,20 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after anchoring the embedded SITREP Mission panel to the bottom of Foundry's Combat Tracker.",
+  "id": "sitrep-combat-tracker-footer-offset",
+  "description": "Move the embedded SITREP Mission panel above Foundry's native Combat Tracker footer controls so previous round, End Encounter, and next round remain visible.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 1,
+    "allowed_paths": [
+      "styles/ui_dm/ui-dm-application.css"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/ui-dm-application.css",
+      "search": "  bottom: 0;\n  z-index: 20;",
+      "replace": "  bottom: 56px;\n  z-index: 20;",
+      "expected_occurrences": 1
+    }
+  ]
 }
