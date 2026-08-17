@@ -1,4 +1,4 @@
-/** Canonical GM-facing Frame Conn // Mission Foundry Application. */
+/** Canonical GM-facing Frame Conn // Mission panel embedded in Foundry's Combat Tracker. */
 
 import { defineFrameConnFeature } from "../../scripts/feature-contract.js";
 import { buildDmSitrepViewModel } from "./components/dm-sitrep-view-model.js";
@@ -6,7 +6,8 @@ import { renderDmSitrepApplication } from "./components/dm-sitrep-presentation.j
 import { activateDmSitrepListeners } from "./components/dm-sitrep-listeners.js";
 
 const runtime = { sitrepsApi: null, foundryApi: null };
-let dmApplication = null;
+let combatTrackerRoot = null;
+let embeddedPanelVisible = false;
 
 function configureRuntime({ sitrepsApi, foundryApi } = {}) {
   if (sitrepsApi !== undefined) runtime.sitrepsApi = sitrepsApi;
@@ -20,104 +21,130 @@ function runtimeBindings() {
 
 function assertRuntime() {
   if (!runtime.sitrepsApi || !runtime.foundryApi) {
-    throw new Error("Frame Conn DM Application runtime has not been configured.");
+    throw new Error("Frame Conn DM panel runtime has not been configured.");
   }
-}
-
-export class FrameConnDmApplication extends Application {
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      id: "lancer-frame-conn-dm",
-      title: "Frame Conn // Mission",
-      classes: ["lancer-frame-conn-dm"],
-      width: 760,
-      height: 720,
-      resizable: true,
-      minimizable: true
-    });
-  }
-
-  constructor(options = {}) {
-    super(options);
-    this.showSetup = false;
-  }
-
-  async getData() {
-    assertRuntime();
-    const model = await buildDmSitrepViewModel({ sitrepsApi: runtime.sitrepsApi, foundryApi: runtime.foundryApi });
-    if (!model.configured) this.showSetup = true;
-    return { model };
-  }
-
-  async _renderInner(data) {
-    const wrapper = document.createElement("div");
-    wrapper.innerHTML = renderDmSitrepApplication(data.model, { showSetup: this.showSetup });
-    return $(wrapper.firstElementChild);
-  }
-
-  activateListeners(html) {
-    super.activateListeners(html);
-    activateDmSitrepListeners(this, html, { sitrepsApi: runtime.sitrepsApi, foundryApi: runtime.foundryApi });
-  }
-}
-
-export function getFrameConnDmApplication() {
-  dmApplication ??= new FrameConnDmApplication();
-  return dmApplication;
-}
-
-export function openFrameConnDmApplication() {
-  assertRuntime();
-  if (!runtime.foundryApi.isPrimaryGM?.()) {
-    ui.notifications.warn("Frame Conn // Mission is available to the active GM.");
-    return null;
-  }
-  const application = getFrameConnDmApplication();
-  application.render(true);
-  return application;
-}
-
-export async function closeFrameConnDmApplication() {
-  return dmApplication ? dmApplication.close() : null;
-}
-
-export function renderFrameConnDmApplication(force = true) {
-  return dmApplication?.rendered ? dmApplication.render(force) : null;
-}
-
-function handleCombatChange() {
-  return renderFrameConnDmApplication(true);
 }
 
 function normalizeCombatTrackerRoot(html) {
   return html?.[0] ?? html ?? null;
 }
 
-function handleCombatTrackerRender(_application, html) {
+const embeddedPanelController = {
+  showSetup: false,
+
+  get element() {
+    const panel = combatTrackerRoot?.querySelector?.(".lancer-frame-conn-dm-embedded") ?? null;
+    return panel ? [panel] : [];
+  },
+
+  async render() {
+    if (!combatTrackerRoot || !embeddedPanelVisible) return null;
+    return renderEmbeddedMissionPanel(combatTrackerRoot);
+  }
+};
+
+function findEmbeddedPanelHost(root) {
+  return root?.querySelector?.(".combat-tracker") ?? root;
+}
+
+async function renderEmbeddedMissionPanel(root = combatTrackerRoot) {
+  assertRuntime();
+  if (!root?.querySelector) return null;
+
+  combatTrackerRoot = root;
+
+  root.querySelector(".lancer-frame-conn-dm-embedded")?.remove();
+  if (!embeddedPanelVisible) return null;
+
+  const model = await buildDmSitrepViewModel({
+    sitrepsApi: runtime.sitrepsApi,
+    foundryApi: runtime.foundryApi
+  });
+
+  if (!model.configured) embeddedPanelController.showSetup = true;
+
+  const panel = document.createElement("section");
+  panel.className = "lancer-frame-conn-dm-embedded";
+  panel.dataset.frameConnSitrepPanel = "true";
+  panel.innerHTML = renderDmSitrepApplication(model, {
+    showSetup: embeddedPanelController.showSetup
+  });
+
+  const host = findEmbeddedPanelHost(root);
+  host?.appendChild(panel);
+
+  activateDmSitrepListeners(embeddedPanelController, panel, {
+    sitrepsApi: runtime.sitrepsApi,
+    foundryApi: runtime.foundryApi
+  });
+
+  return panel;
+}
+
+export function getFrameConnDmApplication() {
+  return embeddedPanelController;
+}
+
+export async function openFrameConnDmApplication() {
+  assertRuntime();
+  if (!runtime.foundryApi.isPrimaryGM?.()) {
+    ui.notifications.warn("Frame Conn // Mission is available to the active GM.");
+    return null;
+  }
+
+  embeddedPanelVisible = true;
+  if (combatTrackerRoot) await renderEmbeddedMissionPanel(combatTrackerRoot);
+  return embeddedPanelController;
+}
+
+export async function closeFrameConnDmApplication() {
+  embeddedPanelVisible = false;
+  combatTrackerRoot?.querySelector?.(".lancer-frame-conn-dm-embedded")?.remove();
+  return null;
+}
+
+export function renderFrameConnDmApplication() {
+  return embeddedPanelVisible && combatTrackerRoot
+    ? renderEmbeddedMissionPanel(combatTrackerRoot)
+    : null;
+}
+
+function handleCombatChange() {
+  return renderFrameConnDmApplication();
+}
+
+async function handleCombatTrackerRender(_application, html) {
   if (!game?.user?.isGM) return false;
 
   const root = normalizeCombatTrackerRoot(html);
   if (!root?.querySelector) return false;
+  combatTrackerRoot = root;
 
-  if (root.querySelector(".lancer-frame-conn-dm-open-button")) {
-    return false;
+  let button = root.querySelector(".lancer-frame-conn-dm-open-button");
+
+  if (!button) {
+    button = document.createElement("button");
+    button.type = "button";
+    button.className = "lancer-frame-conn-dm-open-button";
+    button.innerHTML = '<i class="fas fa-bullseye"></i> Sitrep';
+
+    const target =
+      root.querySelector(".combat-tracker-header") ??
+      root.querySelector("header") ??
+      root;
+
+    target.prepend(button);
   }
 
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "lancer-frame-conn-dm-open-button";
-  button.innerHTML = '<i class="fas fa-bullseye"></i> Sitrep';
-  button.addEventListener("click", event => {
+  button.classList.toggle("active", embeddedPanelVisible);
+  button.onclick = async event => {
     event.preventDefault();
-    openFrameConnDmApplication();
-  });
+    embeddedPanelVisible = !embeddedPanelVisible;
+    button.classList.toggle("active", embeddedPanelVisible);
+    await renderEmbeddedMissionPanel(root);
+  };
 
-  const target =
-    root.querySelector(".combat-tracker-header") ??
-    root.querySelector("header") ??
-    root;
-
-  target.prepend(button);
+  await renderEmbeddedMissionPanel(root);
   return true;
 }
 
@@ -153,6 +180,7 @@ export const frameConnDmApplicationUiFeature = defineFrameConnFeature({
   metadata: {
     audience: "gm",
     label: "Frame Conn // Mission",
+    presentationSurface: "combat-tracker-embedded-panel",
     companionStylesheet: "styles/ui_dm/ui-dm-application.css",
     phase: "sitrep-assimilation-phase-6"
   }
