@@ -22,7 +22,7 @@
       "id": "gauntlet-control-weighting",
       "legacy_source": "lancer-sitrep-tracker.js#gauntletControlWeight",
       "new_owner": "dm_features/sitreps/gauntlet",
-      "status": "NOT_MIGRATED",
+      "status": "MIGRATED_UNVERIFIED",
       "verification": ["ordinary unit weight preserved", "Grunt/Elite/Ultra weighting preserved", "template LID and fallback-name behavior reviewed"]
     },
     {
@@ -70,22 +70,22 @@
     {
       "id": "faction-and-defeated-classification",
       "legacy_source": "sitrep-kernel.js",
-      "new_owner": "shared Foundry/combat context service + SITREP domain adapter",
-      "status": "NOT_MIGRATED",
+      "new_owner": "dm_features/sitreps/shared/sitrep-combatant-primitives.js",
+      "status": "MIGRATED_UNVERIFIED",
       "verification": ["friendly/hostile/neutral classification preserved", "defeated combatants excluded consistently", "neutral units ignored where rules require"]
     },
     {
       "id": "spatial-region-membership",
       "legacy_source": "sitrep-kernel.js#tokenInsideRegion/controlRegionsFor/regionFor",
-      "new_owner": "shared targeting-spatial/Foundry region service",
-      "status": "NOT_MIGRATED",
+      "new_owner": "shared targeting-spatial/Foundry region service via SITREP spatial delegation",
+      "status": "PARTIALLY_MIGRATED",
       "verification": ["token footprint/region membership behavior validated on Foundry 13", "large tokens handled correctly", "SITREP domain does not directly own generic spatial implementation"]
     },
     {
       "id": "spatial-adjacency",
       "legacy_source": "sitrep-kernel.js#tokensAreAdjacent",
-      "new_owner": "existing Frame Conn targeting/spatial service",
-      "status": "NOT_MIGRATED",
+      "new_owner": "existing Frame Conn targeting/spatial service via SITREP spatial delegation",
+      "status": "PARTIALLY_MIGRATED",
       "verification": ["hex adjacency correct", "Size 2+ footprints correct", "SITREP code delegates rather than duplicating adjacency"]
     },
     {

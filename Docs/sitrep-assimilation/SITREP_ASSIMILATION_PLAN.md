@@ -191,7 +191,7 @@ Exit criteria:
 - persistence and derived scenario calculations are distinguishable architectural responsibilities;
 - no runtime hooks or UI are activated.
 
-## Phase 2 — Assimilate shared SITREP domain primitives
+## Phase 2 — Assimilate shared SITREP domain primitives — COMPLETE
 
 Move only SITREP-specific concepts out of the legacy kernel and decomposed shared helpers.
 
