@@ -1,8 +1,7 @@
 {
   "schema_version": 2,
   "id": "sitrep-phase-six-dm-runtime-composition",
-  "description": "Compose the new DM Mission application into the authoritative Frame Conn feature graph and existing Foundry integration boundary.",
-  "planning_goal": "Complete the runtime-composition slice of SITREP Phase 6. Load the DM Mission stylesheet through the canonical UI registry, resolve and configure the registered ui-dm-application feature from runtime-orchestrator, inject canonical SITREP and Foundry APIs, expose the DM application through game.lancerFrameConn.dm, extend the existing Foundry getSceneControlButtons owner with one GM-only Mission launcher, expose active Combat/Region/Combatant queries through Foundry Integration, preserve dependency validation, and do not add a second init/ready authority or any direct legacy SITREP dependency.",
+  "description": "Execute the reviewed Phase 6 DM runtime-composition slice after Patch Corridor certified 8/9 clauses and left only the existing dependency-validation preservation phrase unresolved.",
   "policy": {
     "max_files_changed": 3,
     "allowed_paths": [
@@ -12,96 +11,18 @@
     ]
   },
   "operations": [
-    {
-      "type": "replace_text",
-      "path": "styles/ui-registry.css",
-      "search": "@import \"./ui_application/ui-application.css\";\n\n\n/**\n * Future core feature imports",
-      "replace": "@import \"./ui_application/ui-application.css\";\n\n/** GM-only Frame Conn // Mission application. */\n@import \"./ui_dm/ui-dm-application.css\";\n\n\n/**\n * Future core feature imports",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/foundry-integration-feature.js",
-      "search": "const FRAME_CONN_SCENE_CONTROL_NAME =\n  \"lancer-frame-conn\";",
-      "replace": "const FRAME_CONN_SCENE_CONTROL_NAME =\n  \"lancer-frame-conn\";\n\nconst FRAME_CONN_DM_SCENE_CONTROL_NAME =\n  \"lancer-frame-conn-dm\";",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/foundry-integration-feature.js",
-      "search": "  closeApplication:\n    null,\n\n  executeLockOnAuthorityRequest:\n    null",
-      "replace": "  closeApplication:\n    null,\n\n  openDmApplication:\n    null,\n\n  executeLockOnAuthorityRequest:\n    null",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/foundry-integration-feature.js",
-      "search": "    applicationClosing:\n      typeof frameConnFoundryIntegrationRuntimeBindings\n        .closeApplication ===\n        \"function\",\n\n    lockOnAuthorityExecution:",
-      "replace": "    applicationClosing:\n      typeof frameConnFoundryIntegrationRuntimeBindings\n        .closeApplication ===\n        \"function\",\n\n    dmApplicationOpening:\n      typeof frameConnFoundryIntegrationRuntimeBindings\n        .openDmApplication ===\n        \"function\",\n\n    lockOnAuthorityExecution:",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/foundry-integration-feature.js",
-      "search": "  return (\n    insertFrameConnSceneControlTool(\n      tokenControls\n    )\n  );\n}\n\n\n/* ============================================================\n   Foundry integration -- Target acquisition",
-      "replace": "  let changed = insertFrameConnSceneControlTool(tokenControls);\n\n  if (game?.user?.isGM && typeof frameConnFoundryIntegrationRuntimeBindings.openDmApplication === \"function\") {\n    const tools = tokenControls.tools;\n    const exists = Array.isArray(tools)\n      ? tools.some(tool => tool?.name === FRAME_CONN_DM_SCENE_CONTROL_NAME)\n      : Boolean(tools?.[FRAME_CONN_DM_SCENE_CONTROL_NAME]);\n\n    if (!exists) {\n      const dmTool = {\n        name: FRAME_CONN_DM_SCENE_CONTROL_NAME,\n        title: \"Frame Conn // Mission\",\n        icon: \"fa-solid fa-map\",\n        order: Array.isArray(tools) ? tools.length : Object.keys(tools ?? {}).length,\n        button: true,\n        visible: true,\n        onChange: () => frameConnFoundryIntegrationRuntimeBindings.openDmApplication()\n      };\n\n      if (Array.isArray(tools)) tools.push(dmTool);\n      else {\n        tokenControls.tools ??= {};\n        tokenControls.tools[FRAME_CONN_DM_SCENE_CONTROL_NAME] = dmTool;\n      }\n      changed = true;\n    }\n  }\n\n  return changed;\n}\n\n\n/* ============================================================\n   Foundry integration -- Target acquisition",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/foundry-integration-feature.js",
-      "search": "function escapeFrameConnSemanticOutputText(value) {",
-      "replace": "function getFrameConnActiveCombat() {\n  return game?.combat ?? game?.combats?.active ?? null;\n}\n\nfunction listFrameConnCombatRegions(combat = getFrameConnActiveCombat()) {\n  const scene = combat?.scene ?? canvas?.scene ?? null;\n  return Array.from(scene?.regions ?? []);\n}\n\nfunction listFrameConnCombatants(combat = getFrameConnActiveCombat()) {\n  return Array.from(combat?.combatants ?? []);\n}\n\nfunction escapeFrameConnSemanticOutputText(value) {",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/foundry-integration-feature.js",
-      "search": "      publishSemanticOutputIntent:\n        publishFrameConnSemanticOutputIntent,\n\n      diagnostics:",
-      "replace": "      publishSemanticOutputIntent:\n        publishFrameConnSemanticOutputIntent,\n\n      getActiveCombat:\n        getFrameConnActiveCombat,\n\n      listCombatRegions:\n        listFrameConnCombatRegions,\n\n      listCombatants:\n        listFrameConnCombatants,\n\n      diagnostics:",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "const frameConnSitrepsApi = frameConnFeatureRegistry.getApi(\"sitreps\");\nif (!frameConnSitrepsApi) throw new Error(\"Frame Conn | The registered SITREPs feature API could not be resolved.\");",
-      "replace": "const frameConnSitrepsApi = frameConnFeatureRegistry.getApi(\"sitreps\");\nif (!frameConnSitrepsApi) throw new Error(\"Frame Conn | The registered SITREPs feature API could not be resolved.\");\n\nconst frameConnDmApplicationApi = frameConnFeatureRegistry.getApi(\"ui-dm-application\");\nif (!frameConnDmApplicationApi) throw new Error(\"Frame Conn | The registered DM Application feature API could not be resolved.\");",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "      closeApplication:\n        (...args) =>\n          closeFrameConn(\n            ...args\n          ),\n\n      executeLockOnAuthorityRequest:",
-      "replace": "      closeApplication:\n        (...args) =>\n          closeFrameConn(\n            ...args\n          ),\n\n      openDmApplication:\n        (...args) =>\n          frameConnDmApplicationApi.open(\n            ...args\n          ),\n\n      executeLockOnAuthorityRequest:",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "  frameConnSitrepsApi.configureRuntime?.({\n    spatialOperations: Object.freeze({\n      resolveRegion: options => frameConnFoundryIntegrationApi.resolveSceneRegion(options),\n      tokenInsideRegion: (tokenDocument, region) => frameConnFoundryIntegrationApi.tokenInsideRegion(tokenDocument, region),\n      tokensAreAdjacent: async (firstToken, secondToken) => Boolean((await frameConnTargetingSpatialApi.queryAdjacency(firstToken, secondToken))?.adjacent)\n    }),\n    publishOutputIntent: intent => frameConnFoundryIntegrationApi.publishSemanticOutputIntent(intent),\n    canManageSitreps: () => frameConnFoundryIntegrationApi.isPrimaryGM()\n  });",
-      "replace": "  frameConnSitrepsApi.configureRuntime?.({\n    spatialOperations: Object.freeze({\n      resolveRegion: options => frameConnFoundryIntegrationApi.resolveSceneRegion(options),\n      tokenInsideRegion: (tokenDocument, region) => frameConnFoundryIntegrationApi.tokenInsideRegion(tokenDocument, region),\n      tokensAreAdjacent: async (firstToken, secondToken) => Boolean((await frameConnTargetingSpatialApi.queryAdjacency(firstToken, secondToken))?.adjacent)\n    }),\n    publishOutputIntent: intent => frameConnFoundryIntegrationApi.publishSemanticOutputIntent(intent),\n    canManageSitreps: () => frameConnFoundryIntegrationApi.isPrimaryGM()\n  });\n\n  frameConnDmApplicationApi.configureRuntime?.({\n    sitrepsApi: frameConnSitrepsApi,\n    foundryApi: frameConnFoundryIntegrationApi\n  });",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "      \"applicationOpening\",\n      \"applicationClosing\",\n      \"lockOnAuthorityExecution\"",
-      "replace": "      \"applicationOpening\",\n      \"applicationClosing\",\n      \"dmApplicationOpening\",\n      \"lockOnAuthorityExecution\"",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "  assertFrameConnRuntimeBindings(\"DM SITREPs\", frameConnSitrepsApi.diagnostics, [\"spatialConfigured\", \"outputPublisherConfigured\", \"authorizationConfigured\"]);\n\n  return true;",
-      "replace": "  assertFrameConnRuntimeBindings(\"DM SITREPs\", frameConnSitrepsApi.diagnostics, [\"spatialConfigured\", \"outputPublisherConfigured\", \"authorizationConfigured\"]);\n  assertFrameConnRuntimeBindings(\"DM Application\", frameConnDmApplicationApi.runtimeBindings, [\"sitreps\", \"foundry\"]);\n\n  return true;",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "scripts/runtime-orchestrator.js",
-      "search": "      sitreps:\n        frameConnSitrepsApi,",
-      "replace": "      sitreps:\n        frameConnSitrepsApi,\n\n      dm: Object.freeze({\n        application: frameConnDmApplicationApi,\n        open: (...args) => frameConnDmApplicationApi.open(...args),\n        close: (...args) => frameConnDmApplicationApi.close(...args)\n      }),",
-      "expected_occurrences": 1
-    }
+    {"type":"replace_text","path":"styles/ui-registry.css","search":"@import \"./ui_application/ui-application.css\";\n\n\n/**\n * Future core feature imports","replace":"@import \"./ui_application/ui-application.css\";\n\n/** GM-only Frame Conn // Mission application. */\n@import \"./ui_dm/ui-dm-application.css\";\n\n\n/**\n * Future core feature imports","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/foundry-integration-feature.js","search":"const FRAME_CONN_SCENE_CONTROL_NAME =\n  \"lancer-frame-conn\";","replace":"const FRAME_CONN_SCENE_CONTROL_NAME =\n  \"lancer-frame-conn\";\n\nconst FRAME_CONN_DM_SCENE_CONTROL_NAME =\n  \"lancer-frame-conn-dm\";","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/foundry-integration-feature.js","search":"  closeApplication:\n    null,\n\n  executeLockOnAuthorityRequest:\n    null","replace":"  closeApplication:\n    null,\n\n  openDmApplication:\n    null,\n\n  executeLockOnAuthorityRequest:\n    null","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/foundry-integration-feature.js","search":"    applicationClosing:\n      typeof frameConnFoundryIntegrationRuntimeBindings\n        .closeApplication ===\n        \"function\",\n\n    lockOnAuthorityExecution:","replace":"    applicationClosing:\n      typeof frameConnFoundryIntegrationRuntimeBindings\n        .closeApplication ===\n        \"function\",\n\n    dmApplicationOpening:\n      typeof frameConnFoundryIntegrationRuntimeBindings\n        .openDmApplication ===\n        \"function\",\n\n    lockOnAuthorityExecution:","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/foundry-integration-feature.js","search":"  return (\n    insertFrameConnSceneControlTool(\n      tokenControls\n    )\n  );\n}\n\n\n/* ============================================================\n   Foundry integration -- Target acquisition","replace":"  let changed = insertFrameConnSceneControlTool(tokenControls);\n\n  if (game?.user?.isGM && typeof frameConnFoundryIntegrationRuntimeBindings.openDmApplication === \"function\") {\n    const tools = tokenControls.tools;\n    const exists = Array.isArray(tools) ? tools.some(tool => tool?.name === FRAME_CONN_DM_SCENE_CONTROL_NAME) : Boolean(tools?.[FRAME_CONN_DM_SCENE_CONTROL_NAME]);\n    if (!exists) {\n      const dmTool = { name: FRAME_CONN_DM_SCENE_CONTROL_NAME, title: \"Frame Conn // Mission\", icon: \"fa-solid fa-map\", order: Array.isArray(tools) ? tools.length : Object.keys(tools ?? {}).length, button: true, visible: true, onChange: () => frameConnFoundryIntegrationRuntimeBindings.openDmApplication() };\n      if (Array.isArray(tools)) tools.push(dmTool);\n      else { tokenControls.tools ??= {}; tokenControls.tools[FRAME_CONN_DM_SCENE_CONTROL_NAME] = dmTool; }\n      changed = true;\n    }\n  }\n  return changed;\n}\n\n\n/* ============================================================\n   Foundry integration -- Target acquisition","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/foundry-integration-feature.js","search":"function escapeFrameConnSemanticOutputText(value) {","replace":"function getFrameConnActiveCombat() { return game?.combat ?? game?.combats?.active ?? null; }\nfunction listFrameConnCombatRegions(combat = getFrameConnActiveCombat()) { const scene = combat?.scene ?? canvas?.scene ?? null; return Array.from(scene?.regions ?? []); }\nfunction listFrameConnCombatants(combat = getFrameConnActiveCombat()) { return Array.from(combat?.combatants ?? []); }\n\nfunction escapeFrameConnSemanticOutputText(value) {","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/foundry-integration-feature.js","search":"      publishSemanticOutputIntent:\n        publishFrameConnSemanticOutputIntent,\n\n      diagnostics:","replace":"      publishSemanticOutputIntent:\n        publishFrameConnSemanticOutputIntent,\n\n      getActiveCombat:\n        getFrameConnActiveCombat,\n\n      listCombatRegions:\n        listFrameConnCombatRegions,\n\n      listCombatants:\n        listFrameConnCombatants,\n\n      diagnostics:","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/runtime-orchestrator.js","search":"const frameConnSitrepsApi = frameConnFeatureRegistry.getApi(\"sitreps\");\nif (!frameConnSitrepsApi) throw new Error(\"Frame Conn | The registered SITREPs feature API could not be resolved.\");","replace":"const frameConnSitrepsApi = frameConnFeatureRegistry.getApi(\"sitreps\");\nif (!frameConnSitrepsApi) throw new Error(\"Frame Conn | The registered SITREPs feature API could not be resolved.\");\n\nconst frameConnDmApplicationApi = frameConnFeatureRegistry.getApi(\"ui-dm-application\");\nif (!frameConnDmApplicationApi) throw new Error(\"Frame Conn | The registered DM Application feature API could not be resolved.\");","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/runtime-orchestrator.js","search":"      closeApplication:\n        (...args) =>\n          closeFrameConn(\n            ...args\n          ),\n\n      executeLockOnAuthorityRequest:","replace":"      closeApplication:\n        (...args) =>\n          closeFrameConn(\n            ...args\n          ),\n\n      openDmApplication:\n        (...args) =>\n          frameConnDmApplicationApi.open(\n            ...args\n          ),\n\n      executeLockOnAuthorityRequest:","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/runtime-orchestrator.js","search":"  frameConnSitrepsApi.configureRuntime?.({\n    spatialOperations: Object.freeze({\n      resolveRegion: options => frameConnFoundryIntegrationApi.resolveSceneRegion(options),\n      tokenInsideRegion: (tokenDocument, region) => frameConnFoundryIntegrationApi.tokenInsideRegion(tokenDocument, region),\n      tokensAreAdjacent: async (firstToken, secondToken) => Boolean((await frameConnTargetingSpatialApi.queryAdjacency(firstToken, secondToken))?.adjacent)\n    }),\n    publishOutputIntent: intent => frameConnFoundryIntegrationApi.publishSemanticOutputIntent(intent),\n    canManageSitreps: () => frameConnFoundryIntegrationApi.isPrimaryGM()\n  });","replace":"  frameConnSitrepsApi.configureRuntime?.({\n    spatialOperations: Object.freeze({\n      resolveRegion: options => frameConnFoundryIntegrationApi.resolveSceneRegion(options),\n      tokenInsideRegion: (tokenDocument, region) => frameConnFoundryIntegrationApi.tokenInsideRegion(tokenDocument, region),\n      tokensAreAdjacent: async (firstToken, secondToken) => Boolean((await frameConnTargetingSpatialApi.queryAdjacency(firstToken, secondToken))?.adjacent)\n    }),\n    publishOutputIntent: intent => frameConnFoundryIntegrationApi.publishSemanticOutputIntent(intent),\n    canManageSitreps: () => frameConnFoundryIntegrationApi.isPrimaryGM()\n  });\n\n  frameConnDmApplicationApi.configureRuntime?.({ sitrepsApi: frameConnSitrepsApi, foundryApi: frameConnFoundryIntegrationApi });","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/runtime-orchestrator.js","search":"      \"applicationOpening\",\n      \"applicationClosing\",\n      \"lockOnAuthorityExecution\"","replace":"      \"applicationOpening\",\n      \"applicationClosing\",\n      \"dmApplicationOpening\",\n      \"lockOnAuthorityExecution\"","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/runtime-orchestrator.js","search":"  assertFrameConnRuntimeBindings(\"DM SITREPs\", frameConnSitrepsApi.diagnostics, [\"spatialConfigured\", \"outputPublisherConfigured\", \"authorizationConfigured\"]);\n\n  return true;","replace":"  assertFrameConnRuntimeBindings(\"DM SITREPs\", frameConnSitrepsApi.diagnostics, [\"spatialConfigured\", \"outputPublisherConfigured\", \"authorizationConfigured\"]);\n  assertFrameConnRuntimeBindings(\"DM Application\", frameConnDmApplicationApi.runtimeBindings, [\"sitreps\", \"foundry\"]);\n\n  return true;","expected_occurrences":1},
+    {"type":"replace_text","path":"scripts/runtime-orchestrator.js","search":"      sitreps:\n        frameConnSitrepsApi,","replace":"      sitreps:\n        frameConnSitrepsApi,\n\n      dm: Object.freeze({ application: frameConnDmApplicationApi, open: (...args) => frameConnDmApplicationApi.open(...args), close: (...args) => frameConnDmApplicationApi.close(...args) }),","expected_occurrences":1}
   ]
 }
