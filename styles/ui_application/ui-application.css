@@ -234,6 +234,13 @@
   padding: 0.45rem 0.5rem;
 }
 
+#sidebar .frame-conn-sidebar-shell .frame-conn-mech-stats-grid.has-reactor-meltdown .frame-conn-stat-meltdown {
+  grid-column: 1 / -1;
+  order: 1;
+  min-height: 3.25rem;
+  margin-top: 0.1rem;
+}
+
 #sidebar .frame-conn-sidebar-shell .frame-conn-stat-value-group {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
