@@ -1,9 +1,41 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after making SITREP presentation visible to players while keeping management controls GM-only.",
+  "id": "sitrep-native-combatant-scroll-region",
+  "description": "Keep Foundry's native combatant list independently scrollable when the embedded SITREP panel occupies the lower Combat Tracker area.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 1,
+    "allowed_paths": [
+      "styles/ui_dm/ui-dm-application.js"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/ui-dm-application.js",
+      "search": "function findEmbeddedPanelHost(root) {\n  return root ?? null;\n}\n",
+      "replace": "function findEmbeddedPanelHost(root) {\n  return root ?? null;\n}\n\nfunction findNativeCombatantScrollContainer(root) {\n  if (!root?.querySelector) return null;\n\n  const combatant = root.querySelector(\".combatant\");\n  if (combatant) {\n    return combatant.closest(\"ol, ul, .directory-list, .combatants, .combatant-list\") ?? combatant.parentElement;\n  }\n\n  return root.querySelector(\".combat-tracker .directory-list, .combat-tracker .combatants, .combat-tracker .combatant-list\");\n}\n\nfunction clearNativeCombatantScrollReservation(root) {\n  const container = findNativeCombatantScrollContainer(root);\n  if (!container) return;\n  container.style.removeProperty(\"max-height\");\n  container.style.removeProperty(\"overflow-y\");\n  container.style.removeProperty(\"overflow-x\");\n}\n\nfunction reserveNativeCombatantScrollSpace(root, panel) {\n  const container = findNativeCombatantScrollContainer(root);\n  if (!container || !panel?.getBoundingClientRect) return;\n\n  const containerRect = container.getBoundingClientRect();\n  const panelRect = panel.getBoundingClientRect();\n  const availableHeight = Math.floor(panelRect.top - containerRect.top - 4);\n\n  if (!Number.isFinite(availableHeight) || availableHeight < 80) return;\n\n  container.style.maxHeight = `${availableHeight}px`;\n  container.style.overflowY = \"auto\";\n  container.style.overflowX = \"hidden\";\n}\n",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/ui-dm-application.js",
+      "search": "  root.querySelector(\".lancer-frame-conn-dm-embedded\")?.remove();\n  if (!embeddedPanelVisible) return null;",
+      "replace": "  root.querySelector(\".lancer-frame-conn-dm-embedded\")?.remove();\n  if (!embeddedPanelVisible) {\n    clearNativeCombatantScrollReservation(root);\n    return null;\n  }",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/ui-dm-application.js",
+      "search": "  activateDmSitrepListeners(embeddedPanelController, panel, {\n    sitrepsApi: runtime.sitrepsApi,\n    foundryApi: runtime.foundryApi\n  });\n\n  return panel;",
+      "replace": "  activateDmSitrepListeners(embeddedPanelController, panel, {\n    sitrepsApi: runtime.sitrepsApi,\n    foundryApi: runtime.foundryApi\n  });\n\n  reserveNativeCombatantScrollSpace(root, panel);\n  return panel;",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/ui-dm-application.js",
+      "search": "export async function closeFrameConnDmApplication() {\n  embeddedPanelVisible = false;\n  combatTrackerRoot?.classList?.remove(\"lancer-frame-conn-dm-host\");\n  combatTrackerRoot?.querySelector?.(\".lancer-frame-conn-dm-embedded\")?.remove();\n  return null;\n}",
+      "replace": "export async function closeFrameConnDmApplication() {\n  embeddedPanelVisible = false;\n  combatTrackerRoot?.classList?.remove(\"lancer-frame-conn-dm-host\");\n  combatTrackerRoot?.querySelector?.(\".lancer-frame-conn-dm-embedded\")?.remove();\n  clearNativeCombatantScrollReservation(combatTrackerRoot);\n  return null;\n}",
+      "expected_occurrences": 1
+    }
+  ]
 }
