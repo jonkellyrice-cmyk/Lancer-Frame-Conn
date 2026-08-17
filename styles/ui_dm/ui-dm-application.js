@@ -44,7 +44,7 @@ const embeddedPanelController = {
 };
 
 function findEmbeddedPanelHost(root) {
-  return root?.querySelector?.(".combat-tracker") ?? root;
+  return root ?? null;
 }
 
 async function renderEmbeddedMissionPanel(root = combatTrackerRoot) {
@@ -52,6 +52,7 @@ async function renderEmbeddedMissionPanel(root = combatTrackerRoot) {
   if (!root?.querySelector) return null;
 
   combatTrackerRoot = root;
+  root.classList?.toggle("lancer-frame-conn-dm-host", embeddedPanelVisible);
 
   root.querySelector(".lancer-frame-conn-dm-embedded")?.remove();
   if (!embeddedPanelVisible) return null;
@@ -99,6 +100,7 @@ export async function openFrameConnDmApplication() {
 
 export async function closeFrameConnDmApplication() {
   embeddedPanelVisible = false;
+  combatTrackerRoot?.classList?.remove("lancer-frame-conn-dm-host");
   combatTrackerRoot?.querySelector?.(".lancer-frame-conn-dm-embedded")?.remove();
   return null;
 }
