@@ -147,6 +147,10 @@ import {
   FRAME_CONN_RULES_FEATURES
 } from "./rules_features/rules-feature-registry.js";
 
+import {
+  FRAME_CONN_FOUNDRY_FEATURES
+} from "./foundry_features/foundry-feature-registry.js";
+
 
 /* ============================================================
    Module identity
@@ -170,7 +174,8 @@ export const frameConnFeatureRegistry =
 
 frameConnFeatureRegistry.registerMany([
   ...FRAME_CONN_PLAYER_FEATURES,
-  ...FRAME_CONN_RULES_FEATURES
+  ...FRAME_CONN_RULES_FEATURES,
+  ...FRAME_CONN_FOUNDRY_FEATURES
 ]);
 
 frameConnFeatureRegistry
@@ -326,6 +331,11 @@ const frameConnFoundryIntegrationApi =
   frameConnFeatureRegistry.getApi(
     "foundry-integration"
   );
+
+const frameConnElevationLosApi = frameConnFeatureRegistry.getApi("elevation-los");
+if (!frameConnElevationLosApi) {
+  throw new Error("Frame Conn | The registered Elevation / LOS feature API could not be resolved.");
+}
 
 
 if (
@@ -1996,6 +2006,8 @@ Hooks.once(
 
     validateFrameConnRuntimeComposition();
 
+    frameConnElevationLosApi.initialize?.();
+
 
     /**
      * Foundry Integration owns module-setting definitions.
@@ -2041,6 +2053,8 @@ Hooks.once(
 Hooks.once(
   "ready",
   async () => {
+    frameConnElevationLosApi.ready?.();
+
     frameConnFoundryIntegrationApi
       .registerSocket?.();
 
@@ -2086,6 +2100,9 @@ Hooks.once(
 
       foundry:
         frameConnFoundryIntegrationApi,
+
+      elevationLOS:
+        frameConnElevationLosApi,
 
 
       /* --------------------------------------------------------

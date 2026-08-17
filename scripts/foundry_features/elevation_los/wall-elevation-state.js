@@ -5,15 +5,19 @@
 
 import {
   FEATURE_KEY,
+  LEGACY_MODULE_ID,
   MODULE_ID,
   finiteNumberOr
 } from "./elevation-los-contract.js";
 
+export function readWallElevationData(wallDocument) {
+  const canonical = wallDocument?.getFlag?.(MODULE_ID, FEATURE_KEY);
+  if (canonical !== undefined && canonical !== null) return canonical;
+  return wallDocument?.getFlag?.(LEGACY_MODULE_ID, FEATURE_KEY) ?? {};
+}
+
 export function wallElevationRange(wallDocument) {
-  const data = wallDocument?.getFlag?.(
-    MODULE_ID,
-    FEATURE_KEY
-  ) ?? {};
+  const data = readWallElevationData(wallDocument);
 
   return {
     bottom: finiteNumberOr(

@@ -8,6 +8,7 @@ import {
   MODULE_ID,
   STYLE_ID
 } from "./elevation-los-contract.js";
+import { readWallElevationData } from "./wall-elevation-state.js";
 
 export function wallConfigRoot(html) {
   if (html instanceof HTMLElement) return html;
@@ -85,10 +86,7 @@ export function injectWallElevationFields(app, html) {
 
   if (!wallDocument) return;
 
-  const stored = wallDocument.getFlag?.(
-    MODULE_ID,
-    FEATURE_KEY
-  ) ?? {};
+  const stored = readWallElevationData(wallDocument);
 
   const bottomValue =
     stored.bottom === null ||

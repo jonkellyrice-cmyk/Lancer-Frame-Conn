@@ -5,7 +5,8 @@
 
 
 
-export const MODULE_ID = "lancer-sitrep-tracker";
+export const MODULE_ID = "lancer-frame-conn";
+export const LEGACY_MODULE_ID = "lancer-sitrep-tracker";
 
 export const FEATURE_KEY = "elevationLOS";
 

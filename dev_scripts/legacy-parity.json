@@ -106,7 +106,7 @@
       "id": "elevation-los-foundry-feature",
       "legacy_source": "elevation-los.js",
       "new_owner": "foundry_features/elevation_los",
-      "status": "NOT_MIGRATED",
+      "status": "MIGRATED_UNVERIFIED",
       "verification": ["wall elevation ranges preserved", "elevated light horizontal radius behavior preserved", "vision/light wrapper installed once", "no direct competing init/ready authority", "legacy wall flag compatibility decided"]
     },
     {
