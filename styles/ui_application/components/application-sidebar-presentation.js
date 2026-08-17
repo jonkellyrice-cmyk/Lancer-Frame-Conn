@@ -187,7 +187,13 @@ function setFrameConnPresentationModeValue(mode) {
   return frameConnPresentationMode;
 }
 
-function handleFrameConnSidebarRender(_sidebarApplication, html) {
+function handleFrameConnSidebarRender(application, html) {
+  const isMainSidebar =
+    application === globalThis.ui?.sidebar ||
+    application?.id === "sidebar";
+
+  if (!isMainSidebar) return false;
+
   const root = normalizeSidebarRoot(html);
   if (!root) return false;
 
