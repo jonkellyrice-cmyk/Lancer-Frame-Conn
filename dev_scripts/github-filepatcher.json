@@ -1,9 +1,42 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after embedding the SITREP Mission panel in Foundry's Combat Tracker.",
+  "id": "sitrep-combat-tracker-bottom-anchor",
+  "description": "Anchor the embedded SITREP Mission panel to the bottom third of the full Combat Tracker root instead of flowing after the encounter list.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 2,
+    "allowed_paths": [
+      "styles/ui_dm/ui-dm-application.js",
+      "styles/ui_dm/ui-dm-application.css"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/ui-dm-application.js",
+      "search": "function findEmbeddedPanelHost(root) {\n  return root?.querySelector?.(\".combat-tracker\") ?? root;\n}",
+      "replace": "function findEmbeddedPanelHost(root) {\n  return root ?? null;\n}",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/ui-dm-application.js",
+      "search": "  combatTrackerRoot = root;\n\n  root.querySelector(\".lancer-frame-conn-dm-embedded\")?.remove();\n  if (!embeddedPanelVisible) return null;",
+      "replace": "  combatTrackerRoot = root;\n  root.classList?.toggle(\"lancer-frame-conn-dm-host\", embeddedPanelVisible);\n\n  root.querySelector(\".lancer-frame-conn-dm-embedded\")?.remove();\n  if (!embeddedPanelVisible) return null;",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/ui-dm-application.js",
+      "search": "export async function closeFrameConnDmApplication() {\n  embeddedPanelVisible = false;\n  combatTrackerRoot?.querySelector?.(\".lancer-frame-conn-dm-embedded\")?.remove();\n  return null;\n}",
+      "replace": "export async function closeFrameConnDmApplication() {\n  embeddedPanelVisible = false;\n  combatTrackerRoot?.classList?.remove(\"lancer-frame-conn-dm-host\");\n  combatTrackerRoot?.querySelector?.(\".lancer-frame-conn-dm-embedded\")?.remove();\n  return null;\n}",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/ui-dm-application.css",
+      "search": ".lancer-frame-conn-dm-embedded {\n  --dm-line: rgba(91, 224, 217, 0.34);\n  --dm-accent: var(--fc-cyan, #5be0d9);\n  --dm-muted: rgba(216, 247, 243, 0.64);\n  flex: 0 0 36%;\n  width: 100%;\n  min-height: 210px;\n  max-height: 38vh;\n  margin-top: auto;\n  border-top: 1px solid var(--dm-accent);\n  background: #071012;\n  color: var(--fc-text, #d8f7f3);\n  overflow: hidden;\n}\n\n.lancer-frame-conn-dm-embedded > .fc-dm-shell {\n  height: 100%;\n  max-height: 38vh;\n}",
+      "replace": ".lancer-frame-conn-dm-host {\n  position: relative !important;\n  min-height: 100%;\n}\n\n.lancer-frame-conn-dm-embedded {\n  --dm-line: rgba(91, 224, 217, 0.34);\n  --dm-accent: var(--fc-cyan, #5be0d9);\n  --dm-muted: rgba(216, 247, 243, 0.64);\n  position: absolute;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  z-index: 20;\n  box-sizing: border-box;\n  width: 100%;\n  height: 36%;\n  min-height: 210px;\n  max-height: 38%;\n  margin: 0;\n  border-top: 1px solid var(--dm-accent);\n  background: #071012;\n  color: var(--fc-text, #d8f7f3);\n  overflow: hidden;\n}\n\n.lancer-frame-conn-dm-embedded > .fc-dm-shell {\n  height: 100%;\n  max-height: none;\n}",
+      "expected_occurrences": 1
+    }
+  ]
 }
