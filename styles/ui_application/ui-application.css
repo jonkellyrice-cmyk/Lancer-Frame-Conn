@@ -303,6 +303,11 @@
 
 /* Sidebar action timing order:
    Protocols -> Quick -> Full -> Special -> Reactions -> Movement. */
+#sidebar .frame-conn-sidebar-actions .frame-conn-category-list {
+  display: flex;
+  flex-direction: column;
+}
+
 #sidebar .frame-conn-sidebar-actions .frame-conn-category-button[data-frame-conn-category="protocol"] { order: 1; }
 #sidebar .frame-conn-sidebar-actions .frame-conn-category-button[data-frame-conn-category="quick"] { order: 2; }
 #sidebar .frame-conn-sidebar-actions .frame-conn-category-button[data-frame-conn-category="full"] { order: 3; }
