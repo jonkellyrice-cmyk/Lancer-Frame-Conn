@@ -500,7 +500,7 @@ function registerFrameConnSettings() {
       },
 
       default:
-        "window",
+        "sidebar",
 
       restricted:
         false,
