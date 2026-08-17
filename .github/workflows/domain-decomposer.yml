@@ -62,9 +62,13 @@ jobs:
         if: steps.plan.outputs.approved == 'true'
         run: npm run effect-atlas
 
-      - name: Remove generated audit reports
+      - name: Restore tracked audit reports
         if: steps.plan.outputs.approved == 'true'
-        run: rm -f repo-audit-report.json symbol-family-audit-report.json effect-atlas-report.json
+        shell: bash
+        run: |
+          git restore --worktree -- repo-audit-report.json 2>/dev/null || true
+          git restore --worktree -- symbol-family-audit-report.json 2>/dev/null || rm -f symbol-family-audit-report.json
+          git restore --worktree -- effect-atlas-report.json 2>/dev/null || rm -f effect-atlas-report.json
 
       - name: Verify structural-only scope
         if: steps.plan.outputs.approved == 'true'
