@@ -74,12 +74,28 @@ jobs:
         if: steps.plan.outputs.approved == 'true'
         shell: bash
         run: |
-          unexpected=$(git status --porcelain | awk '{print $2}' | grep -v '^scripts/dm_features/sitreps/legacy-sitrep-module/scripts/lancer-sitrep-tracker.js$' | grep -v '^scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/' || true)
-          if [ -n "$unexpected" ]; then
-            echo "Unexpected changed paths:"
-            echo "$unexpected"
-            exit 1
-          fi
+          node <<'NODE'
+          const fs = require('node:fs');
+          const cp = require('node:child_process');
+          const plan = JSON.parse(fs.readFileSync('dev_scripts/domain-decomposer-plan.json', 'utf8'));
+          const allowed = new Set();
+          for (const candidate of plan.candidates ?? []) {
+            if (candidate.source) allowed.add(candidate.source);
+            if (candidate.retained_spine?.file) allowed.add(candidate.retained_spine.file);
+            for (const unit of candidate.units ?? []) {
+              if (unit.target) allowed.add(unit.target);
+            }
+          }
+          const status = cp.execSync('git status --porcelain', { encoding: 'utf8' }).trim().split(/\r?\n/).filter(Boolean);
+          const unexpected = status
+            .map(line => line.slice(3).trim())
+            .filter(path => !allowed.has(path));
+          if (unexpected.length) {
+            console.error('Unexpected changed paths:');
+            console.error(unexpected.join('\n'));
+            process.exit(1);
+          }
+          NODE
 
       - name: Commit approved decomposition
         if: steps.plan.outputs.approved == 'true'
@@ -89,9 +105,25 @@ jobs:
             echo "No decomposition changes to commit."
             exit 0
           fi
+          node <<'NODE'
+          const fs = require('node:fs');
+          const cp = require('node:child_process');
+          const plan = JSON.parse(fs.readFileSync('dev_scripts/domain-decomposer-plan.json', 'utf8'));
+          const allowed = new Set();
+          for (const candidate of plan.candidates ?? []) {
+            if (candidate.source) allowed.add(candidate.source);
+            if (candidate.retained_spine?.file) allowed.add(candidate.retained_spine.file);
+            for (const unit of candidate.units ?? []) {
+              if (unit.target) allowed.add(unit.target);
+            }
+          }
+          for (const path of allowed) {
+            if (fs.existsSync(path) || cp.spawnSync('git', ['ls-files', '--error-unmatch', path], { stdio: 'ignore' }).status === 0) {
+              cp.execFileSync('git', ['add', '--', path]);
+            }
+          }
+          NODE
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts/dm_features/sitreps/legacy-sitrep-module/scripts/lancer-sitrep-tracker.js
-          git add scripts/dm_features/sitreps/legacy-sitrep-module/scripts/decomposed/
-          git commit -m "domain-decomposer: apply approved SITREP decomposition"
+          git commit -m "domain-decomposer: apply approved decomposition"
           git push
