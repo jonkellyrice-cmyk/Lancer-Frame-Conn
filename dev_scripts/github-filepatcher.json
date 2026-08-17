@@ -1,41 +1,9 @@
 {
   "schema_version": 2,
-  "id": "approve-sitrep-domain-decomposition",
-  "description": "Approve the reviewed behavior-preserving decomposition plan now that the executor has been hardened to keep bare side-effect imports on the retained legacy spine.",
+  "id": "ready",
+  "description": "Neutral no-op state after successful behavior-preserving decomposition of the quarantined legacy SITREP tracker.",
   "policy": {
-    "max_files_changed": 1,
-    "allowed_paths": [
-      "dev_scripts/domain-decomposer-plan.json"
-    ]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/domain-decomposer-plan.json",
-      "search": "  \"generated_at\": \"2026-08-16T23:52:00.000Z\",\n  \"approved\": false,\n  \"policy_file\":",
-      "replace": "  \"generated_at\": \"2026-08-16T23:52:00.000Z\",\n  \"approved\": true,\n  \"policy_file\":",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/domain-decomposer-plan.json",
-      "search": "    \"status\": \"reviewed-unapproved\",",
-      "replace": "    \"status\": \"reviewed-approved\",",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/domain-decomposer-plan.json",
-      "search": "    \"execution_blockers\": [\n      \"Do not approve execution until the executor is verified not to replicate the legacy side-effect import ./elevation-los.js into every extracted module. Side-effect imports must remain owned by the retained legacy spine or be explicitly reassigned in a later ownership migration.\"\n    ]",
-      "replace": "    \"execution_blockers\": [],\n    \"execution_readiness\": \"Executor import hardening verified through the normal FilePatcher gate: extracted modules copy only referenced value imports and bare side-effect imports remain on the retained legacy spine.\"",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/domain-decomposer-plan.json",
-      "search": "      \"execution\": {\n        \"mode\": \"symbol_extract\",\n        \"require_dependency_closed_units\": true,\n        \"preserve_original_exports\": true,\n        \"approved\": false\n      }",
-      "replace": "      \"execution\": {\n        \"mode\": \"symbol_extract\",\n        \"require_dependency_closed_units\": true,\n        \"preserve_original_exports\": true,\n        \"approved\": true\n      }",
-      "expected_occurrences": 1
-    }
-  ]
+  "operations": []
 }
