@@ -1,9 +1,71 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after carefully re-enabling SITREP Phase 6 DM UI composition.",
+  "id": "sitrep-phase-six-combat-tracker-launcher-parity",
+  "description": "Move the Phase 6 SITREP launcher from the incorrect Token scene-control surface to the canonical GM Combat Tracker header, matching legacy placement while keeping the canonical DM application active.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 3,
+    "allowed_paths": [
+      "styles/ui_dm/ui-dm-application.js",
+      "scripts/foundry-integration-feature.js",
+      "scripts/runtime-orchestrator.js"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/ui-dm-application.js",
+      "search": "function handleCombatChange() {\n  return renderFrameConnDmApplication(true);\n}\n",
+      "replace": "function handleCombatChange() {\n  return renderFrameConnDmApplication(true);\n}\n\nfunction normalizeCombatTrackerRoot(html) {\n  return html?.[0] ?? html ?? null;\n}\n\nfunction handleCombatTrackerRender(_application, html) {\n  if (!game?.user?.isGM) return false;\n\n  const root = normalizeCombatTrackerRoot(html);\n  if (!root?.querySelector) return false;\n\n  if (root.querySelector(\".lancer-frame-conn-dm-open-button\")) {\n    return false;\n  }\n\n  const button = document.createElement(\"button\");\n  button.type = \"button\";\n  button.className = \"lancer-frame-conn-dm-open-button\";\n  button.innerHTML = '<i class=\"fas fa-bullseye\"></i> Sitrep';\n  button.addEventListener(\"click\", event => {\n    event.preventDefault();\n    openFrameConnDmApplication();\n  });\n\n  const target =\n    root.querySelector(\".combat-tracker-header\") ??\n    root.querySelector(\"header\") ??\n    root;\n\n  target.prepend(button);\n  return true;\n}\n",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "styles/ui_dm/ui-dm-application.js",
+      "search": "  hooks: {\n    updateCombat: handleCombatChange,\n    createCombat: handleCombatChange,\n    deleteCombat: handleCombatChange\n  },",
+      "replace": "  hooks: {\n    renderCombatTracker: handleCombatTrackerRender,\n    updateCombat: handleCombatChange,\n    createCombat: handleCombatChange,\n    deleteCombat: handleCombatChange\n  },",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/foundry-integration-feature.js",
+      "search": "const FRAME_CONN_SCENE_CONTROL_NAME =\n  \"lancer-frame-conn\";\n\nconst FRAME_CONN_DM_SCENE_CONTROL_NAME =\n  \"lancer-frame-conn-dm\";",
+      "replace": "const FRAME_CONN_SCENE_CONTROL_NAME =\n  \"lancer-frame-conn\";",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/foundry-integration-feature.js",
+      "search": "  closeApplication:\n    null,\n\n  openDmApplication:\n    null,\n\n  executeLockOnAuthorityRequest:",
+      "replace": "  closeApplication:\n    null,\n\n  executeLockOnAuthorityRequest:",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/foundry-integration-feature.js",
+      "search": "    applicationClosing:\n      typeof frameConnFoundryIntegrationRuntimeBindings\n        .closeApplication ===\n        \"function\",\n\n    dmApplicationOpening:\n      typeof frameConnFoundryIntegrationRuntimeBindings\n        .openDmApplication ===\n        \"function\",\n\n    lockOnAuthorityExecution:",
+      "replace": "    applicationClosing:\n      typeof frameConnFoundryIntegrationRuntimeBindings\n        .closeApplication ===\n        \"function\",\n\n    lockOnAuthorityExecution:",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/foundry-integration-feature.js",
+      "search": "  let changed = insertFrameConnSceneControlTool(tokenControls);\n\n  if (game?.user?.isGM && typeof frameConnFoundryIntegrationRuntimeBindings.openDmApplication === \"function\") {\n    const tools = tokenControls.tools;\n    const exists = Array.isArray(tools) ? tools.some(tool => tool?.name === FRAME_CONN_DM_SCENE_CONTROL_NAME) : Boolean(tools?.[FRAME_CONN_DM_SCENE_CONTROL_NAME]);\n    if (!exists) {\n      const dmTool = { name: FRAME_CONN_DM_SCENE_CONTROL_NAME, title: \"Frame Conn // Mission\", icon: \"fa-solid fa-map\", order: Array.isArray(tools) ? tools.length : Object.keys(tools ?? {}).length, button: true, visible: true, onChange: () => frameConnFoundryIntegrationRuntimeBindings.openDmApplication() };\n      if (Array.isArray(tools)) tools.push(dmTool);\n      else { tokenControls.tools ??= {}; tokenControls.tools[FRAME_CONN_DM_SCENE_CONTROL_NAME] = dmTool; }\n      changed = true;\n    }\n  }\n  return changed;",
+      "replace": "  return insertFrameConnSceneControlTool(tokenControls);",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "      closeApplication:\n        (...args) =>\n          closeFrameConn(\n            ...args\n          ),\n\n      openDmApplication:\n        (...args) =>\n          frameConnDmApplicationApi.open(\n            ...args\n          ),\n\n      executeLockOnAuthorityRequest:",
+      "replace": "      closeApplication:\n        (...args) =>\n          closeFrameConn(\n            ...args\n          ),\n\n      executeLockOnAuthorityRequest:",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "      \"applicationOpening\",\n      \"applicationClosing\",\n      \"dmApplicationOpening\",\n      \"lockOnAuthorityExecution\"",
+      "replace": "      \"applicationOpening\",\n      \"applicationClosing\",\n      \"lockOnAuthorityExecution\"",
+      "expected_occurrences": 1
+    }
+  ]
 }
