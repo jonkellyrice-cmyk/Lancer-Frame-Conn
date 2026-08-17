@@ -86,9 +86,10 @@ jobs:
               if (unit.target) allowed.add(unit.target);
             }
           }
-          const status = cp.execSync('git status --porcelain', { encoding: 'utf8' }).trim().split(/\r?\n/).filter(Boolean);
+          const raw = cp.execSync('git status --porcelain --untracked-files=all', { encoding: 'utf8' });
+          const status = raw.split(/\r?\n/).filter(line => line.length > 0);
           const unexpected = status
-            .map(line => line.slice(3).trim())
+            .map(line => line.slice(3))
             .filter(path => !allowed.has(path));
           if (unexpected.length) {
             console.error('Unexpected changed paths:');
@@ -101,7 +102,7 @@ jobs:
         if: steps.plan.outputs.approved == 'true'
         shell: bash
         run: |
-          if git diff --quiet && [ -z "$(git status --porcelain)" ]; then
+          if git diff --quiet && [ -z "$(git status --porcelain --untracked-files=all)" ]; then
             echo "No decomposition changes to commit."
             exit 0
           fi
