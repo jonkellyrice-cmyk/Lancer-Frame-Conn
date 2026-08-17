@@ -2,97 +2,14 @@
   "schema_version": 1,
   "tool": "domain-decomposer",
   "tool_version": "1.0.0",
-  "generated_at": "2026-08-17T00:12:00.000Z",
-  "approved": true,
+  "generated_at": "2026-08-17T00:20:00.000Z",
+  "approved": false,
   "policy_file": "dev_scripts/domain-decomposer-policy.json",
   "behavior_change_allowed": false,
-  "invariants": [
-    "runtime effects remain unchanged during structural decomposition",
-    "persistent elevation flag namespaces remain unchanged during structural decomposition",
-    "Foundry integration behavior remains unchanged",
-    "the legacy elevation file remains the temporary hook/composition spine until the ownership migration patch"
-  ],
   "review": {
-    "status": "reviewed-approved",
-    "summary": "Decompose generic Foundry elevation/LOS behavior into acyclic domain modules at its final foundry_features destination before replacing the legacy direct-hook spine with a Frame Conn feature definition.",
-    "execution_blockers": [],
-    "execution_readiness": "Reviewed domain seams avoid command/geometry circular dependencies."
+    "status": "neutral",
+    "summary": "No decomposition is currently approved for execution."
   },
-  "supporting_suite": [
-    {"tool":"runtime-authority-audit","status":"available","evidence":"Legacy direct hook/runtime ownership will be removed in the following ownership migration patch."},
-    {"tool":"state-namespace-atlas","status":"available","evidence":"Legacy wall flag compatibility must survive relocation."},
-    {"tool":"symbol-family-audit","status":"available","evidence":"Elevation responsibilities separate into contract, wall state, vision, light geometry, document commands, and config presentation."}
-  ],
-  "candidates": [
-    {
-      "source": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/elevation-los.js",
-      "decision": "decompose",
-      "recommendation": "HIGH",
-      "reason": "Generic Foundry elevation functionality is unrelated to SITREPs and contains several cohesive responsibilities plus direct runtime wiring.",
-      "role": {"role":"implementation","decompose":true,"source":"reviewed"},
-      "metrics": {"size_pressure":{"level":4,"label":"high"},"reviewed_domain_seams":6,"recommendation":"HIGH"},
-      "retained_spine": {
-        "file": "scripts/dm_features/sitreps/legacy-sitrep-module/scripts/elevation-los.js",
-        "responsibility": "Temporary behavior-preserving hook/composition spine only. It will be deleted after Frame Conn Foundry feature ownership is installed.",
-        "symbol_candidates": []
-      },
-      "units": [
-        {
-          "id":"contract",
-          "action":"extract",
-          "target":"scripts/foundry_features/elevation_los/elevation-los-contract.js",
-          "symbols":["MODULE_ID","FEATURE_KEY","STYLE_ID","finiteNumberOr"],
-          "seam_confidence":"high",
-          "recursive_review_required":false
-        },
-        {
-          "id":"wall-state",
-          "action":"extract",
-          "target":"scripts/foundry_features/elevation_los/wall-elevation-state.js",
-          "symbols":["wallElevationRange","wallHasFiniteElevation","wallDocumentFromEdge","wallBlocksElevation"],
-          "seam_confidence":"high",
-          "recursive_review_required":false
-        },
-        {
-          "id":"vision",
-          "action":"extract",
-          "target":"scripts/foundry_features/elevation_los/elevation-vision-service.js",
-          "symbols":["sourceDocumentFromPolygon","sourceElevationFromPolygon","installVisionPolygonWrapper","refreshElevationVision"],
-          "seam_confidence":"high",
-          "recursive_review_required":false
-        },
-        {
-          "id":"light",
-          "action":"extract",
-          "target":"scripts/foundry_features/elevation_los/elevated-light-service.js",
-          "symbols":["LIGHT_GROUND_ELEVATION","horizontalRadiusAtGround","sceneDistanceToPixels","preserveRadiusSign","radiusValueForReturnedUnits","installAmbientLightRadiusWrapper"],
-          "seam_confidence":"high",
-          "recursive_review_required":false
-        },
-        {
-          "id":"document-commands",
-          "action":"extract",
-          "target":"scripts/foundry_features/elevation_los/elevation-document-commands.js",
-          "symbols":["setWallRange","setAmbientLightElevation","setSelectedLightElevation","setSelectedWallRange"],
-          "seam_confidence":"high",
-          "recursive_review_required":false
-        },
-        {
-          "id":"config-presentation",
-          "action":"extract",
-          "target":"scripts/foundry_features/elevation_los/elevation-config-presentation.js",
-          "symbols":["wallConfigRoot","installStyles","injectWallElevationFields","injectAmbientLightElevationField"],
-          "seam_confidence":"high",
-          "recursive_review_required":false
-        }
-      ],
-      "execution": {
-        "mode":"symbol_extract",
-        "require_dependency_closed_units":true,
-        "preserve_original_exports":true,
-        "approved":true
-      }
-    }
-  ],
+  "candidates": [],
   "retained_files": []
 }
