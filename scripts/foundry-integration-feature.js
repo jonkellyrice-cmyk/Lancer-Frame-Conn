@@ -142,6 +142,9 @@ const MODULE_TITLE =
 const FRAME_CONN_SCENE_CONTROL_NAME =
   "lancer-frame-conn";
 
+const FRAME_CONN_DM_SCENE_CONTROL_NAME =
+  "lancer-frame-conn-dm";
+
 
 /* ============================================================
    Foundry integration runtime bindings
@@ -158,6 +161,9 @@ const frameConnFoundryIntegrationRuntimeBindings = {
     null,
 
   closeApplication:
+    null,
+
+  openDmApplication:
     null,
 
   executeLockOnAuthorityRequest:
@@ -251,6 +257,11 @@ function getFrameConnFoundryIntegrationRuntimeBindings() {
     applicationClosing:
       typeof frameConnFoundryIntegrationRuntimeBindings
         .closeApplication ===
+        "function",
+
+    dmApplicationOpening:
+      typeof frameConnFoundryIntegrationRuntimeBindings
+        .openDmApplication ===
         "function",
 
     lockOnAuthorityExecution:
@@ -658,11 +669,19 @@ function addFrameConnControlButton(
   }
 
 
-  return (
-    insertFrameConnSceneControlTool(
-      tokenControls
-    )
-  );
+  let changed = insertFrameConnSceneControlTool(tokenControls);
+
+  if (game?.user?.isGM && typeof frameConnFoundryIntegrationRuntimeBindings.openDmApplication === "function") {
+    const tools = tokenControls.tools;
+    const exists = Array.isArray(tools) ? tools.some(tool => tool?.name === FRAME_CONN_DM_SCENE_CONTROL_NAME) : Boolean(tools?.[FRAME_CONN_DM_SCENE_CONTROL_NAME]);
+    if (!exists) {
+      const dmTool = { name: FRAME_CONN_DM_SCENE_CONTROL_NAME, title: "Frame Conn // Mission", icon: "fa-solid fa-map", order: Array.isArray(tools) ? tools.length : Object.keys(tools ?? {}).length, button: true, visible: true, onChange: () => frameConnFoundryIntegrationRuntimeBindings.openDmApplication() };
+      if (Array.isArray(tools)) tools.push(dmTool);
+      else { tokenControls.tools ??= {}; tokenControls.tools[FRAME_CONN_DM_SCENE_CONTROL_NAME] = dmTool; }
+      changed = true;
+    }
+  }
+  return changed;
 }
 
 
@@ -1224,6 +1243,10 @@ function frameConnTokenInsideRegion(tokenLike, region) {
   return Boolean(tokenDocument.regions?.has?.(region.id));
 }
 
+function getFrameConnActiveCombat() { return game?.combat ?? game?.combats?.active ?? null; }
+function listFrameConnCombatRegions(combat = getFrameConnActiveCombat()) { const scene = combat?.scene ?? canvas?.scene ?? null; return Array.from(scene?.regions ?? []); }
+function listFrameConnCombatants(combat = getFrameConnActiveCombat()) { return Array.from(combat?.combatants ?? []); }
+
 function escapeFrameConnSemanticOutputText(value) {
   return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('\"', "&quot;").replaceAll("'", "&#039;");
 }
@@ -1417,6 +1440,15 @@ export const frameConnFoundryIntegrationFeature =
 
       publishSemanticOutputIntent:
         publishFrameConnSemanticOutputIntent,
+
+      getActiveCombat:
+        getFrameConnActiveCombat,
+
+      listCombatRegions:
+        listFrameConnCombatRegions,
+
+      listCombatants:
+        listFrameConnCombatants,
 
       diagnostics:
         getFrameConnFoundryIntegrationDiagnostics,

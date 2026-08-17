@@ -417,6 +417,9 @@
  */
 @import "./ui_application/ui-application.css";
 
+/** GM-only Frame Conn // Mission application. */
+@import "./ui_dm/ui-dm-application.css";
+
 
 /**
  * Future core feature imports belong below in deliberate
