@@ -7,9 +7,11 @@ on:
       - main
     paths:
       - dev_scripts/toolchain-onboarding-request.json
+      - dev_scripts/github-filepatcher.json
 
 permissions:
   contents: read
+  statuses: write
 
 concurrency:
   group: frame-conn-toolchain-onboarding
@@ -22,12 +24,51 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Determine onboarding request
+        id: gate
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require("node:fs");
+          const eventName = process.env.GITHUB_EVENT_NAME || "";
+          let shouldRun = eventName === "workflow_dispatch";
+
+          if (!shouldRun && fs.existsSync("dev_scripts/github-filepatcher.json")) {
+            const patch = JSON.parse(
+              fs.readFileSync("dev_scripts/github-filepatcher.json", "utf8")
+            );
+            shouldRun = String(patch.id || "")
+              .startsWith("toolchain-onboarding-remote-trigger-");
+          }
+
+          if (!shouldRun && fs.existsSync(process.env.GITHUB_EVENT_PATH || "")) {
+            const event = JSON.parse(
+              fs.readFileSync(process.env.GITHUB_EVENT_PATH, "utf8")
+            );
+            const head = event.head_commit || {};
+            const changed = new Set([
+              ...(head.added || []),
+              ...(head.modified || [])
+            ]);
+            shouldRun = changed.has(
+              "dev_scripts/toolchain-onboarding-request.json"
+            );
+          }
+
+          fs.appendFileSync(
+            process.env.GITHUB_OUTPUT,
+            `run=${shouldRun ? "true" : "false"}\n`
+          );
+          NODE
+
       - name: Setup Node
+        if: steps.gate.outputs.run == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
       - name: Run toolchain onboarding
+        if: steps.gate.outputs.run == 'true'
         id: onboarding
         continue-on-error: true
         env:
@@ -35,7 +76,9 @@ jobs:
         run: npm run toolchain:onboard
 
       - name: Upload onboarding receipt
-        if: always()
+        if: always() && steps.gate.outputs.run == 'true'
+        id: receipt
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: frame-conn-toolchain-onboarding-${{ github.run_id }}
@@ -43,6 +86,55 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+      - name: Publish onboarding commit status
+        if: always() && steps.gate.outputs.run == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          ONBOARDING_OUTCOME: ${{ steps.onboarding.outcome }}
+          RECEIPT_OUTCOME: ${{ steps.receipt.outcome }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          node <<'NODE'
+          const onboardingSucceeded =
+            process.env.ONBOARDING_OUTCOME === "success";
+          const receiptSucceeded =
+            process.env.RECEIPT_OUTCOME === "success";
+          const state =
+            onboardingSucceeded && receiptSucceeded
+              ? "success"
+              : "failure";
+          const description =
+            state === "success"
+              ? "Frame Conn toolchain onboarding COMPLETE"
+              : `Frame Conn onboarding failed: drill=${process.env.ONBOARDING_OUTCOME || "unknown"} receipt=${process.env.RECEIPT_OUTCOME || "unknown"}`;
+
+          const endpoint =
+            `${process.env.GITHUB_API_URL}/repos/${process.env.GITHUB_REPOSITORY}` +
+            `/statuses/${process.env.GITHUB_SHA}`;
+
+          const response = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              Accept: "application/vnd.github+json",
+              Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+              "X-GitHub-Api-Version": "2022-11-28",
+              "User-Agent": "frame-conn-toolchain-onboarding"
+            },
+            body: JSON.stringify({
+              state,
+              context: "frame-conn/onboarding",
+              description: description.slice(0, 140),
+              target_url: process.env.RUN_URL
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(
+              `Onboarding status publish failed (${response.status}): ${await response.text()}`
+            );
+          }
+          NODE
+
       - name: Enforce onboarding result
-        if: steps.onboarding.outcome != 'success'
+        if: always() && steps.gate.outputs.run == 'true' && (steps.onboarding.outcome != 'success' || steps.receipt.outcome != 'success')
         run: exit 1
