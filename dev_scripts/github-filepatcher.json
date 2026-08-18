@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
-  "id": "assistant-context-broker-integration",
-  "description": "Add the Assistant Context Broker as the bounded pre-corridor repository discovery and snapshot layer, integrate it into GitHub FilePatcher validation/planning, package commands, and the canonical tool-suite documentation.",
+  "id": "assistant-context-broker-integration-v2",
+  "description": "Add the Assistant Context Broker as the bounded pre-corridor repository discovery and snapshot layer, integrate it into GitHub FilePatcher validation/planning, package commands, and the canonical tool-suite documentation using refreshed current-guide anchors.",
   "policy": {
     "max_files_changed": 5,
     "allowed_paths": [
@@ -68,15 +68,15 @@
     {
       "type": "replace_text",
       "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "search": "  github-telemetry.mjs            event-driven workflow-completion receipt/status publisher\n  GITHUB_TELEMETRY.md             GitHub completion telemetry contract and operator guide\n  path-mover.mjs                  relocation + relative-import rewrite executor\n",
-      "replace": "  github-telemetry.mjs            event-driven workflow-completion receipt/status publisher\n  GITHUB_TELEMETRY.md             GitHub completion telemetry contract and operator guide\n  assistant-context-broker.mjs    goal/symbol -> bounded repository context + snapshot packet\n  ASSISTANT_CONTEXT_BROKER.md     context-broker contract and authority boundary\n  path-mover.mjs                  relocation + relative-import rewrite executor\n",
+      "search": "  toolchain-orchestrator.mjs      policy/state guard around the canonical mutation workflow\n  TOOLCHAIN_ORCHESTRATOR.md       orchestrator state, fingerprint, conflict, and exception contract\n  path-mover.mjs                  relocation + relative-import rewrite executor\n",
+      "replace": "  toolchain-orchestrator.mjs      policy/state guard around the canonical mutation workflow\n  TOOLCHAIN_ORCHESTRATOR.md       orchestrator state, fingerprint, conflict, and exception contract\n  assistant-context-broker.mjs    goal/symbol -> bounded repository context + snapshot packet\n  ASSISTANT_CONTEXT_BROKER.md     context-broker contract and authority boundary\n  path-mover.mjs                  relocation + relative-import rewrite executor\n",
       "expected_occurrences": 1
     },
     {
       "type": "replace_text",
       "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "search": "# Event-driven GitHub completion telemetry\nnpm run github:telemetry -- emit ...\nnpm run github:telemetry -- publish ...\nnpm run github:telemetry:self-test\n\n# Architecture diagnostics\n",
-      "replace": "# Event-driven GitHub completion telemetry\nnpm run github:telemetry -- emit ...\nnpm run github:telemetry -- publish ...\nnpm run github:telemetry:self-test\n\n# Assistant-facing repository context\nnpm run context-broker -- --goal \"...\" --output /tmp/context.json\nnpm run context-broker:self-test\n\n# Architecture diagnostics\n",
+      "search": "# Toolchain interaction policy / compact transaction state\nnpm run toolchain:status\nnpm run toolchain:execute\nnpm run toolchain:failure\nnpm run toolchain:self-test\n\n# Architecture diagnostics\n",
+      "replace": "# Toolchain interaction policy / compact transaction state\nnpm run toolchain:status\nnpm run toolchain:execute\nnpm run toolchain:failure\nnpm run toolchain:self-test\n\n# Assistant-facing repository context\nnpm run context-broker -- --goal \"...\" --output /tmp/context.json\nnpm run context-broker:self-test\n\n# Architecture diagnostics\n",
       "expected_occurrences": 1
     },
     {
