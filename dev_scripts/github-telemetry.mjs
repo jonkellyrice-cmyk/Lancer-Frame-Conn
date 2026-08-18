@@ -3,6 +3,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import childProcess from "node:child_process";
+import {
+  buildRequestIdentityFromFile,
+  buildTerminalCompletionRecord,
+  ORCHESTRATOR_STATUS_CONTEXT
+} from "./toolchain-orchestrator.mjs";
 
 const SCHEMA_VERSION = 1;
 const DEFAULT_RECEIPT_NAME = "github-telemetry-receipt.json";
@@ -77,6 +82,14 @@ function buildReceipt(args, env = process.env) {
   const conclusion = stringValue(args, "conclusion", env.FRAME_CONN_TELEMETRY_CONCLUSION || "unknown").toLowerCase();
   const triggeringSha = stringValue(args, "head-sha", env.FRAME_CONN_TELEMETRY_HEAD_SHA || env.GITHUB_SHA);
   const resultCommitSha = stringValue(args, "result-sha", currentGitSha() || triggeringSha);
+  let orchestratorRequest = null;
+  if (workflow === "GitHub FilePatcher") {
+    try {
+      orchestratorRequest = buildRequestIdentityFromFile().identity;
+    } catch {
+      orchestratorRequest = null;
+    }
+  }
   return {
     schemaVersion: SCHEMA_VERSION,
     kind: "frame_conn_github_workflow_receipt",
@@ -90,7 +103,8 @@ function buildReceipt(args, env = process.env) {
     branch: stringValue(args, "branch", env.GITHUB_REF_NAME),
     repository: stringValue(args, "repository", env.GITHUB_REPOSITORY),
     triggeringSha,
-    resultCommitSha
+    resultCommitSha,
+    orchestratorRequest
   };
 }
 
@@ -142,7 +156,8 @@ function buildReport(eventPayload, receipt = null) {
     actor: run.actor?.login || "",
     startedAt: run.run_started_at || run.created_at || null,
     completedAt: run.updated_at || null,
-    receiptAvailable: Boolean(receipt)
+    receiptAvailable: Boolean(receipt),
+    orchestratorRequest: receipt?.orchestratorRequest ?? null
   };
 }
 
@@ -171,6 +186,72 @@ async function publishCommitStatus(report, token, apiUrl = "https://api.github.c
     throw new Error(`GitHub status publish failed (${response.status}): ${body}`);
   }
   return response.json();
+}
+
+async function fetchTerminalFailureEvidence(report, token, apiUrl = "https://api.github.com") {
+  if (!report.runId || report.conclusion === "success") return null;
+  const endpoint = `${apiUrl.replace(/\/$/, "")}/repos/${report.repository}/actions/runs/${report.runId}/jobs?per_page=100`;
+  const response = await fetch(endpoint, {
+    headers: {
+      Accept: "application/vnd.github+json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      "X-GitHub-Api-Version": "2022-11-28",
+      "User-Agent": "frame-conn-github-telemetry"
+    }
+  });
+  if (!response.ok) return null;
+  const payload = await response.json();
+  const failedJob = (payload.jobs ?? []).find(job => ["failure", "cancelled", "timed_out"].includes(job.conclusion)) ?? null;
+  const failedStep = failedJob?.steps?.find(step => ["failure", "cancelled", "timed_out"].includes(step.conclusion)) ?? null;
+  const stage = failedStep?.name || failedJob?.name || "workflow";
+  const normalizedStage = stage.toLowerCase();
+  const failureClass = normalizedStage.includes("commit") || normalizedStage.includes("push")
+    ? "promotion_failure"
+    : (normalizedStage.includes("validate") || normalizedStage.includes("audit") || normalizedStage.includes("diff") || normalizedStage.includes("test") || normalizedStage.includes("propagation"))
+      ? "validation_failure"
+      : "canonical_workflow_failure";
+  return {
+    failed_stage: stage,
+    failure_class: failureClass,
+    summary: `${report.workflow} failed at ${stage}.`,
+    relevant_evidence: [{
+      job: failedJob?.name ?? null,
+      step: failedStep?.name ?? null,
+      conclusion: failedStep?.conclusion ?? failedJob?.conclusion ?? report.conclusion
+    }]
+  };
+}
+
+async function publishOrchestratorStatus(report, token, apiUrl = "https://api.github.com") {
+  if (!report.orchestrator || !token) return;
+  const state = report.orchestrator.state;
+  const statusStateValue = state === "SUCCEEDED" ? "success" : state === "FAILED" ? "failure" : "error";
+  const shortFingerprint = report.orchestrator.request?.fingerprint?.slice(0, 12) || "unknown";
+  const stage = report.orchestrator.failure?.failed_stage;
+  const description = `${state} request=${shortFingerprint}${stage ? ` stage=${stage}` : ""}`.slice(0, 140);
+  const shas = [...new Set([report.triggeringSha, report.resultCommitSha].filter(Boolean))];
+  for (const sha of shas) {
+    const endpoint = `${apiUrl.replace(/\/$/, "")}/repos/${report.repository}/statuses/${sha}`;
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        Accept: "application/vnd.github+json",
+        Authorization: `Bearer ${token}`,
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "frame-conn-toolchain-orchestrator"
+      },
+      body: JSON.stringify({
+        state: statusStateValue,
+        context: ORCHESTRATOR_STATUS_CONTEXT,
+        description,
+        target_url: report.runUrl || undefined
+      })
+    });
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(`Orchestrator status publish failed (${response.status}): ${body}`);
+    }
+  }
 }
 
 function printReportSummary(report) {
@@ -245,12 +326,16 @@ async function main() {
     const receiptPath = findReceipt(args);
     const receipt = receiptPath && fs.existsSync(receiptPath) ? readJson(receiptPath) : null;
     const report = buildReport(eventPayload, receipt);
+    const failureEvidence = await fetchTerminalFailureEvidence(report, process.env.GITHUB_TOKEN, process.env.GITHUB_API_URL);
+    report.orchestrator = buildTerminalCompletionRecord(report, failureEvidence);
     const output = stringValue(args, "output", DEFAULT_REPORT_NAME);
     writeJson(output, report);
     printReportSummary(report);
     if (!args.flags.has("dry-run")) {
       await publishCommitStatus(report, process.env.GITHUB_TOKEN, process.env.GITHUB_API_URL);
+      await publishOrchestratorStatus(report, process.env.GITHUB_TOKEN, process.env.GITHUB_API_URL);
       console.log(`Published terminal telemetry status to ${report.resultCommitSha}.`);
+      if (report.orchestrator) console.log(`Published orchestrator closure state ${report.orchestrator.state}.`);
     }
     return;
   }

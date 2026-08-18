@@ -482,7 +482,8 @@ function validateDeveloperToolSyntax() {
     path.join(ROOT, "dev_scripts", "native-contract-catalog.mjs"),
     path.join(ROOT, "dev_scripts", "automatic-patch-staging.mjs"),
     path.join(ROOT, "dev_scripts", "runtime-contract-probes.mjs"),
-    path.join(ROOT, "dev_scripts", "change-propagation-simulator.mjs")
+    path.join(ROOT, "dev_scripts", "change-propagation-simulator.mjs"),
+    path.join(ROOT, "dev_scripts", "toolchain-orchestrator.mjs")
   ];
 
   for (const tool of tools) {
@@ -562,6 +563,13 @@ function validateDeveloperToolSyntax() {
   if (changePropagationSelfTest.stderr) process.stderr.write(changePropagationSelfTest.stderr);
   if (changePropagationSelfTest.error) fail(`Change Propagation Simulator self-test could not start: ${changePropagationSelfTest.error}`);
   if (changePropagationSelfTest.status !== 0) fail("Change Propagation Simulator self-test failed.");
+
+  const toolchainOrchestrator = path.join(ROOT, "dev_scripts", "toolchain-orchestrator.mjs");
+  const toolchainOrchestratorSelfTest = spawnSync(process.execPath, [toolchainOrchestrator, "--self-test"], { cwd: ROOT, encoding: "utf8" });
+  if (toolchainOrchestratorSelfTest.stdout) process.stdout.write(toolchainOrchestratorSelfTest.stdout);
+  if (toolchainOrchestratorSelfTest.stderr) process.stderr.write(toolchainOrchestratorSelfTest.stderr);
+  if (toolchainOrchestratorSelfTest.error) fail(`Toolchain Orchestrator self-test could not start: ${toolchainOrchestratorSelfTest.error}`);
+  if (toolchainOrchestratorSelfTest.status !== 0) fail("Toolchain Orchestrator self-test failed.");
 
   console.log("[github-filepatcher] Developer tool syntax checks passed.");
 }
@@ -774,8 +782,23 @@ function reportAutomaticStagingScope(plan, stagingReport) {
   }
 }
 
+function runToolchainOrchestratorExecutionGuard() {
+  const orchestratorScript = path.join(ROOT, "dev_scripts", "toolchain-orchestrator.mjs");
+  if (!fs.existsSync(orchestratorScript)) fail(`Toolchain Orchestrator not found: ${orchestratorScript}`);
+  const result = spawnSync(
+    process.execPath,
+    [orchestratorScript, "execute", "--request", PATCH_FILE],
+    { cwd: ROOT, encoding: "utf8", maxBuffer: 4 * 1024 * 1024, env: process.env }
+  );
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+  if (result.error) fail(`Toolchain Orchestrator preflight could not start: ${result.error}`);
+  if (result.status !== 0) fail(`Toolchain Orchestrator refused execution with exit code ${result.status}.`);
+}
+
 function main() {
   try {
+    runToolchainOrchestratorExecutionGuard();
     const patch = readPatchFile();
     const plan = buildMutationPlan(patch);
     const corridorReport = patch.planningGoal

@@ -36,6 +36,8 @@ dev_scripts/
   GITHUB_FILEPATCHER.md           GitHub FilePatcher-specific documentation
   github-telemetry.mjs            event-driven workflow-completion receipt/status publisher
   GITHUB_TELEMETRY.md             GitHub completion telemetry contract and operator guide
+  toolchain-orchestrator.mjs      policy/state guard around the canonical mutation workflow
+  TOOLCHAIN_ORCHESTRATOR.md       orchestrator state, fingerprint, conflict, and exception contract
   path-mover.mjs                  relocation + relative-import rewrite executor
   path-mover.json                 declarative relocation plan
 
@@ -55,6 +57,12 @@ npm run github:patch
 npm run github:telemetry -- emit ...
 npm run github:telemetry -- publish ...
 npm run github:telemetry:self-test
+
+# Toolchain interaction policy / compact transaction state
+npm run toolchain:status
+npm run toolchain:execute
+npm run toolchain:failure
+npm run toolchain:self-test
 
 # Architecture diagnostics
 npm run audit
@@ -144,6 +152,9 @@ Patch DSL / pattern-aware shorthand / raw schema-v2 JSON
     ↓
 dev_scripts/github-filepatcher.json
     ↓
+Toolchain Orchestrator preflight
+  semantic fingerprint + sticky terminal result + one mutation owner
+    ↓
 GitHub FilePatcher builds exact staged before/after transition
     ↓
 Change Propagation Simulator
@@ -168,6 +179,10 @@ originating workflow emits GitHub telemetry receipt (`if: always()`)
 GitHub Telemetry auto-triggers on `workflow_run: completed`
     ↓
 terminal commit status + normalized telemetry artifact
+    ↓
+Toolchain Orchestrator terminal closure
+  SUCCEEDED -> permitted_next_action=none
+  FAILED -> one compact failure record / modify_request only
     ↓
 live Foundry Runtime Contract Probe test when runtime-sensitive
 ```
@@ -197,6 +212,14 @@ terminal status on the result commit
 ```
 
 A GitHub-connected chat session cannot receive unsolicited workflow webhooks into an already-running response, so telemetry does not literally push a new chat message. Its purpose is to ensure completion has already been captured canonically by GitHub, allowing the operator to consume terminal telemetry instead of repeatedly polling the source workflow. See `dev_scripts/GITHUB_TELEMETRY.md` for the exact contract.
+
+### Toolchain Orchestrator
+
+The Toolchain Orchestrator is a deliberately small policy/state wrapper around the established tools. It does not create a second planner, patcher, validator, or promotion path. Before FilePatcher mutation it fingerprints the semantic request, blocks an identical terminal failure/success from being blindly rerun, checks once for competing known mutation workflows on the same branch, and returns one compact assistant-facing state.
+
+GitHub completion telemetry carries that request identity forward. When the originating workflow terminates, telemetry maps success/failure into the orchestrator contract, fetches the failed job/step once when a terminal failure needs diagnosis, and publishes `frame-conn/orchestrator` status on both the request commit and resulting implementation commit. Successful validation/promotion is closure; the permitted next action is `none`.
+
+Direct GitHub mutation is never an equivalent fallback. A demonstrated toolchain capability gap must be surfaced with the smallest proposed exception and explicit user authorization requirement before any direct action. See `dev_scripts/TOOLCHAIN_ORCHESTRATOR.md`.
 
 ### The nine capability upgrades
 
