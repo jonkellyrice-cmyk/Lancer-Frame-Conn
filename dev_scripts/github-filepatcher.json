@@ -1,13 +1,13 @@
 {
   "schema_version": 2,
-  "id": "fix-precommitted-action-economy-v8-hook-owner-rate-limit-retry",
-  "description": "Retry the hook-owned Disengage economy fix after the previous canonical run was terminated during orchestrator conflict discovery by an external GitHub API rate-limit response before corridor or authoring evaluation.",
-  "planning_goal": "For a committed full.disengage action, runActionEconomyPreValidationHook must recognize when its prepared action-economy snapshot already contains a matching unexecuted Turn action. In that case, retain and validate the prepared request using the existing ignoreActionCost mechanism so the already-recorded Full Action does not block effect execution or get consumed again. If there is no matching committed action, preserve the prepared request and ordinary action-economy behavior. Do not change Disengage status or suppression rules, targeting, execution routing, or native Lancer behavior.",
+  "id": "fix-precommitted-action-economy-v9-hook-corridor",
+  "description": "Refine the hook-owned Disengage economy request after the certified corridor selected action-economy-hooks.js but rejected transaction-flavored wording; preserve the same bounded hook fix.",
+  "planning_goal": "For committed full.disengage execution, the System Bridge action-economy hook must apply the existing ignoreActionCost mechanism when the authoritative current Turn state contains a matching unexecuted committed action. This keeps the already-recorded Full Action from blocking Disengage effect execution or being consumed again. If no matching committed action exists, preserve ordinary action-economy behavior. Do not change Disengage status or suppression rules, targeting, execution routing, or native Lancer behavior.",
   "acceptance_criteria": [
-    "runActionEconomyPreValidationHook recognizes a matching unexecuted Turn action from the prepared authoritative snapshot.",
-    "A matching prepared request is rebuilt with the existing ignoreActionCost mechanism and revalidated against the same snapshot.",
-    "The hook retains that ignore-cost request for the existing later action-economy commit path, preventing a second action-cost mutation.",
-    "Without a matching unexecuted committed action, the prepared request and validation are unchanged.",
+    "The System Bridge action-economy hook recognizes a matching unexecuted committed Turn action.",
+    "A matching committed action uses the existing ignoreActionCost mechanism during effect execution.",
+    "The already committed Full Action remains spent exactly once.",
+    "Without a matching unexecuted committed action, ordinary action-economy behavior is unchanged.",
     "Committed full.disengage is no longer blocked or falsely failed because its Full Action was already recorded.",
     "Disengage status, suppression, targeting, execution routing, native Lancer behavior, and genuine failure behavior remain unchanged."
   ],
