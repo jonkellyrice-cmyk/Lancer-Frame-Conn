@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
-  "id": "brace-reaction-popup-diagnostic-v2",
+  "id": "brace-reaction-popup-diagnostic-v3",
   "description": "Use the canonical Frame Conn diagnostic maps and planning pipeline to locate why the Brace reaction popup does not appear when existing Brace eligibility says it should.",
-  "planning_goal": "Fix the existing Brace reaction popup so that when the current Brace eligibility rules make Brace available in response to its intended trigger, the existing Brace reaction prompt is presented. Preserve Brace mechanics, eligibility, costs, effects, native execution, and unrelated reactions. Use the existing symbol families, dependency graph/watershed, integration surface atlas, runtime signal map, effect atlas, native contract catalog, Patch Corridor, Corridor Context, Patch Staging, runtime probes, and change propagation pipeline to identify the smallest existing ownership seam before mutation.",
+  "planning_goal": "Present the existing Brace reaction prompt when the current Brace reaction eligibility rules say Brace is available after its intended trigger.",
   "scope_lock": {
     "schema_version": 1,
     "lock_id": "user-request-2026-08-18-brace-popup-v2",
