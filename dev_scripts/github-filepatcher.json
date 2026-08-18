@@ -37,7 +37,7 @@
     "Modify toolchain or infrastructure."
   ],
   "policy": {
-    "max_files_changed": 0,
+    "max_files_changed": 1,
     "allowed_paths": []
   },
   "operations": []
