@@ -38,6 +38,8 @@ dev_scripts/
   GITHUB_TELEMETRY.md             GitHub completion telemetry contract and operator guide
   toolchain-orchestrator.mjs      policy/state guard around the canonical mutation workflow
   TOOLCHAIN_ORCHESTRATOR.md       orchestrator state, fingerprint, conflict, and exception contract
+  assistant-context-broker.mjs    goal/symbol -> bounded repository context + snapshot packet
+  ASSISTANT_CONTEXT_BROKER.md     context-broker contract and authority boundary
   path-mover.mjs                  relocation + relative-import rewrite executor
   path-mover.json                 declarative relocation plan
 
@@ -63,6 +65,10 @@ npm run toolchain:status
 npm run toolchain:execute
 npm run toolchain:failure
 npm run toolchain:self-test
+
+# Assistant-facing repository context
+npm run context-broker -- --goal "..." --output /tmp/context.json
+npm run context-broker:self-test
 
 # Architecture diagnostics
 npm run audit
@@ -124,6 +130,9 @@ The normal remote path is:
 
 ```text
 behavioral request
+    ↓
+Assistant Context Broker
+  bounded repository discovery + direct import/importer evidence + HEAD/file-hash snapshot
     ↓
 Native Contract Catalog first
   reuse proven native facts when current
@@ -188,6 +197,8 @@ live Foundry Runtime Contract Probe test when runtime-sensitive
 ```
 
 The detailed dependency graph is a deeper manual diagnostic. It is not part of the automatic blocking gate.
+
+The **Assistant Context Broker** is the pre-corridor read boundary. It converts a behavioral goal or symbol into one bounded packet containing ranked repository files, exact source slices, direct local import/importer edges, optional symbol references, and a repository/file-hash snapshot. It does not certify architecture and cannot broaden Patch Corridor. GitHub FilePatcher invokes it automatically whenever `planning_goal` is present, before corridor certification. See `dev_scripts/ASSISTANT_CONTEXT_BROKER.md`.
 
 The local Python FilePatcher is the richer fallback/recovery path and maintains its own backup/history facilities.
 

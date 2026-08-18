@@ -483,7 +483,8 @@ function validateDeveloperToolSyntax() {
     path.join(ROOT, "dev_scripts", "automatic-patch-staging.mjs"),
     path.join(ROOT, "dev_scripts", "runtime-contract-probes.mjs"),
     path.join(ROOT, "dev_scripts", "change-propagation-simulator.mjs"),
-    path.join(ROOT, "dev_scripts", "toolchain-orchestrator.mjs")
+    path.join(ROOT, "dev_scripts", "toolchain-orchestrator.mjs"),
+    path.join(ROOT, "dev_scripts", "assistant-context-broker.mjs")
   ];
 
   for (const tool of tools) {
@@ -571,7 +572,38 @@ function validateDeveloperToolSyntax() {
   if (toolchainOrchestratorSelfTest.error) fail(`Toolchain Orchestrator self-test could not start: ${toolchainOrchestratorSelfTest.error}`);
   if (toolchainOrchestratorSelfTest.status !== 0) fail("Toolchain Orchestrator self-test failed.");
 
+  const assistantContextBroker = path.join(ROOT, "dev_scripts", "assistant-context-broker.mjs");
+  const assistantContextBrokerSelfTest = spawnSync(process.execPath, [assistantContextBroker, "--self-test"], { cwd: ROOT, encoding: "utf8" });
+  if (assistantContextBrokerSelfTest.stdout) process.stdout.write(assistantContextBrokerSelfTest.stdout);
+  if (assistantContextBrokerSelfTest.stderr) process.stderr.write(assistantContextBrokerSelfTest.stderr);
+  if (assistantContextBrokerSelfTest.error) fail(`Assistant Context Broker self-test could not start: ${assistantContextBrokerSelfTest.error}`);
+  if (assistantContextBrokerSelfTest.status !== 0) fail("Assistant Context Broker self-test failed.");
+
   console.log("[github-filepatcher] Developer tool syntax checks passed.");
+}
+
+function runAssistantContextBroker(goal) {
+  const brokerScript = path.join(ROOT, "dev_scripts", "assistant-context-broker.mjs");
+  if (!fs.existsSync(brokerScript)) fail(`Assistant Context Broker not found: ${brokerScript}`);
+  const outputFile = path.join(os.tmpdir(), `frame-conn-assistant-context-${process.pid}.json`);
+  const result = spawnSync(
+    process.execPath,
+    [brokerScript, "--goal", goal, "--output", outputFile],
+    { cwd: ROOT, encoding: "utf8", maxBuffer: 8 * 1024 * 1024 }
+  );
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+  if (result.error) fail(`Assistant Context Broker could not start: ${result.error}`);
+  if (result.status !== 0) fail(`Assistant Context Broker failed with exit code ${result.status}.`);
+  try {
+    const report = JSON.parse(fs.readFileSync(outputFile, "utf8"));
+    console.log(`[github-filepatcher] context_broker_selected_files=${report.selection?.selected_files?.length ?? 0}`);
+    console.log(`[github-filepatcher] context_broker_source_slices=${report.source_slices?.length ?? 0}`);
+    console.log(`[github-filepatcher] context_broker_snapshot=${String(report.snapshot?.fingerprint ?? "").slice(0, 12)}`);
+    return report;
+  } catch (error) {
+    fail(`Assistant Context Broker report could not be read: ${error}`);
+  }
 }
 
 function runPatchCorridorPlanner(goal) {
@@ -801,6 +833,9 @@ function main() {
     runToolchainOrchestratorExecutionGuard();
     const patch = readPatchFile();
     const plan = buildMutationPlan(patch);
+    const assistantContextReport = patch.planningGoal
+      ? runAssistantContextBroker(patch.planningGoal)
+      : null;
     const corridorReport = patch.planningGoal
       ? runPatchCorridorPlanner(patch.planningGoal)
       : null;
@@ -821,6 +856,7 @@ function main() {
     console.log(`[github-filepatcher] operations=${patch.operations.length}`);
     console.log(`[github-filepatcher] changed_files=${plan.changedFiles.length}`);
     plan.changedFiles.forEach((file) => console.log(`[github-filepatcher] change=${file}`));
+    if (assistantContextReport) console.log(`[github-filepatcher] context_broker_packet=${assistantContextReport.packet_fingerprint?.slice(0, 12) ?? "unknown"}`);
     if (corridorReport) reportCorridorScope(plan, corridorReport);
     if (stagingReport) reportAutomaticStagingScope(plan, stagingReport);
 

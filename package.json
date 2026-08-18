@@ -11,6 +11,8 @@
     "toolchain:execute": "node ./dev_scripts/toolchain-orchestrator.mjs execute",
     "toolchain:failure": "node ./dev_scripts/toolchain-orchestrator.mjs failure",
     "toolchain:self-test": "node ./dev_scripts/toolchain-orchestrator.mjs --self-test",
+    "context-broker": "node ./dev_scripts/assistant-context-broker.mjs",
+    "context-broker:self-test": "node ./dev_scripts/assistant-context-broker.mjs --self-test",
     "audit": "node ./dev_scripts/repo-audit.mjs",
     "symbol-family-audit": "node ./dev_scripts/symbol-family-audit.mjs",
     "effect-atlas": "node ./dev_scripts/effect-atlas.mjs",
