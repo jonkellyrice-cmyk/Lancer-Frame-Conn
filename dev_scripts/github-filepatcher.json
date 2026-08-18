@@ -1,24 +1,46 @@
 {
   "schema_version": 2,
-  "id": "disengage-failed-message-diagnosis-v2",
-  "description": "Use the canonical toolchain to diagnose why valid Frame Conn Disengage execution emits the failed message before authoring the smallest fix.",
-  "planning_goal": "Trace full.disengage from committed-plan execution through Frame Conn action execution, runtime bindings, execution result interpretation, and presentation notification. Identify the exact cause of the false failed message on an otherwise valid Disengage execution. Preserve existing Disengage rules behavior, full-action economy, temporary suppression state, and existing native/system-bridge ownership boundaries. The eventual fix must change only the smallest architecturally owned seam necessary so a successful Disengage is reported as successful and genuine execution failures still report failure.",
+  "id": "fix-disengage-precommitted-action-economy-v1",
+  "description": "Prevent canonical execution of an already committed Disengage action from attempting to spend the same Full Action a second time.",
+  "planning_goal": "Use the certified Disengage corridor/context and action-economy architecture to fix the false failure after valid committed-plan execution. Frame Conn Turn state is authoritative for planning-time action expenditure: full.disengage is already present in the current turn's unexecuted usedActions entry before its effect executes. When canonical execution begins for such an entry, build its ExecutionContext with the existing ignoreActionCost flag so global action-economy hooks do not validate or commit the Full Action a second time. Preserve normal action-economy validation for canonical executions that are not backed by a matching unexecuted committed Turn entry. Preserve Disengage status/suppression semantics and genuine execution failures.",
   "acceptance_criteria": [
-    "Canonical corridor/context evidence identifies the exact false-failure seam for full.disengage.",
-    "The proposed fix preserves current successful Disengage state/effect behavior and action economy.",
-    "A valid Disengage execution no longer produces the failed message.",
-    "Real Disengage execution failures remain distinguishable from success.",
-    "No unrelated action execution behavior changes."
+    "full.disengage executed from an unexecuted committed Turn entry uses the existing ExecutionContext ignoreActionCost flag.",
+    "The committed Full Action remains spent exactly once by authoritative Turn state.",
+    "Disengage status/suppression execution still runs through the existing canonical transaction and status-orchestration path.",
+    "A successful committed Disengage produces a succeeded canonical transaction instead of a false partial/failed result caused by duplicate action-economy spending.",
+    "Canonical executions without a matching unexecuted committed Turn entry retain normal action-economy validation and commit behavior.",
+    "No native Lancer behavior, Disengage rules semantics, targeting, or unrelated action execution is changed."
   ],
   "non_goals": [
+    "Change Disengage duration or suppression semantics.",
     "Implement Overwatch.",
-    "Redesign Disengage rules semantics.",
+    "Bypass the canonical execution transaction.",
+    "Disable action economy globally.",
     "Change native Lancer behavior.",
-    "Refactor unrelated action execution or UI code."
+    "Refactor unrelated runtime orchestration."
   ],
   "policy": {
-    "max_files_changed": 0,
-    "allowed_paths": []
+    "max_files_changed": 1,
+    "allowed_paths": [
+      "scripts/runtime-orchestrator.js"
+    ]
+  },
+  "authoring_intent": {
+    "edits": [
+      {
+        "kind": "insert_before_exact",
+        "path": "scripts/runtime-orchestrator.js",
+        "search": "/* ============================================================\n   Canonical action execution composition\n   ============================================================ */",
+        "replace": "/**\n * Return true only when the current authoritative Turn state already\n * contains an unexecuted committed entry for this exact semantic action.\n *\n * Planning-time Turn state has already spent the action budget for such an\n * entry, so canonical effect execution must not spend the same budget again.\n * Non-committed callers continue through ordinary action-economy validation.\n */\nfunction frameConnActionHasPrecommittedTurnEconomy(\n  action\n) {\n  const turnState =\n    getFrameConnTurnState();\n\n  if (\n    !action?.id ||\n    !Array.isArray(\n      turnState?.usedActions\n    )\n  ) {\n    return false;\n  }\n\n  return turnState.usedActions.some(\n    entry =>\n      entry?.actionId === action.id &&\n      entry?.executed !== true\n  );\n}\n\n\n"
+      },
+      {
+        "kind": "replace_exact",
+        "path": "scripts/runtime-orchestrator.js",
+        "search": "        semanticActionId:\n          action.id,\n\n        metadata: {\n          executionKind,\n\n          systemBridge: {",
+        "replace": "        semanticActionId:\n          action.id,\n\n        flags:\n          frameConnActionHasPrecommittedTurnEconomy(\n            action\n          )\n            ? {\n                ignoreActionCost:\n                  true\n              }\n            : null,\n\n        metadata: {\n          executionKind,\n\n          systemBridge: {",
+        "expected_occurrences": 1
+      }
+    ]
   },
   "operations": []
 }
