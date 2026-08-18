@@ -1,0 +1,62 @@
+name: GitHub Telemetry
+
+on:
+  workflow_run:
+    workflows:
+      - GitHub FilePatcher
+      - Path Mover
+      - Domain Decomposer
+    types:
+      - completed
+
+permissions:
+  actions: read
+  contents: read
+  statuses: write
+
+jobs:
+  publish-completion-telemetry:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Download originating telemetry receipt
+        id: receipt
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: frame-conn-telemetry-${{ github.event.workflow_run.id }}
+          path: .github-telemetry-input
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Validate telemetry tool syntax
+        run: node --check dev_scripts/github-telemetry.mjs
+
+      - name: Run telemetry self-test
+        run: npm run github:telemetry:self-test
+
+      - name: Publish completion telemetry
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          npm run github:telemetry -- publish \
+            --event-file "$GITHUB_EVENT_PATH" \
+            --receipt-dir .github-telemetry-input \
+            --output github-telemetry-report.json
+
+      - name: Upload normalized telemetry report
+        uses: actions/upload-artifact@v4
+        with:
+          name: frame-conn-telemetry-report-${{ github.event.workflow_run.id }}
+          path: github-telemetry-report.json
+          if-no-files-found: error
+          retention-days: 30
