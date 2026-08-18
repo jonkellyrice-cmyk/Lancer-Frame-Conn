@@ -44,6 +44,8 @@ dev_scripts/
   ASSISTANT_CONTEXT_BROKER.md     context-broker contract and authority boundary
   patch-authoring-compiler.mjs    explicit semantic edits -> guarded FilePatcher schema-v2 operations
   PATCH_AUTHORING_COMPILER.md     compiler primitives, scope, snapshot, and authority contract
+  mutation-carrier-router.mjs    bounded request shape -> one canonical mutation authority
+  MUTATION_CARRIER_ROUTER.md     routing, conflict, readiness, and authority contract
   path-mover.mjs                  relocation + relative-import rewrite executor
   path-mover.json                 declarative relocation plan
 
@@ -81,6 +83,10 @@ npm run context-broker:self-test
 # Semantic authoring intent -> guarded FilePatcher operations
 npm run patch-authoring -- --request dev_scripts/github-filepatcher.json --output /tmp/compiled-patch.json
 npm run patch-authoring:self-test
+
+# Canonical mutation-carrier classification
+npm run mutation-route -- --request dev_scripts/github-filepatcher.json
+npm run mutation-route:self-test
 
 # Architecture diagnostics
 npm run audit
@@ -147,6 +153,12 @@ bounded request authored
     ↓
 Request Envelope
   semantic identity + goal + acceptance criteria + non-goals + declared scope/evidence
+    ↓
+Mutation Carrier Router
+  select exactly one existing authority: FilePatcher | Path Mover | Domain Decomposer
+    ↓
+Toolchain Orchestrator
+  enforce one active owner and compact permitted-next-action state
     ↓
 Assistant Context Broker
   bounded repository discovery + direct import/importer evidence + HEAD/file-hash snapshot
@@ -219,6 +231,8 @@ live Foundry Runtime Contract Probe test when runtime-sensitive
 The detailed dependency graph is a deeper manual diagnostic. It is not part of the automatic blocking gate.
 
 The **Request Envelope** is the semantic request boundary. It normalizes the bounded request into one stable identity containing the goal, acceptance criteria, non-goals, declared scope, evidence, and an artifact/result manifest. Human labels and runtime metadata do not change its semantic fingerprint; actual semantics, scope, operations, policy, or acceptance criteria do. The Toolchain Orchestrator consumes this identity rather than maintaining a competing fingerprint algorithm. See `dev_scripts/REQUEST_ENVELOPE.md`.
+
+The **Mutation Carrier Router** classifies the bounded request into exactly one existing mutation authority: FilePatcher, Path Mover, or Domain Decomposer. It never executes that carrier. Ambiguous structural signatures or an explicit carrier that contradicts request shape fail closed before mutation. The Toolchain Orchestrator consumes the route so its `mutation_authority` field reflects the actual canonical owner rather than assuming FilePatcher for every request. See `dev_scripts/MUTATION_CARRIER_ROUTER.md`.
 
 The **Assistant Context Broker** is the pre-corridor read boundary. It converts the envelope goal or an explicit symbol query into one bounded packet containing ranked repository files, exact source slices, direct local import/importer edges, optional symbol references, and a repository/file-hash snapshot. It does not certify architecture and cannot broaden Patch Corridor. GitHub FilePatcher invokes it automatically when the Request Envelope carries a goal, before corridor certification. See `dev_scripts/ASSISTANT_CONTEXT_BROKER.md`.
 

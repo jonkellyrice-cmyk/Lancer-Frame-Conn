@@ -485,6 +485,7 @@ function validateDeveloperToolSyntax() {
     path.join(ROOT, "dev_scripts", "change-propagation-simulator.mjs"),
     path.join(ROOT, "dev_scripts", "request-envelope.mjs"),
     path.join(ROOT, "dev_scripts", "patch-authoring-compiler.mjs"),
+    path.join(ROOT, "dev_scripts", "mutation-carrier-router.mjs"),
     path.join(ROOT, "dev_scripts", "toolchain-orchestrator.mjs"),
     path.join(ROOT, "dev_scripts", "assistant-context-broker.mjs")
   ];
@@ -580,6 +581,13 @@ function validateDeveloperToolSyntax() {
   if (patchAuthoringCompilerSelfTest.stderr) process.stderr.write(patchAuthoringCompilerSelfTest.stderr);
   if (patchAuthoringCompilerSelfTest.error) fail(`Patch Authoring Compiler self-test could not start: ${patchAuthoringCompilerSelfTest.error}`);
   if (patchAuthoringCompilerSelfTest.status !== 0) fail("Patch Authoring Compiler self-test failed.");
+
+  const mutationCarrierRouter = path.join(ROOT, "dev_scripts", "mutation-carrier-router.mjs");
+  const mutationCarrierRouterSelfTest = spawnSync(process.execPath, [mutationCarrierRouter, "--self-test"], { cwd: ROOT, encoding: "utf8" });
+  if (mutationCarrierRouterSelfTest.stdout) process.stdout.write(mutationCarrierRouterSelfTest.stdout);
+  if (mutationCarrierRouterSelfTest.stderr) process.stderr.write(mutationCarrierRouterSelfTest.stderr);
+  if (mutationCarrierRouterSelfTest.error) fail(`Mutation Carrier Router self-test could not start: ${mutationCarrierRouterSelfTest.error}`);
+  if (mutationCarrierRouterSelfTest.status !== 0) fail("Mutation Carrier Router self-test failed.");
 
   const toolchainOrchestrator = path.join(ROOT, "dev_scripts", "toolchain-orchestrator.mjs");
   const toolchainOrchestratorSelfTest = spawnSync(process.execPath, [toolchainOrchestrator, "--self-test"], { cwd: ROOT, encoding: "utf8" });

@@ -6,6 +6,10 @@ import {
   buildRequestIdentity as buildEnvelopeRequestIdentity,
   fingerprintRequest as fingerprintEnvelopeRequest
 } from "./request-envelope.mjs";
+import {
+  routeMutationRequest,
+  routeMutationRequestFromFile
+} from "./mutation-carrier-router.mjs";
 import path from "node:path";
 import childProcess from "node:child_process";
 import { pathToFileURL } from "node:url";
@@ -264,11 +268,51 @@ export function buildTerminalCompletionRecord(telemetry, failureEvidence = null)
 
 async function evaluateRequest(requestPath) {
   const { request, identity } = buildRequestIdentityFromFile(requestPath);
-  const operations = Array.isArray(request.operations) ? request.operations : [];
-  if (operations.length === 0) return stateRecord(identity, "IDLE", { bounded_request: false, assistant_action_required: false, permitted_next_action: "none", terminal: false });
+  const mutationRoute = routeMutationRequest(request, requestPath);
+
+  if (mutationRoute.state === "CONFLICT") {
+    return stateRecord(identity, "CONFLICT", {
+      mutation_authority: null,
+      assistant_action_required: true,
+      permitted_next_action: "modify_request",
+      conflict: mutationRoute.conflict,
+      mutation_route: mutationRoute
+    });
+  }
+
+  if (mutationRoute.state === "UNROUTABLE") {
+    return stateRecord(identity, "CONFLICT", {
+      mutation_authority: null,
+      assistant_action_required: true,
+      permitted_next_action: "modify_request",
+      conflict: {
+        code: "UNROUTABLE_REQUEST",
+        owners: [],
+        summary: mutationRoute.failure?.summary ?? "No canonical mutation carrier matched the request."
+      },
+      mutation_route: mutationRoute
+    });
+  }
+
+  if (mutationRoute.execution?.ready === false) {
+    return stateRecord(identity, "IDLE", {
+      mutation_authority: mutationRoute.mutation_authority,
+      bounded_request: false,
+      assistant_action_required: false,
+      permitted_next_action: "none",
+      terminal: false,
+      mutation_route: mutationRoute
+    });
+  }
 
   const conflicts = await activeMutationConflicts();
-  if (conflicts.length) return stateRecord(identity, "CONFLICT", { assistant_action_required: true, permitted_next_action: "wait_for_current_owner_or_resolve_conflict", conflict: { code: "MULTIPLE_MUTATION_AUTHORITIES", owners: conflicts } });
+  if (conflicts.length) return stateRecord(identity, "CONFLICT", {
+    mutation_authority: mutationRoute.mutation_authority,
+    assistant_action_required: true,
+    permitted_next_action: "wait_for_current_owner_or_resolve_conflict",
+    conflict: { code: "MULTIPLE_MUTATION_AUTHORITIES", owners: conflicts },
+    mutation_route: mutationRoute
+  });
 
   const priorTerminal = await findPriorTerminal(identity, requestPath);
   if (priorTerminal?.state === "SUCCEEDED") return stateRecord(identity, "SUCCEEDED", { assistant_action_required: false, permitted_next_action: "none", closed_by_commit: priorTerminal.commit });
@@ -286,7 +330,14 @@ async function evaluateRequest(requestPath) {
   });
 
   const supersedes = await findSupersededFailure(identity, requestPath);
-  return stateRecord(identity, "READY", { assistant_action_required: false, permitted_next_action: "canonical_execute", terminal: false, supersedes });
+  return stateRecord(identity, "READY", {
+    mutation_authority: mutationRoute.mutation_authority,
+    assistant_action_required: false,
+    permitted_next_action: "canonical_execute",
+    terminal: false,
+    supersedes,
+    mutation_route: mutationRoute
+  });
 }
 
 function exitCodeForState(state) {
@@ -325,6 +376,12 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.flags.has("self-test") || args.command === "self-test") { runSelfTest(); return; }
   const requestPath = stringValue(args, "request", DEFAULT_REQUEST_PATH);
+  if (args.command === "route") {
+    const { route } = routeMutationRequestFromFile(requestPath);
+    printJson(route);
+    process.exitCode = route.state === "ROUTED" ? 0 : route.state === "CONFLICT" ? 23 : 24;
+    return;
+  }
   if (args.command === "execute") {
     const record = await evaluateRequest(requestPath);
     printJson(record);
@@ -344,7 +401,7 @@ async function main() {
     printJson(record.failure ?? { state: record.state, summary: "No terminal failure record is available from the current request state." });
     return;
   }
-  throw new Error("Usage: toolchain-orchestrator.mjs status|execute|failure|self-test [--request path] [--telemetry report.json]");
+  throw new Error("Usage: toolchain-orchestrator.mjs route|status|execute|failure|self-test [--request path] [--telemetry report.json]");
 }
 
 const invokedAsScript = process.argv[1] ? import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href : false;
