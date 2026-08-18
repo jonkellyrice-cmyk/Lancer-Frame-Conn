@@ -46,6 +46,8 @@ dev_scripts/
   PATCH_AUTHORING_COMPILER.md     compiler primitives, scope, snapshot, and authority contract
   mutation-carrier-router.mjs    bounded request shape -> one canonical mutation authority
   MUTATION_CARRIER_ROUTER.md     routing, conflict, readiness, and authority contract
+  infrastructure-publisher.mjs  explicitly authorized CAPABILITY_GAP -> one protected-file publication
+  INFRASTRUCTURE_PUBLISHER.md   protected publication authorization, hash, and authority contract
   path-mover.mjs                  relocation + relative-import rewrite executor
   path-mover.json                 declarative relocation plan
 
@@ -87,6 +89,11 @@ npm run patch-authoring:self-test
 # Canonical mutation-carrier classification
 npm run mutation-route -- --request dev_scripts/github-filepatcher.json
 npm run mutation-route:self-test
+
+# Explicitly authorized protected-infrastructure exception
+npm run infrastructure:publish -- --manifest /tmp/infrastructure-publication.json
+npm run infrastructure:publish -- --manifest /tmp/infrastructure-publication.json --publish
+npm run infrastructure:publish:self-test
 
 # Architecture diagnostics
 npm run audit
@@ -233,6 +240,8 @@ The detailed dependency graph is a deeper manual diagnostic. It is not part of t
 The **Request Envelope** is the semantic request boundary. It normalizes the bounded request into one stable identity containing the goal, acceptance criteria, non-goals, declared scope, evidence, and an artifact/result manifest. Human labels and runtime metadata do not change its semantic fingerprint; actual semantics, scope, operations, policy, or acceptance criteria do. The Toolchain Orchestrator consumes this identity rather than maintaining a competing fingerprint algorithm. See `dev_scripts/REQUEST_ENVELOPE.md`.
 
 The **Mutation Carrier Router** classifies the bounded request into exactly one existing mutation authority: FilePatcher, Path Mover, or Domain Decomposer. It never executes that carrier. Ambiguous structural signatures or an explicit carrier that contradicts request shape fail closed before mutation. The Toolchain Orchestrator consumes the route so its `mutation_authority` field reflects the actual canonical owner rather than assuming FilePatcher for every request. See `dev_scripts/MUTATION_CARRIER_ROUTER.md`.
+
+The **Infrastructure Publisher** is deliberately outside that normal carrier set. It exists only after the Toolchain Orchestrator has produced `CAPABILITY_GAP` for a protected infrastructure publication and the user has explicitly authorized the exact exception. Version 1 publishes exactly one `.github/workflows/**` file, verifies the capability-gap/request fingerprint, authorized path, current-content SHA, and proposed-content SHA, and emits a compact publication receipt before normal canonical authority resumes. It never silently falls back from FilePatcher and never becomes a general-purpose alternate patcher. See `dev_scripts/INFRASTRUCTURE_PUBLISHER.md`.
 
 The **Assistant Context Broker** is the pre-corridor read boundary. It converts the envelope goal or an explicit symbol query into one bounded packet containing ranked repository files, exact source slices, direct local import/importer edges, optional symbol references, and a repository/file-hash snapshot. It does not certify architecture and cannot broaden Patch Corridor. GitHub FilePatcher invokes it automatically when the Request Envelope carries a goal, before corridor certification. See `dev_scripts/ASSISTANT_CONTEXT_BROKER.md`.
 

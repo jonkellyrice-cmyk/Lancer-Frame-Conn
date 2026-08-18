@@ -19,6 +19,8 @@
     "patch-authoring:self-test": "node ./dev_scripts/patch-authoring-compiler.mjs --self-test",
     "mutation-route": "node ./dev_scripts/mutation-carrier-router.mjs",
     "mutation-route:self-test": "node ./dev_scripts/mutation-carrier-router.mjs --self-test",
+    "infrastructure:publish": "node ./dev_scripts/infrastructure-publisher.mjs",
+    "infrastructure:publish:self-test": "node ./dev_scripts/infrastructure-publisher.mjs --self-test",
     "audit": "node ./dev_scripts/repo-audit.mjs",
     "symbol-family-audit": "node ./dev_scripts/symbol-family-audit.mjs",
     "effect-atlas": "node ./dev_scripts/effect-atlas.mjs",

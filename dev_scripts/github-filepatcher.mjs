@@ -486,6 +486,7 @@ function validateDeveloperToolSyntax() {
     path.join(ROOT, "dev_scripts", "request-envelope.mjs"),
     path.join(ROOT, "dev_scripts", "patch-authoring-compiler.mjs"),
     path.join(ROOT, "dev_scripts", "mutation-carrier-router.mjs"),
+    path.join(ROOT, "dev_scripts", "infrastructure-publisher.mjs"),
     path.join(ROOT, "dev_scripts", "toolchain-orchestrator.mjs"),
     path.join(ROOT, "dev_scripts", "assistant-context-broker.mjs")
   ];
@@ -588,6 +589,13 @@ function validateDeveloperToolSyntax() {
   if (mutationCarrierRouterSelfTest.stderr) process.stderr.write(mutationCarrierRouterSelfTest.stderr);
   if (mutationCarrierRouterSelfTest.error) fail(`Mutation Carrier Router self-test could not start: ${mutationCarrierRouterSelfTest.error}`);
   if (mutationCarrierRouterSelfTest.status !== 0) fail("Mutation Carrier Router self-test failed.");
+
+  const infrastructurePublisher = path.join(ROOT, "dev_scripts", "infrastructure-publisher.mjs");
+  const infrastructurePublisherSelfTest = spawnSync(process.execPath, [infrastructurePublisher, "--self-test"], { cwd: ROOT, encoding: "utf8" });
+  if (infrastructurePublisherSelfTest.stdout) process.stdout.write(infrastructurePublisherSelfTest.stdout);
+  if (infrastructurePublisherSelfTest.stderr) process.stderr.write(infrastructurePublisherSelfTest.stderr);
+  if (infrastructurePublisherSelfTest.error) fail(`Infrastructure Publisher self-test could not start: ${infrastructurePublisherSelfTest.error}`);
+  if (infrastructurePublisherSelfTest.status !== 0) fail("Infrastructure Publisher self-test failed.");
 
   const toolchainOrchestrator = path.join(ROOT, "dev_scripts", "toolchain-orchestrator.mjs");
   const toolchainOrchestratorSelfTest = spawnSync(process.execPath, [toolchainOrchestrator, "--self-test"], { cwd: ROOT, encoding: "utf8" });

@@ -233,7 +233,9 @@ export function buildCapabilityGapRecord({ identity, requestedOperation, canonic
       smallest_direct_github_action: directAction,
       affected_paths_or_refs: affected,
       normal_authority_after_exception: resumeAuthority,
-      explicit_user_authorization_required: true
+      explicit_user_authorization_required: true,
+      exception_publisher: "dev_scripts/infrastructure-publisher.mjs",
+      exception_publisher_mode: "single_explicitly_authorized_protected_file"
     }
   });
 }
