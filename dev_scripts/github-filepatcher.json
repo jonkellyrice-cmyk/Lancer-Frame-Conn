@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
-  "id": "fix-precommitted-action-economy-v4",
-  "description": "Prevent an already committed Frame Conn action from consuming its action economy a second time when its effect is executed.",
+  "id": "fix-precommitted-action-economy-v5-rate-limit-retry",
+  "description": "Retry the certified Disengage action-economy fix after the prior canonical run was terminated during orchestrator GitHub conflict discovery by an external API rate-limit response; no source mutation or patch authoring occurred in that failed run.",
   "planning_goal": "For a committed full.disengage action, Frame Conn Turn state has already recorded the Full Action before effect execution. Execute the Disengage effect without consuming action economy a second time. Use the existing action-economy ignore-cost mechanism only when the authoritative current Turn state contains a matching unexecuted committed action. If there is no matching committed action, preserve ordinary action-economy behavior. Do not change Disengage status or suppression rules, targeting, or native Lancer behavior.",
   "acceptance_criteria": [
     "A matching unexecuted committed Turn action uses the existing action-economy ignore-cost mechanism during effect execution.",
