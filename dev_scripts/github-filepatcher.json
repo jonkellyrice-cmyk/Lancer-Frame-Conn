@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
-  "id": "disengage-failed-message-diagnosis",
+  "id": "disengage-failed-message-diagnosis-v2",
   "description": "Use the canonical toolchain to diagnose why valid Frame Conn Disengage execution emits the failed message before authoring the smallest fix.",
-  "planning_goal": "Trace full.disengage from committed-plan execution through Frame Conn action execution, runtime bindings, status/turn-state handling, execution result interpretation, and presentation notification. Identify the exact cause of the false failed message on an otherwise valid Disengage execution. Preserve existing Disengage rules behavior, full-action economy, temporary suppression state, semantic action identity, and native/system-bridge ownership. The eventual fix must change only the smallest architecturally owned seam necessary so a successful Disengage is reported as successful and genuine execution failures still report failure.",
+  "planning_goal": "Trace full.disengage from committed-plan execution through Frame Conn action execution, runtime bindings, execution result interpretation, and presentation notification. Identify the exact cause of the false failed message on an otherwise valid Disengage execution. Preserve existing Disengage rules behavior, full-action economy, temporary suppression state, and existing native/system-bridge ownership boundaries. The eventual fix must change only the smallest architecturally owned seam necessary so a successful Disengage is reported as successful and genuine execution failures still report failure.",
   "acceptance_criteria": [
     "Canonical corridor/context evidence identifies the exact false-failure seam for full.disengage.",
     "The proposed fix preserves current successful Disengage state/effect behavior and action economy.",
