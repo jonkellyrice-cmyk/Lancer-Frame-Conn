@@ -128,3 +128,23 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "domain-decomposer: apply approved decomposition"
           git push
+
+      - name: Emit GitHub telemetry receipt
+        if: always()
+        env:
+          FRAME_CONN_TELEMETRY_WORKFLOW: Domain Decomposer
+          FRAME_CONN_TELEMETRY_JOB: apply-approved-plan
+          FRAME_CONN_TELEMETRY_CONCLUSION: ${{ job.status }}
+          FRAME_CONN_TELEMETRY_HEAD_SHA: ${{ github.sha }}
+        run: |
+          node dev_scripts/github-telemetry.mjs emit \
+            --output "$RUNNER_TEMP/github-telemetry-receipt.json"
+
+      - name: Upload GitHub telemetry receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frame-conn-telemetry-${{ github.run_id }}
+          path: ${{ runner.temp }}/github-telemetry-receipt.json
+          if-no-files-found: warn
+          retention-days: 30
