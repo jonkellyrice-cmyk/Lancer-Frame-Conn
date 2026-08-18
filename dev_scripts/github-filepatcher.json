@@ -1,17 +1,17 @@
 {
   "schema_version": 2,
-  "id": "add-abstraction-lock-v1",
-  "description": "Add an Abstraction Lock immediately after Scope Lock so Frame Conn repository work cannot drop below the established diagnostic/planning abstraction without an explicit higher-level grant.",
-  "planning_goal": "Create and integrate a deterministic Abstraction Lock into the canonical toolchain runtime immediately after Scope Lock. The lock must require repository investigation to proceed through existing generated intelligence and planning surfaces, deny generic source exploration and guessed file access by default, permit lower-level source access only when an existing higher-level toolchain artifact explicitly grants the path, and preserve the existing Scope Lock, diagnostics, planning, FilePatcher, validation, and terminal-state authorities.",
+  "id": "add-abstraction-lock-bootstrap-v2",
+  "description": "Bootstrap the explicitly user-authorized Abstraction Lock as a new dev_scripts toolchain capability, then integrate it immediately after Scope Lock.",
+  "planning_goal": "Bootstrap one explicitly authorized new toolchain capability named Abstraction Lock under dev_scripts. Because this capability has no pre-existing architectural owner, treat its new module as the user-authorized bootstrap owner rather than requiring Patch Corridor to discover an existing application owner. Integrate that capability immediately after the existing Scope Lock in the canonical toolchain runtime, use it to enforce the established diagnostic/planning abstraction and bounded source-access grants, exercise it in onboarding, and preserve all existing toolchain authorities otherwise unchanged.",
   "scope_lock": {
     "schema_version": 1,
-    "lock_id": "user-request-2026-08-18-abstraction-lock",
-    "original_user_instruction": "Okay. Create that.",
+    "lock_id": "user-request-2026-08-18-abstraction-lock-bootstrap-v2",
+    "original_user_instruction": "Fix it so that it works.",
     "authorized_deliverables": [
-      "Create an Abstraction Lock for the Frame Conn toolchain.",
-      "Integrate it immediately after Scope Lock in the canonical runtime flow.",
-      "Make lower-level repository/source access require an explicit grant from the established higher-level toolchain evidence.",
-      "Teach and verify the Abstraction Lock in onboarding so dropping below the abstraction is rejected rather than merely discouraged."
+      "Bootstrap the previously requested Abstraction Lock as an explicitly authorized new dev_scripts toolchain capability.",
+      "Integrate Abstraction Lock immediately after Scope Lock in the canonical runtime flow.",
+      "Enforce that lower-level source access requires an explicit bounded grant from higher-level toolchain evidence.",
+      "Verify the abstraction boundary in onboarding."
     ],
     "authorized_paths": [
       "dev_scripts/abstraction-lock.mjs",
@@ -22,34 +22,34 @@
     "forbidden_expansions": [
       "Do not modify application, game, UI, system_bridge, runtime, or feature source code.",
       "Do not modify GitHub workflows or repository infrastructure.",
-      "Do not build a ChatGPT/GitHub gateway plugin in this change.",
-      "Do not redesign Scope Lock, FilePatcher, diagnostics, Patch Corridor, Corridor Context, Patch Staging, Change Propagation, or validation beyond the minimum integration required for Abstraction Lock.",
-      "Do not perform unrelated toolchain cleanup or refactoring."
+      "Do not build a ChatGPT/GitHub gateway plugin.",
+      "Do not redesign existing diagnostics, planning, propagation, FilePatcher, Scope Lock, or validation systems beyond the minimum hooks required by Abstraction Lock.",
+      "Do not perform unrelated cleanup or refactoring."
     ],
     "allow_capability_construction": true,
     "authorized_capabilities": [
+      "NEW_CAPABILITY_BOOTSTRAP: dev_scripts/abstraction-lock.mjs",
       "Abstraction Lock enforcement inside the existing dev_scripts toolchain only"
     ]
   },
   "acceptance_criteria": [
-    "A dedicated Abstraction Lock implementation exists under dev_scripts and has deterministic machine-readable ALLOW, ABSTRACTION_VIOLATION, and ABSTRACTION_GAP outcomes.",
-    "The canonical runtime evaluates Abstraction Lock immediately after Scope Lock and before Mutation Carrier Router/orchestration proceeds.",
-    "The default Frame Conn repository-investigation abstraction permits established generated intelligence and planning surfaces: Symbol Families, Dependency Watershed/Graph, Integration Surface Atlas, Runtime Signal Map, Effect Atlas, Native Contract Catalog, Patch Corridor, Corridor Context, Patch Staging, Change Propagation, FilePatcher, and canonical validation.",
-    "Generic GitHub/source search and guessed/ad-hoc file reads are denied for repository investigation unless a higher-level toolchain artifact has explicitly granted the requested source path.",
-    "A grant is bounded to explicit path(s), records its issuing higher-level artifact/evidence, and cannot broaden the immutable Scope Lock.",
-    "An evidence gap returns ABSTRACTION_GAP with only the specifically permitted escalation; it does not authorize arbitrary lower-level exploration.",
-    "Toolchain modification remains denied unless the Scope Lock explicitly authorizes toolchain modification, as this request does.",
-    "Onboarding exercises the abstraction boundary: direct generic search is rejected, guessed source access is rejected, mapped/granted source access is accepted, and unrelated source access remains rejected.",
-    "Existing Scope Lock authority remains unchanged: Abstraction Lock constrains interfaces/levels and may not redefine or broaden the user objective.",
-    "Existing Patch Corridor, Corridor Context, Patch Staging, Change Propagation, FilePatcher, diagnostics, validation, and terminal-state behavior remain authoritative and otherwise unchanged.",
-    "Canonical validation and onboarding pass after the change."
+    "The new capability owner is dev_scripts/abstraction-lock.mjs; no application/runtime feature owner is required or inferred for this explicitly authorized toolchain bootstrap.",
+    "Abstraction Lock returns deterministic machine-readable ALLOW, ABSTRACTION_VIOLATION, and ABSTRACTION_GAP outcomes.",
+    "The canonical toolchain evaluates Abstraction Lock immediately after Scope Lock and before lower-level repository investigation or mutation routing.",
+    "Existing generated intelligence and planning surfaces remain the default repository-investigation interface: Symbol Families, Dependency Graph/Watershed, Integration Surface Atlas, Runtime Signal Map, Effect Atlas, Native Contract Catalog, Patch Corridor, Corridor Context, Patch Staging, Change Propagation, FilePatcher, and canonical validation.",
+    "Generic repository/source search and guessed or ad-hoc source reads are denied by default for repository investigation.",
+    "Lower-level source access is allowed only by a bounded grant containing explicit path(s) and issuing higher-level toolchain evidence; the grant cannot broaden Scope Lock.",
+    "An evidence insufficiency returns ABSTRACTION_GAP and a specifically bounded permitted escalation rather than arbitrary exploration authority.",
+    "Onboarding verifies that generic search is rejected, guessed source access is rejected, a mapped/granted source path is accepted, and an unrelated source path remains rejected.",
+    "Existing Scope Lock, Patch Corridor, Corridor Context, Patch Staging, Change Propagation, FilePatcher, diagnostics, validation, mutation authority, and terminal-state behavior remain otherwise unchanged.",
+    "Canonical validation and onboarding pass."
   ],
   "non_goals": [
-    "Build or replace the GitHub plugin.",
-    "Change application behavior.",
-    "Change Lancer game mechanics.",
-    "Create a second diagnostic or planning system.",
-    "Permit the assistant to self-authorize abstraction descent."
+    "Create an application feature.",
+    "Build the GitHub gateway plugin.",
+    "Change Lancer behavior.",
+    "Create replacement diagnostics or planners.",
+    "Permit assistant-authored abstraction descent."
   ],
   "policy": {
     "max_files_changed": 4,
