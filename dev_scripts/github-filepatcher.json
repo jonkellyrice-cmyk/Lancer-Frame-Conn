@@ -1,43 +1,43 @@
 {
   "schema_version": 2,
-  "id": "fix-disengage-precommitted-action-economy-v1",
-  "description": "Prevent canonical execution of an already committed Disengage action from attempting to spend the same Full Action a second time.",
-  "planning_goal": "Use the certified Disengage corridor/context and action-economy architecture to fix the false failure after valid committed-plan execution. Frame Conn Turn state is authoritative for planning-time action expenditure: full.disengage is already present in the current turn's unexecuted usedActions entry before its effect executes. When canonical execution begins for such an entry, build its ExecutionContext with the existing ignoreActionCost flag so global action-economy hooks do not validate or commit the Full Action a second time. Preserve normal action-economy validation for canonical executions that are not backed by a matching unexecuted committed Turn entry. Preserve Disengage status/suppression semantics and genuine execution failures.",
+  "id": "fix-precommitted-action-economy-v2",
+  "description": "Correct action-economy preparation so executing an already committed Turn action does not spend its action cost a second time.",
+  "planning_goal": "Within the action-economy preparation owned by system_bridge/action_economy/action-economy-transaction.js, preserve Frame Conn Turn state as the authority for planning-time action expenditure. After prepareActionEconomyTransaction reads the authoritative action-economy snapshot, detect whether snapshot.metadata.rawState.usedActions contains an unexecuted committed entry whose actionId matches context.semanticAction.id. When that exact committed entry exists, rebuild the existing ActionEconomyRequest with ignoreActionCost true before validation so the already-spent action cost is not validated or committed again. When no matching unexecuted committed entry exists, preserve the request unchanged and keep ordinary action-economy behavior. This must allow committed full.disengage effect execution to complete successfully without changing Disengage status/suppression behavior.",
   "acceptance_criteria": [
-    "full.disengage executed from an unexecuted committed Turn entry uses the existing ExecutionContext ignoreActionCost flag.",
-    "The committed Full Action remains spent exactly once by authoritative Turn state.",
-    "Disengage status/suppression execution still runs through the existing canonical transaction and status-orchestration path.",
-    "A successful committed Disengage produces a succeeded canonical transaction instead of a false partial/failed result caused by duplicate action-economy spending.",
-    "Canonical executions without a matching unexecuted committed Turn entry retain normal action-economy validation and commit behavior.",
-    "No native Lancer behavior, Disengage rules semantics, targeting, or unrelated action execution is changed."
+    "prepareActionEconomyTransaction recognizes a matching unexecuted committed Turn entry from the authoritative snapshot.",
+    "For that entry only, the existing ActionEconomyRequest is rebuilt with ignoreActionCost true before action-economy validation.",
+    "The same ignoreActionCost request is retained for the later action-economy commit hook, so no duplicate action cost mutation occurs.",
+    "Requests without a matching unexecuted committed Turn entry remain unchanged and retain normal action-economy validation and commit behavior.",
+    "Committed full.disengage can execute its existing status-orchestration effect without becoming partial/failed because its Full Action was already spent during planning.",
+    "No Disengage duration, status, suppression, targeting, native Lancer behavior, or unrelated action effect is changed."
   ],
   "non_goals": [
-    "Change Disengage duration or suppression semantics.",
+    "Change action costs or turn limits.",
+    "Change Disengage status/suppression semantics.",
     "Implement Overwatch.",
-    "Bypass the canonical execution transaction.",
-    "Disable action economy globally.",
+    "Bypass execution transactions or action-economy hooks.",
     "Change native Lancer behavior.",
-    "Refactor unrelated runtime orchestration."
+    "Refactor unrelated action execution."
   ],
   "policy": {
     "max_files_changed": 1,
     "allowed_paths": [
-      "scripts/runtime-orchestrator.js"
+      "system_bridge/action_economy/action-economy-transaction.js"
     ]
   },
   "authoring_intent": {
     "edits": [
       {
         "kind": "insert_before_exact",
-        "path": "scripts/runtime-orchestrator.js",
-        "search": "/* ============================================================\n   Canonical action execution composition\n   ============================================================ */",
-        "replace": "/**\n * Return true only when the current authoritative Turn state already\n * contains an unexecuted committed entry for this exact semantic action.\n *\n * Planning-time Turn state has already spent the action budget for such an\n * entry, so canonical effect execution must not spend the same budget again.\n * Non-committed callers continue through ordinary action-economy validation.\n */\nfunction frameConnActionHasPrecommittedTurnEconomy(\n  action\n) {\n  const turnState =\n    getFrameConnTurnState();\n\n  if (\n    !action?.id ||\n    !Array.isArray(\n      turnState?.usedActions\n    )\n  ) {\n    return false;\n  }\n\n  return turnState.usedActions.some(\n    entry =>\n      entry?.actionId === action.id &&\n      entry?.executed !== true\n  );\n}\n\n\n"
+        "path": "system_bridge/action_economy/action-economy-transaction.js",
+        "search": "/* ============================================================\n   ECONOMY PREPARATION\n   ============================================================ */",
+        "replace": "/**\n * Return true when authoritative Turn state already contains the exact\n * semantic action as an unexecuted committed entry. In that case planning\n * has already spent the action budget and effect execution must not spend it\n * again.\n */\nfunction actionEconomyHasMatchingUnexecutedCommittedTurnEntry(\n  context,\n  snapshot\n) {\n  const semanticActionId =\n    getSemanticActionId(\n      context\n    );\n\n  const usedActions =\n    snapshot\n      ?.metadata\n      ?.rawState\n      ?.usedActions;\n\n  if (\n    !semanticActionId ||\n    !Array.isArray(\n      usedActions\n    )\n  ) {\n    return false;\n  }\n\n  return usedActions.some(\n    entry =>\n      entry?.actionId === semanticActionId &&\n      entry?.executed !== true\n  );\n}\n\n\n"
       },
       {
         "kind": "replace_exact",
-        "path": "scripts/runtime-orchestrator.js",
-        "search": "        semanticActionId:\n          action.id,\n\n        metadata: {\n          executionKind,\n\n          systemBridge: {",
-        "replace": "        semanticActionId:\n          action.id,\n\n        flags:\n          frameConnActionHasPrecommittedTurnEconomy(\n            action\n          )\n            ? {\n                ignoreActionCost:\n                  true\n              }\n            : null,\n\n        metadata: {\n          executionKind,\n\n          systemBridge: {",
+        "path": "system_bridge/action_economy/action-economy-transaction.js",
+        "search": "  const request =\n    buildActionEconomyRequest(\n      context\n    );\n  const snapshot =\n    await readExecutionActionEconomySnapshot(\n      context\n    );\n  const validation =",
+        "replace": "  let request =\n    buildActionEconomyRequest(\n      context\n    );\n  const snapshot =\n    await readExecutionActionEconomySnapshot(\n      context\n    );\n\n  if (\n    actionEconomyHasMatchingUnexecutedCommittedTurnEntry(\n      context,\n      snapshot\n    )\n  ) {\n    request =\n      createActionEconomyRequest({\n        ...request,\n        ignoreActionCost:\n          true,\n        metadata: {\n          ...(\n            request.metadata ??\n            {}\n          ),\n          precommittedTurnAction:\n            true\n        }\n      });\n  }\n\n  const validation =",
         "expected_occurrences": 1
       }
     ]
