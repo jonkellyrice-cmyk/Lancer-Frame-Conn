@@ -172,6 +172,45 @@ function presentButton(button, { active = false, permission = null } = {}) {
   button.title = active ? "Brace is applied to this damage event." : permission?.reason ?? "Brace against this hit.";
 }
 
+const promptedBraceDamageEvents = new Set();
+
+function braceDamageEventKey(message, targetUuid) {
+  if (!message?.id || !targetUuid) return null;
+  return `${message.id}:${targetUuid}`;
+}
+
+function promptBraceReaction(button, { message, targetUuid, permission } = {}) {
+  if (!button || permission?.allowed !== true) return false;
+  const eventKey = braceDamageEventKey(message, targetUuid);
+  if (!eventKey || promptedBraceDamageEvents.has(eventKey)) return false;
+  const DialogClass = globalThis.Dialog;
+  if (typeof DialogClass !== "function") return false;
+  promptedBraceDamageEvents.add(eventKey);
+  try {
+    new DialogClass({
+      title: "Frame Conn | Brace",
+      content: "<p>You were hit. Use Brace against this damage event?</p>",
+      buttons: {
+        brace: {
+          icon: '<i class="fas fa-shield-halved"></i>',
+          label: "Brace",
+          callback: () => button.click()
+        },
+        decline: {
+          icon: '<i class="fas fa-xmark"></i>',
+          label: "Not Now"
+        }
+      },
+      default: "brace"
+    }).render(true);
+    return true;
+  } catch (error) {
+    promptedBraceDamageEvents.delete(eventKey);
+    console.warn("Frame Conn | Could not present Brace reaction prompt.", error);
+    return false;
+  }
+}
+
 function handleDamageMessage(message, html) {
   if (!message?.flags?.lancer?.damageData) return false;
   const root = chatRoot(html);
@@ -191,20 +230,23 @@ function handleDamageMessage(message, html) {
       button.className = "lancer-button fc-brace-reaction";
       group.insertBefore(button, group.querySelector(".lancer-damage-apply"));
     }
-    presentButton(button, { active, permission: active ? null : canUse(actor) });
-    if (button.dataset.fcBraceBound === "true") continue;
-    button.dataset.fcBraceBound = "true";
-    button.addEventListener("click", async event => {
-      event.preventDefault(); event.stopPropagation(); button.disabled = true;
-      try {
-        await activate(actor, { messageId: message.id, targetUuid });
-        selectResistance(group); presentButton(button, { active: true });
-        ui.notifications?.info("Frame Conn | Brace armed. Apply damage normally.");
-      } catch (error) {
-        presentButton(button, { permission: canUse(actor) });
-        ui.notifications?.error(error instanceof Error ? error.message : String(error));
-      }
-    });
+    const permission = active ? null : canUse(actor);
+    presentButton(button, { active, permission });
+    if (button.dataset.fcBraceBound !== "true") {
+      button.dataset.fcBraceBound = "true";
+      button.addEventListener("click", async event => {
+        event.preventDefault(); event.stopPropagation(); button.disabled = true;
+        try {
+          await activate(actor, { messageId: message.id, targetUuid });
+          selectResistance(group); presentButton(button, { active: true });
+          ui.notifications?.info("Frame Conn | Brace armed. Apply damage normally.");
+        } catch (error) {
+          presentButton(button, { permission: canUse(actor) });
+          ui.notifications?.error(error instanceof Error ? error.message : String(error));
+        }
+      });
+    }
+    if (!active) promptBraceReaction(button, { message, targetUuid, permission });
   }
   return true;
 }
