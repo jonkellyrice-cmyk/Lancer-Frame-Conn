@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 
-import crypto from "node:crypto";
 import fs from "node:fs";
+import {
+  buildRequestEnvelopeFromFile,
+  buildRequestIdentity as buildEnvelopeRequestIdentity,
+  fingerprintRequest as fingerprintEnvelopeRequest
+} from "./request-envelope.mjs";
 import path from "node:path";
 import childProcess from "node:child_process";
 import { pathToFileURL } from "node:url";
@@ -30,40 +34,32 @@ function stringValue(args, key, fallback = "") {
   return String(args.values.get(key) ?? fallback).trim();
 }
 
-function stableValue(value) {
-  if (Array.isArray(value)) return value.map(stableValue);
-  if (!value || typeof value !== "object") return value;
-  return Object.fromEntries(Object.keys(value).sort().map(key => [key, stableValue(value[key])]));
-}
-
-function semanticRequestProjection(request) {
-  const projection = { ...request };
-  for (const key of ["id", "description", "orchestrator", "telemetry", "execution_metadata", "runtime_metadata", "request_id", "request_fingerprint"]) delete projection[key];
-  return stableValue(projection);
-}
-
 export function fingerprintRequest(request) {
-  const canonical = JSON.stringify(semanticRequestProjection(request));
-  return crypto.createHash("sha256").update(canonical, "utf8").digest("hex");
+  return fingerprintEnvelopeRequest(request);
 }
 
 export function buildRequestIdentity(request, requestPath = DEFAULT_REQUEST_PATH) {
-  const fingerprint = fingerprintRequest(request);
-  const requestedId = typeof request?.id === "string" && request.id.trim()
-    ? request.id.trim().replace(/[^A-Za-z0-9._-]+/g, "-").slice(0, 72)
-    : "request";
+  const identity = buildEnvelopeRequestIdentity(request, requestPath);
   return {
-    id: `${requestedId}-${fingerprint.slice(0, 12)}`,
-    fingerprint,
-    fingerprintShort: fingerprint.slice(0, 12),
-    requestPath: requestPath.replaceAll("\\", "/")
+    id: identity.id,
+    fingerprint: identity.fingerprint,
+    fingerprintShort: identity.fingerprint_short,
+    requestPath: identity.request_path
   };
 }
 
 export function buildRequestIdentityFromFile(requestPath = DEFAULT_REQUEST_PATH) {
-  const absolute = path.resolve(requestPath);
-  const request = JSON.parse(fs.readFileSync(absolute, "utf8"));
-  return { request, identity: buildRequestIdentity(request, requestPath) };
+  const { request, envelope } = buildRequestEnvelopeFromFile(requestPath);
+  return {
+    request,
+    envelope,
+    identity: {
+      id: envelope.request.id,
+      fingerprint: envelope.request.fingerprint,
+      fingerprintShort: envelope.request.fingerprint_short,
+      requestPath: envelope.request.request_path
+    }
+  };
 }
 
 function stateRecord(identity, state, overrides = {}) {

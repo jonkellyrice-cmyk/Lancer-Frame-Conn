@@ -36,6 +36,8 @@ dev_scripts/
   GITHUB_FILEPATCHER.md           GitHub FilePatcher-specific documentation
   github-telemetry.mjs            event-driven workflow-completion receipt/status publisher
   GITHUB_TELEMETRY.md             GitHub completion telemetry contract and operator guide
+  request-envelope.mjs            bounded request -> semantic identity/scope/evidence envelope
+  REQUEST_ENVELOPE.md             request-envelope identity, manifest, and authority contract
   toolchain-orchestrator.mjs      policy/state guard around the canonical mutation workflow
   TOOLCHAIN_ORCHESTRATOR.md       orchestrator state, fingerprint, conflict, and exception contract
   assistant-context-broker.mjs    goal/symbol -> bounded repository context + snapshot packet
@@ -59,6 +61,10 @@ npm run github:patch
 npm run github:telemetry -- emit ...
 npm run github:telemetry -- publish ...
 npm run github:telemetry:self-test
+
+# Durable bounded-request identity / intent envelope
+npm run request-envelope -- --request dev_scripts/github-filepatcher.json --output /tmp/request-envelope.json
+npm run request-envelope:self-test
 
 # Toolchain interaction policy / compact transaction state
 npm run toolchain:status
@@ -131,6 +137,11 @@ The normal remote path is:
 ```text
 behavioral request
     ↓
+bounded request authored
+    ↓
+Request Envelope
+  semantic identity + goal + acceptance criteria + non-goals + declared scope/evidence
+    ↓
 Assistant Context Broker
   bounded repository discovery + direct import/importer evidence + HEAD/file-hash snapshot
     ↓
@@ -198,7 +209,9 @@ live Foundry Runtime Contract Probe test when runtime-sensitive
 
 The detailed dependency graph is a deeper manual diagnostic. It is not part of the automatic blocking gate.
 
-The **Assistant Context Broker** is the pre-corridor read boundary. It converts a behavioral goal or symbol into one bounded packet containing ranked repository files, exact source slices, direct local import/importer edges, optional symbol references, and a repository/file-hash snapshot. It does not certify architecture and cannot broaden Patch Corridor. GitHub FilePatcher invokes it automatically whenever `planning_goal` is present, before corridor certification. See `dev_scripts/ASSISTANT_CONTEXT_BROKER.md`.
+The **Request Envelope** is the semantic request boundary. It normalizes the bounded request into one stable identity containing the goal, acceptance criteria, non-goals, declared scope, evidence, and an artifact/result manifest. Human labels and runtime metadata do not change its semantic fingerprint; actual semantics, scope, operations, policy, or acceptance criteria do. The Toolchain Orchestrator consumes this identity rather than maintaining a competing fingerprint algorithm. See `dev_scripts/REQUEST_ENVELOPE.md`.
+
+The **Assistant Context Broker** is the pre-corridor read boundary. It converts the envelope goal or an explicit symbol query into one bounded packet containing ranked repository files, exact source slices, direct local import/importer edges, optional symbol references, and a repository/file-hash snapshot. It does not certify architecture and cannot broaden Patch Corridor. GitHub FilePatcher invokes it automatically when the Request Envelope carries a goal, before corridor certification. See `dev_scripts/ASSISTANT_CONTEXT_BROKER.md`.
 
 The local Python FilePatcher is the richer fallback/recovery path and maintains its own backup/history facilities.
 
@@ -226,7 +239,7 @@ A GitHub-connected chat session cannot receive unsolicited workflow webhooks int
 
 ### Toolchain Orchestrator
 
-The Toolchain Orchestrator is a deliberately small policy/state wrapper around the established tools. It does not create a second planner, patcher, validator, or promotion path. Before FilePatcher mutation it fingerprints the semantic request, blocks an identical terminal failure/success from being blindly rerun, checks once for competing known mutation workflows on the same branch, and returns one compact assistant-facing state.
+The Toolchain Orchestrator is a deliberately small policy/state wrapper around the established tools. It does not create a second planner, patcher, validator, or promotion path. Before FilePatcher mutation it consumes the Request Envelope's semantic identity, blocks an identical terminal failure/success from being blindly rerun, checks once for competing known mutation workflows on the same branch, and returns one compact assistant-facing state.
 
 GitHub completion telemetry carries that request identity forward. When the originating workflow terminates, telemetry maps success/failure into the orchestrator contract, fetches the failed job/step once when a terminal failure needs diagnosis, and publishes `frame-conn/orchestrator` status on both the request commit and resulting implementation commit. Successful validation/promotion is closure; the permitted next action is `none`.
 

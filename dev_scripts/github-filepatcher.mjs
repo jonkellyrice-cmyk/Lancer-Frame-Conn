@@ -483,6 +483,7 @@ function validateDeveloperToolSyntax() {
     path.join(ROOT, "dev_scripts", "automatic-patch-staging.mjs"),
     path.join(ROOT, "dev_scripts", "runtime-contract-probes.mjs"),
     path.join(ROOT, "dev_scripts", "change-propagation-simulator.mjs"),
+    path.join(ROOT, "dev_scripts", "request-envelope.mjs"),
     path.join(ROOT, "dev_scripts", "toolchain-orchestrator.mjs"),
     path.join(ROOT, "dev_scripts", "assistant-context-broker.mjs")
   ];
@@ -565,6 +566,13 @@ function validateDeveloperToolSyntax() {
   if (changePropagationSelfTest.error) fail(`Change Propagation Simulator self-test could not start: ${changePropagationSelfTest.error}`);
   if (changePropagationSelfTest.status !== 0) fail("Change Propagation Simulator self-test failed.");
 
+  const requestEnvelope = path.join(ROOT, "dev_scripts", "request-envelope.mjs");
+  const requestEnvelopeSelfTest = spawnSync(process.execPath, [requestEnvelope, "--self-test"], { cwd: ROOT, encoding: "utf8" });
+  if (requestEnvelopeSelfTest.stdout) process.stdout.write(requestEnvelopeSelfTest.stdout);
+  if (requestEnvelopeSelfTest.stderr) process.stderr.write(requestEnvelopeSelfTest.stderr);
+  if (requestEnvelopeSelfTest.error) fail(`Request Envelope self-test could not start: ${requestEnvelopeSelfTest.error}`);
+  if (requestEnvelopeSelfTest.status !== 0) fail("Request Envelope self-test failed.");
+
   const toolchainOrchestrator = path.join(ROOT, "dev_scripts", "toolchain-orchestrator.mjs");
   const toolchainOrchestratorSelfTest = spawnSync(process.execPath, [toolchainOrchestrator, "--self-test"], { cwd: ROOT, encoding: "utf8" });
   if (toolchainOrchestratorSelfTest.stdout) process.stdout.write(toolchainOrchestratorSelfTest.stdout);
@@ -580,6 +588,30 @@ function validateDeveloperToolSyntax() {
   if (assistantContextBrokerSelfTest.status !== 0) fail("Assistant Context Broker self-test failed.");
 
   console.log("[github-filepatcher] Developer tool syntax checks passed.");
+}
+
+function runRequestEnvelope(requestPath) {
+  const envelopeScript = path.join(ROOT, "dev_scripts", "request-envelope.mjs");
+  if (!fs.existsSync(envelopeScript)) fail(`Request Envelope not found: ${envelopeScript}`);
+  const outputFile = path.join(os.tmpdir(), `frame-conn-request-envelope-${process.pid}.json`);
+  const result = spawnSync(
+    process.execPath,
+    [envelopeScript, "build", "--request", requestPath, "--output", outputFile],
+    { cwd: ROOT, encoding: "utf8", maxBuffer: 4 * 1024 * 1024 }
+  );
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+  if (result.error) fail(`Request Envelope could not start: ${result.error}`);
+  if (result.status !== 0) fail(`Request Envelope failed with exit code ${result.status}.`);
+  try {
+    const envelope = JSON.parse(fs.readFileSync(outputFile, "utf8"));
+    console.log(`[github-filepatcher] request_envelope=${envelope.request?.fingerprint_short ?? "unknown"}`);
+    console.log(`[github-filepatcher] request_acceptance_criteria=${envelope.intent?.acceptance_criteria?.length ?? 0}`);
+    console.log(`[github-filepatcher] request_non_goals=${envelope.intent?.non_goals?.length ?? 0}`);
+    return envelope;
+  } catch (error) {
+    fail(`Request Envelope report could not be read: ${error}`);
+  }
 }
 
 function runAssistantContextBroker(goal) {
@@ -832,23 +864,25 @@ function main() {
   try {
     runToolchainOrchestratorExecutionGuard();
     const patch = readPatchFile();
+    const requestEnvelope = runRequestEnvelope(PATCH_FILE);
+    const requestGoal = requestEnvelope.intent?.goal ?? patch.planningGoal;
     const plan = buildMutationPlan(patch);
-    const assistantContextReport = patch.planningGoal
-      ? runAssistantContextBroker(patch.planningGoal)
+    const assistantContextReport = requestGoal
+      ? runAssistantContextBroker(requestGoal)
       : null;
-    const corridorReport = patch.planningGoal
-      ? runPatchCorridorPlanner(patch.planningGoal)
+    const corridorReport = requestGoal
+      ? runPatchCorridorPlanner(requestGoal)
       : null;
     const stagingReport = corridorReport
-      ? runAutomaticPatchStaging(patch.planningGoal, corridorReport)
+      ? runAutomaticPatchStaging(requestGoal, corridorReport)
       : null;
     if (plan.changedFiles.length > 0) {
       runChangePropagationSimulation(patch, plan, corridorReport, stagingReport);
     }
     if (corridorReport) {
       runCorridorContextPack(corridorReport);
-      queryNativeContractCatalog(patch.planningGoal);
-      runRuntimeContractProbePlanning(patch.planningGoal, corridorReport);
+      queryNativeContractCatalog(requestGoal);
+      runRuntimeContractProbePlanning(requestGoal, corridorReport);
     }
 
     console.log(`[github-filepatcher] patch=${patch.id ?? "unnamed"}`);
@@ -860,7 +894,7 @@ function main() {
     if (corridorReport) reportCorridorScope(plan, corridorReport);
     if (stagingReport) reportAutomaticStagingScope(plan, stagingReport);
 
-    if (patch.planningGoal && patch.operations.length === 0) {
+    if (requestGoal && patch.operations.length === 0) {
       console.log("[github-filepatcher] Planning-only corridor run completed successfully.");
       return;
     }
