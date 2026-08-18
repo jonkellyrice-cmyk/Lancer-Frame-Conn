@@ -1,15 +1,15 @@
 {
   "schema_version": 2,
-  "id": "fix-precommitted-action-economy-v6-system-bridge-owner",
-  "description": "Revise the certified Disengage fix after the Context Pack proved the prior authoring target was outside its materialized corridor; explicitly assign the existing ignore-cost decision to the System Bridge action-economy boundary.",
-  "planning_goal": "For a committed full.disengage action, Frame Conn Turn state has already recorded the Full Action before effect execution. Execute the Disengage effect without consuming action economy a second time. The System Bridge action-economy boundary should use the existing ignore-cost mechanism when the authoritative current Turn state contains a matching unexecuted committed action. If there is no matching committed action, preserve ordinary action-economy behavior. Do not change Disengage status or suppression rules, targeting, or native Lancer behavior.",
+  "id": "fix-precommitted-action-economy-v7-hook-owner",
+  "description": "Apply the Disengage duplicate-economy fix at the action-economy hook boundary selected by the certified corridor after the compiler rejected the transaction implementation file.",
+  "planning_goal": "For a committed full.disengage action, runActionEconomyPreValidationHook must recognize when its prepared action-economy snapshot already contains a matching unexecuted Turn action. In that case, retain and validate the prepared request using the existing ignoreActionCost mechanism so the already-recorded Full Action does not block effect execution or get consumed again. If there is no matching committed action, preserve the prepared request and ordinary action-economy behavior. Do not change Disengage status or suppression rules, targeting, execution routing, or native Lancer behavior.",
   "acceptance_criteria": [
-    "The System Bridge action-economy boundary recognizes a matching unexecuted committed Turn action.",
-    "That matching action uses the existing action-economy ignore-cost mechanism during effect execution.",
-    "The already committed Full Action remains spent exactly once.",
-    "Without a matching unexecuted committed Turn action, ordinary action-economy behavior is unchanged.",
-    "Committed full.disengage executes its existing Disengage effect without a false failure caused by duplicate action-economy expenditure.",
-    "Disengage status, suppression, targeting, native Lancer behavior, and genuine failure behavior remain unchanged."
+    "runActionEconomyPreValidationHook recognizes a matching unexecuted Turn action from the prepared authoritative snapshot.",
+    "A matching prepared request is rebuilt with the existing ignoreActionCost mechanism and revalidated against the same snapshot.",
+    "The hook retains that ignore-cost request for the existing later action-economy commit path, preventing a second action-cost mutation.",
+    "Without a matching unexecuted committed action, the prepared request and validation are unchanged.",
+    "Committed full.disengage is no longer blocked or falsely failed because its Full Action was already recorded.",
+    "Disengage status, suppression, targeting, execution routing, native Lancer behavior, and genuine failure behavior remain unchanged."
   ],
   "non_goals": [
     "Change action costs or turn limits.",
@@ -17,27 +17,41 @@
     "Implement Overwatch.",
     "Change targeting behavior.",
     "Change native Lancer behavior.",
-    "Refactor unrelated action execution."
+    "Refactor the execution transaction runner or unrelated action execution."
   ],
   "policy": {
     "max_files_changed": 1,
     "allowed_paths": [
-      "system_bridge/action_economy/action-economy-transaction.js"
+      "system_bridge/action_economy/action-economy-hooks.js"
     ]
   },
   "authoring_intent": {
     "edits": [
       {
-        "kind": "insert_before_exact",
-        "path": "system_bridge/action_economy/action-economy-transaction.js",
-        "search": "/* ============================================================\n   ECONOMY PREPARATION\n   ============================================================ */",
-        "replace": "/**\n * Return true when authoritative Turn state already contains the exact\n * semantic action as an unexecuted committed entry. In that case planning\n * has already spent the action budget and effect execution must not spend it\n * again.\n */\nfunction actionEconomyHasMatchingUnexecutedCommittedTurnEntry(\n  context,\n  snapshot\n) {\n  const semanticActionId =\n    getSemanticActionId(\n      context\n    );\n\n  const usedActions =\n    snapshot\n      ?.metadata\n      ?.rawState\n      ?.usedActions;\n\n  if (\n    !semanticActionId ||\n    !Array.isArray(\n      usedActions\n    )\n  ) {\n    return false;\n  }\n\n  return usedActions.some(\n    entry =>\n      entry?.actionId === semanticActionId &&\n      entry?.executed !== true\n  );\n}\n\n\n"
+        "kind": "replace_exact",
+        "path": "system_bridge/action_economy/action-economy-hooks.js",
+        "search": "import {\n  ACTION_ECONOMY_COMMIT_STATUS\n} from \"./action-economy-contract.js\";",
+        "replace": "import {\n  ACTION_ECONOMY_COMMIT_STATUS,\n  createActionEconomyRequest\n} from \"./action-economy-contract.js\";",
+        "expected_occurrences": 1
       },
       {
         "kind": "replace_exact",
-        "path": "system_bridge/action_economy/action-economy-transaction.js",
-        "search": "  const request =\n    buildActionEconomyRequest(\n      context\n    );\n  const snapshot =\n    await readExecutionActionEconomySnapshot(\n      context\n    );\n  const validation =",
-        "replace": "  let request =\n    buildActionEconomyRequest(\n      context\n    );\n  const snapshot =\n    await readExecutionActionEconomySnapshot(\n      context\n    );\n\n  if (\n    actionEconomyHasMatchingUnexecutedCommittedTurnEntry(\n      context,\n      snapshot\n    )\n  ) {\n    request =\n      createActionEconomyRequest({\n        ...request,\n        ignoreActionCost:\n          true,\n        metadata: {\n          ...(\n            request.metadata ??\n            {}\n          ),\n          precommittedTurnAction:\n            true\n        }\n      });\n  }\n\n  const validation =",
+        "path": "system_bridge/action_economy/action-economy-hooks.js",
+        "search": "import {\n  buildActionEconomyRequest,\n  commitExecutionActionEconomy,\n  prepareActionEconomyTransaction\n} from \"./action-economy-transaction.js\";",
+        "replace": "import {\n  buildActionEconomyRequest,\n  commitExecutionActionEconomy,\n  prepareActionEconomyTransaction,\n  validateExecutionActionEconomy\n} from \"./action-economy-transaction.js\";",
+        "expected_occurrences": 1
+      },
+      {
+        "kind": "insert_before_exact",
+        "path": "system_bridge/action_economy/action-economy-hooks.js",
+        "search": "/* ============================================================\n   PRE-VALIDATION HOOK\n   ============================================================ */",
+        "replace": "/**\n * Return true only when the prepared authoritative Turn snapshot already\n * contains this exact semantic action as an unexecuted committed entry.\n */\nfunction preparedActionEconomyMatchesUnexecutedCommittedTurnAction(\n  prepared\n) {\n  const actionId =\n    prepared\n      ?.request\n      ?.actionId ??\n    null;\n\n  const usedActions =\n    prepared\n      ?.snapshot\n      ?.metadata\n      ?.rawState\n      ?.usedActions;\n\n  if (\n    !actionId ||\n    !Array.isArray(\n      usedActions\n    )\n  ) {\n    return false;\n  }\n\n  return usedActions.some(\n    entry =>\n      entry?.actionId === actionId &&\n      entry?.executed !== true\n  );\n}\n\n\n"
+      },
+      {
+        "kind": "replace_exact",
+        "path": "system_bridge/action_economy/action-economy-hooks.js",
+        "search": "    } else {\n      prepared =\n        await prepareActionEconomyTransaction(\n          payload.context\n        );\n    }\n  } catch (error) {",
+        "replace": "    } else {\n      prepared =\n        await prepareActionEconomyTransaction(\n          payload.context\n        );\n    }\n\n    if (\n      preparedActionEconomyMatchesUnexecutedCommittedTurnAction(\n        prepared\n      )\n    ) {\n      const request =\n        createActionEconomyRequest({\n          ...prepared.request,\n          ignoreActionCost:\n            true,\n          metadata: {\n            ...(\n              prepared.request\n                ?.metadata ??\n              {}\n            ),\n            precommittedTurnAction:\n              true\n          }\n        });\n\n      const validation =\n        await validateExecutionActionEconomy(\n          payload.context,\n          {\n            request,\n            snapshot:\n              prepared.snapshot\n          }\n        );\n\n      prepared =\n        Object.freeze({\n          ...prepared,\n          request,\n          validation\n        });\n    }\n  } catch (error) {",
         "expected_occurrences": 1
       }
     ]
