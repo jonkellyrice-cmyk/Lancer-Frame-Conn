@@ -1,31 +1,9 @@
 {
   "schema_version": 2,
-  "id": "remote-toolchain-onboarding-workflow-capability-gap-v2-status",
-  "description": "Update the single authorized onboarding workflow so remote onboarding can be triggered by a no-op canonical FilePatcher request and can publish a durable frame-conn/onboarding commit status that points to the receipt-bearing run.",
-  "acceptance_criteria": [
-    "Only .github/workflows/toolchain-onboarding.yml is changed.",
-    "A patch id prefixed toolchain-onboarding-remote-trigger- can activate onboarding without a local checkout or source mutation.",
-    "Successful onboarding publishes frame-conn/onboarding=success on the triggering commit only after the COMPLETE drill and receipt upload succeed.",
-    "Failed onboarding or failed receipt publication publishes frame-conn/onboarding=failure and the workflow fails closed.",
-    "The existing trigger-file and workflow_dispatch entrypoints remain supported."
-  ],
-  "non_goals": [
-    "Modify any other workflow.",
-    "Change runtime Lancer behavior.",
-    "Bypass the onboarding harness result.",
-    "Create a second mutation authority."
-  ],
-  "authoring_mode": "raw_operations",
-  "raw_operations_reason": "This request intentionally targets exactly one protected workflow already explicitly authorized by the user; Toolchain Orchestrator must surface the protected-path CAPABILITY_GAP so the Infrastructure Publisher exception remains the sole publication boundary.",
+  "id": "toolchain-onboarding-remote-trigger-2026-08-18T09-18-00-07-00",
+  "description": "No-op remote execution signal for the committed Frame Conn toolchain onboarding harness. A COMPLETE onboarding receipt is required before development work.",
   "policy": {
-    "max_files_changed": 1,
-    "allowed_paths": [".github/workflows/toolchain-onboarding.yml"]
+    "max_files_changed": 1
   },
-  "operations": [
-    {
-      "type": "replace_file",
-      "path": ".github/workflows/toolchain-onboarding.yml",
-      "content": "name: Frame Conn Toolchain Onboarding\n\non:\n  workflow_dispatch:\n  push:\n    branches:\n      - main\n    paths:\n      - dev_scripts/toolchain-onboarding-request.json\n      - dev_scripts/github-filepatcher.json\n\npermissions:\n  contents: read\n  statuses: write\n\nconcurrency:\n  group: frame-conn-toolchain-onboarding\n  cancel-in-progress: false\n\njobs:\n  onboard:\n    runs-on: ubuntu-latest\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v4\n\n      - name: Determine onboarding request\n        id: gate\n        shell: bash\n        run: |\n          node <<'NODE'\n          const fs = require(\"node:fs\");\n          const eventName = process.env.GITHUB_EVENT_NAME || \"\";\n          let shouldRun = eventName === \"workflow_dispatch\";\n\n          if (!shouldRun && fs.existsSync(\"dev_scripts/github-filepatcher.json\")) {\n            const patch = JSON.parse(\n              fs.readFileSync(\"dev_scripts/github-filepatcher.json\", \"utf8\")\n            );\n            shouldRun = String(patch.id || \"\")\n              .startsWith(\"toolchain-onboarding-remote-trigger-\");\n          }\n\n          if (!shouldRun && fs.existsSync(process.env.GITHUB_EVENT_PATH || \"\")) {\n            const event = JSON.parse(\n              fs.readFileSync(process.env.GITHUB_EVENT_PATH, \"utf8\")\n            );\n            const head = event.head_commit || {};\n            const changed = new Set([\n              ...(head.added || []),\n              ...(head.modified || [])\n            ]);\n            shouldRun = changed.has(\n              \"dev_scripts/toolchain-onboarding-request.json\"\n            );\n          }\n\n          fs.appendFileSync(\n            process.env.GITHUB_OUTPUT,\n            `run=${shouldRun ? \"true\" : \"false\"}\\n`\n          );\n          NODE\n\n      - name: Setup Node\n        if: steps.gate.outputs.run == 'true'\n        uses: actions/setup-node@v4\n        with:\n          node-version: 22\n\n      - name: Run toolchain onboarding\n        if: steps.gate.outputs.run == 'true'\n        id: onboarding\n        continue-on-error: true\n        env:\n          FRAME_CONN_ONBOARDING_RECEIPT: ${{ runner.temp }}/frame-conn-toolchain-onboarding-receipt.json\n        run: npm run toolchain:onboard\n\n      - name: Upload onboarding receipt\n        if: always() && steps.gate.outputs.run == 'true'\n        id: receipt\n        continue-on-error: true\n        uses: actions/upload-artifact@v4\n        with:\n          name: frame-conn-toolchain-onboarding-${{ github.run_id }}\n          path: ${{ runner.temp }}/frame-conn-toolchain-onboarding-receipt.json\n          if-no-files-found: error\n          retention-days: 30\n\n      - name: Publish onboarding commit status\n        if: always() && steps.gate.outputs.run == 'true'\n        env:\n          GITHUB_TOKEN: ${{ github.token }}\n          ONBOARDING_OUTCOME: ${{ steps.onboarding.outcome }}\n          RECEIPT_OUTCOME: ${{ steps.receipt.outcome }}\n          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n        run: |\n          node <<'NODE'\n          const onboardingSucceeded =\n            process.env.ONBOARDING_OUTCOME === \"success\";\n          const receiptSucceeded =\n            process.env.RECEIPT_OUTCOME === \"success\";\n          const state =\n            onboardingSucceeded && receiptSucceeded\n              ? \"success\"\n              : \"failure\";\n          const description =\n            state === \"success\"\n              ? \"Frame Conn toolchain onboarding COMPLETE\"\n              : `Frame Conn onboarding failed: drill=${process.env.ONBOARDING_OUTCOME || \"unknown\"} receipt=${process.env.RECEIPT_OUTCOME || \"unknown\"}`;\n\n          const endpoint =\n            `${process.env.GITHUB_API_URL}/repos/${process.env.GITHUB_REPOSITORY}` +\n            `/statuses/${process.env.GITHUB_SHA}`;\n\n          const response = await fetch(endpoint, {\n            method: \"POST\",\n            headers: {\n              Accept: \"application/vnd.github+json\",\n              Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,\n              \"X-GitHub-Api-Version\": \"2022-11-28\",\n              \"User-Agent\": \"frame-conn-toolchain-onboarding\"\n            },\n            body: JSON.stringify({\n              state,\n              context: \"frame-conn/onboarding\",\n              description: description.slice(0, 140),\n              target_url: process.env.RUN_URL\n            })\n          });\n\n          if (!response.ok) {\n            throw new Error(\n              `Onboarding status publish failed (${response.status}): ${await response.text()}`\n            );\n          }\n          NODE\n\n      - name: Enforce onboarding result\n        if: always() && steps.gate.outputs.run == 'true' && (steps.onboarding.outcome != 'success' || steps.receipt.outcome != 'success')\n        run: exit 1\n"
-    }
-  ]
+  "operations": []
 }
