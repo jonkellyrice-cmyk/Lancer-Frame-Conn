@@ -61,12 +61,14 @@
    IMPORTS
    ============================================================ */
 import {
-  ACTION_ECONOMY_COMMIT_STATUS
+  ACTION_ECONOMY_COMMIT_STATUS,
+  createActionEconomyRequest
 } from "./action-economy-contract.js";
 import {
   buildActionEconomyRequest,
   commitExecutionActionEconomy,
-  prepareActionEconomyTransaction
+  prepareActionEconomyTransaction,
+  validateExecutionActionEconomy
 } from "./action-economy-transaction.js";
 import {
   EXECUTION_HOOK_PRIORITY,
@@ -292,6 +294,43 @@ async function resolveActionEconomyAugmentation(
       payload.transaction
   });
 }
+/**
+ * Return true only when the prepared authoritative Turn snapshot already
+ * contains this exact semantic action as an unexecuted committed entry.
+ */
+function preparedActionEconomyMatchesUnexecutedCommittedTurnAction(
+  prepared
+) {
+  const actionId =
+    prepared
+      ?.request
+      ?.actionId ??
+    null;
+
+  const usedActions =
+    prepared
+      ?.snapshot
+      ?.metadata
+      ?.rawState
+      ?.usedActions;
+
+  if (
+    !actionId ||
+    !Array.isArray(
+      usedActions
+    )
+  ) {
+    return false;
+  }
+
+  return usedActions.some(
+    entry =>
+      entry?.actionId === actionId &&
+      entry?.executed !== true
+  );
+}
+
+
 /* ============================================================
    PRE-VALIDATION HOOK
    ============================================================ */
@@ -417,6 +456,45 @@ export async function runActionEconomyPreValidationHook(
         await prepareActionEconomyTransaction(
           payload.context
         );
+    }
+
+    if (
+      preparedActionEconomyMatchesUnexecutedCommittedTurnAction(
+        prepared
+      )
+    ) {
+      const request =
+        createActionEconomyRequest({
+          ...prepared.request,
+          ignoreActionCost:
+            true,
+          metadata: {
+            ...(
+              prepared.request
+                ?.metadata ??
+              {}
+            ),
+            precommittedTurnAction:
+              true
+          }
+        });
+
+      const validation =
+        await validateExecutionActionEconomy(
+          payload.context,
+          {
+            request,
+            snapshot:
+              prepared.snapshot
+          }
+        );
+
+      prepared =
+        Object.freeze({
+          ...prepared,
+          request,
+          validation
+        });
     }
   } catch (error) {
     return failTransaction(
