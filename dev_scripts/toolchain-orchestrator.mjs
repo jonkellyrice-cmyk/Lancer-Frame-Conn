@@ -96,7 +96,16 @@ function apiHeaders() {
 
 async function githubJson(endpoint) {
   const base = String(process.env.GITHUB_API_URL || "https://api.github.com").replace(/\/$/, "");
-  const response = await fetch(`${base}${endpoint}`, { headers: apiHeaders() });
+  const url = `${base}${endpoint}`;
+  const authenticatedHeaders = apiHeaders();
+  let response = await fetch(url, { headers: authenticatedHeaders });
+
+  if (!response.ok && authenticatedHeaders.Authorization && [401, 403].includes(response.status)) {
+    const publicHeaders = { ...authenticatedHeaders };
+    delete publicHeaders.Authorization;
+    response = await fetch(url, { headers: publicHeaders });
+  }
+
   if (!response.ok) {
     const body = await response.text();
     throw new Error(`GitHub read failed (${response.status}) for ${endpoint}: ${body}`);
