@@ -1,9 +1,48 @@
 {
   "schema_version": 2,
-  "id": "ready",
-  "description": "Neutral no-op state after development roadmap current-state and Foundry tactical-tools update.",
+  "id": "github-telemetry-tool-suite-integration",
+  "description": "Integrate event-driven GitHub completion telemetry into the canonical development tool suite guide.",
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 1,
+    "allowed_paths": [
+      "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md"
+    ]
   },
-  "operations": []
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
+      "search": "  github-filepatcher.mjs          narrow remote/GitHub patch executor\n  github-filepatcher.json         authoritative GitHub patch specification\n  GITHUB_FILEPATCHER.md           GitHub FilePatcher-specific documentation\n  path-mover.mjs                  relocation + relative-import rewrite executor\n",
+      "replace": "  github-filepatcher.mjs          narrow remote/GitHub patch executor\n  github-filepatcher.json         authoritative GitHub patch specification\n  GITHUB_FILEPATCHER.md           GitHub FilePatcher-specific documentation\n  github-telemetry.mjs            event-driven workflow-completion receipt/status publisher\n  GITHUB_TELEMETRY.md             GitHub completion telemetry contract and operator guide\n  path-mover.mjs                  relocation + relative-import rewrite executor\n",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
+      "search": ".github/workflows/\n  github-filepatcher.yml          automatic remote patch workflow\n",
+      "replace": ".github/workflows/\n  github-filepatcher.yml          automatic remote patch workflow\n  github-telemetry.yml            workflow_run completion observer and terminal status publisher\n",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
+      "search": "# Executors\nnpm run patch\nnpm run github:patch\n",
+      "replace": "# Executors\nnpm run patch\nnpm run github:patch\n\n# Event-driven GitHub completion telemetry\nnpm run github:telemetry -- emit ...\nnpm run github:telemetry -- publish ...\nnpm run github:telemetry:self-test\n",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
+      "search": "github-actions[bot] commit\n    ↓\nlive Foundry Runtime Contract Probe test when runtime-sensitive\n",
+      "replace": "github-actions[bot] commit\n    ↓\noriginating workflow emits GitHub telemetry receipt (`if: always()`)\n    ↓\nGitHub Telemetry auto-triggers on `workflow_run: completed`\n    ↓\nterminal commit status + normalized telemetry artifact\n    ↓\nlive Foundry Runtime Contract Probe test when runtime-sensitive\n",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
+      "search": "The local Python FilePatcher is the richer fallback/recovery path and maintains its own backup/history facilities.\n\n### The nine capability upgrades\n",
+      "replace": "The local Python FilePatcher is the richer fallback/recovery path and maintains its own backup/history facilities.\n\n### GitHub Completion Telemetry\n\n`github-telemetry.mjs` is the event-driven completion layer for remote repository processes. GitHub FilePatcher, Path Mover, and Domain Decomposer each emit a small completion receipt in a final `if: always()` step. The receipt records both the triggering SHA and the actual checkout/result SHA after the workflow's commit step.\n\n`.github/workflows/github-telemetry.yml` listens for those workflows through `workflow_run: completed`, downloads the receipt, normalizes the terminal result, publishes a `frame-conn/telemetry/<workflow>` commit status, writes an Actions summary, and uploads a compact JSON telemetry report. Telemetry reports are artifacts rather than repository commits so the observer cannot create a workflow loop.\n\nThis changes the operator model from repeated job-state polling to durable completion state:\n\n```text\nstart remote process\n    ↓\nprocess commits/applies/validates\n    ↓\nautomatic completion receipt\n    ↓\nautomatic telemetry observer\n    ↓\nterminal status on the result commit\n```\n\nA GitHub-connected chat session cannot receive unsolicited workflow webhooks into an already-running response, so telemetry does not literally push a new chat message. Its purpose is to ensure completion has already been captured canonically by GitHub, allowing the operator to consume terminal telemetry instead of repeatedly polling the source workflow. See `dev_scripts/GITHUB_TELEMETRY.md` for the exact contract.\n\n### The nine capability upgrades\n",
+      "expected_occurrences": 1
+    }
+  ]
 }
