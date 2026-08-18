@@ -34,11 +34,14 @@ dev_scripts/
   github-filepatcher.mjs          narrow remote/GitHub patch executor
   github-filepatcher.json         authoritative GitHub patch specification
   GITHUB_FILEPATCHER.md           GitHub FilePatcher-specific documentation
+  github-telemetry.mjs            event-driven workflow-completion receipt/status publisher
+  GITHUB_TELEMETRY.md             GitHub completion telemetry contract and operator guide
   path-mover.mjs                  relocation + relative-import rewrite executor
   path-mover.json                 declarative relocation plan
 
 .github/workflows/
   github-filepatcher.yml          automatic remote patch workflow
+  github-telemetry.yml            workflow_run completion observer and terminal status publisher
 ```
 
 The package scripts are:
@@ -47,6 +50,11 @@ The package scripts are:
 # Executors
 npm run patch
 npm run github:patch
+
+# Event-driven GitHub completion telemetry
+npm run github:telemetry -- emit ...
+npm run github:telemetry -- publish ...
+npm run github:telemetry:self-test
 
 # Architecture diagnostics
 npm run audit
@@ -155,12 +163,40 @@ git diff validation
     ↓
 github-actions[bot] commit
     ↓
+originating workflow emits GitHub telemetry receipt (`if: always()`)
+    ↓
+GitHub Telemetry auto-triggers on `workflow_run: completed`
+    ↓
+terminal commit status + normalized telemetry artifact
+    ↓
 live Foundry Runtime Contract Probe test when runtime-sensitive
 ```
 
 The detailed dependency graph is a deeper manual diagnostic. It is not part of the automatic blocking gate.
 
 The local Python FilePatcher is the richer fallback/recovery path and maintains its own backup/history facilities.
+
+### GitHub Completion Telemetry
+
+`github-telemetry.mjs` is the event-driven completion layer for remote repository processes. GitHub FilePatcher, Path Mover, and Domain Decomposer each emit a small completion receipt in a final `if: always()` step. The receipt records both the triggering SHA and the actual checkout/result SHA after the workflow's commit step.
+
+`.github/workflows/github-telemetry.yml` listens for those workflows through `workflow_run: completed`, downloads the receipt, normalizes the terminal result, publishes a `frame-conn/telemetry/<workflow>` commit status, writes an Actions summary, and uploads a compact JSON telemetry report. Telemetry reports are artifacts rather than repository commits so the observer cannot create a workflow loop.
+
+This changes the operator model from repeated job-state polling to durable completion state:
+
+```text
+start remote process
+    ↓
+process commits/applies/validates
+    ↓
+automatic completion receipt
+    ↓
+automatic telemetry observer
+    ↓
+terminal status on the result commit
+```
+
+A GitHub-connected chat session cannot receive unsolicited workflow webhooks into an already-running response, so telemetry does not literally push a new chat message. Its purpose is to ensure completion has already been captured canonically by GitHub, allowing the operator to consume terminal telemetry instead of repeatedly polling the source workflow. See `dev_scripts/GITHUB_TELEMETRY.md` for the exact contract.
 
 ### The nine capability upgrades
 
