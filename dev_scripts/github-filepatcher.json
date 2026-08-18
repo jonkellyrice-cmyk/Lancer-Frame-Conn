@@ -1,21 +1,21 @@
 {
   "schema_version": 2,
-  "id": "fix-precommitted-action-economy-v2",
-  "description": "Correct action-economy preparation so executing an already committed Turn action does not spend its action cost a second time.",
-  "planning_goal": "Within the action-economy preparation owned by system_bridge/action_economy/action-economy-transaction.js, preserve Frame Conn Turn state as the authority for planning-time action expenditure. After prepareActionEconomyTransaction reads the authoritative action-economy snapshot, detect whether snapshot.metadata.rawState.usedActions contains an unexecuted committed entry whose actionId matches context.semanticAction.id. When that exact committed entry exists, rebuild the existing ActionEconomyRequest with ignoreActionCost true before validation so the already-spent action cost is not validated or committed again. When no matching unexecuted committed entry exists, preserve the request unchanged and keep ordinary action-economy behavior. This must allow committed full.disengage effect execution to complete successfully without changing Disengage status/suppression behavior.",
+  "id": "fix-precommitted-action-economy-v3",
+  "description": "Prevent an already committed Frame Conn action from consuming its action economy a second time when its effect is executed.",
+  "planning_goal": "For a committed full.disengage action, Frame Conn Turn state has already recorded the Full Action before effect execution. Preserve that existing expenditure and execute the Disengage effect without consuming action economy a second time. Use the existing action-economy ignore-cost mechanism only when the authoritative current Turn state contains a matching unexecuted committed action. If there is no matching committed action, preserve ordinary action-economy behavior. Do not change Disengage status or suppression rules, targeting, or native Lancer behavior.",
   "acceptance_criteria": [
-    "prepareActionEconomyTransaction recognizes a matching unexecuted committed Turn entry from the authoritative snapshot.",
-    "For that entry only, the existing ActionEconomyRequest is rebuilt with ignoreActionCost true before action-economy validation.",
-    "The same ignoreActionCost request is retained for the later action-economy commit hook, so no duplicate action cost mutation occurs.",
-    "Requests without a matching unexecuted committed Turn entry remain unchanged and retain normal action-economy validation and commit behavior.",
-    "Committed full.disengage can execute its existing status-orchestration effect without becoming partial/failed because its Full Action was already spent during planning.",
-    "No Disengage duration, status, suppression, targeting, native Lancer behavior, or unrelated action effect is changed."
+    "A matching unexecuted committed Turn action uses the existing action-economy ignore-cost mechanism during effect execution.",
+    "The already committed Full Action remains spent exactly once.",
+    "Without a matching unexecuted committed Turn action, ordinary action-economy behavior is unchanged.",
+    "Committed full.disengage executes its existing Disengage effect without a false failure caused by duplicate action-economy expenditure.",
+    "Disengage status and suppression behavior remain unchanged.",
+    "Genuine Disengage effect failures remain failures."
   ],
   "non_goals": [
     "Change action costs or turn limits.",
-    "Change Disengage status/suppression semantics.",
+    "Change Disengage duration or suppression semantics.",
     "Implement Overwatch.",
-    "Bypass execution transactions or action-economy hooks.",
+    "Change targeting behavior.",
     "Change native Lancer behavior.",
     "Refactor unrelated action execution."
   ],
