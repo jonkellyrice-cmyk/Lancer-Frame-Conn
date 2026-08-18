@@ -75,3 +75,23 @@ jobs:
           git diff --cached --check
           git commit -m "filepatcher: ${{ steps.patch.outputs.id }}"
           git push
+
+      - name: Emit GitHub telemetry receipt
+        if: always()
+        env:
+          FRAME_CONN_TELEMETRY_WORKFLOW: GitHub FilePatcher
+          FRAME_CONN_TELEMETRY_JOB: apply-patch
+          FRAME_CONN_TELEMETRY_CONCLUSION: ${{ job.status }}
+          FRAME_CONN_TELEMETRY_HEAD_SHA: ${{ github.sha }}
+        run: |
+          node dev_scripts/github-telemetry.mjs emit \
+            --output "$RUNNER_TEMP/github-telemetry-receipt.json"
+
+      - name: Upload GitHub telemetry receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frame-conn-telemetry-${{ github.run_id }}
+          path: ${{ runner.temp }}/github-telemetry-receipt.json
+          if-no-files-found: warn
+          retention-days: 30
