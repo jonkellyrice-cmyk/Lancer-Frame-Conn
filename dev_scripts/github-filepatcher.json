@@ -1,44 +1,64 @@
 {
   "schema_version": 2,
-  "id": "diagnose-brace-reaction-popup-v1",
-  "description": "Diagnose why the Brace reaction popup does not appear when Brace should be available, using the canonical toolchain diagnostics before authoring any mutation.",
-  "planning_goal": "Trace the Brace reaction from its triggering runtime signal through reaction eligibility, native/system integration, and popup presentation. Identify the smallest owned repair that makes the Brace reaction popup appear when its existing eligibility rules say it should, without changing Brace rules or unrelated reactions.",
+  "id": "add-abstraction-lock-v1",
+  "description": "Add an Abstraction Lock immediately after Scope Lock so Frame Conn repository work cannot drop below the established diagnostic/planning abstraction without an explicit higher-level grant.",
+  "planning_goal": "Create and integrate a deterministic Abstraction Lock into the canonical toolchain runtime immediately after Scope Lock. The lock must require repository investigation to proceed through existing generated intelligence and planning surfaces, deny generic source exploration and guessed file access by default, permit lower-level source access only when an existing higher-level toolchain artifact explicitly grants the path, and preserve the existing Scope Lock, diagnostics, planning, FilePatcher, validation, and terminal-state authorities.",
   "scope_lock": {
     "schema_version": 1,
-    "lock_id": "user-request-2026-08-18-brace-popup",
-    "original_user_instruction": "Try to fix the brace reaction pop up window not appearing when it should. Lets see if the scope lock helps at all",
+    "lock_id": "user-request-2026-08-18-abstraction-lock",
+    "original_user_instruction": "Okay. Create that.",
     "authorized_deliverables": [
-      "Diagnose why the Brace reaction popup does not appear when Brace should be available.",
-      "Repair only the owned runtime/presentation seam necessary to make the Brace popup appear under its existing eligibility rules."
+      "Create an Abstraction Lock for the Frame Conn toolchain.",
+      "Integrate it immediately after Scope Lock in the canonical runtime flow.",
+      "Make lower-level repository/source access require an explicit grant from the established higher-level toolchain evidence.",
+      "Teach and verify the Abstraction Lock in onboarding so dropping below the abstraction is rejected rather than merely discouraged."
     ],
-    "authorized_paths": [],
+    "authorized_paths": [
+      "dev_scripts/abstraction-lock.mjs",
+      "dev_scripts/toolchain-orchestrator.mjs",
+      "dev_scripts/toolchain-onboarding.mjs",
+      "package.json"
+    ],
     "forbidden_expansions": [
-      "Do not change Brace game rules, costs, effects, or eligibility semantics.",
-      "Do not change unrelated reactions or actions.",
-      "Do not redesign reaction UI or other presentation surfaces.",
-      "Do not modify developer tooling, GitHub workflows, or repository infrastructure.",
-      "Do not perform adjacent cleanup or refactors."
+      "Do not modify application, game, UI, system_bridge, runtime, or feature source code.",
+      "Do not modify GitHub workflows or repository infrastructure.",
+      "Do not build a ChatGPT/GitHub gateway plugin in this change.",
+      "Do not redesign Scope Lock, FilePatcher, diagnostics, Patch Corridor, Corridor Context, Patch Staging, Change Propagation, or validation beyond the minimum integration required for Abstraction Lock.",
+      "Do not perform unrelated toolchain cleanup or refactoring."
     ],
-    "allow_capability_construction": false,
-    "authorized_capabilities": []
+    "allow_capability_construction": true,
+    "authorized_capabilities": [
+      "Abstraction Lock enforcement inside the existing dev_scripts toolchain only"
+    ]
   },
   "acceptance_criteria": [
-    "Canonical diagnostics identify the runtime signal that should cause Brace reaction consideration.",
-    "Canonical diagnostics identify the existing Brace eligibility path and popup/presentation path.",
-    "The repair is limited to the smallest certified ownership surface responsible for the missing popup.",
-    "Brace popup appears when existing Brace eligibility rules say Brace is available.",
-    "Brace popup does not appear when existing Brace eligibility rules say Brace is unavailable.",
-    "Brace mechanics and unrelated reactions remain unchanged."
+    "A dedicated Abstraction Lock implementation exists under dev_scripts and has deterministic machine-readable ALLOW, ABSTRACTION_VIOLATION, and ABSTRACTION_GAP outcomes.",
+    "The canonical runtime evaluates Abstraction Lock immediately after Scope Lock and before Mutation Carrier Router/orchestration proceeds.",
+    "The default Frame Conn repository-investigation abstraction permits established generated intelligence and planning surfaces: Symbol Families, Dependency Watershed/Graph, Integration Surface Atlas, Runtime Signal Map, Effect Atlas, Native Contract Catalog, Patch Corridor, Corridor Context, Patch Staging, Change Propagation, FilePatcher, and canonical validation.",
+    "Generic GitHub/source search and guessed/ad-hoc file reads are denied for repository investigation unless a higher-level toolchain artifact has explicitly granted the requested source path.",
+    "A grant is bounded to explicit path(s), records its issuing higher-level artifact/evidence, and cannot broaden the immutable Scope Lock.",
+    "An evidence gap returns ABSTRACTION_GAP with only the specifically permitted escalation; it does not authorize arbitrary lower-level exploration.",
+    "Toolchain modification remains denied unless the Scope Lock explicitly authorizes toolchain modification, as this request does.",
+    "Onboarding exercises the abstraction boundary: direct generic search is rejected, guessed source access is rejected, mapped/granted source access is accepted, and unrelated source access remains rejected.",
+    "Existing Scope Lock authority remains unchanged: Abstraction Lock constrains interfaces/levels and may not redefine or broaden the user objective.",
+    "Existing Patch Corridor, Corridor Context, Patch Staging, Change Propagation, FilePatcher, diagnostics, validation, and terminal-state behavior remain authoritative and otherwise unchanged.",
+    "Canonical validation and onboarding pass after the change."
   ],
   "non_goals": [
-    "Change Brace mechanics.",
-    "Change unrelated reactions.",
-    "Redesign popup UI.",
-    "Modify toolchain or infrastructure."
+    "Build or replace the GitHub plugin.",
+    "Change application behavior.",
+    "Change Lancer game mechanics.",
+    "Create a second diagnostic or planning system.",
+    "Permit the assistant to self-authorize abstraction descent."
   ],
   "policy": {
-    "max_files_changed": 1,
-    "allowed_paths": []
+    "max_files_changed": 4,
+    "allowed_paths": [
+      "dev_scripts/abstraction-lock.mjs",
+      "dev_scripts/toolchain-orchestrator.mjs",
+      "dev_scripts/toolchain-onboarding.mjs",
+      "package.json"
+    ]
   },
   "operations": []
 }
