@@ -105,6 +105,14 @@ The Integration Surface Atlas and Runtime Signal Map are consulted when native p
 
 Planning-only patches with `operations: []` are first-class: they can prove clause coverage, expected scope, dependency phases, authoring context, native-contract reuse, and live-probe coverage without touching source.
 
+## Patch Authoring Compiler mode
+
+Schema-v2 requests may optionally supply `authoring_intent` while leaving `operations: []`. In that mode the canonical workflow gathers the Request Envelope, Assistant Context Broker packet, certified Patch Corridor, and Corridor Context Pack before invoking `patch-authoring-compiler.mjs`.
+
+The compiler translates only explicit edit primitives into ordinary supported FilePatcher operations, adds first-touch `expected_sha256` guards, checks Context Broker snapshot hashes, and enforces declared/certified path scope. The resulting compiled patch is then passed into the same in-memory mutation planner, Change Propagation Simulator, audits, diff validation, commit, telemetry, and orchestrator closure as a hand-authored patch.
+
+Existing direct `operations` remain the normal low-level contract and are not deprecated. See `dev_scripts/PATCH_AUTHORING_COMPILER.md`.
+
 ## Supported operations
 
 ### replace_text

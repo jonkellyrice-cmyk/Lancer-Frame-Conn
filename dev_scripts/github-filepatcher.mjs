@@ -45,10 +45,10 @@ function decodeContent(operation, operationName) {
   fail(`${operationName} has unsupported encoding "${encoding}": ${operation.path}`);
 }
 
-function readPatchFile() {
-  if (!fs.existsSync(PATCH_FILE)) fail(`Patch file not found: ${PATCH_FILE}`);
+function readPatchFile(patchFile = PATCH_FILE) {
+  if (!fs.existsSync(patchFile)) fail(`Patch file not found: ${patchFile}`);
   let parsed;
-  try { parsed = JSON.parse(fs.readFileSync(PATCH_FILE, "utf8")); }
+  try { parsed = JSON.parse(fs.readFileSync(patchFile, "utf8")); }
   catch (error) { fail(`Unable to parse filepatcher.json: ${error}`); }
 
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) fail("filepatcher.json must contain an object.");
@@ -484,6 +484,7 @@ function validateDeveloperToolSyntax() {
     path.join(ROOT, "dev_scripts", "runtime-contract-probes.mjs"),
     path.join(ROOT, "dev_scripts", "change-propagation-simulator.mjs"),
     path.join(ROOT, "dev_scripts", "request-envelope.mjs"),
+    path.join(ROOT, "dev_scripts", "patch-authoring-compiler.mjs"),
     path.join(ROOT, "dev_scripts", "toolchain-orchestrator.mjs"),
     path.join(ROOT, "dev_scripts", "assistant-context-broker.mjs")
   ];
@@ -573,6 +574,13 @@ function validateDeveloperToolSyntax() {
   if (requestEnvelopeSelfTest.error) fail(`Request Envelope self-test could not start: ${requestEnvelopeSelfTest.error}`);
   if (requestEnvelopeSelfTest.status !== 0) fail("Request Envelope self-test failed.");
 
+  const patchAuthoringCompiler = path.join(ROOT, "dev_scripts", "patch-authoring-compiler.mjs");
+  const patchAuthoringCompilerSelfTest = spawnSync(process.execPath, [patchAuthoringCompiler, "--self-test"], { cwd: ROOT, encoding: "utf8" });
+  if (patchAuthoringCompilerSelfTest.stdout) process.stdout.write(patchAuthoringCompilerSelfTest.stdout);
+  if (patchAuthoringCompilerSelfTest.stderr) process.stderr.write(patchAuthoringCompilerSelfTest.stderr);
+  if (patchAuthoringCompilerSelfTest.error) fail(`Patch Authoring Compiler self-test could not start: ${patchAuthoringCompilerSelfTest.error}`);
+  if (patchAuthoringCompilerSelfTest.status !== 0) fail("Patch Authoring Compiler self-test failed.");
+
   const toolchainOrchestrator = path.join(ROOT, "dev_scripts", "toolchain-orchestrator.mjs");
   const toolchainOrchestratorSelfTest = spawnSync(process.execPath, [toolchainOrchestrator, "--self-test"], { cwd: ROOT, encoding: "utf8" });
   if (toolchainOrchestratorSelfTest.stdout) process.stdout.write(toolchainOrchestratorSelfTest.stdout);
@@ -611,6 +619,52 @@ function runRequestEnvelope(requestPath) {
     return envelope;
   } catch (error) {
     fail(`Request Envelope report could not be read: ${error}`);
+  }
+}
+
+
+function runPatchAuthoringCompiler(requestEnvelope, assistantContextReport, corridorReport, corridorContextReport) {
+  const compilerScript = path.join(ROOT, "dev_scripts", "patch-authoring-compiler.mjs");
+  if (!fs.existsSync(compilerScript)) fail(`Patch Authoring Compiler not found: ${compilerScript}`);
+
+  const envelopeFile = path.join(os.tmpdir(), `frame-conn-authoring-envelope-${process.pid}.json`);
+  const contextFile = path.join(os.tmpdir(), `frame-conn-authoring-context-${process.pid}.json`);
+  const corridorFile = path.join(os.tmpdir(), `frame-conn-authoring-corridor-${process.pid}.json`);
+  const corridorContextFile = path.join(os.tmpdir(), `frame-conn-authoring-corridor-context-${process.pid}.json`);
+  const outputFile = path.join(os.tmpdir(), `frame-conn-compiled-patch-${process.pid}.json`);
+
+  fs.writeFileSync(envelopeFile, `${JSON.stringify(requestEnvelope, null, 2)}\n`, "utf8");
+  if (assistantContextReport) fs.writeFileSync(contextFile, `${JSON.stringify(assistantContextReport, null, 2)}\n`, "utf8");
+  if (corridorReport) fs.writeFileSync(corridorFile, `${JSON.stringify(corridorReport, null, 2)}\n`, "utf8");
+  if (corridorContextReport) fs.writeFileSync(corridorContextFile, `${JSON.stringify(corridorContextReport, null, 2)}\n`, "utf8");
+
+  const args = [
+    compilerScript,
+    "--request", PATCH_FILE,
+    "--envelope", envelopeFile,
+    "--output", outputFile
+  ];
+  if (assistantContextReport) args.push("--context", contextFile);
+  if (corridorReport) args.push("--corridor", corridorFile);
+  if (corridorContextReport) args.push("--corridor-context", corridorContextFile);
+
+  const result = spawnSync(process.execPath, args, {
+    cwd: ROOT,
+    encoding: "utf8",
+    maxBuffer: 8 * 1024 * 1024
+  });
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+  if (result.error) fail(`Patch Authoring Compiler could not start: ${result.error}`);
+  if (result.status !== 0) fail(`Patch Authoring Compiler failed with exit code ${result.status}.`);
+
+  try {
+    const compiled = JSON.parse(fs.readFileSync(outputFile, "utf8"));
+    console.log(`[github-filepatcher] patch_authoring_operations=${compiled.operations?.length ?? 0}`);
+    console.log(`[github-filepatcher] patch_authoring_files=${new Set((compiled.operations ?? []).map(operation => operation.path)).size}`);
+    return outputFile;
+  } catch (error) {
+    fail(`Compiled FilePatcher request could not be read: ${error}`);
   }
 }
 
@@ -863,24 +917,39 @@ function runToolchainOrchestratorExecutionGuard() {
 function main() {
   try {
     runToolchainOrchestratorExecutionGuard();
-    const patch = readPatchFile();
+
+    const rawRequest = JSON.parse(fs.readFileSync(PATCH_FILE, "utf8"));
     const requestEnvelope = runRequestEnvelope(PATCH_FILE);
-    const requestGoal = requestEnvelope.intent?.goal ?? patch.planningGoal;
-    const plan = buildMutationPlan(patch);
+    const requestGoal = requestEnvelope.intent?.goal ?? null;
     const assistantContextReport = requestGoal
       ? runAssistantContextBroker(requestGoal)
       : null;
     const corridorReport = requestGoal
       ? runPatchCorridorPlanner(requestGoal)
       : null;
+    const corridorContextReport = corridorReport
+      ? runCorridorContextPack(corridorReport)
+      : null;
+
+    const activePatchFile = rawRequest.authoring_intent
+      ? runPatchAuthoringCompiler(
+          requestEnvelope,
+          assistantContextReport,
+          corridorReport,
+          corridorContextReport
+        )
+      : PATCH_FILE;
+
+    const patch = readPatchFile(activePatchFile);
+    const plan = buildMutationPlan(patch);
     const stagingReport = corridorReport
       ? runAutomaticPatchStaging(requestGoal, corridorReport)
       : null;
+
     if (plan.changedFiles.length > 0) {
       runChangePropagationSimulation(patch, plan, corridorReport, stagingReport);
     }
     if (corridorReport) {
-      runCorridorContextPack(corridorReport);
       queryNativeContractCatalog(requestGoal);
       runRuntimeContractProbePlanning(requestGoal, corridorReport);
     }
@@ -890,6 +959,7 @@ function main() {
     console.log(`[github-filepatcher] operations=${patch.operations.length}`);
     console.log(`[github-filepatcher] changed_files=${plan.changedFiles.length}`);
     plan.changedFiles.forEach((file) => console.log(`[github-filepatcher] change=${file}`));
+    if (rawRequest.authoring_intent) console.log("[github-filepatcher] patch_authoring_compiled=yes");
     if (assistantContextReport) console.log(`[github-filepatcher] context_broker_packet=${assistantContextReport.packet_fingerprint?.slice(0, 12) ?? "unknown"}`);
     if (corridorReport) reportCorridorScope(plan, corridorReport);
     if (stagingReport) reportAutomaticStagingScope(plan, stagingReport);

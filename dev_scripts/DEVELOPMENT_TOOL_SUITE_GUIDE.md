@@ -42,6 +42,8 @@ dev_scripts/
   TOOLCHAIN_ORCHESTRATOR.md       orchestrator state, fingerprint, conflict, and exception contract
   assistant-context-broker.mjs    goal/symbol -> bounded repository context + snapshot packet
   ASSISTANT_CONTEXT_BROKER.md     context-broker contract and authority boundary
+  patch-authoring-compiler.mjs    explicit semantic edits -> guarded FilePatcher schema-v2 operations
+  PATCH_AUTHORING_COMPILER.md     compiler primitives, scope, snapshot, and authority contract
   path-mover.mjs                  relocation + relative-import rewrite executor
   path-mover.json                 declarative relocation plan
 
@@ -75,6 +77,10 @@ npm run toolchain:self-test
 # Assistant-facing repository context
 npm run context-broker -- --goal "..." --output /tmp/context.json
 npm run context-broker:self-test
+
+# Semantic authoring intent -> guarded FilePatcher operations
+npm run patch-authoring -- --request dev_scripts/github-filepatcher.json --output /tmp/compiled-patch.json
+npm run patch-authoring:self-test
 
 # Architecture diagnostics
 npm run audit
@@ -162,6 +168,9 @@ Automatic Patch Staging
 Corridor Context Pack
   exact local source slices/imports/callers/exemplars
     ↓
+Patch Authoring Compiler when authoring_intent is present
+  explicit semantic edits -> exact FilePatcher operations + SHA/snapshot/scope guards
+    ↓
 Native Contract Catalog
   surface matching proven contracts for authoring
     ↓
@@ -213,6 +222,8 @@ The **Request Envelope** is the semantic request boundary. It normalizes the bou
 
 The **Assistant Context Broker** is the pre-corridor read boundary. It converts the envelope goal or an explicit symbol query into one bounded packet containing ranked repository files, exact source slices, direct local import/importer edges, optional symbol references, and a repository/file-hash snapshot. It does not certify architecture and cannot broaden Patch Corridor. GitHub FilePatcher invokes it automatically when the Request Envelope carries a goal, before corridor certification. See `dev_scripts/ASSISTANT_CONTEXT_BROKER.md`.
 
+The **Patch Authoring Compiler** is the authoring boundary between certified evidence and FilePatcher operations. When a bounded request supplies `authoring_intent`, FilePatcher first gathers the Request Envelope, Context Broker packet, Patch Corridor, and Corridor Context Pack, then compiles the explicit edit primitives into ordinary schema-v2 operations. The compiler adds source SHA guards, blocks Context Broker snapshot drift, and enforces declared/certified scope; it cannot invent edits, broaden the corridor, execute mutation, validate, or promote. Existing hand-authored `operations` remain supported. See `dev_scripts/PATCH_AUTHORING_COMPILER.md`.
+
 The local Python FilePatcher is the richer fallback/recovery path and maintains its own backup/history facilities.
 
 ### GitHub Completion Telemetry
@@ -245,9 +256,9 @@ GitHub completion telemetry carries that request identity forward. When the orig
 
 Direct GitHub mutation is never an equivalent fallback. A demonstrated toolchain capability gap must be surfaced with the smallest proposed exception and explicit user authorization requirement before any direct action. See `dev_scripts/TOOLCHAIN_ORCHESTRATOR.md`.
 
-### The nine capability upgrades
+### The ten capability upgrades
 
-The planning/authoring/runtime-validation stack now has nine explicit capabilities. They are designed as one evidence-reduction pipeline rather than nine unrelated utilities:
+The planning/authoring/runtime-validation stack now has ten explicit capabilities. They are designed as one evidence-reduction pipeline rather than nine unrelated utilities:
 
 ```text
 1. Integration Surface Atlas
@@ -268,13 +279,16 @@ The planning/authoring/runtime-validation stack now has nine explicit capabiliti
 6. Automatic Patch Staging
    clause-complete corridor -> provider-before-consumer implementation phases
 
-7. Expanded Pattern-Aware DSL
+7. Patch Authoring Compiler
+   explicit semantic edit intent + certified context -> guarded deterministic FilePatcher operations
+
+8. Expanded Pattern-Aware DSL
    proven local exemplar -> compact deterministic FilePatcher operations
 
-8. Change Propagation Simulator
+9. Change Propagation Simulator
    exact proposed repository transition -> contract propagation + intermediate obligations + compatibility sequencing + behavioral amplification + targeted verification
 
-9. Runtime Contract Probes
+10. Runtime Contract Probes
    behavioral clauses/runtime evidence -> reversible Foundry instrumentation + manual checkpoints
 ```
 

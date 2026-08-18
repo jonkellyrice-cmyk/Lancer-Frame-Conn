@@ -15,6 +15,8 @@
     "request-envelope:self-test": "node ./dev_scripts/request-envelope.mjs --self-test",
     "context-broker": "node ./dev_scripts/assistant-context-broker.mjs",
     "context-broker:self-test": "node ./dev_scripts/assistant-context-broker.mjs --self-test",
+    "patch-authoring": "node ./dev_scripts/patch-authoring-compiler.mjs",
+    "patch-authoring:self-test": "node ./dev_scripts/patch-authoring-compiler.mjs --self-test",
     "audit": "node ./dev_scripts/repo-audit.mjs",
     "symbol-family-audit": "node ./dev_scripts/symbol-family-audit.mjs",
     "effect-atlas": "node ./dev_scripts/effect-atlas.mjs",
