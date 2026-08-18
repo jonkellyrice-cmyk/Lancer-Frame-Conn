@@ -2,7 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 
 const REPO_ROOT = process.cwd();
 const PLAN_CANDIDATES = [
@@ -12,12 +12,26 @@ const PLAN_CANDIDATES = [
 const PLAN_PATH =
   PLAN_CANDIDATES.find(candidate => fs.existsSync(candidate)) ??
   PLAN_CANDIDATES[0];
+const ORCHESTRATOR = path.join(REPO_ROOT, "dev_scripts", "toolchain-orchestrator.mjs");
 const SOURCE_EXTENSIONS = new Set([".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx"]);
 const RESOLUTION_EXTENSIONS = ["", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx", ".json"];
 
 function fail(message) {
   console.error(`[path-mover] ${message}`);
   process.exit(1);
+}
+
+function runToolchainOrchestratorExecutionGuard() {
+  if (!fs.existsSync(ORCHESTRATOR)) fail(`Toolchain Orchestrator not found: ${ORCHESTRATOR}`);
+  const result = spawnSync(
+    process.execPath,
+    [ORCHESTRATOR, "execute", "--request", PLAN_PATH],
+    { cwd: REPO_ROOT, encoding: "utf8", maxBuffer: 4 * 1024 * 1024, env: process.env }
+  );
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+  if (result.error) fail(`Toolchain Orchestrator preflight could not start: ${result.error}`);
+  if (result.status !== 0) fail(`Toolchain Orchestrator refused Path Mover execution with exit code ${result.status}.`);
 }
 
 function normalizeRepoPath(value) {
@@ -243,6 +257,7 @@ if (!plan.enabled) {
   process.exit(0);
 }
 if (!Array.isArray(plan.moves) || plan.moves.length === 0) fail("Enabled plan must declare moves.");
+runToolchainOrchestratorExecutionGuard();
 
 const normalizedMoves = plan.moves.map(move => ({
   from: normalizeRepoPath(move.from),

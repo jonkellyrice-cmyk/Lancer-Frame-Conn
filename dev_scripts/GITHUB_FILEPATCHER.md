@@ -113,7 +113,7 @@ Schema-v2 requests may optionally supply `authoring_intent` while leaving `opera
 
 The compiler translates only explicit edit primitives into ordinary supported FilePatcher operations, adds first-touch `expected_sha256` guards, checks Context Broker snapshot hashes, and enforces declared/certified path scope. The resulting compiled patch is then passed into the same in-memory mutation planner, Change Propagation Simulator, audits, diff validation, commit, telemetry, and orchestrator closure as a hand-authored patch.
 
-Existing direct `operations` remain the normal low-level contract and are not deprecated. See `dev_scripts/PATCH_AUTHORING_COMPILER.md`.
+Direct `operations` remain supported as a low-level escape hatch, but Patch Authoring Compiler is now the preferred authoring surface whenever the requested edit is expressible by `authoring_intent`. A direct-operations request must declare `authoring_mode: "raw_operations"` and a specific `raw_operations_reason`; otherwise Toolchain Orchestrator fails closed before FilePatcher executes. The justification is fingerprint-neutral, so rewriting the explanation cannot bypass sticky failure semantics. See `dev_scripts/PATCH_AUTHORING_COMPILER.md` and `dev_scripts/TOOLCHAIN_ORCHESTRATOR.md`. Canonical generators such as Patch DSL, Automatic Patch Staging, and Domain Decomposer stamp that provenance automatically.
 
 ## Supported operations
 

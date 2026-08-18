@@ -20,12 +20,12 @@ The envelope records:
 - goal / `planning_goal`;
 - explicit acceptance criteria;
 - non-goals;
-- declared scope, `policy.allowed_paths`, and operation paths;
+- declared scope, `policy.allowed_paths`, FilePatcher operation/authoring paths, Path Mover `from`/`to` paths, and Domain Decomposer source/extraction targets;
 - supplied evidence;
 - a manifest slot for downstream artifact/result references;
 - the source request path and human-facing metadata.
 
-Human labels such as `id` and `description`, runtime metadata, telemetry, and downstream artifact/result references are excluded from the **semantic request fingerprint**. Changing actual requested semantics, scope, operations, policy, acceptance criteria, or non-goals changes the fingerprint.
+Human labels such as `id` and `description`, runtime metadata, telemetry, downstream artifact/result references, low-level raw-operations justification text, and Path Mover completion timestamps are excluded from the **semantic request fingerprint**. Changing actual requested semantics, carrier structure, scope, operations/moves/decomposition, policy, acceptance criteria, or non-goals changes the fingerprint. This prevents explanatory or post-execution metadata from manufacturing a new request identity after a terminal result.
 
 ## Authority boundary
 

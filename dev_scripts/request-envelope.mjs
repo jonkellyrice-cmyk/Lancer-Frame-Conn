@@ -22,7 +22,8 @@ export function semanticRequestProjection(request) {
   for (const key of [
     "id", "description", "orchestrator", "telemetry", "execution_metadata",
     "runtime_metadata", "request_id", "request_fingerprint", "request_envelope",
-    "toolchain_artifacts", "result"
+    "toolchain_artifacts", "result", "raw_operations_reason",
+    "last_applied_at", "last_applied_by"
   ]) delete value[key];
   return stable(value);
 }
@@ -48,6 +49,19 @@ function operationPaths(request) {
   for (const operation of request?.operations ?? []) {
     for (const key of ["path", "from", "to"]) if (operation?.[key]) output.push(repoPath(operation[key]));
     for (const root of operation?.roots ?? []) output.push(repoPath(root));
+  }
+  for (const edit of request?.authoring_intent?.edits ?? []) {
+    if (edit?.path) output.push(repoPath(edit.path));
+  }
+  for (const move of request?.moves ?? []) {
+    if (move?.from) output.push(repoPath(move.from));
+    if (move?.to) output.push(repoPath(move.to));
+  }
+  for (const candidate of request?.candidates ?? []) {
+    if (candidate?.source) output.push(repoPath(candidate.source));
+    for (const unit of candidate?.units ?? []) {
+      if (unit?.target) output.push(repoPath(unit.target));
+    }
   }
   return [...new Set(output.filter(Boolean))].sort();
 }
@@ -133,12 +147,23 @@ function selfTest() {
   const a = buildRequestEnvelope(base);
   const b = buildRequestEnvelope(relabeled);
   const c = buildRequestEnvelope(changed);
+  const carrierScope = buildRequestEnvelope({
+    moves: [{ from: "scripts/old.js", to: "scripts/new.js" }],
+    candidates: [{ source: "scripts/source.js", units: [{ target: "scripts/extracted.js" }] }]
+  });
+  const rawReasonA = buildRequestEnvelope({ operations: [{ path: "scripts/a.js" }], authoring_mode: "raw_operations", raw_operations_reason: "reason one is long enough for policy" });
+  const rawReasonB = buildRequestEnvelope({ operations: [{ path: "scripts/a.js" }], authoring_mode: "raw_operations", raw_operations_reason: "reason two is also long enough" });
   if (
     a.request.fingerprint !== b.request.fingerprint ||
     a.request.fingerprint === c.request.fingerprint ||
     a.intent.acceptance_criteria.length !== 2 ||
     a.intent.non_goals.length !== 1 ||
     !a.scope.operation_paths.includes("scripts/a.js") ||
+    !carrierScope.scope.operation_paths.includes("scripts/old.js") ||
+    !carrierScope.scope.operation_paths.includes("scripts/new.js") ||
+    !carrierScope.scope.operation_paths.includes("scripts/source.js") ||
+    !carrierScope.scope.operation_paths.includes("scripts/extracted.js") ||
+    rawReasonA.request.fingerprint !== rawReasonB.request.fingerprint ||
     !/^[a-f0-9]{64}$/.test(a.envelope_fingerprint)
   ) throw new Error("Request Envelope self-test failed.");
   console.log("Request Envelope self-test passed.");

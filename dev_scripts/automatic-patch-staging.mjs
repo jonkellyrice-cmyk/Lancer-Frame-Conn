@@ -270,6 +270,8 @@ function buildSpecs(goal, corridor, audit, patch, maxFiles) {
         id: specId,
         description: `Automatic Patch Staging phase ${phase.index}/${topology.phases.length} (${classifyPhase(phase.index, topology.phases.length)}). Scope is locked to: ${allowedPaths.join(", ")}.`,
         planning_goal: goal,
+        authoring_mode: "raw_operations",
+        raw_operations_reason: "Generated deterministically by Automatic Patch Staging from an already-certified corridor and source patch.",
         policy: {
           max_files_changed: allowedPaths.length,
           allowed_paths: allowedPaths

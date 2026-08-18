@@ -496,6 +496,8 @@ function parseDsl(source, seededFiles = new Map()) {
     id: null,
     description: null,
     planning_goal: null,
+    authoring_mode: "raw_operations",
+    raw_operations_reason: "Compiled deterministically from the repository's canonical Patch DSL authoring surface.",
     policy: { max_files_changed: 1 },
     operations: []
   };

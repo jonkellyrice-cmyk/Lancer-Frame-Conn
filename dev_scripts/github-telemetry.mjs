@@ -4,10 +4,11 @@ import fs from "node:fs";
 import path from "node:path";
 import childProcess from "node:child_process";
 import {
-  buildRequestIdentityFromFile,
+  buildRequestIdentity,
   buildTerminalCompletionRecord,
   ORCHESTRATOR_STATUS_CONTEXT
 } from "./toolchain-orchestrator.mjs";
+import { buildRequestEnvelope } from "./request-envelope.mjs";
 import { extractTerminalFailureEvidence } from "./failure-evidence-extractor.mjs";
 
 const SCHEMA_VERSION = 1;
@@ -77,22 +78,60 @@ function statusState(conclusion) {
   return "error";
 }
 
+const WORKFLOW_REQUEST_CONTRACTS = Object.freeze({
+  "GitHub FilePatcher": Object.freeze({
+    requestPath: "dev_scripts/github-filepatcher.json",
+    mutationAuthority: "filepatcher"
+  }),
+  "Path Mover": Object.freeze({
+    requestPath: "dev_scripts/path-mover.json",
+    mutationAuthority: "path_mover"
+  }),
+  "Domain Decomposer": Object.freeze({
+    requestPath: "dev_scripts/domain-decomposer-plan.json",
+    mutationAuthority: "domain_decomposer"
+  })
+});
+
+function requestAtTriggeringSha(requestPath, triggeringSha) {
+  if (!requestPath) return null;
+  if (triggeringSha) {
+    try {
+      const content = childProcess.execFileSync(
+        "git",
+        ["show", `${triggeringSha}:${requestPath}`],
+        { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }
+      );
+      return JSON.parse(content);
+    } catch {}
+  }
+  try {
+    return JSON.parse(fs.readFileSync(path.resolve(requestPath), "utf8"));
+  } catch {
+    return null;
+  }
+}
+
 function buildReceipt(args, env = process.env) {
   const workflow = stringValue(args, "workflow", env.FRAME_CONN_TELEMETRY_WORKFLOW || env.GITHUB_WORKFLOW);
   const job = stringValue(args, "job", env.FRAME_CONN_TELEMETRY_JOB || env.GITHUB_JOB);
   const conclusion = stringValue(args, "conclusion", env.FRAME_CONN_TELEMETRY_CONCLUSION || "unknown").toLowerCase();
   const triggeringSha = stringValue(args, "head-sha", env.FRAME_CONN_TELEMETRY_HEAD_SHA || env.GITHUB_SHA);
   const resultCommitSha = stringValue(args, "result-sha", currentGitSha() || triggeringSha);
+  const contract = WORKFLOW_REQUEST_CONTRACTS[workflow] ?? null;
   let orchestratorRequest = null;
   let requestScope = [];
-  if (workflow === "GitHub FilePatcher") {
+  if (contract) {
     try {
-      const requestRecord = buildRequestIdentityFromFile();
-      orchestratorRequest = requestRecord.identity;
-      requestScope = [...new Set([
-        ...(requestRecord.envelope?.scope?.operation_paths ?? []),
-        ...(requestRecord.envelope?.scope?.allowed_paths ?? [])
-      ])];
+      const request = requestAtTriggeringSha(contract.requestPath, triggeringSha);
+      if (request) {
+        const envelope = buildRequestEnvelope(request, contract.requestPath);
+        orchestratorRequest = buildRequestIdentity(request, contract.requestPath);
+        requestScope = [...new Set([
+          ...(envelope.scope?.operation_paths ?? []),
+          ...(envelope.scope?.allowed_paths ?? [])
+        ])];
+      }
     } catch {
       orchestratorRequest = null;
       requestScope = [];
@@ -112,6 +151,8 @@ function buildReceipt(args, env = process.env) {
     repository: stringValue(args, "repository", env.GITHUB_REPOSITORY),
     triggeringSha,
     resultCommitSha,
+    requestPath: contract?.requestPath ?? null,
+    mutationAuthority: contract?.mutationAuthority ?? null,
     orchestratorRequest,
     requestScope
   };
@@ -166,6 +207,8 @@ function buildReport(eventPayload, receipt = null) {
     startedAt: run.run_started_at || run.created_at || null,
     completedAt: run.updated_at || null,
     receiptAvailable: Boolean(receipt),
+    requestPath: receipt?.requestPath ?? null,
+    mutationAuthority: receipt?.mutationAuthority ?? null,
     orchestratorRequest: receipt?.orchestratorRequest ?? null,
     requestScope: receipt?.requestScope ?? []
   };
@@ -248,7 +291,9 @@ function runSelfTest() {
     branch: "main",
     repository: "example/frame-conn",
     triggeringSha: "1111111111111111111111111111111111111111",
-    resultCommitSha: "2222222222222222222222222222222222222222"
+    resultCommitSha: "2222222222222222222222222222222222222222",
+    requestPath: "dev_scripts/github-filepatcher.json",
+    mutationAuthority: "filepatcher"
   };
   const fakeEvent = {
     repository: { full_name: "example/frame-conn" },
@@ -272,6 +317,9 @@ function runSelfTest() {
     report.triggeringSha === fakeReceipt.triggeringSha,
     report.statusState === "success",
     report.receiptAvailable === true,
+    report.mutationAuthority === "filepatcher",
+    WORKFLOW_REQUEST_CONTRACTS["Path Mover"].mutationAuthority === "path_mover",
+    WORKFLOW_REQUEST_CONTRACTS["Domain Decomposer"].requestPath === "dev_scripts/domain-decomposer-plan.json",
     statusState("cancelled") === "error",
     slug("GitHub FilePatcher") === "github-filepatcher"
   ];

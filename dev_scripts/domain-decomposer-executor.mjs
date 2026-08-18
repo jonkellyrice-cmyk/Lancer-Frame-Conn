@@ -26,6 +26,7 @@ const DEFAULT_PLAN = path.join(SCRIPT_DIRECTORY, "domain-decomposer-plan.json");
 const DEFAULT_PATCH_OUTPUT = path.join(SCRIPT_DIRECTORY, "domain-decomposer-generated-patch.json");
 const AUTHORITATIVE_PATCH = path.join(SCRIPT_DIRECTORY, "github-filepatcher.json");
 const FILEPATCHER = path.join(SCRIPT_DIRECTORY, "github-filepatcher.mjs");
+const ORCHESTRATOR = path.join(SCRIPT_DIRECTORY, "toolchain-orchestrator.mjs");
 
 function normalizeSlashes(value) { return String(value).replaceAll("\\", "/"); }
 function repoRelative(absolute) { return normalizeSlashes(path.relative(REPOSITORY_ROOT, absolute)); }
@@ -319,9 +320,26 @@ function compilePlan(plan) {
     schema_version: 2,
     id: "domain-decomposer-approved-plan",
     description: "Execute an explicitly approved structural domain decomposition. No behavioral change is permitted.",
+    mutation_carrier: "filepatcher",
+    delegated_from_mutation_carrier: "domain_decomposer",
+    authoring_mode: "raw_operations",
+    raw_operations_reason: "Domain Decomposer already owns dependency-closed structural extraction and deterministically compiles that approved plan into FilePatcher operations.",
     policy: { max_files_changed: allowedPaths.size, allowed_paths: [...allowedPaths].sort() },
     operations
   };
+}
+
+function runToolchainOrchestratorExecutionGuard(planPath) {
+  if (!fs.existsSync(ORCHESTRATOR)) throw new Error(`Toolchain Orchestrator not found: ${repoRelative(ORCHESTRATOR)}`);
+  const result = spawnSync(
+    process.execPath,
+    [ORCHESTRATOR, "execute", "--request", planPath],
+    { cwd: REPOSITORY_ROOT, encoding: "utf8", maxBuffer: 4 * 1024 * 1024, env: process.env }
+  );
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+  if (result.error) throw new Error(`Toolchain Orchestrator preflight could not start: ${result.error}`);
+  if (result.status !== 0) throw new Error(`Toolchain Orchestrator refused Domain Decomposer execution with exit code ${result.status}.`);
 }
 
 function runFilePatcher(patch, apply) {
@@ -359,6 +377,7 @@ if (args.selfTest) { runSelfTest(); process.exit(0); }
 if (!fs.existsSync(args.plan)) throw new Error(`Decomposition plan not found: ${repoRelative(args.plan)}`);
 const plan = JSON.parse(fs.readFileSync(args.plan, "utf8"));
 validatePlan(plan);
+runToolchainOrchestratorExecutionGuard(args.plan);
 const patch = compilePlan(plan);
 fs.writeFileSync(args.patch, `${JSON.stringify(patch, null, 2)}\n`);
 console.log(`Compiled approved decomposition into ${repoRelative(args.patch)}.`);

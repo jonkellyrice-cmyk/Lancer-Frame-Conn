@@ -7,6 +7,7 @@ import {
   fingerprintRequest as fingerprintEnvelopeRequest
 } from "./request-envelope.mjs";
 import {
+  MUTATION_CARRIERS,
   routeMutationRequest,
   routeMutationRequestFromFile
 } from "./mutation-carrier-router.mjs";
@@ -17,7 +18,9 @@ import { pathToFileURL } from "node:url";
 export const TOOLCHAIN_ORCHESTRATOR_SCHEMA_VERSION = 1;
 export const ORCHESTRATOR_STATUS_CONTEXT = "frame-conn/orchestrator";
 export const DEFAULT_REQUEST_PATH = "dev_scripts/github-filepatcher.json";
-const MUTATION_WORKFLOWS = new Set(["GitHub FilePatcher", "Path Mover", "Domain Decomposer"]);
+const MUTATION_WORKFLOWS = new Set(
+  Object.values(MUTATION_CARRIERS).map(carrier => carrier.workflow)
+);
 const TERMINAL_STATES = new Set(["SUCCEEDED", "FAILED", "BLOCKED_IDENTICAL_FAILURE", "CAPABILITY_GAP", "CONFLICT", "SUPERSEDED"]);
 
 function parseArgs(argv) {
@@ -66,6 +69,55 @@ export function buildRequestIdentityFromFile(requestPath = DEFAULT_REQUEST_PATH)
   };
 }
 
+function assistantCapabilityPolicy(state) {
+  const permittedActionsByState = {
+    IDLE: ["author_bounded_request"],
+    READY: ["canonical_execute"],
+    EXECUTING: [],
+    VALIDATING: [],
+    PROMOTING: [],
+    SUCCEEDED: [],
+    FAILED: ["consume_failure_evidence", "modify_canonical_request"],
+    BLOCKED_IDENTICAL_FAILURE: ["modify_canonical_request"],
+    CAPABILITY_GAP: ["request_explicit_user_authorization"],
+    CONFLICT: ["await_current_owner_or_modify_request"],
+    SUPERSEDED: []
+  };
+  const active = ["READY", "EXECUTING", "VALIDATING", "PROMOTING"].includes(state);
+  const failed = ["FAILED", "BLOCKED_IDENTICAL_FAILURE"].includes(state);
+  const closed = ["SUCCEEDED", "SUPERSEDED"].includes(state);
+  return {
+    repository_read_mode: state === "IDLE"
+      ? "open_discovery"
+      : active
+        ? "curated_context_only"
+        : failed
+          ? "failure_evidence_only"
+          : state === "CAPABILITY_GAP"
+            ? "capability_gap_only"
+            : state === "CONFLICT"
+              ? "ownership_resolution_only"
+              : closed
+                ? "closed"
+                : "curated_context_only",
+    direct_source_reconstruction_permitted: state === "IDLE",
+    targeted_source_expansion_policy: state === "IDLE"
+      ? "open"
+      : active
+        ? "canonical_context_insufficiency_only"
+        : failed
+          ? "failure_evidence_extractor_only"
+          : "forbidden",
+    github_workflow_reads_permitted: false,
+    raw_job_log_reads_permitted: false,
+    generic_direct_github_write_permitted: false,
+    protected_path_publication: state === "CAPABILITY_GAP"
+      ? "infrastructure_publisher_after_explicit_authorization_only"
+      : "forbidden",
+    permitted_actions: permittedActionsByState[state] ?? []
+  };
+}
+
 function stateRecord(identity, state, overrides = {}) {
   const terminal = TERMINAL_STATES.has(state);
   return {
@@ -80,11 +132,68 @@ function stateRecord(identity, state, overrides = {}) {
     validation_closed: state === "SUCCEEDED",
     promotion_completed: state === "SUCCEEDED",
     direct_github_mutation_permitted: false,
+    assistant_capabilities: assistantCapabilityPolicy(state),
+    authoring_policy: null,
     capability_gap: null,
     failure: null,
     conflict: null,
     supersedes: null,
     ...overrides
+  };
+}
+
+function normalizeDeclaredRepoPath(value) {
+  return String(value ?? "")
+    .trim()
+    .replaceAll("\\", "/")
+    .replace(/^\.\/+/, "")
+    .replace(/\/{2,}/g, "/");
+}
+
+export function collectRequestDeclaredPaths(request) {
+  const paths = [];
+  for (const operation of request?.operations ?? []) {
+    for (const key of ["path", "from", "to"]) if (operation?.[key]) paths.push(operation[key]);
+    for (const root of operation?.roots ?? []) paths.push(root);
+  }
+  for (const edit of request?.authoring_intent?.edits ?? []) if (edit?.path) paths.push(edit.path);
+  for (const move of request?.moves ?? []) {
+    if (move?.from) paths.push(move.from);
+    if (move?.to) paths.push(move.to);
+  }
+  for (const candidate of request?.candidates ?? []) {
+    if (candidate?.source) paths.push(candidate.source);
+    for (const unit of candidate?.units ?? []) if (unit?.target) paths.push(unit.target);
+  }
+  for (const allowed of request?.policy?.allowed_paths ?? []) paths.push(allowed);
+  return [...new Set(paths.map(normalizeDeclaredRepoPath).filter(Boolean))].sort();
+}
+
+function protectedWorkflowPaths(request) {
+  return collectRequestDeclaredPaths(request).filter(
+    value => value === ".github/workflows" || value.startsWith(".github/workflows/")
+  );
+}
+
+function buildAuthoringPolicy(request) {
+  const operationCount = Array.isArray(request?.operations) ? request.operations.length : 0;
+  const compilerSelected = Boolean(request?.authoring_intent && typeof request.authoring_intent === "object");
+  return {
+    preferred_surface: "patch_authoring_compiler",
+    selected_surface: compilerSelected ? "patch_authoring_compiler" : operationCount > 0 ? "raw_operations" : "none",
+    raw_operations_reason: compilerSelected ? null : String(request?.raw_operations_reason ?? "").trim() || null
+  };
+}
+
+function rawOperationsAuthoringViolation(request) {
+  const operationCount = Array.isArray(request?.operations) ? request.operations.length : 0;
+  if (operationCount === 0 || request?.authoring_intent) return null;
+  const mode = String(request?.authoring_mode ?? "").trim();
+  const reason = String(request?.raw_operations_reason ?? "").trim();
+  if (mode === "raw_operations" && reason.length >= 24) return null;
+  return {
+    code: "RAW_OPERATIONS_REASON_REQUIRED",
+    summary: "Direct FilePatcher operations are an escape hatch. Use authoring_intent/Patch Authoring Compiler when expressible, or declare authoring_mode=raw_operations with a specific raw_operations_reason."
   };
 }
 
@@ -121,15 +230,27 @@ function currentBranch() { return String(process.env.GITHUB_REF_NAME || "").trim
 function refreshGitHistory() {
   if (!process.env.GITHUB_ACTIONS) return;
   const branch = currentBranch();
-  if (!branch) return;
-  childProcess.spawnSync("git", ["fetch", "--quiet", "--depth=80", "origin", branch], { stdio: "ignore" });
+  if (!branch) throw new Error("Toolchain Orchestrator cannot certify request history because GITHUB_REF_NAME is missing.");
+  const result = childProcess.spawnSync(
+    "git",
+    ["fetch", "--quiet", "--depth=80", "origin", branch],
+    { stdio: "ignore" }
+  );
+  if (result.error || result.status !== 0) {
+    throw new Error(`Toolchain Orchestrator could not refresh request history for ${branch}; refusing to execute without sticky-history evidence.`);
+  }
 }
 
 function requestCommits(requestPath, limit = 40) {
   try {
     const result = childProcess.execFileSync("git", ["log", `-n${limit}`, "--format=%H", "--", requestPath], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
     return result.split(/\r?\n/).map(value => value.trim()).filter(Boolean);
-  } catch { return []; }
+  } catch (error) {
+    if (process.env.GITHUB_ACTIONS) {
+      throw new Error(`Toolchain Orchestrator could not read request history for ${requestPath}: ${error?.message ?? error}`);
+    }
+    return [];
+  }
 }
 
 function requestAtCommit(commitSha, requestPath) {
@@ -168,8 +289,7 @@ async function findPriorTerminal(identity, requestPath) {
     if (!prior) continue;
     const priorIdentity = buildRequestIdentity(prior, requestPath);
     if (priorIdentity.fingerprint !== identity.fingerprint) continue;
-    let status;
-    try { status = await orchestratorStatusForCommit(repository, sha); } catch { return null; }
+    const status = await orchestratorStatusForCommit(repository, sha);
     const state = stateFromCommitStatus(status);
     if (state) return { commit: sha, state, status, request: priorIdentity };
   }
@@ -186,8 +306,7 @@ async function findSupersededFailure(identity, requestPath) {
     if (!prior) continue;
     const priorIdentity = buildRequestIdentity(prior, requestPath);
     if (priorIdentity.fingerprint === identity.fingerprint) continue;
-    let status;
-    try { status = await orchestratorStatusForCommit(repository, sha); } catch { return null; }
+    const status = await orchestratorStatusForCommit(repository, sha);
     if (stateFromCommitStatus(status) === "FAILED") return { request_id: priorIdentity.id, request_fingerprint: priorIdentity.fingerprint, commit: sha, state: "SUPERSEDED" };
   }
   return null;
@@ -200,8 +319,7 @@ async function activeMutationConflicts() {
   const branch = currentBranch();
   const runs = [];
   for (const state of ["in_progress", "queued"]) {
-    let payload;
-    try { payload = await githubJson(`/repos/${repository}/actions/runs?status=${state}&per_page=50`); } catch { return []; }
+    const payload = await githubJson(`/repos/${repository}/actions/runs?status=${state}&per_page=50`);
     for (const run of payload.workflow_runs ?? []) {
       if (!MUTATION_WORKFLOWS.has(run.name)) continue;
       if (current && Number(run.id) === current) continue;
@@ -221,8 +339,9 @@ export function mapWorkflowState(status, stepName = "") {
   return "EXECUTING";
 }
 
-export function buildCapabilityGapRecord({ identity, requestedOperation, canonicalPath, missingCapability, blockingReason, directAction, affected = [], resumeAuthority = "FilePatcher / canonical workflow" }) {
+export function buildCapabilityGapRecord({ identity, requestedOperation, canonicalPath, missingCapability, blockingReason, directAction, affected = [], resumeAuthority = "FilePatcher / canonical workflow", mutationAuthority = "filepatcher" }) {
   return stateRecord(identity, "CAPABILITY_GAP", {
+    mutation_authority: mutationAuthority,
     assistant_action_required: true,
     permitted_next_action: "request_explicit_user_authorization",
     capability_gap: {
@@ -246,6 +365,7 @@ export function buildTerminalCompletionRecord(telemetry, failureEvidence = null)
   const succeeded = String(telemetry.conclusion || "").toLowerCase() === "success";
   if (succeeded) {
     return stateRecord(identity, "SUCCEEDED", {
+      mutation_authority: telemetry.mutationAuthority ?? "filepatcher",
       repository_changed: Boolean(telemetry.resultCommitSha && telemetry.triggeringSha && telemetry.resultCommitSha !== telemetry.triggeringSha),
       validation_closed: true,
       promotion_completed: true,
@@ -265,7 +385,14 @@ export function buildTerminalCompletionRecord(telemetry, failureEvidence = null)
     relevant_evidence: failureEvidence?.relevant_evidence ?? [],
     permitted_next_action: "modify_request"
   };
-  return stateRecord(identity, "FAILED", { assistant_action_required: true, permitted_next_action: "modify_request", validation_closed: false, promotion_completed: false, failure });
+  return stateRecord(identity, "FAILED", {
+    mutation_authority: telemetry.mutationAuthority ?? "filepatcher",
+    assistant_action_required: true,
+    permitted_next_action: "modify_request",
+    validation_closed: false,
+    promotion_completed: false,
+    failure
+  });
 }
 
 async function evaluateRequest(requestPath) {
@@ -292,6 +419,39 @@ async function evaluateRequest(requestPath) {
         owners: [],
         summary: mutationRoute.failure?.summary ?? "No canonical mutation carrier matched the request."
       },
+      mutation_route: mutationRoute
+    });
+  }
+
+  const workflowPaths = protectedWorkflowPaths(request);
+  if (workflowPaths.length) {
+    return buildCapabilityGapRecord({
+      identity,
+      mutationAuthority: mutationRoute.mutation_authority,
+      requestedOperation: "publish protected GitHub workflow infrastructure",
+      canonicalPath: `${mutationRoute.mutation_authority} -> protected infrastructure publication`,
+      missingCapability: "normal mutation carriers intentionally refuse .github/workflows publication",
+      blockingReason: "Protected workflow paths require the explicitly authorized Infrastructure Publisher exception boundary.",
+      directAction: "publish exactly one authorized workflow file through dev_scripts/infrastructure-publisher.mjs",
+      affected: workflowPaths,
+      resumeAuthority: `${mutationRoute.mutation_authority} / canonical workflow`
+    });
+  }
+
+  const rawAuthoringViolation = mutationRoute.mutation_authority === "filepatcher"
+    ? rawOperationsAuthoringViolation(request)
+    : null;
+  if (rawAuthoringViolation) {
+    return stateRecord(identity, "CONFLICT", {
+      mutation_authority: mutationRoute.mutation_authority,
+      assistant_action_required: true,
+      permitted_next_action: "modify_request",
+      conflict: {
+        code: rawAuthoringViolation.code,
+        owners: ["patch_authoring_compiler", "raw_operations"],
+        summary: rawAuthoringViolation.summary
+      },
+      authoring_policy: buildAuthoringPolicy(request),
       mutation_route: mutationRoute
     });
   }
@@ -338,6 +498,7 @@ async function evaluateRequest(requestPath) {
     permitted_next_action: "canonical_execute",
     terminal: false,
     supersedes,
+    authoring_policy: buildAuthoringPolicy(request),
     mutation_route: mutationRoute
   });
 }
@@ -369,6 +530,10 @@ function runSelfTest() {
   if (failure.state !== "FAILED" || failure.permitted_next_action !== "modify_request") throw new Error("Failure contract failed.");
   const gap = buildCapabilityGapRecord({ identity: first, requestedOperation: "publish workflow", canonicalPath: "FilePatcher -> publication workflow", missingCapability: "protected workflow publication", blockingReason: "canonical publisher cannot update protected workflow files", directAction: "update one workflow file", affected: [".github/workflows/example.yml"] });
   if (gap.state !== "CAPABILITY_GAP" || gap.capability_gap?.explicit_user_authorization_required !== true) throw new Error("Capability-gap authorization contract failed.");
+  if (success.assistant_capabilities?.permitted_actions?.length !== 0 || success.assistant_capabilities?.direct_source_reconstruction_permitted !== false) throw new Error("Terminal closure capability contract failed.");
+  if (protectedWorkflowPaths({ operations: [{ path: ".github/workflows/test.yml" }] }).length !== 1) throw new Error("Protected workflow detection failed.");
+  if (!rawOperationsAuthoringViolation({ operations: [{ path: "a.js" }] })) throw new Error("Raw operations escape-hatch enforcement failed.");
+  if (rawOperationsAuthoringViolation({ operations: [{ path: "a.js" }], authoring_mode: "raw_operations", raw_operations_reason: "Required because this operation is not expressible by the compiler." })) throw new Error("Declared raw operations escape hatch was incorrectly rejected.");
   if (mapWorkflowState("in_progress", "Validate diff") !== "VALIDATING") throw new Error("Workflow validation mapping failed.");
   if (mapWorkflowState("in_progress", "Commit verified patch") !== "PROMOTING") throw new Error("Workflow promotion mapping failed.");
   console.log("Toolchain Orchestrator self-test passed.");

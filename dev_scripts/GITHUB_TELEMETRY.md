@@ -119,7 +119,9 @@ The receipt steps use `if: always()` so they still run after normal workflow-ste
 
 For an unsuccessful terminal workflow, telemetry delegates diagnosis to `failure-evidence-extractor.mjs`. The extractor performs one jobs lookup, selects the terminal failed job/step, reads that job log once, and returns only bounded error neighborhoods plus request-scope/regression classification. Full logs remain available for targeted expansion but are not the normal assistant-facing result.
 
-The receipt carries the Request Envelope's bounded operation/allowed-path scope for FilePatcher runs. The extractor uses that scope to distinguish in-scope evidence from outside-scope evidence. It labels a finding `pre_existing_only` only when canonical baseline/current evidence proves no new finding; outside-scope log evidence without a baseline is conservatively `outside_request_scope_unproven`.
+The receipt carries the triggering Request Envelope identity, request path, mutation authority, and bounded scope for FilePatcher, Path Mover, and Domain Decomposer. Identity is reconstructed from the workflow's triggering SHA rather than the post-execution checkout, so Path Mover may disable its applied plan without changing the completed request's semantic identity. Request Envelope scope includes FilePatcher operation/authoring paths, Path Mover `from`/`to` paths, and Domain Decomposer source/extraction targets.
+
+The extractor uses that scope to distinguish in-scope evidence from outside-scope evidence. It labels a finding `pre_existing_only` only when canonical baseline/current evidence proves no new finding; outside-scope log evidence without a baseline is conservatively `outside_request_scope_unproven`.
 
 If a receipt cannot be downloaded, the telemetry publisher falls back to the `workflow_run.head_sha` and records `receiptAvailable: false`. This preserves a terminal completion signal even when the richer result-commit evidence is unavailable.
 
