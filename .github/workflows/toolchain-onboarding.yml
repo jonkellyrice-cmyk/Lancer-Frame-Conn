@@ -1,0 +1,48 @@
+name: Frame Conn Toolchain Onboarding
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - dev_scripts/toolchain-onboarding-request.json
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frame-conn-toolchain-onboarding
+  cancel-in-progress: false
+
+jobs:
+  onboard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run toolchain onboarding
+        id: onboarding
+        continue-on-error: true
+        env:
+          FRAME_CONN_ONBOARDING_RECEIPT: ${{ runner.temp }}/frame-conn-toolchain-onboarding-receipt.json
+        run: npm run toolchain:onboard
+
+      - name: Upload onboarding receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frame-conn-toolchain-onboarding-${{ github.run_id }}
+          path: ${{ runner.temp }}/frame-conn-toolchain-onboarding-receipt.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Enforce onboarding result
+        if: steps.onboarding.outcome != 'success'
+        run: exit 1
