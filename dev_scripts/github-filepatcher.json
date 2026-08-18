@@ -1,201 +1,44 @@
 {
   "schema_version": 2,
-  "id": "add-immutable-scope-lock-v1",
-  "description": "Insert a mandatory Scope Lock immediately after Request Envelope construction and before mutation routing so assistant-authored plans cannot silently broaden the user-authorized objective.",
-  "planning_goal": "Make Scope Lock a mandatory first-class gate in every canonical toolchain request, immediately after Request Envelope construction and before Mutation Carrier Router or any repository execution.",
+  "id": "diagnose-brace-reaction-popup-v1",
+  "description": "Diagnose why the Brace reaction popup does not appear when Brace should be available, using the canonical toolchain diagnostics before authoring any mutation.",
+  "planning_goal": "Trace the Brace reaction from its triggering runtime signal through reaction eligibility, native/system integration, and popup presentation. Identify the smallest owned repair that makes the Brace reaction popup appear when its existing eligibility rules say it should, without changing Brace rules or unrelated reactions.",
   "scope_lock": {
     "schema_version": 1,
-    "lock_id": "user-request-2026-08-18-scope-lock",
-    "original_user_instruction": "Can you please make the scope lock? Make it part of the toolchain runtime flow every time, inserted in the proper place. Probably at the very start.",
+    "lock_id": "user-request-2026-08-18-brace-popup",
+    "original_user_instruction": "Try to fix the brace reaction pop up window not appearing when it should. Lets see if the scope lock helps at all",
     "authorized_deliverables": [
-      "Create the Scope Lock tool.",
-      "Integrate Scope Lock into the canonical toolchain runtime flow at the start of every request.",
-      "Register and exercise Scope Lock in the onboarding/toolchain self-test flow."
+      "Diagnose why the Brace reaction popup does not appear when Brace should be available.",
+      "Repair only the owned runtime/presentation seam necessary to make the Brace popup appear under its existing eligibility rules."
     ],
-    "authorized_paths": [
-      "dev_scripts/scope-lock.mjs",
-      "dev_scripts/request-envelope.mjs",
-      "dev_scripts/toolchain-orchestrator.mjs",
-      "dev_scripts/toolchain-onboarding.mjs",
-      "package.json"
-    ],
+    "authorized_paths": [],
     "forbidden_expansions": [
-      "Do not modify runtime Lancer behavior.",
-      "Do not create or modify GitHub workflows.",
-      "Do not add unrelated developer tooling.",
-      "Do not generalize beyond enforcing user-authorized scope on canonical requests."
+      "Do not change Brace game rules, costs, effects, or eligibility semantics.",
+      "Do not change unrelated reactions or actions.",
+      "Do not redesign reaction UI or other presentation surfaces.",
+      "Do not modify developer tooling, GitHub workflows, or repository infrastructure.",
+      "Do not perform adjacent cleanup or refactors."
     ],
-    "allow_capability_construction": true,
-    "authorized_capabilities": ["scope_lock"]
+    "allow_capability_construction": false,
+    "authorized_capabilities": []
   },
   "acceptance_criteria": [
-    "Every canonical request must contain a valid scope_lock with the exact original user instruction, authorized deliverables, authorized paths, and forbidden expansions.",
-    "Scope Lock executes immediately after Request Envelope construction and before Mutation Carrier Router evaluation.",
-    "A request missing scope_lock fails closed as SCOPE_VIOLATION before mutation routing.",
-    "Any declared operation, authoring, move, decomposition, or policy path outside scope_lock.authorized_paths fails closed as SCOPE_VIOLATION.",
-    "Capability construction is forbidden by default and requires explicit authorization in the scope lock.",
-    "Scope Lock produces a deterministic fingerprint and a machine-readable decision record carried into orchestrator state.",
-    "Request Envelope includes the scope-lock fingerprint and treats the original user instruction as root authority rather than allowing planning_goal or acceptance criteria to replace it.",
-    "Toolchain Orchestrator self-tests prove missing-lock rejection, path-expansion rejection, and valid-lock acceptance.",
-    "Toolchain onboarding runs Scope Lock immediately after Request Envelope and before Mutation Carrier Router and states that the user objective is immutable, obstacles may change means but not goals, and only explicit user authorization may expand scope.",
-    "package.json exposes scope-lock and scope-lock:self-test commands.",
-    "No runtime Lancer source or GitHub workflow is changed."
+    "Canonical diagnostics identify the runtime signal that should cause Brace reaction consideration.",
+    "Canonical diagnostics identify the existing Brace eligibility path and popup/presentation path.",
+    "The repair is limited to the smallest certified ownership surface responsible for the missing popup.",
+    "Brace popup appears when existing Brace eligibility rules say Brace is available.",
+    "Brace popup does not appear when existing Brace eligibility rules say Brace is unavailable.",
+    "Brace mechanics and unrelated reactions remain unchanged."
   ],
   "non_goals": [
-    "Change gameplay behavior.",
-    "Create remote execution infrastructure.",
-    "Modify protected workflows.",
-    "Redesign the rest of the toolchain."
+    "Change Brace mechanics.",
+    "Change unrelated reactions.",
+    "Redesign popup UI.",
+    "Modify toolchain or infrastructure."
   ],
-  "authoring_mode": "raw_operations",
-  "raw_operations_reason": "This is a developer-tool bootstrap/integration change across dev_scripts and package registration. Patch Corridor certifies runtime architectural ownership and previously demonstrated that developer-tool semantics are not a corridor-owned runtime family; raw operations are the documented exception while Toolchain Compatibility Staging and all canonical validation remain authoritative.",
   "policy": {
-    "max_files_changed": 5,
-    "allowed_paths": [
-      "dev_scripts/scope-lock.mjs",
-      "dev_scripts/request-envelope.mjs",
-      "dev_scripts/toolchain-orchestrator.mjs",
-      "dev_scripts/toolchain-onboarding.mjs",
-      "package.json"
-    ]
+    "max_files_changed": 0,
+    "allowed_paths": []
   },
-  "operations": [
-    {
-      "type": "create_file",
-      "path": "dev_scripts/scope-lock.mjs",
-      "content": "#!/usr/bin/env node\nimport crypto from \"node:crypto\";\nimport fs from \"node:fs\";\nimport path from \"node:path\";\nimport { pathToFileURL } from \"node:url\";\n\nexport const SCOPE_LOCK_SCHEMA_VERSION = 1;\n\nconst stable = value => Array.isArray(value)\n  ? value.map(stable)\n  : value && typeof value === \"object\"\n    ? Object.fromEntries(Object.keys(value).sort().map(key => [key, stable(value[key])]))\n    : value;\nconst hash = value => crypto.createHash(\"sha256\").update(JSON.stringify(stable(value)), \"utf8\").digest(\"hex\");\nconst strings = value => [...new Set((Array.isArray(value) ? value : value == null ? [] : [value]).map(entry => String(entry).trim()).filter(Boolean))];\nconst repoPath = value => String(value ?? \"\").trim().replaceAll(\"\\\\\", \"/\").replace(/^\\.\\//, \"\").replace(/\\/{2,}/g, \"/\");\n\nfunction declaredPaths(request) {\n  const output = [];\n  for (const operation of request?.operations ?? []) {\n    for (const key of [\"path\", \"from\", \"to\"]) if (operation?.[key]) output.push(operation[key]);\n    for (const root of operation?.roots ?? []) output.push(root);\n  }\n  for (const edit of request?.authoring_intent?.edits ?? []) if (edit?.path) output.push(edit.path);\n  for (const move of request?.moves ?? []) { if (move?.from) output.push(move.from); if (move?.to) output.push(move.to); }\n  for (const candidate of request?.candidates ?? []) {\n    if (candidate?.source) output.push(candidate.source);\n    for (const unit of candidate?.units ?? []) if (unit?.target) output.push(unit.target);\n  }\n  for (const allowed of request?.policy?.allowed_paths ?? []) output.push(allowed);\n  return [...new Set(output.map(repoPath).filter(Boolean))].sort();\n}\n\nfunction pathAuthorized(candidate, authorizedPaths) {\n  return authorizedPaths.some(allowed => candidate === allowed || candidate.startsWith(`${allowed.replace(/\\/$/, \"\")}/`));\n}\n\nexport function buildScopeLock(request) {\n  const source = request?.scope_lock;\n  const violations = [];\n  if (!source || typeof source !== \"object\" || Array.isArray(source)) {\n    return { schema_version: SCOPE_LOCK_SCHEMA_VERSION, kind: \"frame_conn_scope_lock\", state: \"SCOPE_VIOLATION\", locked: false, fingerprint: null, violations: [{ code: \"SCOPE_LOCK_REQUIRED\", summary: \"Every canonical request requires an explicit scope_lock rooted in the user's instruction.\" }] };\n  }\n  const originalUserInstruction = String(source.original_user_instruction ?? \"\").trim();\n  const authorizedDeliverables = strings(source.authorized_deliverables);\n  const authorizedPaths = strings(source.authorized_paths).map(repoPath).sort();\n  const forbiddenExpansions = strings(source.forbidden_expansions);\n  const authorizedCapabilities = strings(source.authorized_capabilities).sort();\n  if (!originalUserInstruction) violations.push({ code: \"USER_OBJECTIVE_REQUIRED\", summary: \"scope_lock.original_user_instruction must preserve the user's objective verbatim.\" });\n  if (!authorizedDeliverables.length) violations.push({ code: \"AUTHORIZED_DELIVERABLE_REQUIRED\", summary: \"Scope Lock requires at least one user-authorized deliverable.\" });\n  if (!authorizedPaths.length && declaredPaths(request).length) violations.push({ code: \"AUTHORIZED_PATHS_REQUIRED\", summary: \"Mutating requests must declare authorized_paths in Scope Lock.\" });\n  const outside = declaredPaths(request).filter(candidate => !pathAuthorized(candidate, authorizedPaths));\n  if (outside.length) violations.push({ code: \"PATH_SCOPE_EXPANSION\", summary: \"The request declares repository paths outside the immutable Scope Lock.\", paths: outside });\n  const capabilityConstruction = source.allow_capability_construction === true;\n  if (capabilityConstruction && !authorizedCapabilities.length) violations.push({ code: \"CAPABILITY_AUTHORIZATION_REQUIRED\", summary: \"Capability construction requires explicit authorized_capabilities.\" });\n  const projection = { schema_version: SCOPE_LOCK_SCHEMA_VERSION, lock_id: String(source.lock_id ?? \"\").trim() || null, original_user_instruction: originalUserInstruction, authorized_deliverables: authorizedDeliverables, authorized_paths: authorizedPaths, forbidden_expansions: forbiddenExpansions, allow_capability_construction: capabilityConstruction, authorized_capabilities: authorizedCapabilities };\n  const fingerprint = hash(projection);\n  return { schema_version: SCOPE_LOCK_SCHEMA_VERSION, kind: \"frame_conn_scope_lock\", state: violations.length ? \"SCOPE_VIOLATION\" : \"LOCKED\", locked: violations.length === 0, fingerprint, objective_fingerprint: hash(originalUserInstruction), ...projection, declared_paths: declaredPaths(request), violations, authority: { root: \"original_user_instruction\", assistant_may_narrow_scope: true, assistant_may_expand_scope: false, obstacle_may_change_means_not_goal: true, expansion_requires_new_explicit_user_authorization: true } };\n}\n\nexport function assertScopeLock(request) {\n  const lock = buildScopeLock(request);\n  if (!lock.locked) {\n    const error = new Error(`Scope Lock rejected request: ${lock.violations.map(item => item.code).join(\", \")}`);\n    error.code = \"SCOPE_VIOLATION\";\n    error.scopeLock = lock;\n    throw error;\n  }\n  return lock;\n}\n\nfunction selfTest() {\n  const valid = { scope_lock: { original_user_instruction: \"Change a.js only.\", authorized_deliverables: [\"Change a.js\"], authorized_paths: [\"a.js\"], forbidden_expansions: [\"Do not change b.js\"] }, policy: { allowed_paths: [\"a.js\"] }, operations: [{ type: \"replace_text\", path: \"a.js\" }] };\n  if (!buildScopeLock(valid).locked) throw new Error(\"Valid Scope Lock was rejected.\");\n  if (buildScopeLock({ operations: [] }).state !== \"SCOPE_VIOLATION\") throw new Error(\"Missing Scope Lock did not fail closed.\");\n  const expanded = structuredClone(valid); expanded.operations.push({ type: \"replace_text\", path: \"b.js\" });\n  if (!buildScopeLock(expanded).violations.some(item => item.code === \"PATH_SCOPE_EXPANSION\")) throw new Error(\"Path expansion was not rejected.\");\n  const capability = structuredClone(valid); capability.scope_lock.allow_capability_construction = true;\n  if (!buildScopeLock(capability).violations.some(item => item.code === \"CAPABILITY_AUTHORIZATION_REQUIRED\")) throw new Error(\"Unauthorized capability construction was not rejected.\");\n  console.log(\"Scope Lock self-test passed.\");\n}\n\nasync function main() {\n  if (process.argv.includes(\"--self-test\") || process.argv[2] === \"self-test\") return selfTest();\n  const requestIndex = process.argv.indexOf(\"--request\");\n  const requestPath = requestIndex >= 0 ? process.argv[requestIndex + 1] : \"dev_scripts/github-filepatcher.json\";\n  const request = JSON.parse(fs.readFileSync(path.resolve(requestPath), \"utf8\"));\n  const lock = buildScopeLock(request);\n  process.stdout.write(`${JSON.stringify(lock, null, 2)}\\n`);\n  if (!lock.locked) process.exitCode = 26;\n}\n\nif (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) main().catch(error => { console.error(error?.stack || String(error)); process.exitCode = 1; });\n"
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/request-envelope.mjs",
-      "search": "import { pathToFileURL } from \"node:url\";\n\nexport const REQUEST_ENVELOPE_SCHEMA_VERSION = 1;",
-      "replace": "import { pathToFileURL } from \"node:url\";\nimport { buildScopeLock } from \"./scope-lock.mjs\";\n\nexport const REQUEST_ENVELOPE_SCHEMA_VERSION = 1;"
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/request-envelope.mjs",
-      "search": "  const identity = buildRequestIdentity(request, requestPath);\n  const envelope = {",
-      "replace": "  const identity = buildRequestIdentity(request, requestPath);\n  const scopeLock = buildScopeLock(request);\n  const envelope = {"
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/request-envelope.mjs",
-      "search": "    intent: {\n      goal: String(request.planning_goal ?? request.goal ?? \"\").trim() || null,",
-      "replace": "    scope_lock: {\n      state: scopeLock.state,\n      fingerprint: scopeLock.fingerprint,\n      objective_fingerprint: scopeLock.objective_fingerprint ?? null,\n      original_user_instruction: scopeLock.original_user_instruction ?? null,\n      authorized_deliverables: scopeLock.authorized_deliverables ?? [],\n      authority: scopeLock.authority ?? null,\n      violations: scopeLock.violations ?? []\n    },\n    intent: {\n      goal: String(request.planning_goal ?? request.goal ?? \"\").trim() || null,"
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/request-envelope.mjs",
-      "search": "      authoritative_for: [\"semantic_request_identity\", \"request_goal\", \"acceptance_criteria\", \"non_goals\", \"declared_scope\", \"request_artifact_index\"],",
-      "replace": "      authoritative_for: [\"semantic_request_identity\", \"scope_lock\", \"original_user_instruction\", \"request_goal\", \"acceptance_criteria\", \"non_goals\", \"declared_scope\", \"request_artifact_index\"],"
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/request-envelope.mjs",
-      "search": "    schema_version: 2,\n    id: \"scan-a\",",
-      "replace": "    schema_version: 2,\n    id: \"scan-a\",\n    scope_lock: { original_user_instruction: \"Route Scan through native execution.\", authorized_deliverables: [\"Route Scan\"], authorized_paths: [\"scripts/a.js\", \"scripts/b.js\"], forbidden_expansions: [\"No menu redesign\"] },"
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/request-envelope.mjs",
-      "search": "  const carrierScope = buildRequestEnvelope({\n    moves:",
-      "replace": "  const carrierScope = buildRequestEnvelope({\n    scope_lock: { original_user_instruction: \"Move/extract declared files.\", authorized_deliverables: [\"Move/extract files\"], authorized_paths: [\"scripts/old.js\", \"scripts/new.js\", \"scripts/source.js\", \"scripts/extracted.js\"], forbidden_expansions: [\"No other paths\"] },\n    moves:"
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/request-envelope.mjs",
-      "search": "  const rawReasonA = buildRequestEnvelope({ operations:",
-      "replace": "  const rawScope = { original_user_instruction: \"Change scripts/a.js.\", authorized_deliverables: [\"Change scripts/a.js\"], authorized_paths: [\"scripts/a.js\"], forbidden_expansions: [\"No other paths\"] };\n  const rawReasonA = buildRequestEnvelope({ scope_lock: rawScope, operations:"
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/request-envelope.mjs",
-      "search": "  const rawReasonB = buildRequestEnvelope({ operations:",
-      "replace": "  const rawReasonB = buildRequestEnvelope({ scope_lock: rawScope, operations:"
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/toolchain-orchestrator.mjs",
-      "search": "import {\n  MUTATION_CARRIERS,",
-      "replace": "import { buildScopeLock } from \"./scope-lock.mjs\";\nimport {\n  MUTATION_CARRIERS,"
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/toolchain-orchestrator.mjs",
-      "search": "const TERMINAL_STATES = new Set([\"SUCCEEDED\", \"FAILED\", \"BLOCKED_IDENTICAL_FAILURE\", \"CAPABILITY_GAP\", \"CONFLICT\", \"SUPERSEDED\"]);",
-      "replace": "const TERMINAL_STATES = new Set([\"SUCCEEDED\", \"FAILED\", \"BLOCKED_IDENTICAL_FAILURE\", \"CAPABILITY_GAP\", \"CONFLICT\", \"SCOPE_VIOLATION\", \"SUPERSEDED\"]);"
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/toolchain-orchestrator.mjs",
-      "search": "    CAPABILITY_GAP: [\"request_explicit_user_authorization\"],\n    CONFLICT:",
-      "replace": "    CAPABILITY_GAP: [\"request_explicit_user_authorization\"],\n    SCOPE_VIOLATION: [\"request_explicit_user_authorization_or_narrow_request\"],\n    CONFLICT:"
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/toolchain-orchestrator.mjs",
-      "search": "          : state === \"CONFLICT\"\n              ? \"ownership_resolution_only\"",
-      "replace": "          : state === \"SCOPE_VIOLATION\"\n            ? \"scope_lock_only\"\n            : state === \"CONFLICT\"\n              ? \"ownership_resolution_only\""
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/toolchain-orchestrator.mjs",
-      "search": "    capability_gap: null,\n    failure:",
-      "replace": "    capability_gap: null,\n    scope_lock: null,\n    failure:"
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/toolchain-orchestrator.mjs",
-      "search": "async function evaluateRequest(requestPath) {\n  const { request, identity } = buildRequestIdentityFromFile(requestPath);\n  const mutationRoute = routeMutationRequest(request, requestPath);",
-      "replace": "async function evaluateRequest(requestPath) {\n  const { request, identity, envelope } = buildRequestIdentityFromFile(requestPath);\n  const scopeLock = buildScopeLock(request);\n  if (!scopeLock.locked) {\n    return stateRecord(identity, \"SCOPE_VIOLATION\", {\n      mutation_authority: null,\n      assistant_action_required: true,\n      permitted_next_action: \"request_explicit_user_authorization_or_narrow_request\",\n      scope_lock: scopeLock,\n      request_envelope: envelope\n    });\n  }\n  const mutationRoute = routeMutationRequest(request, requestPath);"
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/toolchain-orchestrator.mjs",
-      "search": "    authoring_policy: buildAuthoringPolicy(request),\n    mutation_route: mutationRoute",
-      "replace": "    authoring_policy: buildAuthoringPolicy(request),\n    scope_lock: scopeLock,\n    mutation_route: mutationRoute"
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/toolchain-orchestrator.mjs",
-      "search": "  if (state === \"CAPABILITY_GAP\") return 24;\n  return 25;",
-      "replace": "  if (state === \"CAPABILITY_GAP\") return 24;\n  if (state === \"SCOPE_VIOLATION\") return 26;\n  return 25;"
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/toolchain-orchestrator.mjs",
-      "search": "  const base = { schema_version: 2, id: \"first-label\", description: \"metadata\", planning_goal: \"change behavior\", policy:",
-      "replace": "  const base = { schema_version: 2, id: \"first-label\", description: \"metadata\", planning_goal: \"change behavior\", scope_lock: { original_user_instruction: \"Change a.js only.\", authorized_deliverables: [\"Change a.js\"], authorized_paths: [\"a.js\"], forbidden_expansions: [\"No other files\"] }, policy:"
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/toolchain-orchestrator.mjs",
-      "search": "  if (mapWorkflowState(\"in_progress\", \"Commit verified patch\") !== \"PROMOTING\") throw new Error(\"Workflow promotion mapping failed.\");\n  console.log",
-      "replace": "  if (mapWorkflowState(\"in_progress\", \"Commit verified patch\") !== \"PROMOTING\") throw new Error(\"Workflow promotion mapping failed.\");\n  if (buildScopeLock({ operations: [] }).state !== \"SCOPE_VIOLATION\") throw new Error(\"Missing Scope Lock did not fail closed.\");\n  const expanded = structuredClone(base); expanded.operations.push({ type: \"replace_text\", path: \"b.js\" });\n  if (!buildScopeLock(expanded).violations.some(item => item.code === \"PATH_SCOPE_EXPANSION\")) throw new Error(\"Scope expansion was not rejected.\");\n  if (!buildScopeLock(base).locked) throw new Error(\"Valid Scope Lock was rejected.\");\n  console.log"
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/toolchain-onboarding.mjs",
-      "search": "  \"dev_scripts/REQUEST_ENVELOPE.md\",",
-      "replace": "  \"dev_scripts/REQUEST_ENVELOPE.md\",\n  \"dev_scripts/scope-lock.mjs\","
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/toolchain-onboarding.mjs",
-      "search": "  \"Bound the behavioral request before repository mutation.\",\n  \"Use Request Envelope for semantic identity and declared scope.\",",
-      "replace": "  \"The user's original objective is immutable root authority; plans, obstacles, and intermediate requests may change means but never silently replace or broaden the goal.\",\n  \"Only explicit user authorization may expand Scope Lock; the assistant may narrow scope but cannot authorize its own expansion.\",\n  \"A capability gap does not authorize capability construction; stop or request explicit user authorization unless that capability is already authorized by Scope Lock.\",\n  \"Bound the behavioral request before repository mutation.\",\n  \"Use Request Envelope for semantic identity and declared scope.\","
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/toolchain-onboarding.mjs",
-      "search": "  npmStage(\"01-request-envelope\", \"Request Envelope semantic identity\", \"request-envelope:self-test\", \"canonical-spine\"),\n  npmStage(\"02-mutation-carrier-router\"",
-      "replace": "  npmStage(\"01-request-envelope\", \"Request Envelope semantic identity\", \"request-envelope:self-test\", \"canonical-spine\"),\n  npmStage(\"01b-scope-lock\", \"Scope Lock immutable user objective and expansion guard\", \"scope-lock:self-test\", \"canonical-spine\"),\n  npmStage(\"02-mutation-carrier-router\""
-    },
-    {
-      "type": "replace_text",
-      "path": "package.json",
-      "search": "    \"request-envelope:self-test\": \"node ./dev_scripts/request-envelope.mjs --self-test\",",
-      "replace": "    \"request-envelope:self-test\": \"node ./dev_scripts/request-envelope.mjs --self-test\",\n    \"scope-lock\": \"node ./dev_scripts/scope-lock.mjs\",\n    \"scope-lock:self-test\": \"node ./dev_scripts/scope-lock.mjs --self-test\","
-    }
-  ]
+  "operations": []
 }
