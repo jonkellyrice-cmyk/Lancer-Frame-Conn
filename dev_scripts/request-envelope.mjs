@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { buildScopeLock } from "./scope-lock.mjs";
 
 export const REQUEST_ENVELOPE_SCHEMA_VERSION = 1;
 export const DEFAULT_REQUEST_PATH = "dev_scripts/github-filepatcher.json";
@@ -77,10 +78,20 @@ function artifacts(value) {
 export function buildRequestEnvelope(request, requestPath = DEFAULT_REQUEST_PATH, options = {}) {
   if (!request || typeof request !== "object" || Array.isArray(request)) throw new Error("Request Envelope requires an object.");
   const identity = buildRequestIdentity(request, requestPath);
+  const scopeLock = buildScopeLock(request);
   const envelope = {
     schema_version: REQUEST_ENVELOPE_SCHEMA_VERSION,
     kind: "frame_conn_request_envelope",
     request: identity,
+    scope_lock: {
+      state: scopeLock.state,
+      fingerprint: scopeLock.fingerprint,
+      objective_fingerprint: scopeLock.objective_fingerprint ?? null,
+      original_user_instruction: scopeLock.original_user_instruction ?? null,
+      authorized_deliverables: scopeLock.authorized_deliverables ?? [],
+      authority: scopeLock.authority ?? null,
+      violations: scopeLock.violations ?? []
+    },
     intent: {
       goal: String(request.planning_goal ?? request.goal ?? "").trim() || null,
       acceptance_criteria: strings(request.acceptance_criteria ?? request.acceptanceCriteria),
@@ -104,7 +115,7 @@ export function buildRequestEnvelope(request, requestPath = DEFAULT_REQUEST_PATH
       operation_count: request.operations?.length ?? 0
     },
     authority: {
-      authoritative_for: ["semantic_request_identity", "request_goal", "acceptance_criteria", "non_goals", "declared_scope", "request_artifact_index"],
+      authoritative_for: ["semantic_request_identity", "scope_lock", "original_user_instruction", "request_goal", "acceptance_criteria", "non_goals", "declared_scope", "request_artifact_index"],
       not_authoritative_for: ["architectural_ownership", "patch_corridor_certification", "mutation_operations", "validation", "promotion"]
     }
   };
@@ -135,6 +146,7 @@ function selfTest() {
   const base = {
     schema_version: 2,
     id: "scan-a",
+    scope_lock: { original_user_instruction: "Route Scan through native execution.", authorized_deliverables: ["Route Scan"], authorized_paths: ["scripts/a.js", "scripts/b.js"], forbidden_expansions: ["No menu redesign"] },
     description: "label a",
     planning_goal: "Route Scan through native execution.",
     acceptance_criteria: ["Native Scan executes", "Targeting preserved"],
@@ -148,11 +160,13 @@ function selfTest() {
   const b = buildRequestEnvelope(relabeled);
   const c = buildRequestEnvelope(changed);
   const carrierScope = buildRequestEnvelope({
+    scope_lock: { original_user_instruction: "Move/extract declared files.", authorized_deliverables: ["Move/extract files"], authorized_paths: ["scripts/old.js", "scripts/new.js", "scripts/source.js", "scripts/extracted.js"], forbidden_expansions: ["No other paths"] },
     moves: [{ from: "scripts/old.js", to: "scripts/new.js" }],
     candidates: [{ source: "scripts/source.js", units: [{ target: "scripts/extracted.js" }] }]
   });
-  const rawReasonA = buildRequestEnvelope({ operations: [{ path: "scripts/a.js" }], authoring_mode: "raw_operations", raw_operations_reason: "reason one is long enough for policy" });
-  const rawReasonB = buildRequestEnvelope({ operations: [{ path: "scripts/a.js" }], authoring_mode: "raw_operations", raw_operations_reason: "reason two is also long enough" });
+  const rawScope = { original_user_instruction: "Change scripts/a.js.", authorized_deliverables: ["Change scripts/a.js"], authorized_paths: ["scripts/a.js"], forbidden_expansions: ["No other paths"] };
+  const rawReasonA = buildRequestEnvelope({ scope_lock: rawScope, operations: [{ path: "scripts/a.js" }], authoring_mode: "raw_operations", raw_operations_reason: "reason one is long enough for policy" });
+  const rawReasonB = buildRequestEnvelope({ scope_lock: rawScope, operations: [{ path: "scripts/a.js" }], authoring_mode: "raw_operations", raw_operations_reason: "reason two is also long enough" });
   if (
     a.request.fingerprint !== b.request.fingerprint ||
     a.request.fingerprint === c.request.fingerprint ||

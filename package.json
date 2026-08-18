@@ -17,6 +17,8 @@
     "toolchain:onboard:self-test": "node ./dev_scripts/toolchain-onboarding.mjs --self-test",
     "request-envelope": "node ./dev_scripts/request-envelope.mjs",
     "request-envelope:self-test": "node ./dev_scripts/request-envelope.mjs --self-test",
+    "scope-lock": "node ./dev_scripts/scope-lock.mjs",
+    "scope-lock:self-test": "node ./dev_scripts/scope-lock.mjs --self-test",
     "context-broker": "node ./dev_scripts/assistant-context-broker.mjs",
     "context-broker:self-test": "node ./dev_scripts/assistant-context-broker.mjs --self-test",
     "patch-authoring": "node ./dev_scripts/patch-authoring-compiler.mjs",

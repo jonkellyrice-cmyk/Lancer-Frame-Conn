@@ -14,6 +14,7 @@ const nodeCommand = process.execPath;
 const AUTHORITATIVE_DOCUMENTS = [
   "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
   "dev_scripts/REQUEST_ENVELOPE.md",
+  "dev_scripts/scope-lock.mjs",
   "dev_scripts/MUTATION_CARRIER_ROUTER.md",
   "dev_scripts/TOOLCHAIN_ORCHESTRATOR.md",
   "dev_scripts/ASSISTANT_CONTEXT_BROKER.md",
@@ -35,6 +36,9 @@ const AUTHORITATIVE_DOCUMENTS = [
 ];
 
 const HARD_INVARIANTS = [
+  "The user's original objective is immutable root authority; plans, obstacles, and intermediate requests may change means but never silently replace or broaden the goal.",
+  "Only explicit user authorization may expand Scope Lock; the assistant may narrow scope but cannot authorize its own expansion.",
+  "A capability gap does not authorize capability construction; stop or request explicit user authorization unless that capability is already authorized by Scope Lock.",
   "Bound the behavioral request before repository mutation.",
   "Use Request Envelope for semantic identity and declared scope.",
   "Let Mutation Carrier Router select exactly one normal mutation authority.",
@@ -57,6 +61,7 @@ const syntaxStage = (id, label, scriptPath, phase) => ({ id, label, phase, comma
 
 const STAGES = [
   npmStage("01-request-envelope", "Request Envelope semantic identity", "request-envelope:self-test", "canonical-spine"),
+  npmStage("01b-scope-lock", "Scope Lock immutable user objective and expansion guard", "scope-lock:self-test", "canonical-spine"),
   npmStage("02-mutation-carrier-router", "Mutation Carrier Router authority selection", "mutation-route:self-test", "canonical-spine"),
   npmStage("03-toolchain-orchestrator", "Toolchain Orchestrator state and closure policy", "toolchain:self-test", "canonical-spine"),
   npmStage("04-assistant-context-broker", "Assistant Context Broker bounded evidence", "context-broker:self-test", "canonical-spine"),

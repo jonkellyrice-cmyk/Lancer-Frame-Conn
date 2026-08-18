@@ -6,6 +6,7 @@ import {
   buildRequestIdentity as buildEnvelopeRequestIdentity,
   fingerprintRequest as fingerprintEnvelopeRequest
 } from "./request-envelope.mjs";
+import { buildScopeLock } from "./scope-lock.mjs";
 import {
   MUTATION_CARRIERS,
   routeMutationRequest,
@@ -21,7 +22,7 @@ export const DEFAULT_REQUEST_PATH = "dev_scripts/github-filepatcher.json";
 const MUTATION_WORKFLOWS = new Set(
   Object.values(MUTATION_CARRIERS).map(carrier => carrier.workflow)
 );
-const TERMINAL_STATES = new Set(["SUCCEEDED", "FAILED", "BLOCKED_IDENTICAL_FAILURE", "CAPABILITY_GAP", "CONFLICT", "SUPERSEDED"]);
+const TERMINAL_STATES = new Set(["SUCCEEDED", "FAILED", "BLOCKED_IDENTICAL_FAILURE", "CAPABILITY_GAP", "CONFLICT", "SCOPE_VIOLATION", "SUPERSEDED"]);
 
 function parseArgs(argv) {
   const args = { command: null, values: new Map(), flags: new Set() };
@@ -80,6 +81,7 @@ function assistantCapabilityPolicy(state) {
     FAILED: ["consume_failure_evidence", "modify_canonical_request"],
     BLOCKED_IDENTICAL_FAILURE: ["modify_canonical_request"],
     CAPABILITY_GAP: ["request_explicit_user_authorization"],
+    SCOPE_VIOLATION: ["request_explicit_user_authorization_or_narrow_request"],
     CONFLICT: ["await_current_owner_or_modify_request"],
     SUPERSEDED: []
   };
@@ -95,6 +97,8 @@ function assistantCapabilityPolicy(state) {
           ? "failure_evidence_only"
           : state === "CAPABILITY_GAP"
             ? "capability_gap_only"
+            : state === "SCOPE_VIOLATION"
+            ? "scope_lock_only"
             : state === "CONFLICT"
               ? "ownership_resolution_only"
               : closed
@@ -135,6 +139,7 @@ function stateRecord(identity, state, overrides = {}) {
     assistant_capabilities: assistantCapabilityPolicy(state),
     authoring_policy: null,
     capability_gap: null,
+    scope_lock: null,
     failure: null,
     conflict: null,
     supersedes: null,
@@ -396,7 +401,17 @@ export function buildTerminalCompletionRecord(telemetry, failureEvidence = null)
 }
 
 async function evaluateRequest(requestPath) {
-  const { request, identity } = buildRequestIdentityFromFile(requestPath);
+  const { request, identity, envelope } = buildRequestIdentityFromFile(requestPath);
+  const scopeLock = buildScopeLock(request);
+  if (!scopeLock.locked) {
+    return stateRecord(identity, "SCOPE_VIOLATION", {
+      mutation_authority: null,
+      assistant_action_required: true,
+      permitted_next_action: "request_explicit_user_authorization_or_narrow_request",
+      scope_lock: scopeLock,
+      request_envelope: envelope
+    });
+  }
   const mutationRoute = routeMutationRequest(request, requestPath);
 
   if (mutationRoute.state === "CONFLICT") {
@@ -499,6 +514,7 @@ async function evaluateRequest(requestPath) {
     terminal: false,
     supersedes,
     authoring_policy: buildAuthoringPolicy(request),
+    scope_lock: scopeLock,
     mutation_route: mutationRoute
   });
 }
@@ -509,6 +525,7 @@ function exitCodeForState(state) {
   if (state === "BLOCKED_IDENTICAL_FAILURE") return 22;
   if (state === "CONFLICT") return 23;
   if (state === "CAPABILITY_GAP") return 24;
+  if (state === "SCOPE_VIOLATION") return 26;
   return 25;
 }
 
@@ -516,7 +533,7 @@ function printJson(value) { process.stdout.write(`${JSON.stringify(value, null, 
 function readTelemetry(filePath) { return JSON.parse(fs.readFileSync(path.resolve(filePath), "utf8")); }
 
 function runSelfTest() {
-  const base = { schema_version: 2, id: "first-label", description: "metadata", planning_goal: "change behavior", policy: { max_files_changed: 1, allowed_paths: ["a.js"] }, operations: [{ type: "replace_text", path: "a.js", search: "a", replace: "b" }] };
+  const base = { schema_version: 2, id: "first-label", description: "metadata", planning_goal: "change behavior", scope_lock: { original_user_instruction: "Change a.js only.", authorized_deliverables: ["Change a.js"], authorized_paths: ["a.js"], forbidden_expansions: ["No other files"] }, policy: { max_files_changed: 1, allowed_paths: ["a.js"] }, operations: [{ type: "replace_text", path: "a.js", search: "a", replace: "b" }] };
   const sameSemantics = { ...base, id: "other-label", description: "different metadata" };
   const changedSemantics = { ...base, operations: [{ type: "replace_text", path: "a.js", search: "a", replace: "c" }] };
   const first = buildRequestIdentity(base);
@@ -536,6 +553,10 @@ function runSelfTest() {
   if (rawOperationsAuthoringViolation({ operations: [{ path: "a.js" }], authoring_mode: "raw_operations", raw_operations_reason: "Required because this operation is not expressible by the compiler." })) throw new Error("Declared raw operations escape hatch was incorrectly rejected.");
   if (mapWorkflowState("in_progress", "Validate diff") !== "VALIDATING") throw new Error("Workflow validation mapping failed.");
   if (mapWorkflowState("in_progress", "Commit verified patch") !== "PROMOTING") throw new Error("Workflow promotion mapping failed.");
+  if (buildScopeLock({ operations: [] }).state !== "SCOPE_VIOLATION") throw new Error("Missing Scope Lock did not fail closed.");
+  const expanded = structuredClone(base); expanded.operations.push({ type: "replace_text", path: "b.js" });
+  if (!buildScopeLock(expanded).violations.some(item => item.code === "PATH_SCOPE_EXPANSION")) throw new Error("Scope expansion was not rejected.");
+  if (!buildScopeLock(base).locked) throw new Error("Valid Scope Lock was rejected.");
   console.log("Toolchain Orchestrator self-test passed.");
 }
 
