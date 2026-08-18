@@ -50,6 +50,8 @@ dev_scripts/
   INFRASTRUCTURE_PUBLISHER.md   protected publication authorization, hash, and authority contract
   toolchain-compatibility-staging.mjs exact staged dev-tool transition -> compatibility sequence/report
   TOOLCHAIN_COMPATIBILITY_STAGING.md current/proposed tool compatibility and authority contract
+  failure-evidence-extractor.mjs terminal failed workflow -> compact scoped evidence record
+  FAILURE_EVIDENCE_EXTRACTOR.md failure compression, regression classification, and authority contract
   path-mover.mjs                  relocation + relative-import rewrite executor
   path-mover.json                 declarative relocation plan
 
@@ -100,6 +102,10 @@ npm run infrastructure:publish:self-test
 # Developer-tool transition compatibility
 npm run toolchain-compatibility -- --snapshot transition.json --output /tmp/toolchain-compatibility.json
 npm run toolchain-compatibility:self-test
+
+# Terminal failure compression / targeted evidence
+npm run failure-evidence -- --report github-telemetry-report.json --output /tmp/failure-evidence.json
+npm run failure-evidence:self-test
 
 # Architecture diagnostics
 npm run audit
@@ -235,11 +241,14 @@ originating workflow emits GitHub telemetry receipt (`if: always()`)
     ↓
 GitHub Telemetry auto-triggers on `workflow_run: completed`
     ↓
+Failure Evidence Extractor on terminal failure only
+  one jobs read -> one failed-job log read -> bounded error evidence + scope/baseline classification
+    ↓
 terminal commit status + normalized telemetry artifact
     ↓
 Toolchain Orchestrator terminal closure
   SUCCEEDED -> permitted_next_action=none
-  FAILED -> one compact failure record / modify_request only
+  FAILED -> extractor-backed compact failure record / modify_request only
     ↓
 live Foundry Runtime Contract Probe test when runtime-sensitive
 ```
@@ -257,6 +266,8 @@ The **Assistant Context Broker** is the pre-corridor read boundary. It converts 
 The **Patch Authoring Compiler** is the authoring boundary between certified evidence and FilePatcher operations. When a bounded request supplies `authoring_intent`, FilePatcher first gathers the Request Envelope, Context Broker packet, Patch Corridor, and Corridor Context Pack, then compiles the explicit edit primitives into ordinary schema-v2 operations. The compiler adds source SHA guards, blocks Context Broker snapshot drift, and enforces declared/certified scope; it cannot invent edits, broaden the corridor, execute mutation, validate, or promote. Existing hand-authored `operations` remain supported. See `dev_scripts/PATCH_AUTHORING_COMPILER.md`.
 
 The **Toolchain Compatibility Staging** tool is activated only when FilePatcher's exact staged transition changes executable developer-tool files or `package.json`. It proves the currently-installed changed tools remain healthy, builds an isolated proposed `dev_scripts/` overlay, syntax-checks proposed JavaScript tools, and runs proposed package-registered self-tests before FilePatcher mutates the repository. It never creates bootstrap generations or performs mutation itself. See `dev_scripts/TOOLCHAIN_COMPATIBILITY_STAGING.md`.
+
+The **Failure Evidence Extractor** is the terminal-failure compression boundary. GitHub Telemetry invokes it only after an unsuccessful terminal workflow, where it reads the failed-run jobs once and the selected failed-job log once, surfaces bounded error neighborhoods, compares evidenced paths with the Request Envelope scope, and uses canonical before/after diagnostic evidence when available to distinguish newly introduced regressions from proven pre-existing findings. Without a baseline, outside-scope evidence is reported conservatively as `outside_request_scope_unproven`. It never polls, retries, mutates, validates independently, or absorbs unrelated repair work. See `dev_scripts/FAILURE_EVIDENCE_EXTRACTOR.md`.
 
 The local Python FilePatcher is the richer fallback/recovery path and maintains its own backup/history facilities.
 
@@ -286,7 +297,7 @@ A GitHub-connected chat session cannot receive unsolicited workflow webhooks int
 
 The Toolchain Orchestrator is a deliberately small policy/state wrapper around the established tools. It does not create a second planner, patcher, validator, or promotion path. Before FilePatcher mutation it consumes the Request Envelope's semantic identity, blocks an identical terminal failure/success from being blindly rerun, checks once for competing known mutation workflows on the same branch, and returns one compact assistant-facing state.
 
-GitHub completion telemetry carries that request identity forward. When the originating workflow terminates, telemetry maps success/failure into the orchestrator contract, fetches the failed job/step once when a terminal failure needs diagnosis, and publishes `frame-conn/orchestrator` status on both the request commit and resulting implementation commit. Successful validation/promotion is closure; the permitted next action is `none`.
+GitHub completion telemetry carries that request identity forward. When the originating workflow terminates unsuccessfully, telemetry delegates diagnosis to Failure Evidence Extractor, which returns one compact failed-stage/evidence record instead of requiring assistant-side job/log reconstruction. Telemetry then maps that record into the orchestrator contract and publishes `frame-conn/orchestrator` status on both the request commit and resulting implementation commit. Successful validation/promotion is closure; the permitted next action is `none`.
 
 Direct GitHub mutation is never an equivalent fallback. A demonstrated toolchain capability gap must be surfaced with the smallest proposed exception and explicit user authorization requirement before any direct action. See `dev_scripts/TOOLCHAIN_ORCHESTRATOR.md`.
 

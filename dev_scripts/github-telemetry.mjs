@@ -8,6 +8,7 @@ import {
   buildTerminalCompletionRecord,
   ORCHESTRATOR_STATUS_CONTEXT
 } from "./toolchain-orchestrator.mjs";
+import { extractTerminalFailureEvidence } from "./failure-evidence-extractor.mjs";
 
 const SCHEMA_VERSION = 1;
 const DEFAULT_RECEIPT_NAME = "github-telemetry-receipt.json";
@@ -83,11 +84,18 @@ function buildReceipt(args, env = process.env) {
   const triggeringSha = stringValue(args, "head-sha", env.FRAME_CONN_TELEMETRY_HEAD_SHA || env.GITHUB_SHA);
   const resultCommitSha = stringValue(args, "result-sha", currentGitSha() || triggeringSha);
   let orchestratorRequest = null;
+  let requestScope = [];
   if (workflow === "GitHub FilePatcher") {
     try {
-      orchestratorRequest = buildRequestIdentityFromFile().identity;
+      const requestRecord = buildRequestIdentityFromFile();
+      orchestratorRequest = requestRecord.identity;
+      requestScope = [...new Set([
+        ...(requestRecord.envelope?.scope?.operation_paths ?? []),
+        ...(requestRecord.envelope?.scope?.allowed_paths ?? [])
+      ])];
     } catch {
       orchestratorRequest = null;
+      requestScope = [];
     }
   }
   return {
@@ -104,7 +112,8 @@ function buildReceipt(args, env = process.env) {
     repository: stringValue(args, "repository", env.GITHUB_REPOSITORY),
     triggeringSha,
     resultCommitSha,
-    orchestratorRequest
+    orchestratorRequest,
+    requestScope
   };
 }
 
@@ -157,7 +166,8 @@ function buildReport(eventPayload, receipt = null) {
     startedAt: run.run_started_at || run.created_at || null,
     completedAt: run.updated_at || null,
     receiptAvailable: Boolean(receipt),
-    orchestratorRequest: receipt?.orchestratorRequest ?? null
+    orchestratorRequest: receipt?.orchestratorRequest ?? null,
+    requestScope: receipt?.requestScope ?? []
   };
 }
 
@@ -186,40 +196,6 @@ async function publishCommitStatus(report, token, apiUrl = "https://api.github.c
     throw new Error(`GitHub status publish failed (${response.status}): ${body}`);
   }
   return response.json();
-}
-
-async function fetchTerminalFailureEvidence(report, token, apiUrl = "https://api.github.com") {
-  if (!report.runId || report.conclusion === "success") return null;
-  const endpoint = `${apiUrl.replace(/\/$/, "")}/repos/${report.repository}/actions/runs/${report.runId}/jobs?per_page=100`;
-  const response = await fetch(endpoint, {
-    headers: {
-      Accept: "application/vnd.github+json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      "X-GitHub-Api-Version": "2022-11-28",
-      "User-Agent": "frame-conn-github-telemetry"
-    }
-  });
-  if (!response.ok) return null;
-  const payload = await response.json();
-  const failedJob = (payload.jobs ?? []).find(job => ["failure", "cancelled", "timed_out"].includes(job.conclusion)) ?? null;
-  const failedStep = failedJob?.steps?.find(step => ["failure", "cancelled", "timed_out"].includes(step.conclusion)) ?? null;
-  const stage = failedStep?.name || failedJob?.name || "workflow";
-  const normalizedStage = stage.toLowerCase();
-  const failureClass = normalizedStage.includes("commit") || normalizedStage.includes("push")
-    ? "promotion_failure"
-    : (normalizedStage.includes("validate") || normalizedStage.includes("audit") || normalizedStage.includes("diff") || normalizedStage.includes("test") || normalizedStage.includes("propagation"))
-      ? "validation_failure"
-      : "canonical_workflow_failure";
-  return {
-    failed_stage: stage,
-    failure_class: failureClass,
-    summary: `${report.workflow} failed at ${stage}.`,
-    relevant_evidence: [{
-      job: failedJob?.name ?? null,
-      step: failedStep?.name ?? null,
-      conclusion: failedStep?.conclusion ?? failedJob?.conclusion ?? report.conclusion
-    }]
-  };
 }
 
 async function publishOrchestratorStatus(report, token, apiUrl = "https://api.github.com") {
@@ -326,7 +302,11 @@ async function main() {
     const receiptPath = findReceipt(args);
     const receipt = receiptPath && fs.existsSync(receiptPath) ? readJson(receiptPath) : null;
     const report = buildReport(eventPayload, receipt);
-    const failureEvidence = await fetchTerminalFailureEvidence(report, process.env.GITHUB_TOKEN, process.env.GITHUB_API_URL);
+    const failureEvidence = await extractTerminalFailureEvidence(report, {
+      token: process.env.GITHUB_TOKEN,
+      apiUrl: process.env.GITHUB_API_URL,
+      scopePaths: report.requestScope
+    });
     report.orchestrator = buildTerminalCompletionRecord(report, failureEvidence);
     const output = stringValue(args, "output", DEFAULT_REPORT_NAME);
     writeJson(output, report);

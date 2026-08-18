@@ -106,8 +106,9 @@ With telemetry:
 trigger workflow
   -> originating workflow automatically emits receipt
   -> GitHub automatically triggers telemetry on completion
+  -> on failure: Failure Evidence Extractor reads one failed job/log and compresses evidence
   -> telemetry publishes terminal status on result commit
-  -> consume the terminal telemetry state
+  -> consume the terminal telemetry/orchestrator state
 ```
 
 The repository side is fully event-driven. A ChatGPT/GitHub connector session cannot receive unsolicited webhook callbacks into an already-running assistant turn, so the telemetry layer cannot itself inject a new chat message. Its role is to ensure that completion is already recorded as canonical GitHub state, eliminating the need to repeatedly poll the originating workflow's job state.
@@ -116,6 +117,10 @@ The repository side is fully event-driven. A ChatGPT/GitHub connector session ca
 
 The receipt steps use `if: always()` so they still run after normal workflow-step failures whenever checkout and the runner remain available.
 
+For an unsuccessful terminal workflow, telemetry delegates diagnosis to `failure-evidence-extractor.mjs`. The extractor performs one jobs lookup, selects the terminal failed job/step, reads that job log once, and returns only bounded error neighborhoods plus request-scope/regression classification. Full logs remain available for targeted expansion but are not the normal assistant-facing result.
+
+The receipt carries the Request Envelope's bounded operation/allowed-path scope for FilePatcher runs. The extractor uses that scope to distinguish in-scope evidence from outside-scope evidence. It labels a finding `pre_existing_only` only when canonical baseline/current evidence proves no new finding; outside-scope log evidence without a baseline is conservatively `outside_request_scope_unproven`.
+
 If a receipt cannot be downloaded, the telemetry publisher falls back to the `workflow_run.head_sha` and records `receiptAvailable: false`. This preserves a terminal completion signal even when the richer result-commit evidence is unavailable.
 
-Telemetry never mutates source files and never commits its generated reports back to the repository, preventing completion-report loops.
+Telemetry and Failure Evidence Extractor never mutate source files and never commit generated reports back to the repository, preventing completion-report loops.

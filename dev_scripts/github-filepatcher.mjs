@@ -488,6 +488,7 @@ function validateDeveloperToolSyntax() {
     path.join(ROOT, "dev_scripts", "mutation-carrier-router.mjs"),
     path.join(ROOT, "dev_scripts", "infrastructure-publisher.mjs"),
     path.join(ROOT, "dev_scripts", "toolchain-compatibility-staging.mjs"),
+    path.join(ROOT, "dev_scripts", "failure-evidence-extractor.mjs"),
     path.join(ROOT, "dev_scripts", "toolchain-orchestrator.mjs"),
     path.join(ROOT, "dev_scripts", "assistant-context-broker.mjs")
   ];
@@ -604,6 +605,13 @@ function validateDeveloperToolSyntax() {
   if (toolchainCompatibilityStagingSelfTest.stderr) process.stderr.write(toolchainCompatibilityStagingSelfTest.stderr);
   if (toolchainCompatibilityStagingSelfTest.error) fail(`Toolchain Compatibility Staging self-test could not start: ${toolchainCompatibilityStagingSelfTest.error}`);
   if (toolchainCompatibilityStagingSelfTest.status !== 0) fail("Toolchain Compatibility Staging self-test failed.");
+
+  const failureEvidenceExtractor = path.join(ROOT, "dev_scripts", "failure-evidence-extractor.mjs");
+  const failureEvidenceExtractorSelfTest = spawnSync(process.execPath, [failureEvidenceExtractor, "--self-test"], { cwd: ROOT, encoding: "utf8" });
+  if (failureEvidenceExtractorSelfTest.stdout) process.stdout.write(failureEvidenceExtractorSelfTest.stdout);
+  if (failureEvidenceExtractorSelfTest.stderr) process.stderr.write(failureEvidenceExtractorSelfTest.stderr);
+  if (failureEvidenceExtractorSelfTest.error) fail(`Failure Evidence Extractor self-test could not start: ${failureEvidenceExtractorSelfTest.error}`);
+  if (failureEvidenceExtractorSelfTest.status !== 0) fail("Failure Evidence Extractor self-test failed.");
 
   const toolchainOrchestrator = path.join(ROOT, "dev_scripts", "toolchain-orchestrator.mjs");
   const toolchainOrchestratorSelfTest = spawnSync(process.execPath, [toolchainOrchestrator, "--self-test"], { cwd: ROOT, encoding: "utf8" });
