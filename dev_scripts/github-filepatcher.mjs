@@ -487,6 +487,7 @@ function validateDeveloperToolSyntax() {
     path.join(ROOT, "dev_scripts", "patch-authoring-compiler.mjs"),
     path.join(ROOT, "dev_scripts", "mutation-carrier-router.mjs"),
     path.join(ROOT, "dev_scripts", "infrastructure-publisher.mjs"),
+    path.join(ROOT, "dev_scripts", "toolchain-compatibility-staging.mjs"),
     path.join(ROOT, "dev_scripts", "toolchain-orchestrator.mjs"),
     path.join(ROOT, "dev_scripts", "assistant-context-broker.mjs")
   ];
@@ -596,6 +597,13 @@ function validateDeveloperToolSyntax() {
   if (infrastructurePublisherSelfTest.stderr) process.stderr.write(infrastructurePublisherSelfTest.stderr);
   if (infrastructurePublisherSelfTest.error) fail(`Infrastructure Publisher self-test could not start: ${infrastructurePublisherSelfTest.error}`);
   if (infrastructurePublisherSelfTest.status !== 0) fail("Infrastructure Publisher self-test failed.");
+
+  const toolchainCompatibilityStaging = path.join(ROOT, "dev_scripts", "toolchain-compatibility-staging.mjs");
+  const toolchainCompatibilityStagingSelfTest = spawnSync(process.execPath, [toolchainCompatibilityStaging, "--self-test"], { cwd: ROOT, encoding: "utf8" });
+  if (toolchainCompatibilityStagingSelfTest.stdout) process.stdout.write(toolchainCompatibilityStagingSelfTest.stdout);
+  if (toolchainCompatibilityStagingSelfTest.stderr) process.stderr.write(toolchainCompatibilityStagingSelfTest.stderr);
+  if (toolchainCompatibilityStagingSelfTest.error) fail(`Toolchain Compatibility Staging self-test could not start: ${toolchainCompatibilityStagingSelfTest.error}`);
+  if (toolchainCompatibilityStagingSelfTest.status !== 0) fail("Toolchain Compatibility Staging self-test failed.");
 
   const toolchainOrchestrator = path.join(ROOT, "dev_scripts", "toolchain-orchestrator.mjs");
   const toolchainOrchestratorSelfTest = spawnSync(process.execPath, [toolchainOrchestrator, "--self-test"], { cwd: ROOT, encoding: "utf8" });
@@ -839,6 +847,51 @@ function runRuntimeContractProbePlanning(goal, corridorReport) {
   }
 }
 
+
+function runToolchainCompatibilityStaging(plan) {
+  const stagingScript = path.join(ROOT, "dev_scripts", "toolchain-compatibility-staging.mjs");
+  if (!fs.existsSync(stagingScript)) fail(`Toolchain Compatibility Staging tool not found: ${stagingScript}`);
+
+  const snapshotFile = path.join(os.tmpdir(), `frame-conn-toolchain-compatibility-snapshot-${process.pid}.json`);
+  const outputFile = path.join(os.tmpdir(), `frame-conn-toolchain-compatibility-report-${process.pid}.json`);
+  const snapshot = {
+    version: 1,
+    changes: plan.changedFiles.map(relativePath => {
+      const original = plan.originalFiles.get(relativePath);
+      return {
+        path: relativePath,
+        beforeExists: original?.exists ?? false,
+        before: original?.exists ? original.content : null,
+        afterExists: true,
+        after: plan.stagedFiles.get(relativePath) ?? null
+      };
+    })
+  };
+  fs.writeFileSync(snapshotFile, `${JSON.stringify(snapshot, null, 2)}\n`, "utf8");
+
+  const result = spawnSync(
+    process.execPath,
+    [stagingScript, "--snapshot", snapshotFile, "--output", outputFile],
+    { cwd: ROOT, encoding: "utf8", maxBuffer: 8 * 1024 * 1024 }
+  );
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+  if (result.error) fail(`Toolchain Compatibility Staging could not start: ${result.error}`);
+  if (result.status !== 0) fail(`Toolchain Compatibility Staging failed with exit code ${result.status}.`);
+
+  try {
+    const report = JSON.parse(fs.readFileSync(outputFile, "utf8"));
+    console.log(`[github-filepatcher] toolchain_compatibility_applicable=${report.applicable ? "yes" : "no"}`);
+    console.log(`[github-filepatcher] toolchain_compatibility=${report.compatible ? "compatible" : "blocked"}`);
+    console.log(`[github-filepatcher] toolchain_compatibility_paths=${report.changed_toolchain_paths?.length ?? 0}`);
+    if (!report.compatible) fail("Toolchain Compatibility Staging blocked the proposed toolchain transition.");
+    return report;
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("[github-filepatcher]")) throw error;
+    fail(`Toolchain Compatibility Staging report could not be read: ${error}`);
+  }
+}
+
 function runChangePropagationSimulation(patch, plan, corridorReport, stagingReport) {
   const simulatorScript = path.join(ROOT, "dev_scripts", "change-propagation-simulator.mjs");
   if (!fs.existsSync(simulatorScript)) fail(`Change Propagation Simulator not found: ${simulatorScript}`);
@@ -961,6 +1014,9 @@ function main() {
     const stagingReport = corridorReport
       ? runAutomaticPatchStaging(requestGoal, corridorReport)
       : null;
+    const toolchainCompatibilityReport = plan.changedFiles.length > 0
+      ? runToolchainCompatibilityStaging(plan)
+      : null;
 
     if (plan.changedFiles.length > 0) {
       runChangePropagationSimulation(patch, plan, corridorReport, stagingReport);
@@ -976,6 +1032,7 @@ function main() {
     console.log(`[github-filepatcher] changed_files=${plan.changedFiles.length}`);
     plan.changedFiles.forEach((file) => console.log(`[github-filepatcher] change=${file}`));
     if (rawRequest.authoring_intent) console.log("[github-filepatcher] patch_authoring_compiled=yes");
+    if (toolchainCompatibilityReport?.applicable) console.log("[github-filepatcher] toolchain_compatibility_staged=yes");
     if (assistantContextReport) console.log(`[github-filepatcher] context_broker_packet=${assistantContextReport.packet_fingerprint?.slice(0, 12) ?? "unknown"}`);
     if (corridorReport) reportCorridorScope(plan, corridorReport);
     if (stagingReport) reportAutomaticStagingScope(plan, stagingReport);

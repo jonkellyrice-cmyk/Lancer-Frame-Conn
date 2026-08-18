@@ -48,6 +48,8 @@ dev_scripts/
   MUTATION_CARRIER_ROUTER.md     routing, conflict, readiness, and authority contract
   infrastructure-publisher.mjs  explicitly authorized CAPABILITY_GAP -> one protected-file publication
   INFRASTRUCTURE_PUBLISHER.md   protected publication authorization, hash, and authority contract
+  toolchain-compatibility-staging.mjs exact staged dev-tool transition -> compatibility sequence/report
+  TOOLCHAIN_COMPATIBILITY_STAGING.md current/proposed tool compatibility and authority contract
   path-mover.mjs                  relocation + relative-import rewrite executor
   path-mover.json                 declarative relocation plan
 
@@ -94,6 +96,10 @@ npm run mutation-route:self-test
 npm run infrastructure:publish -- --manifest /tmp/infrastructure-publication.json
 npm run infrastructure:publish -- --manifest /tmp/infrastructure-publication.json --publish
 npm run infrastructure:publish:self-test
+
+# Developer-tool transition compatibility
+npm run toolchain-compatibility -- --snapshot transition.json --output /tmp/toolchain-compatibility.json
+npm run toolchain-compatibility:self-test
 
 # Architecture diagnostics
 npm run audit
@@ -205,6 +211,9 @@ Toolchain Orchestrator preflight
     ↓
 GitHub FilePatcher builds exact staged before/after transition
     ↓
+Toolchain Compatibility Staging when developer tools are changing
+  current installed health -> isolated proposed syntax/self-tests -> compatibility decision
+    ↓
 Change Propagation Simulator
   contract deltas + intermediate obligations + compatibility + fan-out + verification targets
     ↓
@@ -246,6 +255,8 @@ The **Infrastructure Publisher** is deliberately outside that normal carrier set
 The **Assistant Context Broker** is the pre-corridor read boundary. It converts the envelope goal or an explicit symbol query into one bounded packet containing ranked repository files, exact source slices, direct local import/importer edges, optional symbol references, and a repository/file-hash snapshot. It does not certify architecture and cannot broaden Patch Corridor. GitHub FilePatcher invokes it automatically when the Request Envelope carries a goal, before corridor certification. See `dev_scripts/ASSISTANT_CONTEXT_BROKER.md`.
 
 The **Patch Authoring Compiler** is the authoring boundary between certified evidence and FilePatcher operations. When a bounded request supplies `authoring_intent`, FilePatcher first gathers the Request Envelope, Context Broker packet, Patch Corridor, and Corridor Context Pack, then compiles the explicit edit primitives into ordinary schema-v2 operations. The compiler adds source SHA guards, blocks Context Broker snapshot drift, and enforces declared/certified scope; it cannot invent edits, broaden the corridor, execute mutation, validate, or promote. Existing hand-authored `operations` remain supported. See `dev_scripts/PATCH_AUTHORING_COMPILER.md`.
+
+The **Toolchain Compatibility Staging** tool is activated only when FilePatcher's exact staged transition changes executable developer-tool files or `package.json`. It proves the currently-installed changed tools remain healthy, builds an isolated proposed `dev_scripts/` overlay, syntax-checks proposed JavaScript tools, and runs proposed package-registered self-tests before FilePatcher mutates the repository. It never creates bootstrap generations or performs mutation itself. See `dev_scripts/TOOLCHAIN_COMPATIBILITY_STAGING.md`.
 
 The local Python FilePatcher is the richer fallback/recovery path and maintains its own backup/history facilities.
 

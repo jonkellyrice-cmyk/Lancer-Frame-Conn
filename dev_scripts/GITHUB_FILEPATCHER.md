@@ -85,6 +85,8 @@ When present, FilePatcher uses this pre-mutation chain. Mutation planning itself
 ```text
 mutation planning (in memory)
     ↓
+Toolchain Compatibility Staging when the exact staged transition changes developer tools
+    ↓
 planning_goal → Clause-Aware Patch Corridor
     ↓
 Automatic Patch Staging
