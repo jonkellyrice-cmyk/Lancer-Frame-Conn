@@ -1,112 +1,17 @@
 {
   "schema_version": 2,
-  "id": "toolchain-orchestrator-enforcement-integration",
-  "description": "Wire the Toolchain Orchestrator into FilePatcher preflight/permanent checks and GitHub Telemetry terminal closure without adding a parallel planner, mutation engine, validator, or workflow carrier.",
+  "id": "toolchain-orchestrator-public-read-fallback",
+  "description": "Keep the orchestrator's read-only conflict and terminal-history checks functional when the workflow token lacks actions/status read scope by retrying public GitHub reads without authorization.",
   "policy": {
-    "max_files_changed": 3,
-    "allowed_paths": [
-      "dev_scripts/github-filepatcher.mjs",
-      "dev_scripts/github-telemetry.mjs",
-      "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md"
-    ]
+    "max_files_changed": 1,
+    "allowed_paths": ["dev_scripts/toolchain-orchestrator.mjs"]
   },
   "operations": [
     {
       "type": "replace_text",
-      "path": "dev_scripts/github-filepatcher.mjs",
-      "search": "    path.join(ROOT, \"dev_scripts\", \"runtime-contract-probes.mjs\"),\n    path.join(ROOT, \"dev_scripts\", \"change-propagation-simulator.mjs\")\n",
-      "replace": "    path.join(ROOT, \"dev_scripts\", \"runtime-contract-probes.mjs\"),\n    path.join(ROOT, \"dev_scripts\", \"change-propagation-simulator.mjs\"),\n    path.join(ROOT, \"dev_scripts\", \"toolchain-orchestrator.mjs\")\n",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/github-filepatcher.mjs",
-      "search": "  if (changePropagationSelfTest.error) fail(`Change Propagation Simulator self-test could not start: ${changePropagationSelfTest.error}`);\n  if (changePropagationSelfTest.status !== 0) fail(\"Change Propagation Simulator self-test failed.\");\n\n  console.log(\"[github-filepatcher] Developer tool syntax checks passed.\");\n",
-      "replace": "  if (changePropagationSelfTest.error) fail(`Change Propagation Simulator self-test could not start: ${changePropagationSelfTest.error}`);\n  if (changePropagationSelfTest.status !== 0) fail(\"Change Propagation Simulator self-test failed.\");\n\n  const toolchainOrchestrator = path.join(ROOT, \"dev_scripts\", \"toolchain-orchestrator.mjs\");\n  const toolchainOrchestratorSelfTest = spawnSync(process.execPath, [toolchainOrchestrator, \"--self-test\"], { cwd: ROOT, encoding: \"utf8\" });\n  if (toolchainOrchestratorSelfTest.stdout) process.stdout.write(toolchainOrchestratorSelfTest.stdout);\n  if (toolchainOrchestratorSelfTest.stderr) process.stderr.write(toolchainOrchestratorSelfTest.stderr);\n  if (toolchainOrchestratorSelfTest.error) fail(`Toolchain Orchestrator self-test could not start: ${toolchainOrchestratorSelfTest.error}`);\n  if (toolchainOrchestratorSelfTest.status !== 0) fail(\"Toolchain Orchestrator self-test failed.\");\n\n  console.log(\"[github-filepatcher] Developer tool syntax checks passed.\");\n",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/github-filepatcher.mjs",
-      "search": "function main() {\n  try {\n    const patch = readPatchFile();\n",
-      "replace": "function runToolchainOrchestratorExecutionGuard() {\n  const orchestratorScript = path.join(ROOT, \"dev_scripts\", \"toolchain-orchestrator.mjs\");\n  if (!fs.existsSync(orchestratorScript)) fail(`Toolchain Orchestrator not found: ${orchestratorScript}`);\n  const result = spawnSync(\n    process.execPath,\n    [orchestratorScript, \"execute\", \"--request\", PATCH_FILE],\n    { cwd: ROOT, encoding: \"utf8\", maxBuffer: 4 * 1024 * 1024, env: process.env }\n  );\n  if (result.stdout) process.stdout.write(result.stdout);\n  if (result.stderr) process.stderr.write(result.stderr);\n  if (result.error) fail(`Toolchain Orchestrator preflight could not start: ${result.error}`);\n  if (result.status !== 0) fail(`Toolchain Orchestrator refused execution with exit code ${result.status}.`);\n}\n\nfunction main() {\n  try {\n    runToolchainOrchestratorExecutionGuard();\n    const patch = readPatchFile();\n",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/github-telemetry.mjs",
-      "search": "import childProcess from \"node:child_process\";\n",
-      "replace": "import childProcess from \"node:child_process\";\nimport {\n  buildRequestIdentityFromFile,\n  buildTerminalCompletionRecord,\n  ORCHESTRATOR_STATUS_CONTEXT\n} from \"./toolchain-orchestrator.mjs\";\n",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/github-telemetry.mjs",
-      "search": "  const resultCommitSha = stringValue(args, \"result-sha\", currentGitSha() || triggeringSha);\n  return {\n",
-      "replace": "  const resultCommitSha = stringValue(args, \"result-sha\", currentGitSha() || triggeringSha);\n  let orchestratorRequest = null;\n  if (workflow === \"GitHub FilePatcher\") {\n    try {\n      orchestratorRequest = buildRequestIdentityFromFile().identity;\n    } catch {\n      orchestratorRequest = null;\n    }\n  }\n  return {\n",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/github-telemetry.mjs",
-      "search": "    repository: stringValue(args, \"repository\", env.GITHUB_REPOSITORY),\n    triggeringSha,\n    resultCommitSha\n",
-      "replace": "    repository: stringValue(args, \"repository\", env.GITHUB_REPOSITORY),\n    triggeringSha,\n    resultCommitSha,\n    orchestratorRequest\n",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/github-telemetry.mjs",
-      "search": "    completedAt: run.updated_at || null,\n    receiptAvailable: Boolean(receipt)\n",
-      "replace": "    completedAt: run.updated_at || null,\n    receiptAvailable: Boolean(receipt),\n    orchestratorRequest: receipt?.orchestratorRequest ?? null\n",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/github-telemetry.mjs",
-      "search": "  return response.json();\n}\n\nfunction printReportSummary(report) {\n",
-      "replace": "  return response.json();\n}\n\nasync function fetchTerminalFailureEvidence(report, token, apiUrl = \"https://api.github.com\") {\n  if (!report.runId || report.conclusion === \"success\") return null;\n  const endpoint = `${apiUrl.replace(/\\\/$/, \"\")}/repos/${report.repository}/actions/runs/${report.runId}/jobs?per_page=100`;\n  const response = await fetch(endpoint, {\n    headers: {\n      Accept: \"application/vnd.github+json\",\n      ...(token ? { Authorization: `Bearer ${token}` } : {}),\n      \"X-GitHub-Api-Version\": \"2022-11-28\",\n      \"User-Agent\": \"frame-conn-github-telemetry\"\n    }\n  });\n  if (!response.ok) return null;\n  const payload = await response.json();\n  const failedJob = (payload.jobs ?? []).find(job => [\"failure\", \"cancelled\", \"timed_out\"].includes(job.conclusion)) ?? null;\n  const failedStep = failedJob?.steps?.find(step => [\"failure\", \"cancelled\", \"timed_out\"].includes(step.conclusion)) ?? null;\n  const stage = failedStep?.name || failedJob?.name || \"workflow\";\n  const normalizedStage = stage.toLowerCase();\n  const failureClass = normalizedStage.includes(\"commit\") || normalizedStage.includes(\"push\")\n    ? \"promotion_failure\"\n    : (normalizedStage.includes(\"validate\") || normalizedStage.includes(\"audit\") || normalizedStage.includes(\"diff\") || normalizedStage.includes(\"test\") || normalizedStage.includes(\"propagation\"))\n      ? \"validation_failure\"\n      : \"canonical_workflow_failure\";\n  return {\n    failed_stage: stage,\n    failure_class: failureClass,\n    summary: `${report.workflow} failed at ${stage}.`,\n    relevant_evidence: [{\n      job: failedJob?.name ?? null,\n      step: failedStep?.name ?? null,\n      conclusion: failedStep?.conclusion ?? failedJob?.conclusion ?? report.conclusion\n    }]\n  };\n}\n\nasync function publishOrchestratorStatus(report, token, apiUrl = \"https://api.github.com\") {\n  if (!report.orchestrator || !token) return;\n  const state = report.orchestrator.state;\n  const statusStateValue = state === \"SUCCEEDED\" ? \"success\" : state === \"FAILED\" ? \"failure\" : \"error\";\n  const shortFingerprint = report.orchestrator.request?.fingerprint?.slice(0, 12) || \"unknown\";\n  const stage = report.orchestrator.failure?.failed_stage;\n  const description = `${state} request=${shortFingerprint}${stage ? ` stage=${stage}` : \"\"}`.slice(0, 140);\n  const shas = [...new Set([report.triggeringSha, report.resultCommitSha].filter(Boolean))];\n  for (const sha of shas) {\n    const endpoint = `${apiUrl.replace(/\\\/$/, \"\")}/repos/${report.repository}/statuses/${sha}`;\n    const response = await fetch(endpoint, {\n      method: \"POST\",\n      headers: {\n        Accept: \"application/vnd.github+json\",\n        Authorization: `Bearer ${token}`,\n        \"X-GitHub-Api-Version\": \"2022-11-28\",\n        \"User-Agent\": \"frame-conn-toolchain-orchestrator\"\n      },\n      body: JSON.stringify({\n        state: statusStateValue,\n        context: ORCHESTRATOR_STATUS_CONTEXT,\n        description,\n        target_url: report.runUrl || undefined\n      })\n    });\n    if (!response.ok) {\n      const body = await response.text();\n      throw new Error(`Orchestrator status publish failed (${response.status}): ${body}`);\n    }\n  }\n}\n\nfunction printReportSummary(report) {\n",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/github-telemetry.mjs",
-      "search": "    const report = buildReport(eventPayload, receipt);\n    const output = stringValue(args, \"output\", DEFAULT_REPORT_NAME);\n    writeJson(output, report);\n    printReportSummary(report);\n    if (!args.flags.has(\"dry-run\")) {\n      await publishCommitStatus(report, process.env.GITHUB_TOKEN, process.env.GITHUB_API_URL);\n      console.log(`Published terminal telemetry status to ${report.resultCommitSha}.`);\n    }\n",
-      "replace": "    const report = buildReport(eventPayload, receipt);\n    const failureEvidence = await fetchTerminalFailureEvidence(report, process.env.GITHUB_TOKEN, process.env.GITHUB_API_URL);\n    report.orchestrator = buildTerminalCompletionRecord(report, failureEvidence);\n    const output = stringValue(args, \"output\", DEFAULT_REPORT_NAME);\n    writeJson(output, report);\n    printReportSummary(report);\n    if (!args.flags.has(\"dry-run\")) {\n      await publishCommitStatus(report, process.env.GITHUB_TOKEN, process.env.GITHUB_API_URL);\n      await publishOrchestratorStatus(report, process.env.GITHUB_TOKEN, process.env.GITHUB_API_URL);\n      console.log(`Published terminal telemetry status to ${report.resultCommitSha}.`);\n      if (report.orchestrator) console.log(`Published orchestrator closure state ${report.orchestrator.state}.`);\n    }\n",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "search": "  github-telemetry.mjs            event-driven workflow-completion receipt/status publisher\n  GITHUB_TELEMETRY.md             GitHub completion telemetry contract and operator guide\n",
-      "replace": "  github-telemetry.mjs            event-driven workflow-completion receipt/status publisher\n  GITHUB_TELEMETRY.md             GitHub completion telemetry contract and operator guide\n  toolchain-orchestrator.mjs      policy/state guard around the canonical mutation workflow\n  TOOLCHAIN_ORCHESTRATOR.md       orchestrator state, fingerprint, conflict, and exception contract\n",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "search": "npm run github:telemetry:self-test\n\n# Architecture diagnostics\n",
-      "replace": "npm run github:telemetry:self-test\n\n# Toolchain interaction policy / compact transaction state\nnpm run toolchain:status\nnpm run toolchain:execute\nnpm run toolchain:failure\nnpm run toolchain:self-test\n\n# Architecture diagnostics\n",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "search": "dev_scripts/github-filepatcher.json\n    ↓\nGitHub FilePatcher builds exact staged before/after transition\n",
-      "replace": "dev_scripts/github-filepatcher.json\n    ↓\nToolchain Orchestrator preflight\n  semantic fingerprint + sticky terminal result + one mutation owner\n    ↓\nGitHub FilePatcher builds exact staged before/after transition\n",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "search": "terminal commit status + normalized telemetry artifact\n    ↓\nlive Foundry Runtime Contract Probe test when runtime-sensitive\n",
-      "replace": "terminal commit status + normalized telemetry artifact\n    ↓\nToolchain Orchestrator terminal closure\n  SUCCEEDED -> permitted_next_action=none\n  FAILED -> one compact failure record / modify_request only\n    ↓\nlive Foundry Runtime Contract Probe test when runtime-sensitive\n",
-      "expected_occurrences": 1
-    },
-    {
-      "type": "replace_text",
-      "path": "dev_scripts/DEVELOPMENT_TOOL_SUITE_GUIDE.md",
-      "search": "### The nine capability upgrades\n",
-      "replace": "### Toolchain Orchestrator\n\nThe Toolchain Orchestrator is a deliberately small policy/state wrapper around the established tools. It does not create a second planner, patcher, validator, or promotion path. Before FilePatcher mutation it fingerprints the semantic request, blocks an identical terminal failure/success from being blindly rerun, checks once for competing known mutation workflows on the same branch, and returns one compact assistant-facing state.\n\nGitHub completion telemetry carries that request identity forward. When the originating workflow terminates, telemetry maps success/failure into the orchestrator contract, fetches the failed job/step once when a terminal failure needs diagnosis, and publishes `frame-conn/orchestrator` status on both the request commit and resulting implementation commit. Successful validation/promotion is closure; the permitted next action is `none`.\n\nDirect GitHub mutation is never an equivalent fallback. A demonstrated toolchain capability gap must be surfaced with the smallest proposed exception and explicit user authorization requirement before any direct action. See `dev_scripts/TOOLCHAIN_ORCHESTRATOR.md`.\n\n### The nine capability upgrades\n",
+      "path": "dev_scripts/toolchain-orchestrator.mjs",
+      "search": "async function githubJson(endpoint) {\n  const base = String(process.env.GITHUB_API_URL || \"https://api.github.com\").replace(/\\\/$/, \"\");\n  const response = await fetch(`${base}${endpoint}`, { headers: apiHeaders() });\n  if (!response.ok) {\n    const body = await response.text();\n    throw new Error(`GitHub read failed (${response.status}) for ${endpoint}: ${body}`);\n  }\n  return response.json();\n}\n",
+      "replace": "async function githubJson(endpoint) {\n  const base = String(process.env.GITHUB_API_URL || \"https://api.github.com\").replace(/\\\/$/, \"\");\n  const url = `${base}${endpoint}`;\n  const authenticatedHeaders = apiHeaders();\n  let response = await fetch(url, { headers: authenticatedHeaders });\n\n  if (!response.ok && authenticatedHeaders.Authorization && [401, 403].includes(response.status)) {\n    const publicHeaders = { ...authenticatedHeaders };\n    delete publicHeaders.Authorization;\n    response = await fetch(url, { headers: publicHeaders });\n  }\n\n  if (!response.ok) {\n    const body = await response.text();\n    throw new Error(`GitHub read failed (${response.status}) for ${endpoint}: ${body}`);\n  }\n  return response.json();\n}\n",
       "expected_occurrences": 1
     }
   ]
