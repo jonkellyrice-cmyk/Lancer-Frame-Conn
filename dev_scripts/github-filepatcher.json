@@ -1,30 +1,28 @@
 {
   "schema_version": 2,
-  "id": "remote-toolchain-onboarding-workflow-capability-gap-v1",
-  "description": "Request the single protected workflow required to execute the committed toolchain onboarding harness on a GitHub-hosted checkout when the assistant environment has no repository checkout or outbound GitHub DNS.",
+  "id": "trigger-remote-toolchain-onboarding-v1",
+  "description": "Create the ordinary onboarding trigger marker so the authorized protected workflow executes npm run toolchain:onboard on a GitHub-hosted checkout.",
   "acceptance_criteria": [
-    "A single workflow at .github/workflows/toolchain-onboarding.yml runs npm run toolchain:onboard on a GitHub-hosted checkout.",
-    "The workflow can be triggered by changes to dev_scripts/toolchain-onboarding-request.json and by workflow_dispatch.",
-    "The onboarding receipt is uploaded as a workflow artifact even when onboarding fails.",
-    "The workflow itself does not mutate repository source or bypass the onboarding harness fail-closed result."
+    "Create dev_scripts/toolchain-onboarding-request.json as a non-production trigger marker.",
+    "The marker contains a unique request id and states that the full onboarding drill is required.",
+    "No production or runtime source is changed."
   ],
   "non_goals": [
-    "Modify any other workflow.",
-    "Grant the onboarding harness arbitrary mutation authority.",
-    "Replace FilePatcher or Toolchain Orchestrator.",
+    "Modify .github/workflows again.",
+    "Change the onboarding harness.",
     "Change runtime Lancer behavior."
   ],
   "authoring_mode": "raw_operations",
-  "raw_operations_reason": "This request intentionally targets exactly one protected .github/workflows path in order for Toolchain Orchestrator to surface the required CAPABILITY_GAP record before the user-authorized Infrastructure Publisher exception is used.",
+  "raw_operations_reason": "This is a one-file non-runtime trigger marker whose only purpose is to activate the already-authorized remote onboarding workflow; no semantic source authoring is required.",
   "policy": {
     "max_files_changed": 1,
-    "allowed_paths": [".github/workflows/toolchain-onboarding.yml"]
+    "allowed_paths": ["dev_scripts/toolchain-onboarding-request.json"]
   },
   "operations": [
     {
       "type": "create_file",
-      "path": ".github/workflows/toolchain-onboarding.yml",
-      "content": "name: Frame Conn Toolchain Onboarding\n\non:\n  workflow_dispatch:\n  push:\n    branches:\n      - main\n    paths:\n      - dev_scripts/toolchain-onboarding-request.json\n\npermissions:\n  contents: read\n\nconcurrency:\n  group: frame-conn-toolchain-onboarding\n  cancel-in-progress: false\n\njobs:\n  onboard:\n    runs-on: ubuntu-latest\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v4\n\n      - name: Setup Node\n        uses: actions/setup-node@v4\n        with:\n          node-version: 22\n\n      - name: Run toolchain onboarding\n        id: onboarding\n        continue-on-error: true\n        env:\n          FRAME_CONN_ONBOARDING_RECEIPT: ${{ runner.temp }}/frame-conn-toolchain-onboarding-receipt.json\n        run: npm run toolchain:onboard\n\n      - name: Upload onboarding receipt\n        if: always()\n        uses: actions/upload-artifact@v4\n        with:\n          name: frame-conn-toolchain-onboarding-${{ github.run_id }}\n          path: ${{ runner.temp }}/frame-conn-toolchain-onboarding-receipt.json\n          if-no-files-found: error\n          retention-days: 30\n\n      - name: Enforce onboarding result\n        if: steps.onboarding.outcome != 'success'\n        run: exit 1\n"
+      "path": "dev_scripts/toolchain-onboarding-request.json",
+      "content": "{\n  \"schema_version\": 1,\n  \"id\": \"onboard-instance-2026-08-18T09-11-00-07-00\",\n  \"purpose\": \"Run the full Frame Conn toolchain onboarding drill and require a COMPLETE receipt before development work.\"\n}\n"
     }
   ]
 }
