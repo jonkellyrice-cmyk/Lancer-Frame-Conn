@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
-  "id": "fix-precommitted-action-economy-v9-hook-corridor",
-  "description": "Refine the hook-owned Disengage economy request after the certified corridor selected action-economy-hooks.js but rejected transaction-flavored wording; preserve the same bounded hook fix.",
+  "id": "fix-precommitted-action-economy-v10-authoring-contract",
+  "description": "Correct the Patch Authoring Compiler shape after the v9 corridor certified 9/9 clauses and accepted action-economy-hooks.js, but insert_before_exact rejected the wrong payload field name.",
   "planning_goal": "For committed full.disengage execution, the System Bridge action-economy hook must apply the existing ignoreActionCost mechanism when the authoritative current Turn state contains a matching unexecuted committed action. This keeps the already-recorded Full Action from blocking Disengage effect execution or being consumed again. If no matching committed action exists, preserve ordinary action-economy behavior. Do not change Disengage status or suppression rules, targeting, execution routing, or native Lancer behavior.",
   "acceptance_criteria": [
     "The System Bridge action-economy hook recognizes a matching unexecuted committed Turn action.",
@@ -45,7 +45,7 @@
         "kind": "insert_before_exact",
         "path": "system_bridge/action_economy/action-economy-hooks.js",
         "search": "/* ============================================================\n   PRE-VALIDATION HOOK\n   ============================================================ */",
-        "replace": "/**\n * Return true only when the prepared authoritative Turn snapshot already\n * contains this exact semantic action as an unexecuted committed entry.\n */\nfunction preparedActionEconomyMatchesUnexecutedCommittedTurnAction(\n  prepared\n) {\n  const actionId =\n    prepared\n      ?.request\n      ?.actionId ??\n    null;\n\n  const usedActions =\n    prepared\n      ?.snapshot\n      ?.metadata\n      ?.rawState\n      ?.usedActions;\n\n  if (\n    !actionId ||\n    !Array.isArray(\n      usedActions\n    )\n  ) {\n    return false;\n  }\n\n  return usedActions.some(\n    entry =>\n      entry?.actionId === actionId &&\n      entry?.executed !== true\n  );\n}\n\n\n"
+        "content": "/**\n * Return true only when the prepared authoritative Turn snapshot already\n * contains this exact semantic action as an unexecuted committed entry.\n */\nfunction preparedActionEconomyMatchesUnexecutedCommittedTurnAction(\n  prepared\n) {\n  const actionId =\n    prepared\n      ?.request\n      ?.actionId ??\n    null;\n\n  const usedActions =\n    prepared\n      ?.snapshot\n      ?.metadata\n      ?.rawState\n      ?.usedActions;\n\n  if (\n    !actionId ||\n    !Array.isArray(\n      usedActions\n    )\n  ) {\n    return false;\n  }\n\n  return usedActions.some(\n    entry =>\n      entry?.actionId === actionId &&\n      entry?.executed !== true\n  );\n}\n\n\n"
       },
       {
         "kind": "replace_exact",
