@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
-  "id": "brace-reaction-popup-diagnostic-v3",
-  "description": "Use the canonical Frame Conn diagnostic maps and planning pipeline to locate why the Brace reaction popup does not appear when existing Brace eligibility says it should.",
+  "id": "brace-reaction-popup-fix-v4",
+  "description": "Present the Brace reaction prompt from the certified Brace damage-message presentation owner without changing Brace eligibility or mechanics.",
   "planning_goal": "Present the existing Brace reaction prompt when the current Brace reaction eligibility rules say Brace is available after its intended trigger.",
   "scope_lock": {
     "schema_version": 1,
@@ -12,11 +12,13 @@
       "Repair only the smallest certified existing ownership seam responsible for presenting the Brace reaction prompt when existing eligibility says Brace is available.",
       "Validate the repair through the canonical FilePatcher diagnostics, propagation simulation, runtime probes, audits, and validation."
     ],
-    "authorized_paths": [],
+    "authorized_paths": [
+      "scripts/player_features/feature_brace/brace-feature.js"
+    ],
     "forbidden_expansions": [
       "Do not change Brace rules, eligibility semantics, costs, effects, or native execution behavior.",
       "Do not change unrelated reactions or actions.",
-      "Do not redesign reaction UI.",
+      "Do not redesign reaction UI beyond restoring the missing Brace prompt.",
       "Do not modify dev_scripts, workflows, infrastructure, Scope Lock, or Abstraction Lock as part of the Brace repair.",
       "Do not perform generic GitHub/source search, guessed source reads, adjacent cleanup, or unrelated refactors."
     ],
@@ -25,20 +27,42 @@
   },
   "acceptance_criteria": [
     "The canonical diagnostic maps certify the Brace trigger-to-eligibility-to-presentation corridor.",
-    "The repair changes only the smallest certified existing ownership seam.",
-    "When existing Brace eligibility says Brace is available for its intended trigger, the existing Brace reaction prompt is presented.",
+    "The repair changes only scripts/player_features/feature_brace/brace-feature.js.",
+    "When existing Brace eligibility says Brace is available for a rendered hit damage event, a Brace reaction prompt is presented.",
+    "The prompt reuses the existing Brace button activation path rather than duplicating eligibility, reaction spending, resistance application, or aftermath mechanics.",
+    "The same damage-message target is not prompted repeatedly when the chat message rerenders.",
     "When existing Brace eligibility says Brace is unavailable, no Brace prompt is presented.",
+    "The existing damage-card Brace button remains functional.",
     "Brace mechanics and unrelated reactions remain unchanged.",
     "Change propagation and canonical validation pass."
   ],
   "non_goals": [
     "Change Brace mechanics.",
     "Change unrelated reactions.",
-    "Redesign reaction presentation.",
+    "Replace the existing damage-card Brace control.",
     "Modify developer tooling or infrastructure."
   ],
   "policy": {
-    "max_files_changed": 1
+    "max_files_changed": 1,
+    "allowed_paths": [
+      "scripts/player_features/feature_brace/brace-feature.js"
+    ]
+  },
+  "authoring_intent": {
+    "edits": [
+      {
+        "kind": "insert_before_exact",
+        "path": "scripts/player_features/feature_brace/brace-feature.js",
+        "search": "function handleDamageMessage(message, html) {",
+        "content": "const promptedBraceDamageEvents = new Set();\n\nfunction braceDamageEventKey(message, targetUuid) {\n  if (!message?.id || !targetUuid) return null;\n  return `${message.id}:${targetUuid}`;\n}\n\nfunction promptBraceReaction(button, { message, targetUuid, permission } = {}) {\n  if (!button || permission?.allowed !== true) return false;\n  const eventKey = braceDamageEventKey(message, targetUuid);\n  if (!eventKey || promptedBraceDamageEvents.has(eventKey)) return false;\n  const DialogClass = globalThis.Dialog;\n  if (typeof DialogClass !== \"function\") return false;\n  promptedBraceDamageEvents.add(eventKey);\n  try {\n    new DialogClass({\n      title: \"Frame Conn | Brace\",\n      content: \"<p>You were hit. Use Brace against this damage event?</p>\",\n      buttons: {\n        brace: {\n          icon: '<i class=\"fas fa-shield-halved\"></i>',\n          label: \"Brace\",\n          callback: () => button.click()\n        },\n        decline: {\n          icon: '<i class=\"fas fa-xmark\"></i>',\n          label: \"Not Now\"\n        }\n      },\n      default: \"brace\"\n    }).render(true);\n    return true;\n  } catch (error) {\n    promptedBraceDamageEvents.delete(eventKey);\n    console.warn(\"Frame Conn | Could not present Brace reaction prompt.\", error);\n    return false;\n  }\n}\n\n"
+      },
+      {
+        "kind": "replace_exact",
+        "path": "scripts/player_features/feature_brace/brace-feature.js",
+        "search": "    presentButton(button, { active, permission: active ? null : canUse(actor) });\n    if (button.dataset.fcBraceBound === \"true\") continue;\n    button.dataset.fcBraceBound = \"true\";\n    button.addEventListener(\"click\", async event => {\n      event.preventDefault(); event.stopPropagation(); button.disabled = true;\n      try {\n        await activate(actor, { messageId: message.id, targetUuid });\n        selectResistance(group); presentButton(button, { active: true });\n        ui.notifications?.info(\"Frame Conn | Brace armed. Apply damage normally.\");\n      } catch (error) {\n        presentButton(button, { permission: canUse(actor) });\n        ui.notifications?.error(error instanceof Error ? error.message : String(error));\n      }\n    });",
+        "replace": "    const permission = active ? null : canUse(actor);\n    presentButton(button, { active, permission });\n    if (button.dataset.fcBraceBound !== \"true\") {\n      button.dataset.fcBraceBound = \"true\";\n      button.addEventListener(\"click\", async event => {\n        event.preventDefault(); event.stopPropagation(); button.disabled = true;\n        try {\n          await activate(actor, { messageId: message.id, targetUuid });\n          selectResistance(group); presentButton(button, { active: true });\n          ui.notifications?.info(\"Frame Conn | Brace armed. Apply damage normally.\");\n        } catch (error) {\n          presentButton(button, { permission: canUse(actor) });\n          ui.notifications?.error(error instanceof Error ? error.message : String(error));\n        }\n      });\n    }\n    if (!active) promptBraceReaction(button, { message, targetUuid, permission });"
+      }
+    ]
   },
   "operations": []
 }
