@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
-  "id": "fix-precommitted-action-economy-v3",
+  "id": "fix-precommitted-action-economy-v4",
   "description": "Prevent an already committed Frame Conn action from consuming its action economy a second time when its effect is executed.",
-  "planning_goal": "For a committed full.disengage action, Frame Conn Turn state has already recorded the Full Action before effect execution. Preserve that existing expenditure and execute the Disengage effect without consuming action economy a second time. Use the existing action-economy ignore-cost mechanism only when the authoritative current Turn state contains a matching unexecuted committed action. If there is no matching committed action, preserve ordinary action-economy behavior. Do not change Disengage status or suppression rules, targeting, or native Lancer behavior.",
+  "planning_goal": "For a committed full.disengage action, Frame Conn Turn state has already recorded the Full Action before effect execution. Execute the Disengage effect without consuming action economy a second time. Use the existing action-economy ignore-cost mechanism only when the authoritative current Turn state contains a matching unexecuted committed action. If there is no matching committed action, preserve ordinary action-economy behavior. Do not change Disengage status or suppression rules, targeting, or native Lancer behavior.",
   "acceptance_criteria": [
     "A matching unexecuted committed Turn action uses the existing action-economy ignore-cost mechanism during effect execution.",
     "The already committed Full Action remains spent exactly once.",
