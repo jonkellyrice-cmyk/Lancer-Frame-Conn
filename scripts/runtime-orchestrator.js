@@ -337,10 +337,18 @@ const frameConnFoundryIntegrationApi =
     "foundry-integration"
   );
 
+/* TEMPORARY ELEVATION / LOS SUSPENSION (2026-09-04)
+ * Frame Conn's Foundry-wide elevation/LOS feature is intentionally unregistered so another
+ * module can own elevation without competing wrappers, hooks, config fields, or refreshes.
+ * RESTORE EXACTLY: remove this block-comment wrapper; the original API lookup and hard
+ * dependency are preserved verbatim below. Also restore the matching registry entry,
+ * initialize/ready calls, and public API exposure marked elsewhere in this file.
+ *
 const frameConnElevationLosApi = frameConnFeatureRegistry.getApi("elevation-los");
 if (!frameConnElevationLosApi) {
   throw new Error("Frame Conn | The registered Elevation / LOS feature API could not be resolved.");
 }
+*/
 
 
 if (
@@ -2055,7 +2063,9 @@ Hooks.once(
 
     validateFrameConnRuntimeComposition();
 
-    frameConnElevationLosApi.initialize?.();
+    // TEMPORARILY SUSPENDED: elevation/LOS initialization is disabled.
+    // RESTORE EXACTLY by uncommenting the next line after restoring feature registration/API lookup.
+    // frameConnElevationLosApi.initialize?.();
 
 
     /**
@@ -2109,7 +2119,9 @@ Hooks.once(
         "window"
       );
 
-    frameConnElevationLosApi.ready?.();
+    // TEMPORARILY SUSPENDED: elevation/LOS ready-time activation is disabled.
+    // RESTORE EXACTLY by uncommenting the next line after restoring feature registration/API lookup.
+    // frameConnElevationLosApi.ready?.();
 
     frameConnFoundryIntegrationApi
       .registerSocket?.();
@@ -2157,8 +2169,10 @@ Hooks.once(
       foundry:
         frameConnFoundryIntegrationApi,
 
-      elevationLOS:
-        frameConnElevationLosApi,
+      // TEMPORARILY SUSPENDED: Frame Conn does not publish its elevation/LOS API.
+      // RESTORE EXACTLY by uncommenting the next two lines after restoring feature registration/API lookup.
+      // elevationLOS:
+      //   frameConnElevationLosApi,
 
 
       /* --------------------------------------------------------
