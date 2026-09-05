@@ -1,66 +1,93 @@
 {
   "schema_version": 2,
-  "id": "brace-reaction-popup-fix-v4",
-  "description": "Present the Brace reaction prompt from the certified Brace damage-message presentation owner without changing Brace eligibility or mechanics.",
-  "planning_goal": "Present the existing Brace reaction prompt when the current Brace reaction eligibility rules say Brace is available after its intended trigger.",
+  "id": "temporarily-neutralize-elevation-los-v1",
+  "description": "Temporarily neutralize Frame Conn's Foundry-wide Elevation / LOS feature so another module can own elevation without conflict, while preserving the implementation and leaving explicit restoration instructions in code.",
+  "planning_goal": "Stop Frame Conn from registering, initializing, readying, or publicly exposing its Foundry-wide elevation/LOS feature. Preserve every file under scripts/foundry_features/elevation_los unchanged, and preserve the disabled wiring as commented code with exact restoration guidance.",
   "scope_lock": {
     "schema_version": 1,
-    "lock_id": "user-request-2026-08-18-brace-popup-v2",
-    "original_user_instruction": "Now, use the toolchain, including the new scope lock and the new abstraction lock, to fix the brace reaction in the goddamn repo, using the fucking toolchain and the diagnostic maps that you're fucking supposed to use instead of interfacing directly with GitHub.",
+    "lock_id": "user-request-2026-09-04-temporary-elevation-neutralization-v1",
+    "original_user_instruction": "Go to the Lancer Framecon repo, locate the elevation code, and don't delete it; comment it out and snip its dependencies with comments saying what was done and how to restore it exactly. Use the repo's Dev Scripts toolchain and workflow.",
     "authorized_deliverables": [
-      "Diagnose the missing Brace reaction popup through the established diagnostic-map abstraction.",
-      "Repair only the smallest certified existing ownership seam responsible for presenting the Brace reaction prompt when existing eligibility says Brace is available.",
-      "Validate the repair through the canonical FilePatcher diagnostics, propagation simulation, runtime probes, audits, and validation."
+      "Temporarily disconnect the existing Foundry-wide Elevation / LOS feature from canonical feature registration.",
+      "Remove the runtime orchestrator's hard dependency, startup calls, and public API exposure for that feature while it is suspended.",
+      "Leave explicit in-code comments that identify the suspension and tell a future maintainer exactly what to uncomment to restore the current behavior.",
+      "Validate the narrow change through the canonical FilePatcher toolchain and repository diagnostics."
     ],
     "authorized_paths": [
-      "scripts/player_features/feature_brace/brace-feature.js"
+      "scripts/foundry_features/foundry-feature-registry.js",
+      "scripts/runtime-orchestrator.js"
     ],
     "forbidden_expansions": [
-      "Do not change Brace rules, eligibility semantics, costs, effects, or native execution behavior.",
-      "Do not change unrelated reactions or actions.",
-      "Do not redesign reaction UI beyond restoring the missing Brace prompt.",
-      "Do not modify dev_scripts, workflows, infrastructure, Scope Lock, or Abstraction Lock as part of the Brace repair.",
-      "Do not perform generic GitHub/source search, guessed source reads, adjacent cleanup, or unrelated refactors."
+      "Do not delete or modify any file under scripts/foundry_features/elevation_los/.",
+      "Do not change elevation/LOS algorithms, flags, wrappers, hooks, config UI, or document commands themselves.",
+      "Do not change movement rules or generic token elevation handling outside the Foundry-wide elevation/LOS feature.",
+      "Do not change unrelated Frame Conn features, gameplay rules, UI, or developer tooling.",
+      "Do not replace the suspended implementation with a new elevation implementation."
     ],
     "allow_capability_construction": false,
     "authorized_capabilities": []
   },
   "acceptance_criteria": [
-    "The canonical diagnostic maps certify the Brace trigger-to-eligibility-to-presentation corridor.",
-    "The repair changes only scripts/player_features/feature_brace/brace-feature.js.",
-    "When existing Brace eligibility says Brace is available for a rendered hit damage event, a Brace reaction prompt is presented.",
-    "The prompt reuses the existing Brace button activation path rather than duplicating eligibility, reaction spending, resistance application, or aftermath mechanics.",
-    "The same damage-message target is not prompted repeatedly when the chat message rerenders.",
-    "When existing Brace eligibility says Brace is unavailable, no Brace prompt is presented.",
-    "The existing damage-card Brace button remains functional.",
-    "Brace mechanics and unrelated reactions remain unchanged.",
-    "Change propagation and canonical validation pass."
+    "Frame Conn no longer imports or registers frameConnElevationLosFeature at runtime.",
+    "runtime-orchestrator.js no longer requires the elevation-los API to exist.",
+    "runtime-orchestrator.js no longer calls the elevation-los initialize or ready API while suspended.",
+    "game.lancerFrameConn no longer exposes the Frame Conn elevationLOS API while suspended.",
+    "All files under scripts/foundry_features/elevation_los/ remain byte-for-byte unchanged.",
+    "The disabled registration and runtime wiring remain visible as comments next to restoration instructions, so restoration consists only of uncommenting the preserved lines/blocks.",
+    "Frame Conn startup and dependency validation continue to succeed without the elevation-los feature registered.",
+    "Canonical FilePatcher dry-run/apply validation and repository diagnostics pass."
   ],
   "non_goals": [
-    "Change Brace mechanics.",
-    "Change unrelated reactions.",
-    "Replace the existing damage-card Brace control.",
-    "Modify developer tooling or infrastructure."
+    "Delete elevation code.",
+    "Refactor elevation code.",
+    "Alter another module.",
+    "Change Lancer movement mechanics that merely read token elevation.",
+    "Redesign Frame Conn architecture."
   ],
   "policy": {
-    "max_files_changed": 1,
+    "max_files_changed": 2,
     "allowed_paths": [
-      "scripts/player_features/feature_brace/brace-feature.js"
+      "scripts/foundry_features/foundry-feature-registry.js",
+      "scripts/runtime-orchestrator.js"
     ]
   },
   "authoring_intent": {
     "edits": [
       {
-        "kind": "insert_before_exact",
-        "path": "scripts/player_features/feature_brace/brace-feature.js",
-        "search": "function handleDamageMessage(message, html) {",
-        "content": "const promptedBraceDamageEvents = new Set();\n\nfunction braceDamageEventKey(message, targetUuid) {\n  if (!message?.id || !targetUuid) return null;\n  return `${message.id}:${targetUuid}`;\n}\n\nfunction promptBraceReaction(button, { message, targetUuid, permission } = {}) {\n  if (!button || permission?.allowed !== true) return false;\n  const eventKey = braceDamageEventKey(message, targetUuid);\n  if (!eventKey || promptedBraceDamageEvents.has(eventKey)) return false;\n  const DialogClass = globalThis.Dialog;\n  if (typeof DialogClass !== \"function\") return false;\n  promptedBraceDamageEvents.add(eventKey);\n  try {\n    new DialogClass({\n      title: \"Frame Conn | Brace\",\n      content: \"<p>You were hit. Use Brace against this damage event?</p>\",\n      buttons: {\n        brace: {\n          icon: '<i class=\"fas fa-shield-halved\"></i>',\n          label: \"Brace\",\n          callback: () => button.click()\n        },\n        decline: {\n          icon: '<i class=\"fas fa-xmark\"></i>',\n          label: \"Not Now\"\n        }\n      },\n      default: \"brace\"\n    }).render(true);\n    return true;\n  } catch (error) {\n    promptedBraceDamageEvents.delete(eventKey);\n    console.warn(\"Frame Conn | Could not present Brace reaction prompt.\", error);\n    return false;\n  }\n}\n\n"
+        "kind": "replace_exact",
+        "path": "scripts/foundry_features/foundry-feature-registry.js",
+        "search": "import { frameConnElevationLosFeature } from \"./elevation_los/elevation-los-feature.js\";",
+        "replace": "// TEMPORARY ELEVATION / LOS SUSPENSION (2026-09-04): Frame Conn must not load its own\n// Foundry-wide elevation/LOS implementation while another module owns that surface.\n// RESTORE EXACTLY: uncomment the import below and the matching registry entry below.\n// No elevation_los implementation files were deleted or changed.\n// import { frameConnElevationLosFeature } from \"./elevation_los/elevation-los-feature.js\";"
       },
       {
         "kind": "replace_exact",
-        "path": "scripts/player_features/feature_brace/brace-feature.js",
-        "search": "    presentButton(button, { active, permission: active ? null : canUse(actor) });\n    if (button.dataset.fcBraceBound === \"true\") continue;\n    button.dataset.fcBraceBound = \"true\";\n    button.addEventListener(\"click\", async event => {\n      event.preventDefault(); event.stopPropagation(); button.disabled = true;\n      try {\n        await activate(actor, { messageId: message.id, targetUuid });\n        selectResistance(group); presentButton(button, { active: true });\n        ui.notifications?.info(\"Frame Conn | Brace armed. Apply damage normally.\");\n      } catch (error) {\n        presentButton(button, { permission: canUse(actor) });\n        ui.notifications?.error(error instanceof Error ? error.message : String(error));\n      }\n    });",
-        "replace": "    const permission = active ? null : canUse(actor);\n    presentButton(button, { active, permission });\n    if (button.dataset.fcBraceBound !== \"true\") {\n      button.dataset.fcBraceBound = \"true\";\n      button.addEventListener(\"click\", async event => {\n        event.preventDefault(); event.stopPropagation(); button.disabled = true;\n        try {\n          await activate(actor, { messageId: message.id, targetUuid });\n          selectResistance(group); presentButton(button, { active: true });\n          ui.notifications?.info(\"Frame Conn | Brace armed. Apply damage normally.\");\n        } catch (error) {\n          presentButton(button, { permission: canUse(actor) });\n          ui.notifications?.error(error instanceof Error ? error.message : String(error));\n        }\n      });\n    }\n    if (!active) promptBraceReaction(button, { message, targetUuid, permission });"
+        "path": "scripts/foundry_features/foundry-feature-registry.js",
+        "search": "  frameConnElevationLosFeature",
+        "replace": "  // TEMPORARILY SUSPENDED; RESTORE EXACTLY by uncommenting the next line.\n  // frameConnElevationLosFeature"
+      },
+      {
+        "kind": "replace_exact",
+        "path": "scripts/runtime-orchestrator.js",
+        "search": "const frameConnElevationLosApi = frameConnFeatureRegistry.getApi(\"elevation-los\");\nif (!frameConnElevationLosApi) {\n  throw new Error(\"Frame Conn | The registered Elevation / LOS feature API could not be resolved.\");\n}",
+        "replace": "/* TEMPORARY ELEVATION / LOS SUSPENSION (2026-09-04)\n * Frame Conn's Foundry-wide elevation/LOS feature is intentionally unregistered so another\n * module can own elevation without competing wrappers, hooks, config fields, or refreshes.\n * RESTORE EXACTLY: remove this block-comment wrapper; the original API lookup and hard\n * dependency are preserved verbatim below. Also restore the matching registry entry,\n * initialize/ready calls, and public API exposure marked elsewhere in this file.\n *\nconst frameConnElevationLosApi = frameConnFeatureRegistry.getApi(\"elevation-los\");\nif (!frameConnElevationLosApi) {\n  throw new Error(\"Frame Conn | The registered Elevation / LOS feature API could not be resolved.\");\n}\n*/"
+      },
+      {
+        "kind": "replace_exact",
+        "path": "scripts/runtime-orchestrator.js",
+        "search": "    frameConnElevationLosApi.initialize?.();",
+        "replace": "    // TEMPORARILY SUSPENDED: elevation/LOS initialization is disabled.\n    // RESTORE EXACTLY by uncommenting the next line after restoring feature registration/API lookup.\n    // frameConnElevationLosApi.initialize?.();"
+      },
+      {
+        "kind": "replace_exact",
+        "path": "scripts/runtime-orchestrator.js",
+        "search": "    frameConnElevationLosApi.ready?.();",
+        "replace": "    // TEMPORARILY SUSPENDED: elevation/LOS ready-time activation is disabled.\n    // RESTORE EXACTLY by uncommenting the next line after restoring feature registration/API lookup.\n    // frameConnElevationLosApi.ready?.();"
+      },
+      {
+        "kind": "replace_exact",
+        "path": "scripts/runtime-orchestrator.js",
+        "search": "      elevationLOS:\n        frameConnElevationLosApi,",
+        "replace": "      // TEMPORARILY SUSPENDED: Frame Conn does not publish its elevation/LOS API.\n      // RESTORE EXACTLY by uncommenting the next two lines after restoring feature registration/API lookup.\n      // elevationLOS:\n      //   frameConnElevationLosApi,"
       }
     ]
   },
