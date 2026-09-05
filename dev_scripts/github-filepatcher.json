@@ -1,17 +1,16 @@
 {
   "schema_version": 2,
-  "id": "temporarily-neutralize-elevation-los-v1",
+  "id": "temporarily-neutralize-elevation-los-v2",
   "description": "Temporarily neutralize Frame Conn's Foundry-wide Elevation / LOS feature so another module can own elevation without conflict, while preserving the implementation and leaving explicit restoration instructions in code.",
-  "planning_goal": "Stop Frame Conn from registering, initializing, readying, or publicly exposing its Foundry-wide elevation/LOS feature. Preserve every file under scripts/foundry_features/elevation_los unchanged, and preserve the disabled wiring as commented code with exact restoration guidance.",
   "scope_lock": {
     "schema_version": 1,
-    "lock_id": "user-request-2026-09-04-temporary-elevation-neutralization-v1",
+    "lock_id": "user-request-2026-09-04-temporary-elevation-neutralization-v2",
     "original_user_instruction": "Go to the Lancer Framecon repo, locate the elevation code, and don't delete it; comment it out and snip its dependencies with comments saying what was done and how to restore it exactly. Use the repo's Dev Scripts toolchain and workflow.",
     "authorized_deliverables": [
       "Temporarily disconnect the existing Foundry-wide Elevation / LOS feature from canonical feature registration.",
       "Remove the runtime orchestrator's hard dependency, startup calls, and public API exposure for that feature while it is suspended.",
       "Leave explicit in-code comments that identify the suspension and tell a future maintainer exactly what to uncomment to restore the current behavior.",
-      "Validate the narrow change through the canonical FilePatcher toolchain and repository diagnostics."
+      "Validate the narrow change through the canonical GitHub FilePatcher mutation, simulation, audit, rollback, diff-validation, and bot-commit path."
     ],
     "authorized_paths": [
       "scripts/foundry_features/foundry-feature-registry.js",
@@ -32,10 +31,10 @@
     "runtime-orchestrator.js no longer requires the elevation-los API to exist.",
     "runtime-orchestrator.js no longer calls the elevation-los initialize or ready API while suspended.",
     "game.lancerFrameConn no longer exposes the Frame Conn elevationLOS API while suspended.",
-    "All files under scripts/foundry_features/elevation_los/ remain byte-for-byte unchanged.",
+    "All files under scripts/foundry_features/elevation_los/ remain unchanged.",
     "The disabled registration and runtime wiring remain visible as comments next to restoration instructions, so restoration consists only of uncommenting the preserved lines/blocks.",
-    "Frame Conn startup and dependency validation continue to succeed without the elevation-los feature registered.",
-    "Canonical FilePatcher dry-run/apply validation and repository diagnostics pass."
+    "Frame Conn startup dependency validation continues to succeed without the elevation-los feature registered.",
+    "Canonical GitHub FilePatcher dry-run/apply validation and repository diagnostics pass."
   ],
   "non_goals": [
     "Delete elevation code.",
@@ -51,45 +50,50 @@
       "scripts/runtime-orchestrator.js"
     ]
   },
-  "authoring_intent": {
-    "edits": [
-      {
-        "kind": "replace_exact",
-        "path": "scripts/foundry_features/foundry-feature-registry.js",
-        "search": "import { frameConnElevationLosFeature } from \"./elevation_los/elevation-los-feature.js\";",
-        "replace": "// TEMPORARY ELEVATION / LOS SUSPENSION (2026-09-04): Frame Conn must not load its own\n// Foundry-wide elevation/LOS implementation while another module owns that surface.\n// RESTORE EXACTLY: uncomment the import below and the matching registry entry below.\n// No elevation_los implementation files were deleted or changed.\n// import { frameConnElevationLosFeature } from \"./elevation_los/elevation-los-feature.js\";"
-      },
-      {
-        "kind": "replace_exact",
-        "path": "scripts/foundry_features/foundry-feature-registry.js",
-        "search": "  frameConnElevationLosFeature",
-        "replace": "  // TEMPORARILY SUSPENDED; RESTORE EXACTLY by uncommenting the next line.\n  // frameConnElevationLosFeature"
-      },
-      {
-        "kind": "replace_exact",
-        "path": "scripts/runtime-orchestrator.js",
-        "search": "const frameConnElevationLosApi = frameConnFeatureRegistry.getApi(\"elevation-los\");\nif (!frameConnElevationLosApi) {\n  throw new Error(\"Frame Conn | The registered Elevation / LOS feature API could not be resolved.\");\n}",
-        "replace": "/* TEMPORARY ELEVATION / LOS SUSPENSION (2026-09-04)\n * Frame Conn's Foundry-wide elevation/LOS feature is intentionally unregistered so another\n * module can own elevation without competing wrappers, hooks, config fields, or refreshes.\n * RESTORE EXACTLY: remove this block-comment wrapper; the original API lookup and hard\n * dependency are preserved verbatim below. Also restore the matching registry entry,\n * initialize/ready calls, and public API exposure marked elsewhere in this file.\n *\nconst frameConnElevationLosApi = frameConnFeatureRegistry.getApi(\"elevation-los\");\nif (!frameConnElevationLosApi) {\n  throw new Error(\"Frame Conn | The registered Elevation / LOS feature API could not be resolved.\");\n}\n*/"
-      },
-      {
-        "kind": "replace_exact",
-        "path": "scripts/runtime-orchestrator.js",
-        "search": "    frameConnElevationLosApi.initialize?.();",
-        "replace": "    // TEMPORARILY SUSPENDED: elevation/LOS initialization is disabled.\n    // RESTORE EXACTLY by uncommenting the next line after restoring feature registration/API lookup.\n    // frameConnElevationLosApi.initialize?.();"
-      },
-      {
-        "kind": "replace_exact",
-        "path": "scripts/runtime-orchestrator.js",
-        "search": "    frameConnElevationLosApi.ready?.();",
-        "replace": "    // TEMPORARILY SUSPENDED: elevation/LOS ready-time activation is disabled.\n    // RESTORE EXACTLY by uncommenting the next line after restoring feature registration/API lookup.\n    // frameConnElevationLosApi.ready?.();"
-      },
-      {
-        "kind": "replace_exact",
-        "path": "scripts/runtime-orchestrator.js",
-        "search": "      elevationLOS:\n        frameConnElevationLosApi,",
-        "replace": "      // TEMPORARILY SUSPENDED: Frame Conn does not publish its elevation/LOS API.\n      // RESTORE EXACTLY by uncommenting the next two lines after restoring feature registration/API lookup.\n      // elevationLOS:\n      //   frameConnElevationLosApi,"
-      }
-    ]
-  },
-  "operations": []
+  "authoring_mode": "raw_operations",
+  "raw_operations_reason": "The preferred authoring-intent route was attempted first and failed before mutation only because the clause-aware Patch Corridor could not classify the already-inspected registration, initialize, ready, and restoration-comment seams. The exact two-file runtime wiring was directly verified, so six deterministic exact replacements are being sent through the documented raw-operations escape hatch while retaining GitHub FilePatcher as mutation authority and retaining its normal dry-run, simulation, audits, rollback, diff validation, and bot commit.",
+  "operations": [
+    {
+      "type": "replace_text",
+      "path": "scripts/foundry_features/foundry-feature-registry.js",
+      "search": "import { frameConnElevationLosFeature } from \"./elevation_los/elevation-los-feature.js\";",
+      "replace": "// TEMPORARY ELEVATION / LOS SUSPENSION (2026-09-04): Frame Conn must not load its own\n// Foundry-wide elevation/LOS implementation while another module owns that surface.\n// RESTORE EXACTLY: uncomment the import below and the matching registry entry below.\n// No elevation_los implementation files were deleted or changed.\n// import { frameConnElevationLosFeature } from \"./elevation_los/elevation-los-feature.js\";",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/foundry_features/foundry-feature-registry.js",
+      "search": "  frameConnElevationLosFeature",
+      "replace": "  // TEMPORARILY SUSPENDED; RESTORE EXACTLY by uncommenting the next line.\n  // frameConnElevationLosFeature",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "const frameConnElevationLosApi = frameConnFeatureRegistry.getApi(\"elevation-los\");\nif (!frameConnElevationLosApi) {\n  throw new Error(\"Frame Conn | The registered Elevation / LOS feature API could not be resolved.\");\n}",
+      "replace": "/* TEMPORARY ELEVATION / LOS SUSPENSION (2026-09-04)\n * Frame Conn's Foundry-wide elevation/LOS feature is intentionally unregistered so another\n * module can own elevation without competing wrappers, hooks, config fields, or refreshes.\n * RESTORE EXACTLY: remove this block-comment wrapper; the original API lookup and hard\n * dependency are preserved verbatim below. Also restore the matching registry entry,\n * initialize/ready calls, and public API exposure marked elsewhere in this file.\n *\nconst frameConnElevationLosApi = frameConnFeatureRegistry.getApi(\"elevation-los\");\nif (!frameConnElevationLosApi) {\n  throw new Error(\"Frame Conn | The registered Elevation / LOS feature API could not be resolved.\");\n}\n*/",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "    frameConnElevationLosApi.initialize?.();",
+      "replace": "    // TEMPORARILY SUSPENDED: elevation/LOS initialization is disabled.\n    // RESTORE EXACTLY by uncommenting the next line after restoring feature registration/API lookup.\n    // frameConnElevationLosApi.initialize?.();",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "    frameConnElevationLosApi.ready?.();",
+      "replace": "    // TEMPORARILY SUSPENDED: elevation/LOS ready-time activation is disabled.\n    // RESTORE EXACTLY by uncommenting the next line after restoring feature registration/API lookup.\n    // frameConnElevationLosApi.ready?.();",
+      "expected_occurrences": 1
+    },
+    {
+      "type": "replace_text",
+      "path": "scripts/runtime-orchestrator.js",
+      "search": "      elevationLOS:\n        frameConnElevationLosApi,",
+      "replace": "      // TEMPORARILY SUSPENDED: Frame Conn does not publish its elevation/LOS API.\n      // RESTORE EXACTLY by uncommenting the next two lines after restoring feature registration/API lookup.\n      // elevationLOS:\n      //   frameConnElevationLosApi,",
+      "expected_occurrences": 1
+    }
+  ]
 }
